@@ -38,8 +38,10 @@ export {
 
 export {
   makeSecretNetworkPath,
-  SecretSecp256k1HdWallet as Secp256k1HdWallet,
+  SecretSecp256k1HdWallet,
 } from "./secp256k1_hd_wallet";
+
+export { BroadcastTxResponse, StdFee } from "@cosmjs/stargate";
 
 export { CosmWasmClient as SecretNetworkClient } from "@cosmjs/cosmwasm-stargate";
 export { SecretNetworkSigningClient } from "./secret_network_signing_client";
