@@ -10,7 +10,7 @@ import {
 export function makeSecretNetworkPath(a: number): HdPath {
   return [
     Slip10RawIndex.hardened(44),
-    Slip10RawIndex.hardened(118),
+    Slip10RawIndex.hardened(529),
     Slip10RawIndex.hardened(0),
     Slip10RawIndex.normal(0),
     Slip10RawIndex.normal(a),
