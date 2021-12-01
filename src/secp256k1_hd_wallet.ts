@@ -73,12 +73,21 @@ export class SecretSecp256k1HdWallet extends Secp256k1HdWallet {
    * @param options An optional `Secp256k1HdWalletOptions` object optionally containing a bip39Password, hdPaths, and prefix.
    */
   public static async generate(
-    length: 12 | 15 | 18 | 21 | 24 = 12,
+    length: 12 | 15 | 18 | 21 | 24 = 24,
     options: Partial<Secp256k1HdWalletOptions> = {}
   ): Promise<SecretSecp256k1HdWallet> {
     const entropyLength = 4 * Math.floor((11 * length) / 33);
     const entropy = Random.getBytes(entropyLength);
     const mnemonic = Bip39.encode(entropy);
-    return SecretSecp256k1HdWallet.fromMnemonic(mnemonic.toString(), options);
+
+    const hdPaths = options.hdPaths ?? defaultOptions.hdPaths;
+    const prefix = options.prefix ?? defaultOptions.prefix;
+    const bip39Password = options.bip39Password ?? defaultOptions.bip39Password;
+
+    return SecretSecp256k1HdWallet.fromMnemonic(mnemonic.toString(), {
+      hdPaths,
+      prefix,
+      bip39Password,
+    });
   }
 }
