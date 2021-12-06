@@ -2,7 +2,7 @@
 
 import { JsonObject } from "@cosmjs/cosmwasm-stargate";
 import { createProtobufRpcClient, QueryClient } from "@cosmjs/stargate";
-import { toAscii, fromUtf8 } from "@cosmjs/encoding";
+import { toAscii, fromUtf8, Bech32 } from "@cosmjs/encoding";
 import protobuf from "protobufjs/minimal";
 import { Any } from "./protobuf_stuff/google/protobuf/any";
 import Long from "long";
@@ -1867,7 +1867,8 @@ export const CodeInfoResponse = {
           message.codeId = reader.uint64() as Long;
           break;
         case 2:
-          message.creator = reader.string();
+          const creatorCanon = reader.bytes();
+          message.creator = Bech32.encode("secret", creatorCanon);
           break;
         case 3:
           message.dataHash = reader.bytes();
