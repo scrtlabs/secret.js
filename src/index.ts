@@ -44,4 +44,6 @@ export {
 export { BroadcastTxResponse, StdFee } from "@cosmjs/stargate";
 
 export { CosmWasmClient as SecretNetworkClient } from "@cosmjs/cosmwasm-stargate";
-export { SecretNetworkSigningClient } from "./secret_network_signing_client";
+export { SecretNetworkClient as SecretNetworkSigningClient } from "./secret_network_client";
+
+export { SecretUtils, EnigmaUtils } from "./encryption";
