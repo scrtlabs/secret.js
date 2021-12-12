@@ -31,10 +31,28 @@ import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Code, CodeDetails, Contract } from "./types_compute";
 import { ComputeExtension, setupComputeExtension } from "./queries_compute";
+import {
+  AccountData,
+  AminoSignResponse,
+  OfflineAminoSigner,
+  StdSignDoc,
+} from "@cosmjs/amino";
 
 export interface SecretJsSigningOptions {
   broadcastTimeoutMs?: number;
   broadcastPollIntervalMs?: number;
+}
+
+export class ReadonlySigner implements OfflineAminoSigner {
+  getAccounts(): Promise<readonly AccountData[]> {
+    throw new Error("getAccounts() is not supported in readonly mode.");
+  }
+  signAmino(
+    signerAddress: string,
+    signDoc: StdSignDoc
+  ): Promise<AminoSignResponse> {
+    throw new Error("signAmino() is not supported in readonly mode.");
+  }
 }
 
 export class SecretNetworkClient extends SigningCosmWasmClient {
@@ -44,19 +62,24 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     | undefined;
 
   /**
-   * Creates a client.
+   * Creates a readonly client.
+   */
+  public static async connect(endpoint: string): Promise<SecretNetworkClient> {
+    const tmClient = await Tendermint34Client.connect(endpoint);
+    return new SecretNetworkClient(tmClient, new ReadonlySigner());
+  }
+
+  /**
+   * Creates a signer client.
    */
   public static async connectWithSigner(
     endpoint: string,
     signer: OfflineSigner,
-    options: SecretJsSigningOptions = {}
+    options?: SecretJsSigningOptions
   ): Promise<SecretNetworkClient> {
     const tmClient = await Tendermint34Client.connect(endpoint);
 
-    return new SecretNetworkClient(tmClient, signer, {
-      prefix: "secret",
-      ...options,
-    });
+    return new SecretNetworkClient(tmClient, signer, options);
   }
 
   /**
@@ -78,9 +101,12 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
   protected constructor(
     tmClient: Tendermint34Client | undefined,
     signer: OfflineSigner,
-    options: SigningCosmWasmClientOptions
+    options: SigningCosmWasmClientOptions = {}
   ) {
-    super(tmClient, signer, options);
+    super(tmClient, signer, {
+      prefix: "secret",
+      ...options,
+    });
     if (tmClient) {
       this.secretQueryClient = QueryClient.withExtensions(
         tmClient,
@@ -168,7 +194,6 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
   }
 
   public async getContracts(codeId: number): Promise<readonly string[]> {
-    // TODO: handle pagination - accept as arg or auto-loop
     const { contracts } =
       await this.mustGetQueryClient().compute.listContractsByCodeId(codeId);
     return contracts;
