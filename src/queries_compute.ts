@@ -1104,23 +1104,6 @@ export interface QueryContractsByCodeResponse {
 }
 
 /**
- * QueryAllContractStateRequest is the request type for the
- * Query/AllContractState RPC method
- */
-export interface QueryAllContractStateRequest {
-  /** address is the address of the contract */
-  address: string;
-}
-
-/**
- * QueryAllContractStateResponse is the response type for the
- * Query/AllContractState RPC method
- */
-export interface QueryAllContractStateResponse {
-  models: Model[];
-}
-
-/**
  * QueryRawContractStateRequest is the request type for the
  * Query/RawContractState RPC method
  */
@@ -1409,7 +1392,7 @@ export const QueryContractsByCodeRequest = {
   },
 };
 
-const baseQueryContractsByCodeResponse: object = { contracts: "" };
+const baseQueryContractsByCodeResponse: object = { contracts: [] };
 
 export const QueryContractsByCodeResponse = {
   encode(
@@ -1437,7 +1420,8 @@ export const QueryContractsByCodeResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contracts.push(reader.string());
+          const creatorCanon = reader.bytes().slice(0, 20);
+          message.contracts.push(Bech32.encode("secret", creatorCanon));
           break;
         default:
           reader.skipType(tag & 7);
@@ -1472,138 +1456,6 @@ export const QueryContractsByCodeResponse = {
       ...baseQueryContractsByCodeResponse,
     } as QueryContractsByCodeResponse;
     message.contracts = object.contracts?.map((e) => e) || [];
-    return message;
-  },
-};
-
-const baseQueryAllContractStateRequest: object = { address: "" };
-
-export const QueryAllContractStateRequest = {
-  encode(
-    message: QueryAllContractStateRequest,
-    writer: protobuf.Writer = protobuf.Writer.create()
-  ): protobuf.Writer {
-    if (message.address !== "") {
-      writer.uint32(10).string(message.address);
-    }
-    return writer;
-  },
-
-  decode(
-    input: protobuf.Reader | Uint8Array,
-    length?: number
-  ): QueryAllContractStateRequest {
-    const reader =
-      input instanceof protobuf.Reader ? input : new protobuf.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryAllContractStateRequest,
-    } as QueryAllContractStateRequest;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.address = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryAllContractStateRequest {
-    const message = {
-      ...baseQueryAllContractStateRequest,
-    } as QueryAllContractStateRequest;
-    message.address =
-      object.address !== undefined && object.address !== null
-        ? String(object.address)
-        : "";
-    return message;
-  },
-
-  toJSON(message: QueryAllContractStateRequest): unknown {
-    const obj: any = {};
-    message.address !== undefined && (obj.address = message.address);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<QueryAllContractStateRequest>, I>>(
-    object: I
-  ): QueryAllContractStateRequest {
-    const message = {
-      ...baseQueryAllContractStateRequest,
-    } as QueryAllContractStateRequest;
-    message.address = object.address ?? "";
-    return message;
-  },
-};
-
-const baseQueryAllContractStateResponse: object = {};
-
-export const QueryAllContractStateResponse = {
-  encode(
-    message: QueryAllContractStateResponse,
-    writer: protobuf.Writer = protobuf.Writer.create()
-  ): protobuf.Writer {
-    for (const v of message.models) {
-      Model.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: protobuf.Reader | Uint8Array,
-    length?: number
-  ): QueryAllContractStateResponse {
-    const reader =
-      input instanceof protobuf.Reader ? input : new protobuf.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseQueryAllContractStateResponse,
-    } as QueryAllContractStateResponse;
-    message.models = [];
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.models.push(Model.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryAllContractStateResponse {
-    const message = {
-      ...baseQueryAllContractStateResponse,
-    } as QueryAllContractStateResponse;
-    message.models = (object.models ?? []).map((e: any) => Model.fromJSON(e));
-    return message;
-  },
-
-  toJSON(message: QueryAllContractStateResponse): unknown {
-    const obj: any = {};
-    if (message.models) {
-      obj.models = message.models.map((e) => (e ? Model.toJSON(e) : undefined));
-    } else {
-      obj.models = [];
-    }
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<QueryAllContractStateResponse>, I>>(
-    object: I
-  ): QueryAllContractStateResponse {
-    const message = {
-      ...baseQueryAllContractStateResponse,
-    } as QueryAllContractStateResponse;
-    message.models = object.models?.map((e) => Model.fromPartial(e)) || [];
     return message;
   },
 };
