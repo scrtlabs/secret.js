@@ -10,14 +10,18 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.26.5",
     "@cosmjs/proto-signing": "0.26.5",
     "@cosmjs/stargate": "0.26.5",
     "@cosmjs/tendermint-rpc": "0.26.5",
-    "axios": "0.24.0",
+    "axios": "0.25.0",
     "cosmjs-types": "0.2.0",
     "curve25519-js": "0.0.4",
     "js-crypto-hkdf": "1.0.3",
@@ -25,7 +29,13 @@
     "secure-random": "1.1.2"
   },
   "devDependencies": {
+    "@babel/preset-env": "7.16.11",
+    "@babel/preset-typescript": "7.16.7",
+    "@types/axios": "0.14.0",
+    "@types/jest": "27.4.0",
     "@types/secure-random": "1.1.0",
+    "jest": "27.4.7",
+    "prettier": "2.5.1",
     "typescript": "4.5.2"
   }
 }
