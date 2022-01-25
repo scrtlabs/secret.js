@@ -10,7 +10,7 @@ mkdir -p "$OUT_DIR"
 PLUGIN_PATH="${SCRIPTPATH}/../node_modules/.bin/protoc-gen-ts_proto"
 TS_PROTO_OPTS="esModuleInterop=true,forceLong=long,useOptionals=true,useDate=false"
 
-# Path to this plugin, Note this must be an abolsute path on Windows (see #15)
+# Path to this plugin, Note this must be an abolsute path on Windows
 PLUGIN_PATH="${SCRIPTPATH}/../node_modules/.bin/protoc-gen-ts_proto"
 
 SECRET_DIR="${SCRIPTPATH}/SecretNetwork/proto"

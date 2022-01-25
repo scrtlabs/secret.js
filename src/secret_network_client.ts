@@ -17,7 +17,7 @@ import {
   OfflineSigner,
 } from "@cosmjs/proto-signing";
 import { assert, sleep } from "@cosmjs/utils";
-import { toHex } from "@cosmjs/encoding";
+import { toHex, fromUtf8 } from "@cosmjs/encoding";
 import {
   AuthExtension,
   BankExtension,
@@ -49,7 +49,7 @@ export class ReadonlySigner implements OfflineAminoSigner {
   }
   signAmino(
     signerAddress: string,
-    signDoc: StdSignDoc
+    signDoc: StdSignDoc,
   ): Promise<AminoSignResponse> {
     throw new Error("signAmino() is not supported in readonly mode.");
   }
@@ -75,7 +75,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
   public static async connectWithSigner(
     endpoint: string,
     signer: OfflineSigner,
-    options?: SecretJsSigningOptions
+    options?: SecretJsSigningOptions,
   ): Promise<SecretNetworkClient> {
     const tmClient = await Tendermint34Client.connect(endpoint);
 
@@ -93,7 +93,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    */
   public static async offline(
     signer: OfflineSigner,
-    options: SecretJsSigningOptions = {}
+    options: SecretJsSigningOptions = {},
   ): Promise<SecretNetworkClient> {
     return new SecretNetworkClient(undefined, signer, options);
   }
@@ -101,7 +101,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
   protected constructor(
     tmClient: Tendermint34Client | undefined,
     signer: OfflineSigner,
-    options: SigningCosmWasmClientOptions = {}
+    options: SigningCosmWasmClientOptions = {},
   ) {
     super(tmClient, signer, {
       prefix: "secret",
@@ -112,7 +112,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
         tmClient,
         setupAuthExtension,
         setupBankExtension,
-        setupComputeExtension
+        setupComputeExtension,
       );
     }
   }
@@ -129,14 +129,14 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     signerAddress: string,
     messages: readonly Msg[],
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<BroadcastTxResponse> {
     const txRaw = await this.sign(signerAddress, messages, fee, memo);
     const txBytes = TxRaw.encode(txRaw).finish();
     return this.broadcastTx(
       txBytes,
       this.broadcastTimeoutMs,
-      this.broadcastPollIntervalMs
+      this.broadcastPollIntervalMs,
     );
   }
 
@@ -146,7 +146,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     ComputeExtension {
     if (!this.secretQueryClient) {
       throw new Error(
-        "Query client not available. You cannot use online functionality in offline mode."
+        "Query client not available. You cannot use online functionality in offline mode.",
       );
     }
     return this.secretQueryClient;
@@ -154,15 +154,15 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
 
   public async getCodes(): Promise<readonly Code[]> {
     const { codeInfos } =
-      await this.mustGetQueryClient().compute.listCodeInfo();
+      await this.mustGetQueryClient().compute.listAllCodes();
     return (codeInfos || []).map((entry): Code => {
       assert(
         entry.creator && entry.codeId && entry.dataHash,
-        "entry incomplete"
+        "entry incomplete",
       );
       return {
         id: entry.codeId.toNumber(),
-        creator: entry.creator,
+        creator: fromUtf8(entry.creator), // TODO fix
         checksum: toHex(entry.dataHash),
       };
     });
@@ -172,20 +172,19 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     const cached = this.codeDeatilsCache.get(codeId);
     if (cached) return cached;
 
-    const { codeInfo, data } = await this.mustGetQueryClient().compute.getCode(
-      codeId
-    );
+    const { codeInfo, data } =
+      await this.mustGetQueryClient().compute.getCodeWasm(codeId);
     assert(
       codeInfo &&
         codeInfo.codeId &&
         codeInfo.creator &&
         codeInfo.dataHash &&
         data,
-      "codeInfo missing or incomplete"
+      "codeInfo missing or incomplete",
     );
     const codeDetails: CodeDetails = {
       id: codeInfo.codeId.toNumber(),
-      creator: codeInfo.creator,
+      creator: fromUtf8(codeInfo.creator), // TODO fix
       checksum: toHex(codeInfo.dataHash),
       data: data,
     };
@@ -194,29 +193,29 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
   }
 
   public async getContracts(codeId: number): Promise<readonly string[]> {
-    const { contracts } =
-      await this.mustGetQueryClient().compute.listContractsByCodeId(codeId);
-    return contracts;
+    const { contractInfos } =
+      await this.mustGetQueryClient().compute.listContractsByCode(codeId);
+    return contractInfos.map((ci) => fromUtf8(ci.address) /* TODO fix */);
   }
 
   /**
    * Throws an error if no contract was found at the address
    */
   public async getContractInfo(address: string): Promise<Contract> {
-    const { address: retrievedAddress, contractInfo } =
+    const { address: retrievedAddress, ContractInfo } =
       await this.mustGetQueryClient().compute.getContractInfo(address);
-    if (!contractInfo)
+    if (!ContractInfo)
       throw new Error(`No contract found at address "${address}"`);
     assert(retrievedAddress, "address missing");
     assert(
-      contractInfo.codeId && contractInfo.creator && contractInfo.label,
-      "contractInfo incomplete"
+      ContractInfo.codeId && ContractInfo.creator && ContractInfo.label,
+      "contractInfo incomplete",
     );
     return {
-      address: retrievedAddress,
-      codeId: contractInfo.codeId.toNumber(),
-      creator: contractInfo.creator,
-      label: contractInfo.label,
+      address: fromUtf8(retrievedAddress), // TODO fix
+      codeId: ContractInfo.codeId.toNumber(),
+      creator: fromUtf8(ContractInfo.creator), // TODO fix
+      label: ContractInfo.label,
     };
   }
 
@@ -225,7 +224,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    */
   public async getContract(address: string): Promise<CosmWasmContract> {
     throw new Error(
-      `getContract() is deprecated, please use getContractInfo() instead`
+      `getContract() is deprecated, please use getContractInfo() instead`,
     );
   }
 
@@ -238,13 +237,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    */
   public async queryContract(
     address: string,
-    queryMsg: Record<string, unknown>
+    queryMsg: Record<string, unknown>,
   ): Promise<JsonObject> {
     try {
-      return await this.mustGetQueryClient().compute.queryContract(
-        address,
-        queryMsg
-      );
+      return await this.mustGetQueryClient().compute.query(address, queryMsg);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.startsWith("not found: contract")) {
@@ -262,10 +258,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    * @deprecated Contract code history is not supported on Secret Network.
    */
   public async getContractCodeHistory(
-    address: string
+    address: string,
   ): Promise<readonly ContractCodeHistoryEntry[]> {
     throw new Error(
-      "getContractCodeHistory() is not supported on Secret Network"
+      "getContractCodeHistory() is not supported on Secret Network",
     );
   }
 
@@ -275,10 +271,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    */
   public async queryContractRaw(
     address: string,
-    key: Uint8Array
+    key: Uint8Array,
   ): Promise<Uint8Array | null> {
     throw new Error(
-      "queryContractRaw() is not supported on Secret Network becuase contracts' state is private"
+      "queryContractRaw() is not supported on Secret Network becuase contracts' state is private",
     );
   }
 
@@ -287,10 +283,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
    */
   public async queryContractSmart(
     address: string,
-    queryMsg: Record<string, unknown>
+    queryMsg: Record<string, unknown>,
   ): Promise<JsonObject> {
     throw new Error(
-      "queryContractSmart() is deprecated, use queryContract() instead"
+      "queryContractSmart() is deprecated, use queryContract() instead",
     );
   }
 
@@ -301,10 +297,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     senderAddress: string,
     wasmCode: Uint8Array,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<UploadResult> {
     throw new Error(
-      "upload() is not supported, use signAndBroadcast() to send transactions"
+      "upload() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -317,10 +313,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     msg: Record<string, unknown>,
     label: string,
     fee: StdFee,
-    options: InstantiateOptions = {}
+    options: InstantiateOptions = {},
   ): Promise<InstantiateResult> {
     throw new Error(
-      "instantiate() is not supported, use signAndBroadcast() to send transactions"
+      "instantiate() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -332,10 +328,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     contractAddress: string,
     newAdmin: string,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<ChangeAdminResult> {
     throw new Error(
-      "updateAdmin() is not supported, use signAndBroadcast() to send transactions"
+      "updateAdmin() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -346,10 +342,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     senderAddress: string,
     contractAddress: string,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<ChangeAdminResult> {
     throw new Error(
-      "clearAdmin() is not supported, use signAndBroadcast() to send transactions"
+      "clearAdmin() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -362,10 +358,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     codeId: number,
     migrateMsg: Record<string, unknown>,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<MigrateResult> {
     throw new Error(
-      "migrate() is not supported, use signAndBroadcast() to send transactions"
+      "migrate() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -378,10 +374,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     msg: Record<string, unknown>,
     fee: StdFee,
     memo = "",
-    funds?: readonly Coin[]
+    funds?: readonly Coin[],
   ): Promise<ExecuteResult> {
     throw new Error(
-      "execute() is not supported, use signAndBroadcast() to send transactions"
+      "execute() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -393,10 +389,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     recipientAddress: string,
     amount: readonly Coin[],
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<BroadcastTxResponse> {
     throw new Error(
-      "sendTokens() is not supported, use signAndBroadcast() to send transactions"
+      "sendTokens() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -408,10 +404,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     validatorAddress: string,
     amount: Coin,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<BroadcastTxResponse> {
     throw new Error(
-      "delegateTokens() is not supported, use signAndBroadcast() to send transactions"
+      "delegateTokens() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -423,10 +419,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     validatorAddress: string,
     amount: Coin,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<BroadcastTxResponse> {
     throw new Error(
-      "undelegateTokens() is not supported, use signAndBroadcast() to send transactions"
+      "undelegateTokens() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 
@@ -437,10 +433,10 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
     delegatorAddress: string,
     validatorAddress: string,
     fee: StdFee,
-    memo = ""
+    memo = "",
   ): Promise<BroadcastTxResponse> {
     throw new Error(
-      "withdrawRewards() is not supported, use signAndBroadcast() to send transactions"
+      "withdrawRewards() is not supported, use signAndBroadcast() to send transactions",
     );
   }
 }
