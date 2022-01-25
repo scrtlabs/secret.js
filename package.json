@@ -14,7 +14,10 @@
     "test": "jest"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": [
+      "scripts/SecretNetwork"
+    ]
   },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.26.5",

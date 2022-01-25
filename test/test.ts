@@ -1,4 +1,3 @@
-import axios from "axios";
 import util from "util";
 const exec = util.promisify(require("child_process").exec);
 
@@ -6,6 +5,24 @@ async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 const SETUP_TIMEOUT_MS = 30_000;
+
+type Account = {
+  name: string;
+  type: string;
+  address: string;
+  pubkey: string;
+  mnemonic: string;
+};
+
+const accounts: { [name: string]: Account | null } = {
+  a: null,
+  b: null,
+  c: null,
+  d: null,
+};
+
+const getMnemonicRegexForAccount = (account: string) =>
+  new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
 
 beforeAll(async () => {
   try {
@@ -24,17 +41,34 @@ beforeAll(async () => {
       const rejectTimeoout = setTimeout(() => {
         keepChecking = false;
         reject();
-      }, SETUP_TIMEOUT_MS); // reject after 20 seconds
+      }, SETUP_TIMEOUT_MS); // reject after SETUP_TIMEOUT_MS seconds
+
       while (keepChecking) {
         try {
-          //   console.log("1");
-          const resp = await axios.get<{
-            block: { header: { height: number } };
-          }>("http://localhost:1317/blocks/latest");
-          //   console.log("2");
-          //   console.log(resp);
+          // extract mnemonics of genesis testnet accounts
+          if (Object.values(accounts).includes(null)) {
+            const { stdout } = await exec("docker logs secretjs-testnet");
+            const logs = String(stdout);
+            for (const account of Object.keys(accounts)) {
+              if (accounts[account] === null) {
+                const match = logs.match(getMnemonicRegexForAccount(account));
+                if (match) {
+                  accounts[account] = JSON.parse(match[0]) as Account;
+                }
+              }
+            }
+          }
 
-          if (Number(resp?.data?.block?.header?.height) >= 1) {
+          const { stdout: status } = await exec(
+            "docker exec -i secretjs-testnet secretd status",
+          );
+
+          const resp = JSON.parse(status);
+
+          if (
+            Number(resp?.SyncInfo?.latest_block_height) >= 1 &&
+            !Object.values(accounts).includes(null)
+          ) {
             clearTimeout(rejectTimeoout);
             accept();
             return;
