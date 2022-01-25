@@ -25,6 +25,7 @@
     "cosmjs-types": "0.2.0",
     "curve25519-js": "0.0.4",
     "js-crypto-hkdf": "1.0.3",
+    "long": "5.2.0",
     "miscreant": "0.3.2",
     "secure-random": "1.1.2"
   },
@@ -33,9 +34,11 @@
     "@babel/preset-typescript": "7.16.7",
     "@types/axios": "0.14.0",
     "@types/jest": "27.4.0",
+    "@types/long": "4.0.1",
     "@types/secure-random": "1.1.0",
     "jest": "27.4.7",
     "prettier": "2.5.1",
+    "ts-proto": "1.104.0",
     "typescript": "4.5.2"
   }
 }

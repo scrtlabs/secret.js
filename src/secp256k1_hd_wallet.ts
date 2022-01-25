@@ -31,7 +31,7 @@ const defaultOptions: Secp256k1HdWalletOptions = {
 export class SecretSecp256k1HdWallet extends Secp256k1HdWallet {
   protected constructor(
     mnemonic: EnglishMnemonic,
-    options: Secp256k1HdWalletConstructorOptions
+    options: Secp256k1HdWalletConstructorOptions,
   ) {
     const hdPaths = options.hdPaths ?? defaultOptions.hdPaths;
     const prefix = options.prefix ?? defaultOptions.prefix;
@@ -53,12 +53,12 @@ export class SecretSecp256k1HdWallet extends Secp256k1HdWallet {
    */
   public static async fromMnemonic(
     mnemonic: string,
-    options: Partial<Secp256k1HdWalletOptions> = {}
+    options: Partial<Secp256k1HdWalletOptions> = {},
   ): Promise<SecretSecp256k1HdWallet> {
     const mnemonicChecked = new EnglishMnemonic(mnemonic);
     const seed = await Bip39.mnemonicToSeed(
       mnemonicChecked,
-      options.bip39Password
+      options.bip39Password,
     );
     return new SecretSecp256k1HdWallet(mnemonicChecked, {
       ...options,
@@ -74,7 +74,7 @@ export class SecretSecp256k1HdWallet extends Secp256k1HdWallet {
    */
   public static async generate(
     length: 12 | 15 | 18 | 21 | 24 = 24,
-    options: Partial<Secp256k1HdWalletOptions> = {}
+    options: Partial<Secp256k1HdWalletOptions> = {},
   ): Promise<SecretSecp256k1HdWallet> {
     const entropyLength = 4 * Math.floor((11 * length) / 33);
     const entropy = Random.getBytes(entropyLength);
