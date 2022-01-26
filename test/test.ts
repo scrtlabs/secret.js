@@ -1,4 +1,3 @@
-import { clearConfigCache } from "prettier";
 import util from "util";
 import { SecretNetworkClient } from "../src";
 const exec = util.promisify(require("child_process").exec);
@@ -136,12 +135,11 @@ describe("queries", () => {
         "http://localhost:26657",
       );
 
-      const x = await secretjs.getCodes();
+      const x = await secretjs.query.compute.codes({});
 
       console.log(x);
 
-      const result: number = 3;
-      expect(1 + 2).toBe(result);
+      expect(1 + 2).toBe(3);
     },
     1000 * 60 * 60,
   );
