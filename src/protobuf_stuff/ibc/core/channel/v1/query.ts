@@ -2652,75 +2652,75 @@ export const QueryNextSequenceReceiveResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Channel queries an IBC Channel. */
-  Channel(request: QueryChannelRequest): Promise<QueryChannelResponse>;
+  channel(request: QueryChannelRequest): Promise<QueryChannelResponse>;
   /** Channels queries all the IBC channels of a chain. */
-  Channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse>;
+  channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse>;
   /**
    * ConnectionChannels queries all the channels associated with a connection
    * end.
    */
-  ConnectionChannels(
+  connectionChannels(
     request: QueryConnectionChannelsRequest,
   ): Promise<QueryConnectionChannelsResponse>;
   /**
    * ChannelClientState queries for the client state for the channel associated
    * with the provided channel identifiers.
    */
-  ChannelClientState(
+  channelClientState(
     request: QueryChannelClientStateRequest,
   ): Promise<QueryChannelClientStateResponse>;
   /**
    * ChannelConsensusState queries for the consensus state for the channel
    * associated with the provided channel identifiers.
    */
-  ChannelConsensusState(
+  channelConsensusState(
     request: QueryChannelConsensusStateRequest,
   ): Promise<QueryChannelConsensusStateResponse>;
   /** PacketCommitment queries a stored packet commitment hash. */
-  PacketCommitment(
+  packetCommitment(
     request: QueryPacketCommitmentRequest,
   ): Promise<QueryPacketCommitmentResponse>;
   /**
    * PacketCommitments returns all the packet commitments hashes associated
    * with a channel.
    */
-  PacketCommitments(
+  packetCommitments(
     request: QueryPacketCommitmentsRequest,
   ): Promise<QueryPacketCommitmentsResponse>;
   /**
    * PacketReceipt queries if a given packet sequence has been received on the
    * queried chain
    */
-  PacketReceipt(
+  packetReceipt(
     request: QueryPacketReceiptRequest,
   ): Promise<QueryPacketReceiptResponse>;
   /** PacketAcknowledgement queries a stored packet acknowledgement hash. */
-  PacketAcknowledgement(
+  packetAcknowledgement(
     request: QueryPacketAcknowledgementRequest,
   ): Promise<QueryPacketAcknowledgementResponse>;
   /**
    * PacketAcknowledgements returns all the packet acknowledgements associated
    * with a channel.
    */
-  PacketAcknowledgements(
+  packetAcknowledgements(
     request: QueryPacketAcknowledgementsRequest,
   ): Promise<QueryPacketAcknowledgementsResponse>;
   /**
    * UnreceivedPackets returns all the unreceived IBC packets associated with a
    * channel and sequences.
    */
-  UnreceivedPackets(
+  unreceivedPackets(
     request: QueryUnreceivedPacketsRequest,
   ): Promise<QueryUnreceivedPacketsResponse>;
   /**
    * UnreceivedAcks returns all the unreceived IBC acknowledgements associated
    * with a channel and sequences.
    */
-  UnreceivedAcks(
+  unreceivedAcks(
     request: QueryUnreceivedAcksRequest,
   ): Promise<QueryUnreceivedAcksResponse>;
   /** NextSequenceReceive returns the next receive sequence for a given channel. */
-  NextSequenceReceive(
+  nextSequenceReceive(
     request: QueryNextSequenceReceiveRequest,
   ): Promise<QueryNextSequenceReceiveResponse>;
 }
@@ -2729,21 +2729,21 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Channel = this.Channel.bind(this);
-    this.Channels = this.Channels.bind(this);
-    this.ConnectionChannels = this.ConnectionChannels.bind(this);
-    this.ChannelClientState = this.ChannelClientState.bind(this);
-    this.ChannelConsensusState = this.ChannelConsensusState.bind(this);
-    this.PacketCommitment = this.PacketCommitment.bind(this);
-    this.PacketCommitments = this.PacketCommitments.bind(this);
-    this.PacketReceipt = this.PacketReceipt.bind(this);
-    this.PacketAcknowledgement = this.PacketAcknowledgement.bind(this);
-    this.PacketAcknowledgements = this.PacketAcknowledgements.bind(this);
-    this.UnreceivedPackets = this.UnreceivedPackets.bind(this);
-    this.UnreceivedAcks = this.UnreceivedAcks.bind(this);
-    this.NextSequenceReceive = this.NextSequenceReceive.bind(this);
+    this.channel = this.channel.bind(this);
+    this.channels = this.channels.bind(this);
+    this.connectionChannels = this.connectionChannels.bind(this);
+    this.channelClientState = this.channelClientState.bind(this);
+    this.channelConsensusState = this.channelConsensusState.bind(this);
+    this.packetCommitment = this.packetCommitment.bind(this);
+    this.packetCommitments = this.packetCommitments.bind(this);
+    this.packetReceipt = this.packetReceipt.bind(this);
+    this.packetAcknowledgement = this.packetAcknowledgement.bind(this);
+    this.packetAcknowledgements = this.packetAcknowledgements.bind(this);
+    this.unreceivedPackets = this.unreceivedPackets.bind(this);
+    this.unreceivedAcks = this.unreceivedAcks.bind(this);
+    this.nextSequenceReceive = this.nextSequenceReceive.bind(this);
   }
-  Channel(request: QueryChannelRequest): Promise<QueryChannelResponse> {
+  channel(request: QueryChannelRequest): Promise<QueryChannelResponse> {
     const data = QueryChannelRequest.encode(request).finish();
     const promise = this.rpc.request(
       "ibc.core.channel.v1.Query",
@@ -2755,7 +2755,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse> {
+  channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse> {
     const data = QueryChannelsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "ibc.core.channel.v1.Query",
@@ -2767,7 +2767,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ConnectionChannels(
+  connectionChannels(
     request: QueryConnectionChannelsRequest,
   ): Promise<QueryConnectionChannelsResponse> {
     const data = QueryConnectionChannelsRequest.encode(request).finish();
@@ -2781,7 +2781,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ChannelClientState(
+  channelClientState(
     request: QueryChannelClientStateRequest,
   ): Promise<QueryChannelClientStateResponse> {
     const data = QueryChannelClientStateRequest.encode(request).finish();
@@ -2795,7 +2795,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ChannelConsensusState(
+  channelConsensusState(
     request: QueryChannelConsensusStateRequest,
   ): Promise<QueryChannelConsensusStateResponse> {
     const data = QueryChannelConsensusStateRequest.encode(request).finish();
@@ -2809,7 +2809,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  PacketCommitment(
+  packetCommitment(
     request: QueryPacketCommitmentRequest,
   ): Promise<QueryPacketCommitmentResponse> {
     const data = QueryPacketCommitmentRequest.encode(request).finish();
@@ -2823,7 +2823,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  PacketCommitments(
+  packetCommitments(
     request: QueryPacketCommitmentsRequest,
   ): Promise<QueryPacketCommitmentsResponse> {
     const data = QueryPacketCommitmentsRequest.encode(request).finish();
@@ -2837,7 +2837,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  PacketReceipt(
+  packetReceipt(
     request: QueryPacketReceiptRequest,
   ): Promise<QueryPacketReceiptResponse> {
     const data = QueryPacketReceiptRequest.encode(request).finish();
@@ -2851,7 +2851,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  PacketAcknowledgement(
+  packetAcknowledgement(
     request: QueryPacketAcknowledgementRequest,
   ): Promise<QueryPacketAcknowledgementResponse> {
     const data = QueryPacketAcknowledgementRequest.encode(request).finish();
@@ -2865,7 +2865,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  PacketAcknowledgements(
+  packetAcknowledgements(
     request: QueryPacketAcknowledgementsRequest,
   ): Promise<QueryPacketAcknowledgementsResponse> {
     const data = QueryPacketAcknowledgementsRequest.encode(request).finish();
@@ -2879,7 +2879,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UnreceivedPackets(
+  unreceivedPackets(
     request: QueryUnreceivedPacketsRequest,
   ): Promise<QueryUnreceivedPacketsResponse> {
     const data = QueryUnreceivedPacketsRequest.encode(request).finish();
@@ -2893,7 +2893,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UnreceivedAcks(
+  unreceivedAcks(
     request: QueryUnreceivedAcksRequest,
   ): Promise<QueryUnreceivedAcksResponse> {
     const data = QueryUnreceivedAcksRequest.encode(request).finish();
@@ -2907,7 +2907,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  NextSequenceReceive(
+  nextSequenceReceive(
     request: QueryNextSequenceReceiveRequest,
   ): Promise<QueryNextSequenceReceiveResponse> {
     const data = QueryNextSequenceReceiveRequest.encode(request).finish();

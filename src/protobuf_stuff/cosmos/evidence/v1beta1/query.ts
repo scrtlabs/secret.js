@@ -323,9 +323,9 @@ export const QueryAllEvidenceResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Evidence queries evidence based on evidence hash. */
-  Evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse>;
+  evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse>;
   /** AllEvidence queries all evidence. */
-  AllEvidence(
+  allEvidence(
     request: QueryAllEvidenceRequest,
   ): Promise<QueryAllEvidenceResponse>;
 }
@@ -334,10 +334,10 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Evidence = this.Evidence.bind(this);
-    this.AllEvidence = this.AllEvidence.bind(this);
+    this.evidence = this.evidence.bind(this);
+    this.allEvidence = this.allEvidence.bind(this);
   }
-  Evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse> {
+  evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse> {
     const data = QueryEvidenceRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.evidence.v1beta1.Query",
@@ -349,7 +349,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  AllEvidence(
+  allEvidence(
     request: QueryAllEvidenceRequest,
   ): Promise<QueryAllEvidenceResponse> {
     const data = QueryAllEvidenceRequest.encode(request).finish();

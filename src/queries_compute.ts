@@ -1,5 +1,5 @@
 import { JsonObject } from "@cosmjs/cosmwasm-stargate";
-import { fromUtf8, toAscii } from "@cosmjs/encoding";
+import { fromUtf8, toUtf8 } from "@cosmjs/encoding";
 import { createProtobufRpcClient, QueryClient } from "@cosmjs/stargate";
 import Long from "long";
 import {
@@ -9,6 +9,7 @@ import {
   QueryContractInfoResponse,
   QueryContractsByCodeResponse,
 } from "./protobuf_stuff/secret/compute/v1beta1/query";
+import { bech32 } from "bech32";
 
 export interface ComputeExtension {
   readonly compute: {
@@ -42,28 +43,28 @@ export function setupComputeExtension(base: QueryClient): ComputeExtension {
     compute: {
       listAllCodes: async () => {
         const request = {};
-        return queryService.Codes(request);
+        return queryService.codes(request);
       },
       getCodeWasm: async (id: number) => {
         const request = { codeId: Long.fromNumber(id) };
-        return queryService.Code(request);
+        return queryService.code(request);
       },
       listContractsByCode: async (id: number, paginationKey?: Uint8Array) => {
         const request = {
           codeId: Long.fromNumber(id),
         };
-        return queryService.ContractsByCode(request);
+        return queryService.contractsByCode(request);
       },
       getContractInfo: async (address: string) => {
-        const request = { address: toAscii(address) }; // TODO fix
-        return queryService.ContractInfo(request);
+        const request = { address: addressToBytes(address) };
+        return queryService.contractInfo(request);
       },
       query: async (address: string, query: Record<string, unknown>) => {
         const request = {
-          address: toAscii(address), // TODO fix
-          queryData: toAscii(JSON.stringify(query)), // TODO fix
+          address: addressToBytes(address),
+          queryData: toUtf8(JSON.stringify(query)), // TODO fix?
         };
-        const { data } = await queryService.SmartContractState(request);
+        const { data } = await queryService.smartContractState(request);
         try {
           return JSON.parse(fromUtf8(data));
         } catch (error) {
@@ -72,4 +73,8 @@ export function setupComputeExtension(base: QueryClient): ComputeExtension {
       },
     },
   };
+}
+
+function addressToBytes(address: string): Uint8Array {
+  return Uint8Array.from(bech32.decode(address).words); // TODO fix?
 }

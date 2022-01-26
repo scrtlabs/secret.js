@@ -415,22 +415,22 @@ export const QueryParamsResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Accounts returns all the existing accounts */
-  Accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse>;
+  accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse>;
   /** Account returns account details based on address. */
-  Account(request: QueryAccountRequest): Promise<QueryAccountResponse>;
+  account(request: QueryAccountRequest): Promise<QueryAccountResponse>;
   /** Params queries all parameters. */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Accounts = this.Accounts.bind(this);
-    this.Account = this.Account.bind(this);
-    this.Params = this.Params.bind(this);
+    this.accounts = this.accounts.bind(this);
+    this.account = this.account.bind(this);
+    this.params = this.params.bind(this);
   }
-  Accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse> {
+  accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse> {
     const data = QueryAccountsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.auth.v1beta1.Query",
@@ -442,7 +442,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Account(request: QueryAccountRequest): Promise<QueryAccountResponse> {
+  account(request: QueryAccountRequest): Promise<QueryAccountResponse> {
     const data = QueryAccountRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.auth.v1beta1.Query",
@@ -454,7 +454,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.auth.v1beta1.Query",

@@ -1266,23 +1266,23 @@ export const Module = {
 /** Service defines the gRPC querier service for tendermint queries. */
 export interface Service {
   /** GetNodeInfo queries the current node info. */
-  GetNodeInfo(request: GetNodeInfoRequest): Promise<GetNodeInfoResponse>;
+  getNodeInfo(request: GetNodeInfoRequest): Promise<GetNodeInfoResponse>;
   /** GetSyncing queries node syncing. */
-  GetSyncing(request: GetSyncingRequest): Promise<GetSyncingResponse>;
+  getSyncing(request: GetSyncingRequest): Promise<GetSyncingResponse>;
   /** GetLatestBlock returns the latest block. */
-  GetLatestBlock(
+  getLatestBlock(
     request: GetLatestBlockRequest,
   ): Promise<GetLatestBlockResponse>;
   /** GetBlockByHeight queries block for given height. */
-  GetBlockByHeight(
+  getBlockByHeight(
     request: GetBlockByHeightRequest,
   ): Promise<GetBlockByHeightResponse>;
   /** GetLatestValidatorSet queries latest validator-set. */
-  GetLatestValidatorSet(
+  getLatestValidatorSet(
     request: GetLatestValidatorSetRequest,
   ): Promise<GetLatestValidatorSetResponse>;
   /** GetValidatorSetByHeight queries validator-set at a given height. */
-  GetValidatorSetByHeight(
+  getValidatorSetByHeight(
     request: GetValidatorSetByHeightRequest,
   ): Promise<GetValidatorSetByHeightResponse>;
 }
@@ -1291,14 +1291,14 @@ export class ServiceClientImpl implements Service {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.GetNodeInfo = this.GetNodeInfo.bind(this);
-    this.GetSyncing = this.GetSyncing.bind(this);
-    this.GetLatestBlock = this.GetLatestBlock.bind(this);
-    this.GetBlockByHeight = this.GetBlockByHeight.bind(this);
-    this.GetLatestValidatorSet = this.GetLatestValidatorSet.bind(this);
-    this.GetValidatorSetByHeight = this.GetValidatorSetByHeight.bind(this);
+    this.getNodeInfo = this.getNodeInfo.bind(this);
+    this.getSyncing = this.getSyncing.bind(this);
+    this.getLatestBlock = this.getLatestBlock.bind(this);
+    this.getBlockByHeight = this.getBlockByHeight.bind(this);
+    this.getLatestValidatorSet = this.getLatestValidatorSet.bind(this);
+    this.getValidatorSetByHeight = this.getValidatorSetByHeight.bind(this);
   }
-  GetNodeInfo(request: GetNodeInfoRequest): Promise<GetNodeInfoResponse> {
+  getNodeInfo(request: GetNodeInfoRequest): Promise<GetNodeInfoResponse> {
     const data = GetNodeInfoRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.base.tendermint.v1beta1.Service",
@@ -1310,7 +1310,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetSyncing(request: GetSyncingRequest): Promise<GetSyncingResponse> {
+  getSyncing(request: GetSyncingRequest): Promise<GetSyncingResponse> {
     const data = GetSyncingRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.base.tendermint.v1beta1.Service",
@@ -1322,7 +1322,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetLatestBlock(
+  getLatestBlock(
     request: GetLatestBlockRequest,
   ): Promise<GetLatestBlockResponse> {
     const data = GetLatestBlockRequest.encode(request).finish();
@@ -1336,7 +1336,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetBlockByHeight(
+  getBlockByHeight(
     request: GetBlockByHeightRequest,
   ): Promise<GetBlockByHeightResponse> {
     const data = GetBlockByHeightRequest.encode(request).finish();
@@ -1350,7 +1350,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetLatestValidatorSet(
+  getLatestValidatorSet(
     request: GetLatestValidatorSetRequest,
   ): Promise<GetLatestValidatorSetResponse> {
     const data = GetLatestValidatorSetRequest.encode(request).finish();
@@ -1364,7 +1364,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetValidatorSetByHeight(
+  getValidatorSetByHeight(
     request: GetValidatorSetByHeightRequest,
   ): Promise<GetValidatorSetByHeightResponse> {
     const data = GetValidatorSetByHeightRequest.encode(request).finish();

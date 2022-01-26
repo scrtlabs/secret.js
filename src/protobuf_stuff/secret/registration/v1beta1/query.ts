@@ -144,11 +144,11 @@ export const QueryEncryptedSeedResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Returns the key used for transactions */
-  TxKey(request: Empty): Promise<Key>;
+  txKey(request: Empty): Promise<Key>;
   /** Returns the key used for registration */
-  RegistrationKey(request: Empty): Promise<Key>;
+  registrationKey(request: Empty): Promise<Key>;
   /** Returns the encrypted seed for a registered node by public key */
-  EncryptedSeed(
+  encryptedSeed(
     request: QueryEncryptedSeedRequest,
   ): Promise<QueryEncryptedSeedResponse>;
 }
@@ -157,11 +157,11 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.TxKey = this.TxKey.bind(this);
-    this.RegistrationKey = this.RegistrationKey.bind(this);
-    this.EncryptedSeed = this.EncryptedSeed.bind(this);
+    this.txKey = this.txKey.bind(this);
+    this.registrationKey = this.registrationKey.bind(this);
+    this.encryptedSeed = this.encryptedSeed.bind(this);
   }
-  TxKey(request: Empty): Promise<Key> {
+  txKey(request: Empty): Promise<Key> {
     const data = Empty.encode(request).finish();
     const promise = this.rpc.request(
       "secret.registration.v1beta1.Query",
@@ -171,7 +171,7 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => Key.decode(new _m0.Reader(data)));
   }
 
-  RegistrationKey(request: Empty): Promise<Key> {
+  registrationKey(request: Empty): Promise<Key> {
     const data = Empty.encode(request).finish();
     const promise = this.rpc.request(
       "secret.registration.v1beta1.Query",
@@ -181,7 +181,7 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => Key.decode(new _m0.Reader(data)));
   }
 
-  EncryptedSeed(
+  encryptedSeed(
     request: QueryEncryptedSeedRequest,
   ): Promise<QueryEncryptedSeedResponse> {
     const data = QueryEncryptedSeedRequest.encode(request).finish();

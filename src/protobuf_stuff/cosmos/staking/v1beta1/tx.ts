@@ -887,41 +887,41 @@ export const MsgUndelegateResponse = {
 /** Msg defines the staking Msg service. */
 export interface Msg {
   /** CreateValidator defines a method for creating a new validator. */
-  CreateValidator(
+  createValidator(
     request: MsgCreateValidator,
   ): Promise<MsgCreateValidatorResponse>;
   /** EditValidator defines a method for editing an existing validator. */
-  EditValidator(request: MsgEditValidator): Promise<MsgEditValidatorResponse>;
+  editValidator(request: MsgEditValidator): Promise<MsgEditValidatorResponse>;
   /**
    * Delegate defines a method for performing a delegation of coins
    * from a delegator to a validator.
    */
-  Delegate(request: MsgDelegate): Promise<MsgDelegateResponse>;
+  delegate(request: MsgDelegate): Promise<MsgDelegateResponse>;
   /**
    * BeginRedelegate defines a method for performing a redelegation
    * of coins from a delegator and source validator to a destination validator.
    */
-  BeginRedelegate(
+  beginRedelegate(
     request: MsgBeginRedelegate,
   ): Promise<MsgBeginRedelegateResponse>;
   /**
    * Undelegate defines a method for performing an undelegation from a
    * delegate and a validator.
    */
-  Undelegate(request: MsgUndelegate): Promise<MsgUndelegateResponse>;
+  undelegate(request: MsgUndelegate): Promise<MsgUndelegateResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.CreateValidator = this.CreateValidator.bind(this);
-    this.EditValidator = this.EditValidator.bind(this);
-    this.Delegate = this.Delegate.bind(this);
-    this.BeginRedelegate = this.BeginRedelegate.bind(this);
-    this.Undelegate = this.Undelegate.bind(this);
+    this.createValidator = this.createValidator.bind(this);
+    this.editValidator = this.editValidator.bind(this);
+    this.delegate = this.delegate.bind(this);
+    this.beginRedelegate = this.beginRedelegate.bind(this);
+    this.undelegate = this.undelegate.bind(this);
   }
-  CreateValidator(
+  createValidator(
     request: MsgCreateValidator,
   ): Promise<MsgCreateValidatorResponse> {
     const data = MsgCreateValidator.encode(request).finish();
@@ -935,7 +935,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  EditValidator(request: MsgEditValidator): Promise<MsgEditValidatorResponse> {
+  editValidator(request: MsgEditValidator): Promise<MsgEditValidatorResponse> {
     const data = MsgEditValidator.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Msg",
@@ -947,7 +947,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Delegate(request: MsgDelegate): Promise<MsgDelegateResponse> {
+  delegate(request: MsgDelegate): Promise<MsgDelegateResponse> {
     const data = MsgDelegate.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Msg",
@@ -959,7 +959,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  BeginRedelegate(
+  beginRedelegate(
     request: MsgBeginRedelegate,
   ): Promise<MsgBeginRedelegateResponse> {
     const data = MsgBeginRedelegate.encode(request).finish();
@@ -973,7 +973,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Undelegate(request: MsgUndelegate): Promise<MsgUndelegateResponse> {
+  undelegate(request: MsgUndelegate): Promise<MsgUndelegateResponse> {
     const data = MsgUndelegate.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Msg",

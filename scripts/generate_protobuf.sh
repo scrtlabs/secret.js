@@ -1,20 +1,19 @@
 #!/bin/bash
 set -o errexit -o nounset -o pipefail
-command -v shellcheck >/dev/null && shellcheck "$0"
 
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-OUT_DIR="${SCRIPTPATH}/../src/protobuf_stuff"
+OUT_DIR="${SCRIPT_PATH}/../src/protobuf_stuff"
 mkdir -p "$OUT_DIR"
 
-PLUGIN_PATH="${SCRIPTPATH}/../node_modules/.bin/protoc-gen-ts_proto"
-TS_PROTO_OPTS="esModuleInterop=true,forceLong=long,useOptionals=true,useDate=false"
+PLUGIN_PATH="${SCRIPT_PATH}/../node_modules/.bin/protoc-gen-ts_proto"
+TS_PROTO_OPTS="esModuleInterop=true,forceLong=long,useOptionals=true,useDate=false,lowerCaseServiceMethods=true"
 
 # Path to this plugin, Note this must be an abolsute path on Windows
-PLUGIN_PATH="${SCRIPTPATH}/../node_modules/.bin/protoc-gen-ts_proto"
+PLUGIN_PATH="${SCRIPT_PATH}/../node_modules/.bin/protoc-gen-ts_proto"
 
-SECRET_DIR="${SCRIPTPATH}/SecretNetwork/proto"
-SECRET_THIRD_PARTY_DIR="${SCRIPTPATH}/SecretNetwork/third_party/proto"
+SECRET_DIR="${SCRIPT_PATH}/SecretNetwork/proto"
+SECRET_THIRD_PARTY_DIR="${SCRIPT_PATH}/SecretNetwork/third_party/proto"
 
 protoc \
   --plugin="protoc-gen-ts_proto=${PLUGIN_PATH}" \

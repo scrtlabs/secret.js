@@ -797,25 +797,25 @@ export const GetTxResponse = {
 /** Service defines a gRPC service for interacting with transactions. */
 export interface Service {
   /** Simulate simulates executing a transaction for estimating gas usage. */
-  Simulate(request: SimulateRequest): Promise<SimulateResponse>;
+  simulate(request: SimulateRequest): Promise<SimulateResponse>;
   /** GetTx fetches a tx by hash. */
-  GetTx(request: GetTxRequest): Promise<GetTxResponse>;
+  getTx(request: GetTxRequest): Promise<GetTxResponse>;
   /** BroadcastTx broadcast transaction. */
-  BroadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse>;
+  broadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse>;
   /** GetTxsEvent fetches txs by event. */
-  GetTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse>;
+  getTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse>;
 }
 
 export class ServiceClientImpl implements Service {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Simulate = this.Simulate.bind(this);
-    this.GetTx = this.GetTx.bind(this);
-    this.BroadcastTx = this.BroadcastTx.bind(this);
-    this.GetTxsEvent = this.GetTxsEvent.bind(this);
+    this.simulate = this.simulate.bind(this);
+    this.getTx = this.getTx.bind(this);
+    this.broadcastTx = this.broadcastTx.bind(this);
+    this.getTxsEvent = this.getTxsEvent.bind(this);
   }
-  Simulate(request: SimulateRequest): Promise<SimulateResponse> {
+  simulate(request: SimulateRequest): Promise<SimulateResponse> {
     const data = SimulateRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.tx.v1beta1.Service",
@@ -827,7 +827,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetTx(request: GetTxRequest): Promise<GetTxResponse> {
+  getTx(request: GetTxRequest): Promise<GetTxResponse> {
     const data = GetTxRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.tx.v1beta1.Service",
@@ -837,7 +837,7 @@ export class ServiceClientImpl implements Service {
     return promise.then((data) => GetTxResponse.decode(new _m0.Reader(data)));
   }
 
-  BroadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse> {
+  broadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse> {
     const data = BroadcastTxRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.tx.v1beta1.Service",
@@ -849,7 +849,7 @@ export class ServiceClientImpl implements Service {
     );
   }
 
-  GetTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse> {
+  getTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse> {
     const data = GetTxsEventRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.tx.v1beta1.Service",

@@ -989,30 +989,30 @@ export const QueryConnectionConsensusStateResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Connection queries an IBC connection end. */
-  Connection(request: QueryConnectionRequest): Promise<QueryConnectionResponse>;
+  connection(request: QueryConnectionRequest): Promise<QueryConnectionResponse>;
   /** Connections queries all the IBC connections of a chain. */
-  Connections(
+  connections(
     request: QueryConnectionsRequest,
   ): Promise<QueryConnectionsResponse>;
   /**
    * ClientConnections queries the connection paths associated with a client
    * state.
    */
-  ClientConnections(
+  clientConnections(
     request: QueryClientConnectionsRequest,
   ): Promise<QueryClientConnectionsResponse>;
   /**
    * ConnectionClientState queries the client state associated with the
    * connection.
    */
-  ConnectionClientState(
+  connectionClientState(
     request: QueryConnectionClientStateRequest,
   ): Promise<QueryConnectionClientStateResponse>;
   /**
    * ConnectionConsensusState queries the consensus state associated with the
    * connection.
    */
-  ConnectionConsensusState(
+  connectionConsensusState(
     request: QueryConnectionConsensusStateRequest,
   ): Promise<QueryConnectionConsensusStateResponse>;
 }
@@ -1021,13 +1021,13 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Connection = this.Connection.bind(this);
-    this.Connections = this.Connections.bind(this);
-    this.ClientConnections = this.ClientConnections.bind(this);
-    this.ConnectionClientState = this.ConnectionClientState.bind(this);
-    this.ConnectionConsensusState = this.ConnectionConsensusState.bind(this);
+    this.connection = this.connection.bind(this);
+    this.connections = this.connections.bind(this);
+    this.clientConnections = this.clientConnections.bind(this);
+    this.connectionClientState = this.connectionClientState.bind(this);
+    this.connectionConsensusState = this.connectionConsensusState.bind(this);
   }
-  Connection(
+  connection(
     request: QueryConnectionRequest,
   ): Promise<QueryConnectionResponse> {
     const data = QueryConnectionRequest.encode(request).finish();
@@ -1041,7 +1041,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Connections(
+  connections(
     request: QueryConnectionsRequest,
   ): Promise<QueryConnectionsResponse> {
     const data = QueryConnectionsRequest.encode(request).finish();
@@ -1055,7 +1055,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ClientConnections(
+  clientConnections(
     request: QueryClientConnectionsRequest,
   ): Promise<QueryClientConnectionsResponse> {
     const data = QueryClientConnectionsRequest.encode(request).finish();
@@ -1069,7 +1069,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ConnectionClientState(
+  connectionClientState(
     request: QueryConnectionClientStateRequest,
   ): Promise<QueryConnectionClientStateResponse> {
     const data = QueryConnectionClientStateRequest.encode(request).finish();
@@ -1083,7 +1083,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ConnectionConsensusState(
+  connectionConsensusState(
     request: QueryConnectionConsensusStateRequest,
   ): Promise<QueryConnectionConsensusStateResponse> {
     const data = QueryConnectionConsensusStateRequest.encode(request).finish();

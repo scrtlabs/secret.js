@@ -1510,44 +1510,44 @@ export const QueryCommunityPoolResponse = {
 /** Query defines the gRPC querier service for distribution module. */
 export interface Query {
   /** Params queries params of the distribution module. */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** ValidatorOutstandingRewards queries rewards of a validator address. */
-  ValidatorOutstandingRewards(
+  validatorOutstandingRewards(
     request: QueryValidatorOutstandingRewardsRequest,
   ): Promise<QueryValidatorOutstandingRewardsResponse>;
   /** ValidatorCommission queries accumulated commission for a validator. */
-  ValidatorCommission(
+  validatorCommission(
     request: QueryValidatorCommissionRequest,
   ): Promise<QueryValidatorCommissionResponse>;
   /** ValidatorSlashes queries slash events of a validator. */
-  ValidatorSlashes(
+  validatorSlashes(
     request: QueryValidatorSlashesRequest,
   ): Promise<QueryValidatorSlashesResponse>;
   /** DelegationRewards queries the total rewards accrued by a delegation. */
-  DelegationRewards(
+  delegationRewards(
     request: QueryDelegationRewardsRequest,
   ): Promise<QueryDelegationRewardsResponse>;
   /**
    * DelegationTotalRewards queries the total rewards accrued by a each
    * validator.
    */
-  DelegationTotalRewards(
+  delegationTotalRewards(
     request: QueryDelegationTotalRewardsRequest,
   ): Promise<QueryDelegationTotalRewardsResponse>;
   /** DelegatorValidators queries the validators of a delegator. */
-  DelegatorValidators(
+  delegatorValidators(
     request: QueryDelegatorValidatorsRequest,
   ): Promise<QueryDelegatorValidatorsResponse>;
   /** DelegatorWithdrawAddress queries withdraw address of a delegator. */
-  DelegatorWithdrawAddress(
+  delegatorWithdrawAddress(
     request: QueryDelegatorWithdrawAddressRequest,
   ): Promise<QueryDelegatorWithdrawAddressResponse>;
   /** CommunityPool queries the community pool coins. */
-  CommunityPool(
+  communityPool(
     request: QueryCommunityPoolRequest,
   ): Promise<QueryCommunityPoolResponse>;
   /** DelegatorWithdrawAddress queries withdraw address of a delegator. */
-  FoundationTax(
+  foundationTax(
     request: QueryFoundationTaxRequest,
   ): Promise<QueryFoundationTaxResponse>;
 }
@@ -1556,19 +1556,19 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Params = this.Params.bind(this);
-    this.ValidatorOutstandingRewards =
-      this.ValidatorOutstandingRewards.bind(this);
-    this.ValidatorCommission = this.ValidatorCommission.bind(this);
-    this.ValidatorSlashes = this.ValidatorSlashes.bind(this);
-    this.DelegationRewards = this.DelegationRewards.bind(this);
-    this.DelegationTotalRewards = this.DelegationTotalRewards.bind(this);
-    this.DelegatorValidators = this.DelegatorValidators.bind(this);
-    this.DelegatorWithdrawAddress = this.DelegatorWithdrawAddress.bind(this);
-    this.CommunityPool = this.CommunityPool.bind(this);
-    this.FoundationTax = this.FoundationTax.bind(this);
+    this.params = this.params.bind(this);
+    this.validatorOutstandingRewards =
+      this.validatorOutstandingRewards.bind(this);
+    this.validatorCommission = this.validatorCommission.bind(this);
+    this.validatorSlashes = this.validatorSlashes.bind(this);
+    this.delegationRewards = this.delegationRewards.bind(this);
+    this.delegationTotalRewards = this.delegationTotalRewards.bind(this);
+    this.delegatorValidators = this.delegatorValidators.bind(this);
+    this.delegatorWithdrawAddress = this.delegatorWithdrawAddress.bind(this);
+    this.communityPool = this.communityPool.bind(this);
+    this.foundationTax = this.foundationTax.bind(this);
   }
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.distribution.v1beta1.Query",
@@ -1580,7 +1580,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ValidatorOutstandingRewards(
+  validatorOutstandingRewards(
     request: QueryValidatorOutstandingRewardsRequest,
   ): Promise<QueryValidatorOutstandingRewardsResponse> {
     const data =
@@ -1595,7 +1595,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ValidatorCommission(
+  validatorCommission(
     request: QueryValidatorCommissionRequest,
   ): Promise<QueryValidatorCommissionResponse> {
     const data = QueryValidatorCommissionRequest.encode(request).finish();
@@ -1609,7 +1609,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ValidatorSlashes(
+  validatorSlashes(
     request: QueryValidatorSlashesRequest,
   ): Promise<QueryValidatorSlashesResponse> {
     const data = QueryValidatorSlashesRequest.encode(request).finish();
@@ -1623,7 +1623,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegationRewards(
+  delegationRewards(
     request: QueryDelegationRewardsRequest,
   ): Promise<QueryDelegationRewardsResponse> {
     const data = QueryDelegationRewardsRequest.encode(request).finish();
@@ -1637,7 +1637,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegationTotalRewards(
+  delegationTotalRewards(
     request: QueryDelegationTotalRewardsRequest,
   ): Promise<QueryDelegationTotalRewardsResponse> {
     const data = QueryDelegationTotalRewardsRequest.encode(request).finish();
@@ -1651,7 +1651,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorValidators(
+  delegatorValidators(
     request: QueryDelegatorValidatorsRequest,
   ): Promise<QueryDelegatorValidatorsResponse> {
     const data = QueryDelegatorValidatorsRequest.encode(request).finish();
@@ -1665,7 +1665,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorWithdrawAddress(
+  delegatorWithdrawAddress(
     request: QueryDelegatorWithdrawAddressRequest,
   ): Promise<QueryDelegatorWithdrawAddressResponse> {
     const data = QueryDelegatorWithdrawAddressRequest.encode(request).finish();
@@ -1679,7 +1679,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  CommunityPool(
+  communityPool(
     request: QueryCommunityPoolRequest,
   ): Promise<QueryCommunityPoolResponse> {
     const data = QueryCommunityPoolRequest.encode(request).finish();
@@ -1693,7 +1693,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  FoundationTax(
+  foundationTax(
     request: QueryFoundationTaxRequest,
   ): Promise<QueryFoundationTaxResponse> {
     const data = QueryFoundationTaxRequest.encode(request).finish();

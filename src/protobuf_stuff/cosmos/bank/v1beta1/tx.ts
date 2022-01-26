@@ -273,25 +273,25 @@ export const MsgMultiSendResponse = {
 /** Msg defines the bank Msg service. */
 export interface Msg {
   /** Send defines a method for sending coins from one account to another account. */
-  Send(request: MsgSend): Promise<MsgSendResponse>;
+  send(request: MsgSend): Promise<MsgSendResponse>;
   /** MultiSend defines a method for sending coins from some accounts to other accounts. */
-  MultiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse>;
+  multiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Send = this.Send.bind(this);
-    this.MultiSend = this.MultiSend.bind(this);
+    this.send = this.send.bind(this);
+    this.multiSend = this.multiSend.bind(this);
   }
-  Send(request: MsgSend): Promise<MsgSendResponse> {
+  send(request: MsgSend): Promise<MsgSendResponse> {
     const data = MsgSend.encode(request).finish();
     const promise = this.rpc.request("cosmos.bank.v1beta1.Msg", "Send", data);
     return promise.then((data) => MsgSendResponse.decode(new _m0.Reader(data)));
   }
 
-  MultiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse> {
+  multiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse> {
     const data = MsgMultiSend.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.bank.v1beta1.Msg",

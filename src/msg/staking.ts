@@ -22,7 +22,7 @@ export function createMsgDelegate(value: MsgDelegate): MsgDelegateEncodeObject {
 }
 
 export function createMsgUndelegate(
-  value: MsgUndelegate
+  value: MsgUndelegate,
 ): MsgUndelegateEncodeObject {
   return {
     typeUrl: "/cosmos.staking.v1beta1.MsgUndelegate",

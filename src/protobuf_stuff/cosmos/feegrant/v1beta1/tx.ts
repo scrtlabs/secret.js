@@ -275,14 +275,14 @@ export interface Msg {
    * GrantAllowance grants fee allowance to the grantee on the granter's
    * account with the provided expiration time.
    */
-  GrantAllowance(
+  grantAllowance(
     request: MsgGrantAllowance,
   ): Promise<MsgGrantAllowanceResponse>;
   /**
    * RevokeAllowance revokes any fee allowance of granter's account that
    * has been granted to the grantee.
    */
-  RevokeAllowance(
+  revokeAllowance(
     request: MsgRevokeAllowance,
   ): Promise<MsgRevokeAllowanceResponse>;
 }
@@ -291,10 +291,10 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.GrantAllowance = this.GrantAllowance.bind(this);
-    this.RevokeAllowance = this.RevokeAllowance.bind(this);
+    this.grantAllowance = this.grantAllowance.bind(this);
+    this.revokeAllowance = this.revokeAllowance.bind(this);
   }
-  GrantAllowance(
+  grantAllowance(
     request: MsgGrantAllowance,
   ): Promise<MsgGrantAllowanceResponse> {
     const data = MsgGrantAllowance.encode(request).finish();
@@ -308,7 +308,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  RevokeAllowance(
+  revokeAllowance(
     request: MsgRevokeAllowance,
   ): Promise<MsgRevokeAllowanceResponse> {
     const data = MsgRevokeAllowance.encode(request).finish();

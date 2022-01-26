@@ -274,14 +274,14 @@ export interface ReflectionService {
    * ListAllInterfaces lists all the interfaces registered in the interface
    * registry.
    */
-  ListAllInterfaces(
+  listAllInterfaces(
     request: ListAllInterfacesRequest,
   ): Promise<ListAllInterfacesResponse>;
   /**
    * ListImplementations list all the concrete types that implement a given
    * interface.
    */
-  ListImplementations(
+  listImplementations(
     request: ListImplementationsRequest,
   ): Promise<ListImplementationsResponse>;
 }
@@ -290,10 +290,10 @@ export class ReflectionServiceClientImpl implements ReflectionService {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ListAllInterfaces = this.ListAllInterfaces.bind(this);
-    this.ListImplementations = this.ListImplementations.bind(this);
+    this.listAllInterfaces = this.listAllInterfaces.bind(this);
+    this.listImplementations = this.listImplementations.bind(this);
   }
-  ListAllInterfaces(
+  listAllInterfaces(
     request: ListAllInterfacesRequest,
   ): Promise<ListAllInterfacesResponse> {
     const data = ListAllInterfacesRequest.encode(request).finish();
@@ -307,7 +307,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  ListImplementations(
+  listImplementations(
     request: ListImplementationsRequest,
   ): Promise<ListImplementationsResponse> {
     const data = ListImplementationsRequest.encode(request).finish();

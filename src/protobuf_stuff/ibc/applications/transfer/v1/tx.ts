@@ -223,16 +223,16 @@ export const MsgTransferResponse = {
 /** Msg defines the ibc/transfer Msg service. */
 export interface Msg {
   /** Transfer defines a rpc handler method for MsgTransfer. */
-  Transfer(request: MsgTransfer): Promise<MsgTransferResponse>;
+  transfer(request: MsgTransfer): Promise<MsgTransferResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Transfer = this.Transfer.bind(this);
+    this.transfer = this.transfer.bind(this);
   }
-  Transfer(request: MsgTransfer): Promise<MsgTransferResponse> {
+  transfer(request: MsgTransfer): Promise<MsgTransferResponse> {
     const data = MsgTransfer.encode(request).finish();
     const promise = this.rpc.request(
       "ibc.applications.transfer.v1.Msg",

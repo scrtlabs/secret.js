@@ -443,13 +443,13 @@ export const QuerySigningInfosResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Params queries the parameters of slashing module */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** SigningInfo queries the signing info of given cons address */
-  SigningInfo(
+  signingInfo(
     request: QuerySigningInfoRequest,
   ): Promise<QuerySigningInfoResponse>;
   /** SigningInfos queries signing info of all validators */
-  SigningInfos(
+  signingInfos(
     request: QuerySigningInfosRequest,
   ): Promise<QuerySigningInfosResponse>;
 }
@@ -458,11 +458,11 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Params = this.Params.bind(this);
-    this.SigningInfo = this.SigningInfo.bind(this);
-    this.SigningInfos = this.SigningInfos.bind(this);
+    this.params = this.params.bind(this);
+    this.signingInfo = this.signingInfo.bind(this);
+    this.signingInfos = this.signingInfos.bind(this);
   }
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.slashing.v1beta1.Query",
@@ -474,7 +474,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  SigningInfo(
+  signingInfo(
     request: QuerySigningInfoRequest,
   ): Promise<QuerySigningInfoResponse> {
     const data = QuerySigningInfoRequest.encode(request).finish();
@@ -488,7 +488,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  SigningInfos(
+  signingInfos(
     request: QuerySigningInfosRequest,
   ): Promise<QuerySigningInfosResponse> {
     const data = QuerySigningInfosRequest.encode(request).finish();

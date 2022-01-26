@@ -142,7 +142,7 @@ export const MsgVerifyInvariantResponse = {
 /** Msg defines the bank Msg service. */
 export interface Msg {
   /** VerifyInvariant defines a method to verify a particular invariance. */
-  VerifyInvariant(
+  verifyInvariant(
     request: MsgVerifyInvariant,
   ): Promise<MsgVerifyInvariantResponse>;
 }
@@ -151,9 +151,9 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.VerifyInvariant = this.VerifyInvariant.bind(this);
+    this.verifyInvariant = this.verifyInvariant.bind(this);
   }
-  VerifyInvariant(
+  verifyInvariant(
     request: MsgVerifyInvariant,
   ): Promise<MsgVerifyInvariantResponse> {
     const data = MsgVerifyInvariant.encode(request).finish();

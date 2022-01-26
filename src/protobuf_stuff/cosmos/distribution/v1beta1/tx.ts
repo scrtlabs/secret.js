@@ -522,28 +522,28 @@ export interface Msg {
    * SetWithdrawAddress defines a method to change the withdraw address
    * for a delegator (or validator self-delegation).
    */
-  SetWithdrawAddress(
+  setWithdrawAddress(
     request: MsgSetWithdrawAddress,
   ): Promise<MsgSetWithdrawAddressResponse>;
   /**
    * WithdrawDelegatorReward defines a method to withdraw rewards of delegator
    * from a single validator.
    */
-  WithdrawDelegatorReward(
+  withdrawDelegatorReward(
     request: MsgWithdrawDelegatorReward,
   ): Promise<MsgWithdrawDelegatorRewardResponse>;
   /**
    * WithdrawValidatorCommission defines a method to withdraw the
    * full commission to the validator address.
    */
-  WithdrawValidatorCommission(
+  withdrawValidatorCommission(
     request: MsgWithdrawValidatorCommission,
   ): Promise<MsgWithdrawValidatorCommissionResponse>;
   /**
    * FundCommunityPool defines a method to allow an account to directly
    * fund the community pool.
    */
-  FundCommunityPool(
+  fundCommunityPool(
     request: MsgFundCommunityPool,
   ): Promise<MsgFundCommunityPoolResponse>;
 }
@@ -552,13 +552,13 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.SetWithdrawAddress = this.SetWithdrawAddress.bind(this);
-    this.WithdrawDelegatorReward = this.WithdrawDelegatorReward.bind(this);
-    this.WithdrawValidatorCommission =
-      this.WithdrawValidatorCommission.bind(this);
-    this.FundCommunityPool = this.FundCommunityPool.bind(this);
+    this.setWithdrawAddress = this.setWithdrawAddress.bind(this);
+    this.withdrawDelegatorReward = this.withdrawDelegatorReward.bind(this);
+    this.withdrawValidatorCommission =
+      this.withdrawValidatorCommission.bind(this);
+    this.fundCommunityPool = this.fundCommunityPool.bind(this);
   }
-  SetWithdrawAddress(
+  setWithdrawAddress(
     request: MsgSetWithdrawAddress,
   ): Promise<MsgSetWithdrawAddressResponse> {
     const data = MsgSetWithdrawAddress.encode(request).finish();
@@ -572,7 +572,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  WithdrawDelegatorReward(
+  withdrawDelegatorReward(
     request: MsgWithdrawDelegatorReward,
   ): Promise<MsgWithdrawDelegatorRewardResponse> {
     const data = MsgWithdrawDelegatorReward.encode(request).finish();
@@ -586,7 +586,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  WithdrawValidatorCommission(
+  withdrawValidatorCommission(
     request: MsgWithdrawValidatorCommission,
   ): Promise<MsgWithdrawValidatorCommissionResponse> {
     const data = MsgWithdrawValidatorCommission.encode(request).finish();
@@ -600,7 +600,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  FundCommunityPool(
+  fundCommunityPool(
     request: MsgFundCommunityPool,
   ): Promise<MsgFundCommunityPoolResponse> {
     const data = MsgFundCommunityPool.encode(request).finish();

@@ -562,11 +562,11 @@ export const QueryModuleVersionsResponse = {
 /** Query defines the gRPC upgrade querier service. */
 export interface Query {
   /** CurrentPlan queries the current upgrade plan. */
-  CurrentPlan(
+  currentPlan(
     request: QueryCurrentPlanRequest,
   ): Promise<QueryCurrentPlanResponse>;
   /** AppliedPlan queries a previously applied upgrade plan by its name. */
-  AppliedPlan(
+  appliedPlan(
     request: QueryAppliedPlanRequest,
   ): Promise<QueryAppliedPlanResponse>;
   /**
@@ -575,11 +575,11 @@ export interface Query {
    * stored at the last height of this chain.
    * UpgradedConsensusState RPC not supported with legacy querier
    */
-  UpgradedConsensusState(
+  upgradedConsensusState(
     request: QueryUpgradedConsensusStateRequest,
   ): Promise<QueryUpgradedConsensusStateResponse>;
   /** ModuleVersions queries the list of module versions from state. */
-  ModuleVersions(
+  moduleVersions(
     request: QueryModuleVersionsRequest,
   ): Promise<QueryModuleVersionsResponse>;
 }
@@ -588,12 +588,12 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.CurrentPlan = this.CurrentPlan.bind(this);
-    this.AppliedPlan = this.AppliedPlan.bind(this);
-    this.UpgradedConsensusState = this.UpgradedConsensusState.bind(this);
-    this.ModuleVersions = this.ModuleVersions.bind(this);
+    this.currentPlan = this.currentPlan.bind(this);
+    this.appliedPlan = this.appliedPlan.bind(this);
+    this.upgradedConsensusState = this.upgradedConsensusState.bind(this);
+    this.moduleVersions = this.moduleVersions.bind(this);
   }
-  CurrentPlan(
+  currentPlan(
     request: QueryCurrentPlanRequest,
   ): Promise<QueryCurrentPlanResponse> {
     const data = QueryCurrentPlanRequest.encode(request).finish();
@@ -607,7 +607,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  AppliedPlan(
+  appliedPlan(
     request: QueryAppliedPlanRequest,
   ): Promise<QueryAppliedPlanResponse> {
     const data = QueryAppliedPlanRequest.encode(request).finish();
@@ -621,7 +621,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UpgradedConsensusState(
+  upgradedConsensusState(
     request: QueryUpgradedConsensusStateRequest,
   ): Promise<QueryUpgradedConsensusStateResponse> {
     const data = QueryUpgradedConsensusStateRequest.encode(request).finish();
@@ -635,7 +635,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ModuleVersions(
+  moduleVersions(
     request: QueryModuleVersionsRequest,
   ): Promise<QueryModuleVersionsResponse> {
     const data = QueryModuleVersionsRequest.encode(request).finish();

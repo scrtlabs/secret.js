@@ -1995,27 +1995,27 @@ export interface ReflectionService {
    * NOTE: this RPC is still experimental and might be subject to breaking changes or removal in
    * future releases of the cosmos-sdk.
    */
-  GetAuthnDescriptor(
+  getAuthnDescriptor(
     request: GetAuthnDescriptorRequest,
   ): Promise<GetAuthnDescriptorResponse>;
   /** GetChainDescriptor returns the description of the chain */
-  GetChainDescriptor(
+  getChainDescriptor(
     request: GetChainDescriptorRequest,
   ): Promise<GetChainDescriptorResponse>;
   /** GetCodecDescriptor returns the descriptor of the codec of the application */
-  GetCodecDescriptor(
+  getCodecDescriptor(
     request: GetCodecDescriptorRequest,
   ): Promise<GetCodecDescriptorResponse>;
   /** GetConfigurationDescriptor returns the descriptor for the sdk.Config of the application */
-  GetConfigurationDescriptor(
+  getConfigurationDescriptor(
     request: GetConfigurationDescriptorRequest,
   ): Promise<GetConfigurationDescriptorResponse>;
   /** GetQueryServicesDescriptor returns the available gRPC queryable services of the application */
-  GetQueryServicesDescriptor(
+  getQueryServicesDescriptor(
     request: GetQueryServicesDescriptorRequest,
   ): Promise<GetQueryServicesDescriptorResponse>;
   /** GetTxDescriptor returns information on the used transaction object and available msgs that can be used */
-  GetTxDescriptor(
+  getTxDescriptor(
     request: GetTxDescriptorRequest,
   ): Promise<GetTxDescriptorResponse>;
 }
@@ -2024,16 +2024,16 @@ export class ReflectionServiceClientImpl implements ReflectionService {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.GetAuthnDescriptor = this.GetAuthnDescriptor.bind(this);
-    this.GetChainDescriptor = this.GetChainDescriptor.bind(this);
-    this.GetCodecDescriptor = this.GetCodecDescriptor.bind(this);
-    this.GetConfigurationDescriptor =
-      this.GetConfigurationDescriptor.bind(this);
-    this.GetQueryServicesDescriptor =
-      this.GetQueryServicesDescriptor.bind(this);
-    this.GetTxDescriptor = this.GetTxDescriptor.bind(this);
+    this.getAuthnDescriptor = this.getAuthnDescriptor.bind(this);
+    this.getChainDescriptor = this.getChainDescriptor.bind(this);
+    this.getCodecDescriptor = this.getCodecDescriptor.bind(this);
+    this.getConfigurationDescriptor =
+      this.getConfigurationDescriptor.bind(this);
+    this.getQueryServicesDescriptor =
+      this.getQueryServicesDescriptor.bind(this);
+    this.getTxDescriptor = this.getTxDescriptor.bind(this);
   }
-  GetAuthnDescriptor(
+  getAuthnDescriptor(
     request: GetAuthnDescriptorRequest,
   ): Promise<GetAuthnDescriptorResponse> {
     const data = GetAuthnDescriptorRequest.encode(request).finish();
@@ -2047,7 +2047,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  GetChainDescriptor(
+  getChainDescriptor(
     request: GetChainDescriptorRequest,
   ): Promise<GetChainDescriptorResponse> {
     const data = GetChainDescriptorRequest.encode(request).finish();
@@ -2061,7 +2061,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  GetCodecDescriptor(
+  getCodecDescriptor(
     request: GetCodecDescriptorRequest,
   ): Promise<GetCodecDescriptorResponse> {
     const data = GetCodecDescriptorRequest.encode(request).finish();
@@ -2075,7 +2075,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  GetConfigurationDescriptor(
+  getConfigurationDescriptor(
     request: GetConfigurationDescriptorRequest,
   ): Promise<GetConfigurationDescriptorResponse> {
     const data = GetConfigurationDescriptorRequest.encode(request).finish();
@@ -2089,7 +2089,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  GetQueryServicesDescriptor(
+  getQueryServicesDescriptor(
     request: GetQueryServicesDescriptorRequest,
   ): Promise<GetQueryServicesDescriptorResponse> {
     const data = GetQueryServicesDescriptorRequest.encode(request).finish();
@@ -2103,7 +2103,7 @@ export class ReflectionServiceClientImpl implements ReflectionService {
     );
   }
 
-  GetTxDescriptor(
+  getTxDescriptor(
     request: GetTxDescriptorRequest,
   ): Promise<GetTxDescriptorResponse> {
     const data = GetTxDescriptorRequest.encode(request).finish();

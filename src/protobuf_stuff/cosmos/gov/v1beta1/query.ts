@@ -1330,21 +1330,21 @@ export const QueryTallyResultResponse = {
 /** Query defines the gRPC querier service for gov module */
 export interface Query {
   /** Proposal queries proposal details based on ProposalID. */
-  Proposal(request: QueryProposalRequest): Promise<QueryProposalResponse>;
+  proposal(request: QueryProposalRequest): Promise<QueryProposalResponse>;
   /** Proposals queries all proposals based on given status. */
-  Proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse>;
+  proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse>;
   /** Vote queries voted information based on proposalID, voterAddr. */
-  Vote(request: QueryVoteRequest): Promise<QueryVoteResponse>;
+  vote(request: QueryVoteRequest): Promise<QueryVoteResponse>;
   /** Votes queries votes of a given proposal. */
-  Votes(request: QueryVotesRequest): Promise<QueryVotesResponse>;
+  votes(request: QueryVotesRequest): Promise<QueryVotesResponse>;
   /** Params queries all parameters of the gov module. */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** Deposit queries single deposit information based proposalID, depositAddr. */
-  Deposit(request: QueryDepositRequest): Promise<QueryDepositResponse>;
+  deposit(request: QueryDepositRequest): Promise<QueryDepositResponse>;
   /** Deposits queries all deposits of a single proposal. */
-  Deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse>;
+  deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse>;
   /** TallyResult queries the tally of a proposal vote. */
-  TallyResult(
+  tallyResult(
     request: QueryTallyResultRequest,
   ): Promise<QueryTallyResultResponse>;
 }
@@ -1353,16 +1353,16 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Proposal = this.Proposal.bind(this);
-    this.Proposals = this.Proposals.bind(this);
-    this.Vote = this.Vote.bind(this);
-    this.Votes = this.Votes.bind(this);
-    this.Params = this.Params.bind(this);
-    this.Deposit = this.Deposit.bind(this);
-    this.Deposits = this.Deposits.bind(this);
-    this.TallyResult = this.TallyResult.bind(this);
+    this.proposal = this.proposal.bind(this);
+    this.proposals = this.proposals.bind(this);
+    this.vote = this.vote.bind(this);
+    this.votes = this.votes.bind(this);
+    this.params = this.params.bind(this);
+    this.deposit = this.deposit.bind(this);
+    this.deposits = this.deposits.bind(this);
+    this.tallyResult = this.tallyResult.bind(this);
   }
-  Proposal(request: QueryProposalRequest): Promise<QueryProposalResponse> {
+  proposal(request: QueryProposalRequest): Promise<QueryProposalResponse> {
     const data = QueryProposalRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Query",
@@ -1374,7 +1374,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse> {
+  proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse> {
     const data = QueryProposalsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Query",
@@ -1386,7 +1386,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Vote(request: QueryVoteRequest): Promise<QueryVoteResponse> {
+  vote(request: QueryVoteRequest): Promise<QueryVoteResponse> {
     const data = QueryVoteRequest.encode(request).finish();
     const promise = this.rpc.request("cosmos.gov.v1beta1.Query", "Vote", data);
     return promise.then((data) =>
@@ -1394,7 +1394,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Votes(request: QueryVotesRequest): Promise<QueryVotesResponse> {
+  votes(request: QueryVotesRequest): Promise<QueryVotesResponse> {
     const data = QueryVotesRequest.encode(request).finish();
     const promise = this.rpc.request("cosmos.gov.v1beta1.Query", "Votes", data);
     return promise.then((data) =>
@@ -1402,7 +1402,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Query",
@@ -1414,7 +1414,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Deposit(request: QueryDepositRequest): Promise<QueryDepositResponse> {
+  deposit(request: QueryDepositRequest): Promise<QueryDepositResponse> {
     const data = QueryDepositRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Query",
@@ -1426,7 +1426,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse> {
+  deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse> {
     const data = QueryDepositsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Query",
@@ -1438,7 +1438,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  TallyResult(
+  tallyResult(
     request: QueryTallyResultRequest,
   ): Promise<QueryTallyResultResponse> {
     const data = QueryTallyResultRequest.encode(request).finish();

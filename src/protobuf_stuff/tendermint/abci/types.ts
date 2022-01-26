@@ -4779,23 +4779,23 @@ export const Snapshot = {
 };
 
 export interface ABCIApplication {
-  Echo(request: RequestEcho): Promise<ResponseEcho>;
-  Flush(request: RequestFlush): Promise<ResponseFlush>;
-  Info(request: RequestInfo): Promise<ResponseInfo>;
-  SetOption(request: RequestSetOption): Promise<ResponseSetOption>;
-  DeliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx>;
-  CheckTx(request: RequestCheckTx): Promise<ResponseCheckTx>;
-  Query(request: RequestQuery): Promise<ResponseQuery>;
-  Commit(request: RequestCommit): Promise<ResponseCommit>;
-  InitChain(request: RequestInitChain): Promise<ResponseInitChain>;
-  BeginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock>;
-  EndBlock(request: RequestEndBlock): Promise<ResponseEndBlock>;
-  ListSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots>;
-  OfferSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot>;
-  LoadSnapshotChunk(
+  echo(request: RequestEcho): Promise<ResponseEcho>;
+  flush(request: RequestFlush): Promise<ResponseFlush>;
+  info(request: RequestInfo): Promise<ResponseInfo>;
+  setOption(request: RequestSetOption): Promise<ResponseSetOption>;
+  deliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx>;
+  checkTx(request: RequestCheckTx): Promise<ResponseCheckTx>;
+  query(request: RequestQuery): Promise<ResponseQuery>;
+  commit(request: RequestCommit): Promise<ResponseCommit>;
+  initChain(request: RequestInitChain): Promise<ResponseInitChain>;
+  beginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock>;
+  endBlock(request: RequestEndBlock): Promise<ResponseEndBlock>;
+  listSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots>;
+  offerSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot>;
+  loadSnapshotChunk(
     request: RequestLoadSnapshotChunk,
   ): Promise<ResponseLoadSnapshotChunk>;
-  ApplySnapshotChunk(
+  applySnapshotChunk(
     request: RequestApplySnapshotChunk,
   ): Promise<ResponseApplySnapshotChunk>;
 }
@@ -4804,23 +4804,23 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Echo = this.Echo.bind(this);
-    this.Flush = this.Flush.bind(this);
-    this.Info = this.Info.bind(this);
-    this.SetOption = this.SetOption.bind(this);
-    this.DeliverTx = this.DeliverTx.bind(this);
-    this.CheckTx = this.CheckTx.bind(this);
-    this.Query = this.Query.bind(this);
-    this.Commit = this.Commit.bind(this);
-    this.InitChain = this.InitChain.bind(this);
-    this.BeginBlock = this.BeginBlock.bind(this);
-    this.EndBlock = this.EndBlock.bind(this);
-    this.ListSnapshots = this.ListSnapshots.bind(this);
-    this.OfferSnapshot = this.OfferSnapshot.bind(this);
-    this.LoadSnapshotChunk = this.LoadSnapshotChunk.bind(this);
-    this.ApplySnapshotChunk = this.ApplySnapshotChunk.bind(this);
+    this.echo = this.echo.bind(this);
+    this.flush = this.flush.bind(this);
+    this.info = this.info.bind(this);
+    this.setOption = this.setOption.bind(this);
+    this.deliverTx = this.deliverTx.bind(this);
+    this.checkTx = this.checkTx.bind(this);
+    this.query = this.query.bind(this);
+    this.commit = this.commit.bind(this);
+    this.initChain = this.initChain.bind(this);
+    this.beginBlock = this.beginBlock.bind(this);
+    this.endBlock = this.endBlock.bind(this);
+    this.listSnapshots = this.listSnapshots.bind(this);
+    this.offerSnapshot = this.offerSnapshot.bind(this);
+    this.loadSnapshotChunk = this.loadSnapshotChunk.bind(this);
+    this.applySnapshotChunk = this.applySnapshotChunk.bind(this);
   }
-  Echo(request: RequestEcho): Promise<ResponseEcho> {
+  echo(request: RequestEcho): Promise<ResponseEcho> {
     const data = RequestEcho.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4830,7 +4830,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseEcho.decode(new _m0.Reader(data)));
   }
 
-  Flush(request: RequestFlush): Promise<ResponseFlush> {
+  flush(request: RequestFlush): Promise<ResponseFlush> {
     const data = RequestFlush.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4840,7 +4840,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseFlush.decode(new _m0.Reader(data)));
   }
 
-  Info(request: RequestInfo): Promise<ResponseInfo> {
+  info(request: RequestInfo): Promise<ResponseInfo> {
     const data = RequestInfo.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4850,7 +4850,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseInfo.decode(new _m0.Reader(data)));
   }
 
-  SetOption(request: RequestSetOption): Promise<ResponseSetOption> {
+  setOption(request: RequestSetOption): Promise<ResponseSetOption> {
     const data = RequestSetOption.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4862,7 +4862,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  DeliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx> {
+  deliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx> {
     const data = RequestDeliverTx.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4874,7 +4874,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  CheckTx(request: RequestCheckTx): Promise<ResponseCheckTx> {
+  checkTx(request: RequestCheckTx): Promise<ResponseCheckTx> {
     const data = RequestCheckTx.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4884,7 +4884,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseCheckTx.decode(new _m0.Reader(data)));
   }
 
-  Query(request: RequestQuery): Promise<ResponseQuery> {
+  query(request: RequestQuery): Promise<ResponseQuery> {
     const data = RequestQuery.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4894,7 +4894,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseQuery.decode(new _m0.Reader(data)));
   }
 
-  Commit(request: RequestCommit): Promise<ResponseCommit> {
+  commit(request: RequestCommit): Promise<ResponseCommit> {
     const data = RequestCommit.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4904,7 +4904,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     return promise.then((data) => ResponseCommit.decode(new _m0.Reader(data)));
   }
 
-  InitChain(request: RequestInitChain): Promise<ResponseInitChain> {
+  initChain(request: RequestInitChain): Promise<ResponseInitChain> {
     const data = RequestInitChain.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4916,7 +4916,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  BeginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock> {
+  beginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock> {
     const data = RequestBeginBlock.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4928,7 +4928,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  EndBlock(request: RequestEndBlock): Promise<ResponseEndBlock> {
+  endBlock(request: RequestEndBlock): Promise<ResponseEndBlock> {
     const data = RequestEndBlock.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4940,7 +4940,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  ListSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots> {
+  listSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots> {
     const data = RequestListSnapshots.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4952,7 +4952,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  OfferSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot> {
+  offerSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot> {
     const data = RequestOfferSnapshot.encode(request).finish();
     const promise = this.rpc.request(
       "tendermint.abci.ABCIApplication",
@@ -4964,7 +4964,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  LoadSnapshotChunk(
+  loadSnapshotChunk(
     request: RequestLoadSnapshotChunk,
   ): Promise<ResponseLoadSnapshotChunk> {
     const data = RequestLoadSnapshotChunk.encode(request).finish();
@@ -4978,7 +4978,7 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     );
   }
 
-  ApplySnapshotChunk(
+  applySnapshotChunk(
     request: RequestApplySnapshotChunk,
   ): Promise<ResponseApplySnapshotChunk> {
     const data = RequestApplySnapshotChunk.encode(request).finish();

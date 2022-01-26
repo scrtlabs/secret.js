@@ -1,4 +1,4 @@
-export { MsgSend, createMsgSend, isMsgSend } from "./msgs_bank";
+export { MsgSend, createMsgSend, isMsgSend } from "./msg/bank";
 export {
   MsgStoreCode,
   createMsgStoreCode,
@@ -9,12 +9,12 @@ export {
   MsgExecuteContract,
   createMsgExecuteContract,
   isMsgExecuteContract,
-} from "./msgs_compute";
+} from "./msg/compute";
 export {
   MsgWithdrawDelegatorReward,
   createMsgWithdrawDelegatorReward,
   isMsgWithdrawDelegatorReward,
-} from "./msgs_distribution";
+} from "./msg/distribution";
 export {
   MsgDeposit,
   createMsgDeposit,
@@ -25,8 +25,8 @@ export {
   MsgVote,
   createMsgVote,
   isMsgVote,
-} from "./msgs_gov";
-export { MsgTransfer, createMsgTransfer, isMsgTransfer } from "./msgs_ibc";
+} from "./msg/gov";
+export { MsgTransfer, createMsgTransfer, isMsgTransfer } from "./msg/ibc";
 export {
   MsgDelegate,
   createMsgDelegate,
@@ -34,7 +34,7 @@ export {
   MsgUndelegate,
   createMsgUndelegate,
   isMsgUndelegate,
-} from "./msgs_staking";
+} from "./msg/staking";
 
 export {
   makeSecretNetworkPath,

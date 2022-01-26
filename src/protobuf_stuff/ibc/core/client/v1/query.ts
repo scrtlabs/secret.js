@@ -1312,41 +1312,41 @@ export const QueryUpgradedConsensusStateResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** ClientState queries an IBC light client. */
-  ClientState(
+  clientState(
     request: QueryClientStateRequest,
   ): Promise<QueryClientStateResponse>;
   /** ClientStates queries all the IBC light clients of a chain. */
-  ClientStates(
+  clientStates(
     request: QueryClientStatesRequest,
   ): Promise<QueryClientStatesResponse>;
   /**
    * ConsensusState queries a consensus state associated with a client state at
    * a given height.
    */
-  ConsensusState(
+  consensusState(
     request: QueryConsensusStateRequest,
   ): Promise<QueryConsensusStateResponse>;
   /**
    * ConsensusStates queries all the consensus state associated with a given
    * client.
    */
-  ConsensusStates(
+  consensusStates(
     request: QueryConsensusStatesRequest,
   ): Promise<QueryConsensusStatesResponse>;
   /** Status queries the status of an IBC client. */
-  ClientStatus(
+  clientStatus(
     request: QueryClientStatusRequest,
   ): Promise<QueryClientStatusResponse>;
   /** ClientParams queries all parameters of the ibc client. */
-  ClientParams(
+  clientParams(
     request: QueryClientParamsRequest,
   ): Promise<QueryClientParamsResponse>;
   /** UpgradedClientState queries an Upgraded IBC light client. */
-  UpgradedClientState(
+  upgradedClientState(
     request: QueryUpgradedClientStateRequest,
   ): Promise<QueryUpgradedClientStateResponse>;
   /** UpgradedConsensusState queries an Upgraded IBC consensus state. */
-  UpgradedConsensusState(
+  upgradedConsensusState(
     request: QueryUpgradedConsensusStateRequest,
   ): Promise<QueryUpgradedConsensusStateResponse>;
 }
@@ -1355,16 +1355,16 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ClientState = this.ClientState.bind(this);
-    this.ClientStates = this.ClientStates.bind(this);
-    this.ConsensusState = this.ConsensusState.bind(this);
-    this.ConsensusStates = this.ConsensusStates.bind(this);
-    this.ClientStatus = this.ClientStatus.bind(this);
-    this.ClientParams = this.ClientParams.bind(this);
-    this.UpgradedClientState = this.UpgradedClientState.bind(this);
-    this.UpgradedConsensusState = this.UpgradedConsensusState.bind(this);
+    this.clientState = this.clientState.bind(this);
+    this.clientStates = this.clientStates.bind(this);
+    this.consensusState = this.consensusState.bind(this);
+    this.consensusStates = this.consensusStates.bind(this);
+    this.clientStatus = this.clientStatus.bind(this);
+    this.clientParams = this.clientParams.bind(this);
+    this.upgradedClientState = this.upgradedClientState.bind(this);
+    this.upgradedConsensusState = this.upgradedConsensusState.bind(this);
   }
-  ClientState(
+  clientState(
     request: QueryClientStateRequest,
   ): Promise<QueryClientStateResponse> {
     const data = QueryClientStateRequest.encode(request).finish();
@@ -1378,7 +1378,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ClientStates(
+  clientStates(
     request: QueryClientStatesRequest,
   ): Promise<QueryClientStatesResponse> {
     const data = QueryClientStatesRequest.encode(request).finish();
@@ -1392,7 +1392,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ConsensusState(
+  consensusState(
     request: QueryConsensusStateRequest,
   ): Promise<QueryConsensusStateResponse> {
     const data = QueryConsensusStateRequest.encode(request).finish();
@@ -1406,7 +1406,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ConsensusStates(
+  consensusStates(
     request: QueryConsensusStatesRequest,
   ): Promise<QueryConsensusStatesResponse> {
     const data = QueryConsensusStatesRequest.encode(request).finish();
@@ -1420,7 +1420,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ClientStatus(
+  clientStatus(
     request: QueryClientStatusRequest,
   ): Promise<QueryClientStatusResponse> {
     const data = QueryClientStatusRequest.encode(request).finish();
@@ -1434,7 +1434,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ClientParams(
+  clientParams(
     request: QueryClientParamsRequest,
   ): Promise<QueryClientParamsResponse> {
     const data = QueryClientParamsRequest.encode(request).finish();
@@ -1448,7 +1448,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UpgradedClientState(
+  upgradedClientState(
     request: QueryUpgradedClientStateRequest,
   ): Promise<QueryUpgradedClientStateResponse> {
     const data = QueryUpgradedClientStateRequest.encode(request).finish();
@@ -1462,7 +1462,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UpgradedConsensusState(
+  upgradedConsensusState(
     request: QueryUpgradedConsensusStateRequest,
   ): Promise<QueryUpgradedConsensusStateResponse> {
     const data = QueryUpgradedConsensusStateRequest.encode(request).finish();

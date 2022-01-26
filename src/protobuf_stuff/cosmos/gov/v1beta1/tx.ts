@@ -593,27 +593,27 @@ export const MsgDepositResponse = {
 /** Msg defines the bank Msg service. */
 export interface Msg {
   /** SubmitProposal defines a method to create new proposal given a content. */
-  SubmitProposal(
+  submitProposal(
     request: MsgSubmitProposal,
   ): Promise<MsgSubmitProposalResponse>;
   /** Vote defines a method to add a vote on a specific proposal. */
-  Vote(request: MsgVote): Promise<MsgVoteResponse>;
+  vote(request: MsgVote): Promise<MsgVoteResponse>;
   /** VoteWeighted defines a method to add a weighted vote on a specific proposal. */
-  VoteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse>;
+  voteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse>;
   /** Deposit defines a method to add deposit on a specific proposal. */
-  Deposit(request: MsgDeposit): Promise<MsgDepositResponse>;
+  deposit(request: MsgDeposit): Promise<MsgDepositResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.SubmitProposal = this.SubmitProposal.bind(this);
-    this.Vote = this.Vote.bind(this);
-    this.VoteWeighted = this.VoteWeighted.bind(this);
-    this.Deposit = this.Deposit.bind(this);
+    this.submitProposal = this.submitProposal.bind(this);
+    this.vote = this.vote.bind(this);
+    this.voteWeighted = this.voteWeighted.bind(this);
+    this.deposit = this.deposit.bind(this);
   }
-  SubmitProposal(
+  submitProposal(
     request: MsgSubmitProposal,
   ): Promise<MsgSubmitProposalResponse> {
     const data = MsgSubmitProposal.encode(request).finish();
@@ -627,13 +627,13 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Vote(request: MsgVote): Promise<MsgVoteResponse> {
+  vote(request: MsgVote): Promise<MsgVoteResponse> {
     const data = MsgVote.encode(request).finish();
     const promise = this.rpc.request("cosmos.gov.v1beta1.Msg", "Vote", data);
     return promise.then((data) => MsgVoteResponse.decode(new _m0.Reader(data)));
   }
 
-  VoteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse> {
+  voteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse> {
     const data = MsgVoteWeighted.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.gov.v1beta1.Msg",
@@ -645,7 +645,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Deposit(request: MsgDeposit): Promise<MsgDepositResponse> {
+  deposit(request: MsgDeposit): Promise<MsgDepositResponse> {
     const data = MsgDeposit.encode(request).finish();
     const promise = this.rpc.request("cosmos.gov.v1beta1.Msg", "Deposit", data);
     return promise.then((data) =>

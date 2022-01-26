@@ -1768,42 +1768,42 @@ export const MsgAcknowledgementResponse = {
 /** Msg defines the ibc/channel Msg service. */
 export interface Msg {
   /** ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit. */
-  ChannelOpenInit(
+  channelOpenInit(
     request: MsgChannelOpenInit,
   ): Promise<MsgChannelOpenInitResponse>;
   /** ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry. */
-  ChannelOpenTry(
+  channelOpenTry(
     request: MsgChannelOpenTry,
   ): Promise<MsgChannelOpenTryResponse>;
   /** ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck. */
-  ChannelOpenAck(
+  channelOpenAck(
     request: MsgChannelOpenAck,
   ): Promise<MsgChannelOpenAckResponse>;
   /** ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm. */
-  ChannelOpenConfirm(
+  channelOpenConfirm(
     request: MsgChannelOpenConfirm,
   ): Promise<MsgChannelOpenConfirmResponse>;
   /** ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit. */
-  ChannelCloseInit(
+  channelCloseInit(
     request: MsgChannelCloseInit,
   ): Promise<MsgChannelCloseInitResponse>;
   /**
    * ChannelCloseConfirm defines a rpc handler method for
    * MsgChannelCloseConfirm.
    */
-  ChannelCloseConfirm(
+  channelCloseConfirm(
     request: MsgChannelCloseConfirm,
   ): Promise<MsgChannelCloseConfirmResponse>;
   /** RecvPacket defines a rpc handler method for MsgRecvPacket. */
-  RecvPacket(request: MsgRecvPacket): Promise<MsgRecvPacketResponse>;
+  recvPacket(request: MsgRecvPacket): Promise<MsgRecvPacketResponse>;
   /** Timeout defines a rpc handler method for MsgTimeout. */
-  Timeout(request: MsgTimeout): Promise<MsgTimeoutResponse>;
+  timeout(request: MsgTimeout): Promise<MsgTimeoutResponse>;
   /** TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose. */
-  TimeoutOnClose(
+  timeoutOnClose(
     request: MsgTimeoutOnClose,
   ): Promise<MsgTimeoutOnCloseResponse>;
   /** Acknowledgement defines a rpc handler method for MsgAcknowledgement. */
-  Acknowledgement(
+  acknowledgement(
     request: MsgAcknowledgement,
   ): Promise<MsgAcknowledgementResponse>;
 }
@@ -1812,18 +1812,18 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ChannelOpenInit = this.ChannelOpenInit.bind(this);
-    this.ChannelOpenTry = this.ChannelOpenTry.bind(this);
-    this.ChannelOpenAck = this.ChannelOpenAck.bind(this);
-    this.ChannelOpenConfirm = this.ChannelOpenConfirm.bind(this);
-    this.ChannelCloseInit = this.ChannelCloseInit.bind(this);
-    this.ChannelCloseConfirm = this.ChannelCloseConfirm.bind(this);
-    this.RecvPacket = this.RecvPacket.bind(this);
-    this.Timeout = this.Timeout.bind(this);
-    this.TimeoutOnClose = this.TimeoutOnClose.bind(this);
-    this.Acknowledgement = this.Acknowledgement.bind(this);
+    this.channelOpenInit = this.channelOpenInit.bind(this);
+    this.channelOpenTry = this.channelOpenTry.bind(this);
+    this.channelOpenAck = this.channelOpenAck.bind(this);
+    this.channelOpenConfirm = this.channelOpenConfirm.bind(this);
+    this.channelCloseInit = this.channelCloseInit.bind(this);
+    this.channelCloseConfirm = this.channelCloseConfirm.bind(this);
+    this.recvPacket = this.recvPacket.bind(this);
+    this.timeout = this.timeout.bind(this);
+    this.timeoutOnClose = this.timeoutOnClose.bind(this);
+    this.acknowledgement = this.acknowledgement.bind(this);
   }
-  ChannelOpenInit(
+  channelOpenInit(
     request: MsgChannelOpenInit,
   ): Promise<MsgChannelOpenInitResponse> {
     const data = MsgChannelOpenInit.encode(request).finish();
@@ -1837,7 +1837,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ChannelOpenTry(
+  channelOpenTry(
     request: MsgChannelOpenTry,
   ): Promise<MsgChannelOpenTryResponse> {
     const data = MsgChannelOpenTry.encode(request).finish();
@@ -1851,7 +1851,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ChannelOpenAck(
+  channelOpenAck(
     request: MsgChannelOpenAck,
   ): Promise<MsgChannelOpenAckResponse> {
     const data = MsgChannelOpenAck.encode(request).finish();
@@ -1865,7 +1865,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ChannelOpenConfirm(
+  channelOpenConfirm(
     request: MsgChannelOpenConfirm,
   ): Promise<MsgChannelOpenConfirmResponse> {
     const data = MsgChannelOpenConfirm.encode(request).finish();
@@ -1879,7 +1879,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ChannelCloseInit(
+  channelCloseInit(
     request: MsgChannelCloseInit,
   ): Promise<MsgChannelCloseInitResponse> {
     const data = MsgChannelCloseInit.encode(request).finish();
@@ -1893,7 +1893,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ChannelCloseConfirm(
+  channelCloseConfirm(
     request: MsgChannelCloseConfirm,
   ): Promise<MsgChannelCloseConfirmResponse> {
     const data = MsgChannelCloseConfirm.encode(request).finish();
@@ -1907,7 +1907,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  RecvPacket(request: MsgRecvPacket): Promise<MsgRecvPacketResponse> {
+  recvPacket(request: MsgRecvPacket): Promise<MsgRecvPacketResponse> {
     const data = MsgRecvPacket.encode(request).finish();
     const promise = this.rpc.request(
       "ibc.core.channel.v1.Msg",
@@ -1919,7 +1919,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Timeout(request: MsgTimeout): Promise<MsgTimeoutResponse> {
+  timeout(request: MsgTimeout): Promise<MsgTimeoutResponse> {
     const data = MsgTimeout.encode(request).finish();
     const promise = this.rpc.request(
       "ibc.core.channel.v1.Msg",
@@ -1931,7 +1931,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  TimeoutOnClose(
+  timeoutOnClose(
     request: MsgTimeoutOnClose,
   ): Promise<MsgTimeoutOnCloseResponse> {
     const data = MsgTimeoutOnClose.encode(request).finish();
@@ -1945,7 +1945,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  Acknowledgement(
+  acknowledgement(
     request: MsgAcknowledgement,
   ): Promise<MsgAcknowledgementResponse> {
     const data = MsgAcknowledgement.encode(request).finish();

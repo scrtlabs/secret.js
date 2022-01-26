@@ -332,19 +332,19 @@ export const QueryAllowancesResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Allowance returns fee granted to the grantee by the granter. */
-  Allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse>;
+  allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse>;
   /** Allowances returns all the grants for address. */
-  Allowances(request: QueryAllowancesRequest): Promise<QueryAllowancesResponse>;
+  allowances(request: QueryAllowancesRequest): Promise<QueryAllowancesResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Allowance = this.Allowance.bind(this);
-    this.Allowances = this.Allowances.bind(this);
+    this.allowance = this.allowance.bind(this);
+    this.allowances = this.allowances.bind(this);
   }
-  Allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse> {
+  allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse> {
     const data = QueryAllowanceRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.feegrant.v1beta1.Query",
@@ -356,7 +356,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Allowances(
+  allowances(
     request: QueryAllowancesRequest,
   ): Promise<QueryAllowancesResponse> {
     const data = QueryAllowancesRequest.encode(request).finish();

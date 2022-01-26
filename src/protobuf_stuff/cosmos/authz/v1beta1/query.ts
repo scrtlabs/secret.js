@@ -199,16 +199,16 @@ export const QueryGrantsResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Returns list of `Authorization`, granted to the grantee by the granter. */
-  Grants(request: QueryGrantsRequest): Promise<QueryGrantsResponse>;
+  grants(request: QueryGrantsRequest): Promise<QueryGrantsResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Grants = this.Grants.bind(this);
+    this.grants = this.grants.bind(this);
   }
-  Grants(request: QueryGrantsRequest): Promise<QueryGrantsResponse> {
+  grants(request: QueryGrantsRequest): Promise<QueryGrantsResponse> {
     const data = QueryGrantsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.authz.v1beta1.Query",

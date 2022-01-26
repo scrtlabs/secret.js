@@ -973,22 +973,22 @@ export const MsgConnectionOpenConfirmResponse = {
 /** Msg defines the ibc/connection Msg service. */
 export interface Msg {
   /** ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit. */
-  ConnectionOpenInit(
+  connectionOpenInit(
     request: MsgConnectionOpenInit,
   ): Promise<MsgConnectionOpenInitResponse>;
   /** ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry. */
-  ConnectionOpenTry(
+  connectionOpenTry(
     request: MsgConnectionOpenTry,
   ): Promise<MsgConnectionOpenTryResponse>;
   /** ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck. */
-  ConnectionOpenAck(
+  connectionOpenAck(
     request: MsgConnectionOpenAck,
   ): Promise<MsgConnectionOpenAckResponse>;
   /**
    * ConnectionOpenConfirm defines a rpc handler method for
    * MsgConnectionOpenConfirm.
    */
-  ConnectionOpenConfirm(
+  connectionOpenConfirm(
     request: MsgConnectionOpenConfirm,
   ): Promise<MsgConnectionOpenConfirmResponse>;
 }
@@ -997,12 +997,12 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ConnectionOpenInit = this.ConnectionOpenInit.bind(this);
-    this.ConnectionOpenTry = this.ConnectionOpenTry.bind(this);
-    this.ConnectionOpenAck = this.ConnectionOpenAck.bind(this);
-    this.ConnectionOpenConfirm = this.ConnectionOpenConfirm.bind(this);
+    this.connectionOpenInit = this.connectionOpenInit.bind(this);
+    this.connectionOpenTry = this.connectionOpenTry.bind(this);
+    this.connectionOpenAck = this.connectionOpenAck.bind(this);
+    this.connectionOpenConfirm = this.connectionOpenConfirm.bind(this);
   }
-  ConnectionOpenInit(
+  connectionOpenInit(
     request: MsgConnectionOpenInit,
   ): Promise<MsgConnectionOpenInitResponse> {
     const data = MsgConnectionOpenInit.encode(request).finish();
@@ -1016,7 +1016,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ConnectionOpenTry(
+  connectionOpenTry(
     request: MsgConnectionOpenTry,
   ): Promise<MsgConnectionOpenTryResponse> {
     const data = MsgConnectionOpenTry.encode(request).finish();
@@ -1030,7 +1030,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ConnectionOpenAck(
+  connectionOpenAck(
     request: MsgConnectionOpenAck,
   ): Promise<MsgConnectionOpenAckResponse> {
     const data = MsgConnectionOpenAck.encode(request).finish();
@@ -1044,7 +1044,7 @@ export class MsgClientImpl implements Msg {
     );
   }
 
-  ConnectionOpenConfirm(
+  connectionOpenConfirm(
     request: MsgConnectionOpenConfirm,
   ): Promise<MsgConnectionOpenConfirmResponse> {
     const data = MsgConnectionOpenConfirm.encode(request).finish();

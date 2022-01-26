@@ -1495,34 +1495,34 @@ export const DecryptedAnswer = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Query contract */
-  ContractInfo(
+  contractInfo(
     request: QueryContractInfoRequest,
   ): Promise<QueryContractInfoResponse>;
   /** Query contract */
-  ContractsByCode(
+  contractsByCode(
     request: QueryContractsByCodeRequest,
   ): Promise<QueryContractsByCodeResponse>;
   /** Query contract */
-  SmartContractState(
+  smartContractState(
     request: QuerySmartContractStateRequest,
   ): Promise<QuerySmartContractStateResponse>;
   /** Query a specific contract code */
-  Code(request: QueryCodeRequest): Promise<QueryCodeResponse>;
+  code(request: QueryCodeRequest): Promise<QueryCodeResponse>;
   /** Query all contract codes on-chain */
-  Codes(request: Empty): Promise<QueryCodesResponse>;
+  codes(request: Empty): Promise<QueryCodesResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ContractInfo = this.ContractInfo.bind(this);
-    this.ContractsByCode = this.ContractsByCode.bind(this);
-    this.SmartContractState = this.SmartContractState.bind(this);
-    this.Code = this.Code.bind(this);
-    this.Codes = this.Codes.bind(this);
+    this.contractInfo = this.contractInfo.bind(this);
+    this.contractsByCode = this.contractsByCode.bind(this);
+    this.smartContractState = this.smartContractState.bind(this);
+    this.code = this.code.bind(this);
+    this.codes = this.codes.bind(this);
   }
-  ContractInfo(
+  contractInfo(
     request: QueryContractInfoRequest,
   ): Promise<QueryContractInfoResponse> {
     const data = QueryContractInfoRequest.encode(request).finish();
@@ -1536,7 +1536,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ContractsByCode(
+  contractsByCode(
     request: QueryContractsByCodeRequest,
   ): Promise<QueryContractsByCodeResponse> {
     const data = QueryContractsByCodeRequest.encode(request).finish();
@@ -1550,7 +1550,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  SmartContractState(
+  smartContractState(
     request: QuerySmartContractStateRequest,
   ): Promise<QuerySmartContractStateResponse> {
     const data = QuerySmartContractStateRequest.encode(request).finish();
@@ -1564,7 +1564,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Code(request: QueryCodeRequest): Promise<QueryCodeResponse> {
+  code(request: QueryCodeRequest): Promise<QueryCodeResponse> {
     const data = QueryCodeRequest.encode(request).finish();
     const promise = this.rpc.request(
       "secret.compute.v1beta1.Query",
@@ -1576,7 +1576,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Codes(request: Empty): Promise<QueryCodesResponse> {
+  codes(request: Empty): Promise<QueryCodesResponse> {
     const data = Empty.encode(request).finish();
     const promise = this.rpc.request(
       "secret.compute.v1beta1.Query",

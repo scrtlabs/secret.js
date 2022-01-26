@@ -2343,87 +2343,87 @@ export const QueryParamsResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Validators queries all validators that match the given status. */
-  Validators(request: QueryValidatorsRequest): Promise<QueryValidatorsResponse>;
+  validators(request: QueryValidatorsRequest): Promise<QueryValidatorsResponse>;
   /** Validator queries validator info for given validator address. */
-  Validator(request: QueryValidatorRequest): Promise<QueryValidatorResponse>;
+  validator(request: QueryValidatorRequest): Promise<QueryValidatorResponse>;
   /** ValidatorDelegations queries delegate info for given validator. */
-  ValidatorDelegations(
+  validatorDelegations(
     request: QueryValidatorDelegationsRequest,
   ): Promise<QueryValidatorDelegationsResponse>;
   /** ValidatorUnbondingDelegations queries unbonding delegations of a validator. */
-  ValidatorUnbondingDelegations(
+  validatorUnbondingDelegations(
     request: QueryValidatorUnbondingDelegationsRequest,
   ): Promise<QueryValidatorUnbondingDelegationsResponse>;
   /** Delegation queries delegate info for given validator delegator pair. */
-  Delegation(request: QueryDelegationRequest): Promise<QueryDelegationResponse>;
+  delegation(request: QueryDelegationRequest): Promise<QueryDelegationResponse>;
   /**
    * UnbondingDelegation queries unbonding info for given validator delegator
    * pair.
    */
-  UnbondingDelegation(
+  unbondingDelegation(
     request: QueryUnbondingDelegationRequest,
   ): Promise<QueryUnbondingDelegationResponse>;
   /** DelegatorDelegations queries all delegations of a given delegator address. */
-  DelegatorDelegations(
+  delegatorDelegations(
     request: QueryDelegatorDelegationsRequest,
   ): Promise<QueryDelegatorDelegationsResponse>;
   /**
    * DelegatorUnbondingDelegations queries all unbonding delegations of a given
    * delegator address.
    */
-  DelegatorUnbondingDelegations(
+  delegatorUnbondingDelegations(
     request: QueryDelegatorUnbondingDelegationsRequest,
   ): Promise<QueryDelegatorUnbondingDelegationsResponse>;
   /** Redelegations queries redelegations of given address. */
-  Redelegations(
+  redelegations(
     request: QueryRedelegationsRequest,
   ): Promise<QueryRedelegationsResponse>;
   /**
    * DelegatorValidators queries all validators info for given delegator
    * address.
    */
-  DelegatorValidators(
+  delegatorValidators(
     request: QueryDelegatorValidatorsRequest,
   ): Promise<QueryDelegatorValidatorsResponse>;
   /**
    * DelegatorValidator queries validator info for given delegator validator
    * pair.
    */
-  DelegatorValidator(
+  delegatorValidator(
     request: QueryDelegatorValidatorRequest,
   ): Promise<QueryDelegatorValidatorResponse>;
   /** HistoricalInfo queries the historical info for given height. */
-  HistoricalInfo(
+  historicalInfo(
     request: QueryHistoricalInfoRequest,
   ): Promise<QueryHistoricalInfoResponse>;
   /** Pool queries the pool info. */
-  Pool(request: QueryPoolRequest): Promise<QueryPoolResponse>;
+  pool(request: QueryPoolRequest): Promise<QueryPoolResponse>;
   /** Parameters queries the staking parameters. */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Validators = this.Validators.bind(this);
-    this.Validator = this.Validator.bind(this);
-    this.ValidatorDelegations = this.ValidatorDelegations.bind(this);
-    this.ValidatorUnbondingDelegations =
-      this.ValidatorUnbondingDelegations.bind(this);
-    this.Delegation = this.Delegation.bind(this);
-    this.UnbondingDelegation = this.UnbondingDelegation.bind(this);
-    this.DelegatorDelegations = this.DelegatorDelegations.bind(this);
-    this.DelegatorUnbondingDelegations =
-      this.DelegatorUnbondingDelegations.bind(this);
-    this.Redelegations = this.Redelegations.bind(this);
-    this.DelegatorValidators = this.DelegatorValidators.bind(this);
-    this.DelegatorValidator = this.DelegatorValidator.bind(this);
-    this.HistoricalInfo = this.HistoricalInfo.bind(this);
-    this.Pool = this.Pool.bind(this);
-    this.Params = this.Params.bind(this);
+    this.validators = this.validators.bind(this);
+    this.validator = this.validator.bind(this);
+    this.validatorDelegations = this.validatorDelegations.bind(this);
+    this.validatorUnbondingDelegations =
+      this.validatorUnbondingDelegations.bind(this);
+    this.delegation = this.delegation.bind(this);
+    this.unbondingDelegation = this.unbondingDelegation.bind(this);
+    this.delegatorDelegations = this.delegatorDelegations.bind(this);
+    this.delegatorUnbondingDelegations =
+      this.delegatorUnbondingDelegations.bind(this);
+    this.redelegations = this.redelegations.bind(this);
+    this.delegatorValidators = this.delegatorValidators.bind(this);
+    this.delegatorValidator = this.delegatorValidator.bind(this);
+    this.historicalInfo = this.historicalInfo.bind(this);
+    this.pool = this.pool.bind(this);
+    this.params = this.params.bind(this);
   }
-  Validators(
+  validators(
     request: QueryValidatorsRequest,
   ): Promise<QueryValidatorsResponse> {
     const data = QueryValidatorsRequest.encode(request).finish();
@@ -2437,7 +2437,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Validator(request: QueryValidatorRequest): Promise<QueryValidatorResponse> {
+  validator(request: QueryValidatorRequest): Promise<QueryValidatorResponse> {
     const data = QueryValidatorRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Query",
@@ -2449,7 +2449,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ValidatorDelegations(
+  validatorDelegations(
     request: QueryValidatorDelegationsRequest,
   ): Promise<QueryValidatorDelegationsResponse> {
     const data = QueryValidatorDelegationsRequest.encode(request).finish();
@@ -2463,7 +2463,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ValidatorUnbondingDelegations(
+  validatorUnbondingDelegations(
     request: QueryValidatorUnbondingDelegationsRequest,
   ): Promise<QueryValidatorUnbondingDelegationsResponse> {
     const data =
@@ -2478,7 +2478,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Delegation(
+  delegation(
     request: QueryDelegationRequest,
   ): Promise<QueryDelegationResponse> {
     const data = QueryDelegationRequest.encode(request).finish();
@@ -2492,7 +2492,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  UnbondingDelegation(
+  unbondingDelegation(
     request: QueryUnbondingDelegationRequest,
   ): Promise<QueryUnbondingDelegationResponse> {
     const data = QueryUnbondingDelegationRequest.encode(request).finish();
@@ -2506,7 +2506,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorDelegations(
+  delegatorDelegations(
     request: QueryDelegatorDelegationsRequest,
   ): Promise<QueryDelegatorDelegationsResponse> {
     const data = QueryDelegatorDelegationsRequest.encode(request).finish();
@@ -2520,7 +2520,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorUnbondingDelegations(
+  delegatorUnbondingDelegations(
     request: QueryDelegatorUnbondingDelegationsRequest,
   ): Promise<QueryDelegatorUnbondingDelegationsResponse> {
     const data =
@@ -2535,7 +2535,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Redelegations(
+  redelegations(
     request: QueryRedelegationsRequest,
   ): Promise<QueryRedelegationsResponse> {
     const data = QueryRedelegationsRequest.encode(request).finish();
@@ -2549,7 +2549,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorValidators(
+  delegatorValidators(
     request: QueryDelegatorValidatorsRequest,
   ): Promise<QueryDelegatorValidatorsResponse> {
     const data = QueryDelegatorValidatorsRequest.encode(request).finish();
@@ -2563,7 +2563,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DelegatorValidator(
+  delegatorValidator(
     request: QueryDelegatorValidatorRequest,
   ): Promise<QueryDelegatorValidatorResponse> {
     const data = QueryDelegatorValidatorRequest.encode(request).finish();
@@ -2577,7 +2577,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  HistoricalInfo(
+  historicalInfo(
     request: QueryHistoricalInfoRequest,
   ): Promise<QueryHistoricalInfoResponse> {
     const data = QueryHistoricalInfoRequest.encode(request).finish();
@@ -2591,7 +2591,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Pool(request: QueryPoolRequest): Promise<QueryPoolResponse> {
+  pool(request: QueryPoolRequest): Promise<QueryPoolResponse> {
     const data = QueryPoolRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Query",
@@ -2603,7 +2603,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.staking.v1beta1.Query",

@@ -120,16 +120,16 @@ export interface Msg {
    * them into the bonded validator set, so they can begin receiving provisions
    * and rewards again.
    */
-  Unjail(request: MsgUnjail): Promise<MsgUnjailResponse>;
+  unjail(request: MsgUnjail): Promise<MsgUnjailResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Unjail = this.Unjail.bind(this);
+    this.unjail = this.unjail.bind(this);
   }
-  Unjail(request: MsgUnjail): Promise<MsgUnjailResponse> {
+  unjail(request: MsgUnjail): Promise<MsgUnjailResponse> {
     const data = MsgUnjail.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.slashing.v1beta1.Msg",

@@ -1046,25 +1046,25 @@ export const QueryDenomMetadataResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Balance queries the balance of a single coin for a single account. */
-  Balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse>;
+  balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse>;
   /** AllBalances queries the balance of all coins for a single account. */
-  AllBalances(
+  allBalances(
     request: QueryAllBalancesRequest,
   ): Promise<QueryAllBalancesResponse>;
   /** TotalSupply queries the total supply of all coins. */
-  TotalSupply(
+  totalSupply(
     request: QueryTotalSupplyRequest,
   ): Promise<QueryTotalSupplyResponse>;
   /** SupplyOf queries the supply of a single coin. */
-  SupplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse>;
+  supplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse>;
   /** Params queries the parameters of x/bank module. */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** DenomsMetadata queries the client metadata of a given coin denomination. */
-  DenomMetadata(
+  denomMetadata(
     request: QueryDenomMetadataRequest,
   ): Promise<QueryDenomMetadataResponse>;
   /** DenomsMetadata queries the client metadata for all registered coin denominations. */
-  DenomsMetadata(
+  denomsMetadata(
     request: QueryDenomsMetadataRequest,
   ): Promise<QueryDenomsMetadataResponse>;
 }
@@ -1073,15 +1073,15 @@ export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Balance = this.Balance.bind(this);
-    this.AllBalances = this.AllBalances.bind(this);
-    this.TotalSupply = this.TotalSupply.bind(this);
-    this.SupplyOf = this.SupplyOf.bind(this);
-    this.Params = this.Params.bind(this);
-    this.DenomMetadata = this.DenomMetadata.bind(this);
-    this.DenomsMetadata = this.DenomsMetadata.bind(this);
+    this.balance = this.balance.bind(this);
+    this.allBalances = this.allBalances.bind(this);
+    this.totalSupply = this.totalSupply.bind(this);
+    this.supplyOf = this.supplyOf.bind(this);
+    this.params = this.params.bind(this);
+    this.denomMetadata = this.denomMetadata.bind(this);
+    this.denomsMetadata = this.denomsMetadata.bind(this);
   }
-  Balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse> {
+  balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse> {
     const data = QueryBalanceRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.bank.v1beta1.Query",
@@ -1093,7 +1093,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  AllBalances(
+  allBalances(
     request: QueryAllBalancesRequest,
   ): Promise<QueryAllBalancesResponse> {
     const data = QueryAllBalancesRequest.encode(request).finish();
@@ -1107,7 +1107,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  TotalSupply(
+  totalSupply(
     request: QueryTotalSupplyRequest,
   ): Promise<QueryTotalSupplyResponse> {
     const data = QueryTotalSupplyRequest.encode(request).finish();
@@ -1121,7 +1121,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  SupplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse> {
+  supplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse> {
     const data = QuerySupplyOfRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.bank.v1beta1.Query",
@@ -1133,7 +1133,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.bank.v1beta1.Query",
@@ -1145,7 +1145,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DenomMetadata(
+  denomMetadata(
     request: QueryDenomMetadataRequest,
   ): Promise<QueryDenomMetadataResponse> {
     const data = QueryDenomMetadataRequest.encode(request).finish();
@@ -1159,7 +1159,7 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  DenomsMetadata(
+  denomsMetadata(
     request: QueryDenomsMetadataRequest,
   ): Promise<QueryDenomsMetadataResponse> {
     const data = QueryDenomsMetadataRequest.encode(request).finish();

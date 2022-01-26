@@ -159,7 +159,7 @@ export interface Msg {
    * SubmitEvidence submits an arbitrary Evidence of misbehavior such as equivocation or
    * counterfactual signing.
    */
-  SubmitEvidence(
+  submitEvidence(
     request: MsgSubmitEvidence,
   ): Promise<MsgSubmitEvidenceResponse>;
 }
@@ -168,9 +168,9 @@ export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.SubmitEvidence = this.SubmitEvidence.bind(this);
+    this.submitEvidence = this.submitEvidence.bind(this);
   }
-  SubmitEvidence(
+  submitEvidence(
     request: MsgSubmitEvidence,
   ): Promise<MsgSubmitEvidenceResponse> {
     const data = MsgSubmitEvidence.encode(request).finish();
