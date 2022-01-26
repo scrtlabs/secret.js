@@ -74,7 +74,7 @@ export interface SignDoc {
    */
   chainId: string;
   /** account_number is the account number of the account in state */
-  accountNumber: Long;
+  accountNumber: string;
 }
 
 /** TxBody is the body of a transaction that all signers sign over. */
@@ -99,7 +99,7 @@ export interface TxBody {
    * timeout is the block height after which this transaction will not
    * be processed by the chain
    */
-  timeoutHeight: Long;
+  timeoutHeight: string;
   /**
    * extension_options are arbitrary options that can be added by chains
    * when the default options are not sufficient. If any of these are present
@@ -156,7 +156,7 @@ export interface SignerInfo {
    * number of committed transactions signed by a given address. It is used to
    * prevent replay attacks.
    */
-  sequence: Long;
+  sequence: string;
 }
 
 /** ModeInfo describes the signing mode of a single or nested multisig signer. */
@@ -200,7 +200,7 @@ export interface Fee {
    * gas_limit is the maximum gas that can be used in transaction processing
    * before an out of gas error occurs
    */
-  gasLimit: Long;
+  gasLimit: string;
   /**
    * if unset, the first signer is responsible for paying the fees. If set, the specified account must pay the fees.
    * the payer must be a tx signer (and thus have signed this field in AuthInfo).
@@ -398,7 +398,7 @@ function createBaseSignDoc(): SignDoc {
     bodyBytes: new Uint8Array(),
     authInfoBytes: new Uint8Array(),
     chainId: "",
-    accountNumber: Long.UZERO,
+    accountNumber: "0",
   };
 }
 
@@ -416,7 +416,7 @@ export const SignDoc = {
     if (message.chainId !== "") {
       writer.uint32(26).string(message.chainId);
     }
-    if (!message.accountNumber.isZero()) {
+    if (message.accountNumber !== "0") {
       writer.uint32(32).uint64(message.accountNumber);
     }
     return writer;
@@ -439,7 +439,7 @@ export const SignDoc = {
           message.chainId = reader.string();
           break;
         case 4:
-          message.accountNumber = reader.uint64() as Long;
+          message.accountNumber = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -459,8 +459,8 @@ export const SignDoc = {
         : new Uint8Array(),
       chainId: isSet(object.chainId) ? String(object.chainId) : "",
       accountNumber: isSet(object.accountNumber)
-        ? Long.fromString(object.accountNumber)
-        : Long.UZERO,
+        ? String(object.accountNumber)
+        : "0",
     };
   },
 
@@ -478,7 +478,7 @@ export const SignDoc = {
       ));
     message.chainId !== undefined && (obj.chainId = message.chainId);
     message.accountNumber !== undefined &&
-      (obj.accountNumber = (message.accountNumber || Long.UZERO).toString());
+      (obj.accountNumber = message.accountNumber);
     return obj;
   },
 
@@ -487,10 +487,7 @@ export const SignDoc = {
     message.bodyBytes = object.bodyBytes ?? new Uint8Array();
     message.authInfoBytes = object.authInfoBytes ?? new Uint8Array();
     message.chainId = object.chainId ?? "";
-    message.accountNumber =
-      object.accountNumber !== undefined && object.accountNumber !== null
-        ? Long.fromValue(object.accountNumber)
-        : Long.UZERO;
+    message.accountNumber = object.accountNumber ?? "0";
     return message;
   },
 };
@@ -499,7 +496,7 @@ function createBaseTxBody(): TxBody {
   return {
     messages: [],
     memo: "",
-    timeoutHeight: Long.UZERO,
+    timeoutHeight: "0",
     extensionOptions: [],
     nonCriticalExtensionOptions: [],
   };
@@ -516,7 +513,7 @@ export const TxBody = {
     if (message.memo !== "") {
       writer.uint32(18).string(message.memo);
     }
-    if (!message.timeoutHeight.isZero()) {
+    if (message.timeoutHeight !== "0") {
       writer.uint32(24).uint64(message.timeoutHeight);
     }
     for (const v of message.extensionOptions) {
@@ -542,7 +539,7 @@ export const TxBody = {
           message.memo = reader.string();
           break;
         case 3:
-          message.timeoutHeight = reader.uint64() as Long;
+          message.timeoutHeight = longToString(reader.uint64() as Long);
           break;
         case 1023:
           message.extensionOptions.push(Any.decode(reader, reader.uint32()));
@@ -567,8 +564,8 @@ export const TxBody = {
         : [],
       memo: isSet(object.memo) ? String(object.memo) : "",
       timeoutHeight: isSet(object.timeoutHeight)
-        ? Long.fromString(object.timeoutHeight)
-        : Long.UZERO,
+        ? String(object.timeoutHeight)
+        : "0",
       extensionOptions: Array.isArray(object?.extensionOptions)
         ? object.extensionOptions.map((e: any) => Any.fromJSON(e))
         : [],
@@ -591,7 +588,7 @@ export const TxBody = {
     }
     message.memo !== undefined && (obj.memo = message.memo);
     message.timeoutHeight !== undefined &&
-      (obj.timeoutHeight = (message.timeoutHeight || Long.UZERO).toString());
+      (obj.timeoutHeight = message.timeoutHeight);
     if (message.extensionOptions) {
       obj.extensionOptions = message.extensionOptions.map((e) =>
         e ? Any.toJSON(e) : undefined,
@@ -613,10 +610,7 @@ export const TxBody = {
     const message = createBaseTxBody();
     message.messages = object.messages?.map((e) => Any.fromPartial(e)) || [];
     message.memo = object.memo ?? "";
-    message.timeoutHeight =
-      object.timeoutHeight !== undefined && object.timeoutHeight !== null
-        ? Long.fromValue(object.timeoutHeight)
-        : Long.UZERO;
+    message.timeoutHeight = object.timeoutHeight ?? "0";
     message.extensionOptions =
       object.extensionOptions?.map((e) => Any.fromPartial(e)) || [];
     message.nonCriticalExtensionOptions =
@@ -700,7 +694,7 @@ export const AuthInfo = {
 };
 
 function createBaseSignerInfo(): SignerInfo {
-  return { publicKey: undefined, modeInfo: undefined, sequence: Long.UZERO };
+  return { publicKey: undefined, modeInfo: undefined, sequence: "0" };
 }
 
 export const SignerInfo = {
@@ -714,7 +708,7 @@ export const SignerInfo = {
     if (message.modeInfo !== undefined) {
       ModeInfo.encode(message.modeInfo, writer.uint32(18).fork()).ldelim();
     }
-    if (!message.sequence.isZero()) {
+    if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
     }
     return writer;
@@ -734,7 +728,7 @@ export const SignerInfo = {
           message.modeInfo = ModeInfo.decode(reader, reader.uint32());
           break;
         case 3:
-          message.sequence = reader.uint64() as Long;
+          message.sequence = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -752,9 +746,7 @@ export const SignerInfo = {
       modeInfo: isSet(object.modeInfo)
         ? ModeInfo.fromJSON(object.modeInfo)
         : undefined,
-      sequence: isSet(object.sequence)
-        ? Long.fromString(object.sequence)
-        : Long.UZERO,
+      sequence: isSet(object.sequence) ? String(object.sequence) : "0",
     };
   },
 
@@ -768,8 +760,7 @@ export const SignerInfo = {
       (obj.modeInfo = message.modeInfo
         ? ModeInfo.toJSON(message.modeInfo)
         : undefined);
-    message.sequence !== undefined &&
-      (obj.sequence = (message.sequence || Long.UZERO).toString());
+    message.sequence !== undefined && (obj.sequence = message.sequence);
     return obj;
   },
 
@@ -785,10 +776,7 @@ export const SignerInfo = {
       object.modeInfo !== undefined && object.modeInfo !== null
         ? ModeInfo.fromPartial(object.modeInfo)
         : undefined;
-    message.sequence =
-      object.sequence !== undefined && object.sequence !== null
-        ? Long.fromValue(object.sequence)
-        : Long.UZERO;
+    message.sequence = object.sequence ?? "0";
     return message;
   },
 };
@@ -1008,7 +996,7 @@ export const ModeInfo_Multi = {
 };
 
 function createBaseFee(): Fee {
-  return { amount: [], gasLimit: Long.UZERO, payer: "", granter: "" };
+  return { amount: [], gasLimit: "0", payer: "", granter: "" };
 }
 
 export const Fee = {
@@ -1016,7 +1004,7 @@ export const Fee = {
     for (const v of message.amount) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    if (!message.gasLimit.isZero()) {
+    if (message.gasLimit !== "0") {
       writer.uint32(16).uint64(message.gasLimit);
     }
     if (message.payer !== "") {
@@ -1039,7 +1027,7 @@ export const Fee = {
           message.amount.push(Coin.decode(reader, reader.uint32()));
           break;
         case 2:
-          message.gasLimit = reader.uint64() as Long;
+          message.gasLimit = longToString(reader.uint64() as Long);
           break;
         case 3:
           message.payer = reader.string();
@@ -1060,9 +1048,7 @@ export const Fee = {
       amount: Array.isArray(object?.amount)
         ? object.amount.map((e: any) => Coin.fromJSON(e))
         : [],
-      gasLimit: isSet(object.gasLimit)
-        ? Long.fromString(object.gasLimit)
-        : Long.UZERO,
+      gasLimit: isSet(object.gasLimit) ? String(object.gasLimit) : "0",
       payer: isSet(object.payer) ? String(object.payer) : "",
       granter: isSet(object.granter) ? String(object.granter) : "",
     };
@@ -1075,8 +1061,7 @@ export const Fee = {
     } else {
       obj.amount = [];
     }
-    message.gasLimit !== undefined &&
-      (obj.gasLimit = (message.gasLimit || Long.UZERO).toString());
+    message.gasLimit !== undefined && (obj.gasLimit = message.gasLimit);
     message.payer !== undefined && (obj.payer = message.payer);
     message.granter !== undefined && (obj.granter = message.granter);
     return obj;
@@ -1085,10 +1070,7 @@ export const Fee = {
   fromPartial<I extends Exact<DeepPartial<Fee>, I>>(object: I): Fee {
     const message = createBaseFee();
     message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
-    message.gasLimit =
-      object.gasLimit !== undefined && object.gasLimit !== null
-        ? Long.fromValue(object.gasLimit)
-        : Long.UZERO;
+    message.gasLimit = object.gasLimit ?? "0";
     message.payer = object.payer ?? "";
     message.granter = object.granter ?? "";
     return message;
@@ -1140,8 +1122,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1157,6 +1137,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

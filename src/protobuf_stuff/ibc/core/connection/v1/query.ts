@@ -112,8 +112,8 @@ export interface QueryConnectionClientStateResponse {
 export interface QueryConnectionConsensusStateRequest {
   /** connection identifier */
   connectionId: string;
-  revisionNumber: Long;
-  revisionHeight: Long;
+  revisionNumber: string;
+  revisionHeight: string;
 }
 
 /**
@@ -783,11 +783,7 @@ export const QueryConnectionClientStateResponse = {
 };
 
 function createBaseQueryConnectionConsensusStateRequest(): QueryConnectionConsensusStateRequest {
-  return {
-    connectionId: "",
-    revisionNumber: Long.UZERO,
-    revisionHeight: Long.UZERO,
-  };
+  return { connectionId: "", revisionNumber: "0", revisionHeight: "0" };
 }
 
 export const QueryConnectionConsensusStateRequest = {
@@ -798,10 +794,10 @@ export const QueryConnectionConsensusStateRequest = {
     if (message.connectionId !== "") {
       writer.uint32(10).string(message.connectionId);
     }
-    if (!message.revisionNumber.isZero()) {
+    if (message.revisionNumber !== "0") {
       writer.uint32(16).uint64(message.revisionNumber);
     }
-    if (!message.revisionHeight.isZero()) {
+    if (message.revisionHeight !== "0") {
       writer.uint32(24).uint64(message.revisionHeight);
     }
     return writer;
@@ -821,10 +817,10 @@ export const QueryConnectionConsensusStateRequest = {
           message.connectionId = reader.string();
           break;
         case 2:
-          message.revisionNumber = reader.uint64() as Long;
+          message.revisionNumber = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.revisionHeight = reader.uint64() as Long;
+          message.revisionHeight = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -840,11 +836,11 @@ export const QueryConnectionConsensusStateRequest = {
         ? String(object.connectionId)
         : "",
       revisionNumber: isSet(object.revisionNumber)
-        ? Long.fromString(object.revisionNumber)
-        : Long.UZERO,
+        ? String(object.revisionNumber)
+        : "0",
       revisionHeight: isSet(object.revisionHeight)
-        ? Long.fromString(object.revisionHeight)
-        : Long.UZERO,
+        ? String(object.revisionHeight)
+        : "0",
     };
   },
 
@@ -853,9 +849,9 @@ export const QueryConnectionConsensusStateRequest = {
     message.connectionId !== undefined &&
       (obj.connectionId = message.connectionId);
     message.revisionNumber !== undefined &&
-      (obj.revisionNumber = (message.revisionNumber || Long.UZERO).toString());
+      (obj.revisionNumber = message.revisionNumber);
     message.revisionHeight !== undefined &&
-      (obj.revisionHeight = (message.revisionHeight || Long.UZERO).toString());
+      (obj.revisionHeight = message.revisionHeight);
     return obj;
   },
 
@@ -864,14 +860,8 @@ export const QueryConnectionConsensusStateRequest = {
   >(object: I): QueryConnectionConsensusStateRequest {
     const message = createBaseQueryConnectionConsensusStateRequest();
     message.connectionId = object.connectionId ?? "";
-    message.revisionNumber =
-      object.revisionNumber !== undefined && object.revisionNumber !== null
-        ? Long.fromValue(object.revisionNumber)
-        : Long.UZERO;
-    message.revisionHeight =
-      object.revisionHeight !== undefined && object.revisionHeight !== null
-        ? Long.fromValue(object.revisionHeight)
-        : Long.UZERO;
+    message.revisionNumber = object.revisionNumber ?? "0";
+    message.revisionHeight = object.revisionHeight ?? "0";
     return message;
   },
 };
@@ -1151,8 +1141,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1168,6 +1156,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

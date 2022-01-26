@@ -130,7 +130,7 @@ export interface Validator {
   /** description defines the description terms for the validator. */
   description?: Description;
   /** unbonding_height defines, if unbonding, the height at which this validator has begun unbonding. */
-  unbondingHeight: Long;
+  unbondingHeight: string;
   /** unbonding_time defines, if unbonding, the min time for the validator to complete unbonding. */
   unbondingTime?: Timestamp;
   /** commission defines the commission parameters. */
@@ -206,7 +206,7 @@ export interface UnbondingDelegation {
 /** UnbondingDelegationEntry defines an unbonding object with relevant metadata. */
 export interface UnbondingDelegationEntry {
   /** creation_height is the height which the unbonding took place. */
-  creationHeight: Long;
+  creationHeight: string;
   /** completion_time is the unix time for unbonding completion. */
   completionTime?: Timestamp;
   /** initial_balance defines the tokens initially scheduled to receive at completion. */
@@ -218,7 +218,7 @@ export interface UnbondingDelegationEntry {
 /** RedelegationEntry defines a redelegation object with relevant metadata. */
 export interface RedelegationEntry {
   /** creation_height  defines the height which the redelegation took place. */
-  creationHeight: Long;
+  creationHeight: string;
   /** completion_time defines the unix time for redelegation completion. */
   completionTime?: Timestamp;
   /** initial_balance defines the initial balance when redelegation started. */
@@ -635,7 +635,7 @@ function createBaseValidator(): Validator {
     tokens: "",
     delegatorShares: "",
     description: undefined,
-    unbondingHeight: Long.ZERO,
+    unbondingHeight: "0",
     unbondingTime: undefined,
     commission: undefined,
     minSelfDelegation: "",
@@ -671,7 +671,7 @@ export const Validator = {
         writer.uint32(58).fork(),
       ).ldelim();
     }
-    if (!message.unbondingHeight.isZero()) {
+    if (message.unbondingHeight !== "0") {
       writer.uint32(64).int64(message.unbondingHeight);
     }
     if (message.unbondingTime !== undefined) {
@@ -718,7 +718,7 @@ export const Validator = {
           message.description = Description.decode(reader, reader.uint32());
           break;
         case 8:
-          message.unbondingHeight = reader.int64() as Long;
+          message.unbondingHeight = longToString(reader.int64() as Long);
           break;
         case 9:
           message.unbondingTime = Timestamp.decode(reader, reader.uint32());
@@ -755,8 +755,8 @@ export const Validator = {
         ? Description.fromJSON(object.description)
         : undefined,
       unbondingHeight: isSet(object.unbondingHeight)
-        ? Long.fromString(object.unbondingHeight)
-        : Long.ZERO,
+        ? String(object.unbondingHeight)
+        : "0",
       unbondingTime: isSet(object.unbondingTime)
         ? fromJsonTimestamp(object.unbondingTime)
         : undefined,
@@ -788,7 +788,7 @@ export const Validator = {
         ? Description.toJSON(message.description)
         : undefined);
     message.unbondingHeight !== undefined &&
-      (obj.unbondingHeight = (message.unbondingHeight || Long.ZERO).toString());
+      (obj.unbondingHeight = message.unbondingHeight);
     message.unbondingTime !== undefined &&
       (obj.unbondingTime = fromTimestamp(message.unbondingTime).toISOString());
     message.commission !== undefined &&
@@ -817,10 +817,7 @@ export const Validator = {
       object.description !== undefined && object.description !== null
         ? Description.fromPartial(object.description)
         : undefined;
-    message.unbondingHeight =
-      object.unbondingHeight !== undefined && object.unbondingHeight !== null
-        ? Long.fromValue(object.unbondingHeight)
-        : Long.ZERO;
+    message.unbondingHeight = object.unbondingHeight ?? "0";
     message.unbondingTime =
       object.unbondingTime !== undefined && object.unbondingTime !== null
         ? Timestamp.fromPartial(object.unbondingTime)
@@ -1336,7 +1333,7 @@ export const UnbondingDelegation = {
 
 function createBaseUnbondingDelegationEntry(): UnbondingDelegationEntry {
   return {
-    creationHeight: Long.ZERO,
+    creationHeight: "0",
     completionTime: undefined,
     initialBalance: "",
     balance: "",
@@ -1348,7 +1345,7 @@ export const UnbondingDelegationEntry = {
     message: UnbondingDelegationEntry,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.creationHeight.isZero()) {
+    if (message.creationHeight !== "0") {
       writer.uint32(8).int64(message.creationHeight);
     }
     if (message.completionTime !== undefined) {
@@ -1377,7 +1374,7 @@ export const UnbondingDelegationEntry = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creationHeight = reader.int64() as Long;
+          message.creationHeight = longToString(reader.int64() as Long);
           break;
         case 2:
           message.completionTime = Timestamp.decode(reader, reader.uint32());
@@ -1399,8 +1396,8 @@ export const UnbondingDelegationEntry = {
   fromJSON(object: any): UnbondingDelegationEntry {
     return {
       creationHeight: isSet(object.creationHeight)
-        ? Long.fromString(object.creationHeight)
-        : Long.ZERO,
+        ? String(object.creationHeight)
+        : "0",
       completionTime: isSet(object.completionTime)
         ? fromJsonTimestamp(object.completionTime)
         : undefined,
@@ -1414,7 +1411,7 @@ export const UnbondingDelegationEntry = {
   toJSON(message: UnbondingDelegationEntry): unknown {
     const obj: any = {};
     message.creationHeight !== undefined &&
-      (obj.creationHeight = (message.creationHeight || Long.ZERO).toString());
+      (obj.creationHeight = message.creationHeight);
     message.completionTime !== undefined &&
       (obj.completionTime = fromTimestamp(
         message.completionTime,
@@ -1429,10 +1426,7 @@ export const UnbondingDelegationEntry = {
     object: I,
   ): UnbondingDelegationEntry {
     const message = createBaseUnbondingDelegationEntry();
-    message.creationHeight =
-      object.creationHeight !== undefined && object.creationHeight !== null
-        ? Long.fromValue(object.creationHeight)
-        : Long.ZERO;
+    message.creationHeight = object.creationHeight ?? "0";
     message.completionTime =
       object.completionTime !== undefined && object.completionTime !== null
         ? Timestamp.fromPartial(object.completionTime)
@@ -1445,7 +1439,7 @@ export const UnbondingDelegationEntry = {
 
 function createBaseRedelegationEntry(): RedelegationEntry {
   return {
-    creationHeight: Long.ZERO,
+    creationHeight: "0",
     completionTime: undefined,
     initialBalance: "",
     sharesDst: "",
@@ -1457,7 +1451,7 @@ export const RedelegationEntry = {
     message: RedelegationEntry,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.creationHeight.isZero()) {
+    if (message.creationHeight !== "0") {
       writer.uint32(8).int64(message.creationHeight);
     }
     if (message.completionTime !== undefined) {
@@ -1483,7 +1477,7 @@ export const RedelegationEntry = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creationHeight = reader.int64() as Long;
+          message.creationHeight = longToString(reader.int64() as Long);
           break;
         case 2:
           message.completionTime = Timestamp.decode(reader, reader.uint32());
@@ -1505,8 +1499,8 @@ export const RedelegationEntry = {
   fromJSON(object: any): RedelegationEntry {
     return {
       creationHeight: isSet(object.creationHeight)
-        ? Long.fromString(object.creationHeight)
-        : Long.ZERO,
+        ? String(object.creationHeight)
+        : "0",
       completionTime: isSet(object.completionTime)
         ? fromJsonTimestamp(object.completionTime)
         : undefined,
@@ -1520,7 +1514,7 @@ export const RedelegationEntry = {
   toJSON(message: RedelegationEntry): unknown {
     const obj: any = {};
     message.creationHeight !== undefined &&
-      (obj.creationHeight = (message.creationHeight || Long.ZERO).toString());
+      (obj.creationHeight = message.creationHeight);
     message.completionTime !== undefined &&
       (obj.completionTime = fromTimestamp(
         message.completionTime,
@@ -1535,10 +1529,7 @@ export const RedelegationEntry = {
     object: I,
   ): RedelegationEntry {
     const message = createBaseRedelegationEntry();
-    message.creationHeight =
-      object.creationHeight !== undefined && object.creationHeight !== null
-        ? Long.fromValue(object.creationHeight)
-        : Long.ZERO;
+    message.creationHeight = object.creationHeight ?? "0";
     message.completionTime =
       object.completionTime !== undefined && object.completionTime !== null
         ? Timestamp.fromPartial(object.completionTime)
@@ -2088,8 +2079,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -2107,13 +2096,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -2128,8 +2117,8 @@ function fromJsonTimestamp(o: any): Timestamp {
   }
 }
 
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
+function longToString(long: Long) {
+  return long.toString();
 }
 
 if (_m0.util.Long !== Long) {

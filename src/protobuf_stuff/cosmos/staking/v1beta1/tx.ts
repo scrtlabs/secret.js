@@ -1005,8 +1005,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1024,13 +1022,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -1043,10 +1041,6 @@ function fromJsonTimestamp(o: any): Timestamp {
   } else {
     return Timestamp.fromJSON(o);
   }
-}
-
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
 }
 
 if (_m0.util.Long !== Long) {

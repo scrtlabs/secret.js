@@ -83,7 +83,7 @@ export interface ConnectionEnd {
    * packet-verification NOTE: delay period logic is only implemented by some
    * clients.
    */
-  delayPeriod: Long;
+  delayPeriod: string;
 }
 
 /**
@@ -105,7 +105,7 @@ export interface IdentifiedConnection {
   /** counterparty chain associated with this connection. */
   counterparty?: Counterparty;
   /** delay period associated with this connection. */
-  delayPeriod: Long;
+  delayPeriod: string;
 }
 
 /** Counterparty defines the counterparty chain associated with a connection end. */
@@ -155,7 +155,7 @@ function createBaseConnectionEnd(): ConnectionEnd {
     versions: [],
     state: 0,
     counterparty: undefined,
-    delayPeriod: Long.UZERO,
+    delayPeriod: "0",
   };
 }
 
@@ -179,7 +179,7 @@ export const ConnectionEnd = {
         writer.uint32(34).fork(),
       ).ldelim();
     }
-    if (!message.delayPeriod.isZero()) {
+    if (message.delayPeriod !== "0") {
       writer.uint32(40).uint64(message.delayPeriod);
     }
     return writer;
@@ -205,7 +205,7 @@ export const ConnectionEnd = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 5:
-          message.delayPeriod = reader.uint64() as Long;
+          message.delayPeriod = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -225,9 +225,7 @@ export const ConnectionEnd = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod)
-        ? Long.fromString(object.delayPeriod)
-        : Long.UZERO,
+      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
     };
   },
 
@@ -247,7 +245,7 @@ export const ConnectionEnd = {
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
     message.delayPeriod !== undefined &&
-      (obj.delayPeriod = (message.delayPeriod || Long.UZERO).toString());
+      (obj.delayPeriod = message.delayPeriod);
     return obj;
   },
 
@@ -263,10 +261,7 @@ export const ConnectionEnd = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.delayPeriod =
-      object.delayPeriod !== undefined && object.delayPeriod !== null
-        ? Long.fromValue(object.delayPeriod)
-        : Long.UZERO;
+    message.delayPeriod = object.delayPeriod ?? "0";
     return message;
   },
 };
@@ -278,7 +273,7 @@ function createBaseIdentifiedConnection(): IdentifiedConnection {
     versions: [],
     state: 0,
     counterparty: undefined,
-    delayPeriod: Long.UZERO,
+    delayPeriod: "0",
   };
 }
 
@@ -305,7 +300,7 @@ export const IdentifiedConnection = {
         writer.uint32(42).fork(),
       ).ldelim();
     }
-    if (!message.delayPeriod.isZero()) {
+    if (message.delayPeriod !== "0") {
       writer.uint32(48).uint64(message.delayPeriod);
     }
     return writer;
@@ -337,7 +332,7 @@ export const IdentifiedConnection = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 6:
-          message.delayPeriod = reader.uint64() as Long;
+          message.delayPeriod = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -358,9 +353,7 @@ export const IdentifiedConnection = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod)
-        ? Long.fromString(object.delayPeriod)
-        : Long.UZERO,
+      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
     };
   },
 
@@ -381,7 +374,7 @@ export const IdentifiedConnection = {
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
     message.delayPeriod !== undefined &&
-      (obj.delayPeriod = (message.delayPeriod || Long.UZERO).toString());
+      (obj.delayPeriod = message.delayPeriod);
     return obj;
   },
 
@@ -398,10 +391,7 @@ export const IdentifiedConnection = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.delayPeriod =
-      object.delayPeriod !== undefined && object.delayPeriod !== null
-        ? Long.fromValue(object.delayPeriod)
-        : Long.UZERO;
+    message.delayPeriod = object.delayPeriod ?? "0";
     return message;
   },
 };
@@ -696,8 +686,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -713,6 +701,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

@@ -20,7 +20,7 @@ export interface GenesisState {
 
 /** Code struct encompasses CodeInfo and CodeBytes */
 export interface Code {
-  codeId: Long;
+  codeId: string;
   codeInfo?: CodeInfo;
   codeBytes: Uint8Array;
 }
@@ -36,7 +36,7 @@ export interface Contract {
 /** Sequence id and value of a counter */
 export interface Sequence {
   idKey: Uint8Array;
-  value: Long;
+  value: string;
 }
 
 function createBaseGenesisState(): GenesisState {
@@ -136,16 +136,12 @@ export const GenesisState = {
 };
 
 function createBaseCode(): Code {
-  return {
-    codeId: Long.UZERO,
-    codeInfo: undefined,
-    codeBytes: new Uint8Array(),
-  };
+  return { codeId: "0", codeInfo: undefined, codeBytes: new Uint8Array() };
 }
 
 export const Code = {
   encode(message: Code, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(8).uint64(message.codeId);
     }
     if (message.codeInfo !== undefined) {
@@ -165,7 +161,7 @@ export const Code = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.codeInfo = CodeInfo.decode(reader, reader.uint32());
@@ -183,9 +179,7 @@ export const Code = {
 
   fromJSON(object: any): Code {
     return {
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
       codeInfo: isSet(object.codeInfo)
         ? CodeInfo.fromJSON(object.codeInfo)
         : undefined,
@@ -197,8 +191,7 @@ export const Code = {
 
   toJSON(message: Code): unknown {
     const obj: any = {};
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     message.codeInfo !== undefined &&
       (obj.codeInfo = message.codeInfo
         ? CodeInfo.toJSON(message.codeInfo)
@@ -212,10 +205,7 @@ export const Code = {
 
   fromPartial<I extends Exact<DeepPartial<Code>, I>>(object: I): Code {
     const message = createBaseCode();
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     message.codeInfo =
       object.codeInfo !== undefined && object.codeInfo !== null
         ? CodeInfo.fromPartial(object.codeInfo)
@@ -352,7 +342,7 @@ export const Contract = {
 };
 
 function createBaseSequence(): Sequence {
-  return { idKey: new Uint8Array(), value: Long.UZERO };
+  return { idKey: new Uint8Array(), value: "0" };
 }
 
 export const Sequence = {
@@ -363,7 +353,7 @@ export const Sequence = {
     if (message.idKey.length !== 0) {
       writer.uint32(10).bytes(message.idKey);
     }
-    if (!message.value.isZero()) {
+    if (message.value !== "0") {
       writer.uint32(16).uint64(message.value);
     }
     return writer;
@@ -380,7 +370,7 @@ export const Sequence = {
           message.idKey = reader.bytes();
           break;
         case 2:
-          message.value = reader.uint64() as Long;
+          message.value = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -395,7 +385,7 @@ export const Sequence = {
       idKey: isSet(object.idKey)
         ? bytesFromBase64(object.idKey)
         : new Uint8Array(),
-      value: isSet(object.value) ? Long.fromString(object.value) : Long.UZERO,
+      value: isSet(object.value) ? String(object.value) : "0",
     };
   },
 
@@ -405,18 +395,14 @@ export const Sequence = {
       (obj.idKey = base64FromBytes(
         message.idKey !== undefined ? message.idKey : new Uint8Array(),
       ));
-    message.value !== undefined &&
-      (obj.value = (message.value || Long.UZERO).toString());
+    message.value !== undefined && (obj.value = message.value);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Sequence>, I>>(object: I): Sequence {
     const message = createBaseSequence();
     message.idKey = object.idKey ?? new Uint8Array();
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? Long.fromValue(object.value)
-        : Long.UZERO;
+    message.value = object.value ?? "0";
     return message;
   },
 };
@@ -466,8 +452,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -483,6 +467,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

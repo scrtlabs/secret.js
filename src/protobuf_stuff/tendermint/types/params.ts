@@ -22,19 +22,19 @@ export interface BlockParams {
    * Max block size, in bytes.
    * Note: must be greater than 0
    */
-  maxBytes: Long;
+  maxBytes: string;
   /**
    * Max gas per block.
    * Note: must be greater or equal to -1
    */
-  maxGas: Long;
+  maxGas: string;
   /**
    * Minimum time increment between consecutive blocks (in milliseconds) If the
    * block header timestamp is ahead of the system clock, decrease this value.
    *
    * Not exposed to the application.
    */
-  timeIotaMs: Long;
+  timeIotaMs: string;
 }
 
 /** EvidenceParams determine how we handle evidence of malfeasance. */
@@ -45,7 +45,7 @@ export interface EvidenceParams {
    * The basic formula for calculating this is: MaxAgeDuration / {average block
    * time}.
    */
-  maxAgeNumBlocks: Long;
+  maxAgeNumBlocks: string;
   /**
    * Max age of evidence, in time.
    *
@@ -59,7 +59,7 @@ export interface EvidenceParams {
    * and should fall comfortably under the max block bytes.
    * Default is 1048576 or 1MB
    */
-  maxBytes: Long;
+  maxBytes: string;
 }
 
 /**
@@ -72,7 +72,7 @@ export interface ValidatorParams {
 
 /** VersionParams contains the ABCI application version. */
 export interface VersionParams {
-  appVersion: Long;
+  appVersion: string;
 }
 
 /**
@@ -81,8 +81,8 @@ export interface VersionParams {
  * It is hashed into the Header.ConsensusHash.
  */
 export interface HashedParams {
-  blockMaxBytes: Long;
-  blockMaxGas: Long;
+  blockMaxBytes: string;
+  blockMaxGas: string;
 }
 
 function createBaseConsensusParams(): ConsensusParams {
@@ -210,7 +210,7 @@ export const ConsensusParams = {
 };
 
 function createBaseBlockParams(): BlockParams {
-  return { maxBytes: Long.ZERO, maxGas: Long.ZERO, timeIotaMs: Long.ZERO };
+  return { maxBytes: "0", maxGas: "0", timeIotaMs: "0" };
 }
 
 export const BlockParams = {
@@ -218,13 +218,13 @@ export const BlockParams = {
     message: BlockParams,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.maxBytes.isZero()) {
+    if (message.maxBytes !== "0") {
       writer.uint32(8).int64(message.maxBytes);
     }
-    if (!message.maxGas.isZero()) {
+    if (message.maxGas !== "0") {
       writer.uint32(16).int64(message.maxGas);
     }
-    if (!message.timeIotaMs.isZero()) {
+    if (message.timeIotaMs !== "0") {
       writer.uint32(24).int64(message.timeIotaMs);
     }
     return writer;
@@ -238,13 +238,13 @@ export const BlockParams = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.maxBytes = reader.int64() as Long;
+          message.maxBytes = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.maxGas = reader.int64() as Long;
+          message.maxGas = longToString(reader.int64() as Long);
           break;
         case 3:
-          message.timeIotaMs = reader.int64() as Long;
+          message.timeIotaMs = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -256,24 +256,17 @@ export const BlockParams = {
 
   fromJSON(object: any): BlockParams {
     return {
-      maxBytes: isSet(object.maxBytes)
-        ? Long.fromString(object.maxBytes)
-        : Long.ZERO,
-      maxGas: isSet(object.maxGas) ? Long.fromString(object.maxGas) : Long.ZERO,
-      timeIotaMs: isSet(object.timeIotaMs)
-        ? Long.fromString(object.timeIotaMs)
-        : Long.ZERO,
+      maxBytes: isSet(object.maxBytes) ? String(object.maxBytes) : "0",
+      maxGas: isSet(object.maxGas) ? String(object.maxGas) : "0",
+      timeIotaMs: isSet(object.timeIotaMs) ? String(object.timeIotaMs) : "0",
     };
   },
 
   toJSON(message: BlockParams): unknown {
     const obj: any = {};
-    message.maxBytes !== undefined &&
-      (obj.maxBytes = (message.maxBytes || Long.ZERO).toString());
-    message.maxGas !== undefined &&
-      (obj.maxGas = (message.maxGas || Long.ZERO).toString());
-    message.timeIotaMs !== undefined &&
-      (obj.timeIotaMs = (message.timeIotaMs || Long.ZERO).toString());
+    message.maxBytes !== undefined && (obj.maxBytes = message.maxBytes);
+    message.maxGas !== undefined && (obj.maxGas = message.maxGas);
+    message.timeIotaMs !== undefined && (obj.timeIotaMs = message.timeIotaMs);
     return obj;
   },
 
@@ -281,28 +274,15 @@ export const BlockParams = {
     object: I,
   ): BlockParams {
     const message = createBaseBlockParams();
-    message.maxBytes =
-      object.maxBytes !== undefined && object.maxBytes !== null
-        ? Long.fromValue(object.maxBytes)
-        : Long.ZERO;
-    message.maxGas =
-      object.maxGas !== undefined && object.maxGas !== null
-        ? Long.fromValue(object.maxGas)
-        : Long.ZERO;
-    message.timeIotaMs =
-      object.timeIotaMs !== undefined && object.timeIotaMs !== null
-        ? Long.fromValue(object.timeIotaMs)
-        : Long.ZERO;
+    message.maxBytes = object.maxBytes ?? "0";
+    message.maxGas = object.maxGas ?? "0";
+    message.timeIotaMs = object.timeIotaMs ?? "0";
     return message;
   },
 };
 
 function createBaseEvidenceParams(): EvidenceParams {
-  return {
-    maxAgeNumBlocks: Long.ZERO,
-    maxAgeDuration: undefined,
-    maxBytes: Long.ZERO,
-  };
+  return { maxAgeNumBlocks: "0", maxAgeDuration: undefined, maxBytes: "0" };
 }
 
 export const EvidenceParams = {
@@ -310,7 +290,7 @@ export const EvidenceParams = {
     message: EvidenceParams,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.maxAgeNumBlocks.isZero()) {
+    if (message.maxAgeNumBlocks !== "0") {
       writer.uint32(8).int64(message.maxAgeNumBlocks);
     }
     if (message.maxAgeDuration !== undefined) {
@@ -319,7 +299,7 @@ export const EvidenceParams = {
         writer.uint32(18).fork(),
       ).ldelim();
     }
-    if (!message.maxBytes.isZero()) {
+    if (message.maxBytes !== "0") {
       writer.uint32(24).int64(message.maxBytes);
     }
     return writer;
@@ -333,13 +313,13 @@ export const EvidenceParams = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.maxAgeNumBlocks = reader.int64() as Long;
+          message.maxAgeNumBlocks = longToString(reader.int64() as Long);
           break;
         case 2:
           message.maxAgeDuration = Duration.decode(reader, reader.uint32());
           break;
         case 3:
-          message.maxBytes = reader.int64() as Long;
+          message.maxBytes = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -352,27 +332,24 @@ export const EvidenceParams = {
   fromJSON(object: any): EvidenceParams {
     return {
       maxAgeNumBlocks: isSet(object.maxAgeNumBlocks)
-        ? Long.fromString(object.maxAgeNumBlocks)
-        : Long.ZERO,
+        ? String(object.maxAgeNumBlocks)
+        : "0",
       maxAgeDuration: isSet(object.maxAgeDuration)
         ? Duration.fromJSON(object.maxAgeDuration)
         : undefined,
-      maxBytes: isSet(object.maxBytes)
-        ? Long.fromString(object.maxBytes)
-        : Long.ZERO,
+      maxBytes: isSet(object.maxBytes) ? String(object.maxBytes) : "0",
     };
   },
 
   toJSON(message: EvidenceParams): unknown {
     const obj: any = {};
     message.maxAgeNumBlocks !== undefined &&
-      (obj.maxAgeNumBlocks = (message.maxAgeNumBlocks || Long.ZERO).toString());
+      (obj.maxAgeNumBlocks = message.maxAgeNumBlocks);
     message.maxAgeDuration !== undefined &&
       (obj.maxAgeDuration = message.maxAgeDuration
         ? Duration.toJSON(message.maxAgeDuration)
         : undefined);
-    message.maxBytes !== undefined &&
-      (obj.maxBytes = (message.maxBytes || Long.ZERO).toString());
+    message.maxBytes !== undefined && (obj.maxBytes = message.maxBytes);
     return obj;
   },
 
@@ -380,18 +357,12 @@ export const EvidenceParams = {
     object: I,
   ): EvidenceParams {
     const message = createBaseEvidenceParams();
-    message.maxAgeNumBlocks =
-      object.maxAgeNumBlocks !== undefined && object.maxAgeNumBlocks !== null
-        ? Long.fromValue(object.maxAgeNumBlocks)
-        : Long.ZERO;
+    message.maxAgeNumBlocks = object.maxAgeNumBlocks ?? "0";
     message.maxAgeDuration =
       object.maxAgeDuration !== undefined && object.maxAgeDuration !== null
         ? Duration.fromPartial(object.maxAgeDuration)
         : undefined;
-    message.maxBytes =
-      object.maxBytes !== undefined && object.maxBytes !== null
-        ? Long.fromValue(object.maxBytes)
-        : Long.ZERO;
+    message.maxBytes = object.maxBytes ?? "0";
     return message;
   },
 };
@@ -457,7 +428,7 @@ export const ValidatorParams = {
 };
 
 function createBaseVersionParams(): VersionParams {
-  return { appVersion: Long.UZERO };
+  return { appVersion: "0" };
 }
 
 export const VersionParams = {
@@ -465,7 +436,7 @@ export const VersionParams = {
     message: VersionParams,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.appVersion.isZero()) {
+    if (message.appVersion !== "0") {
       writer.uint32(8).uint64(message.appVersion);
     }
     return writer;
@@ -479,7 +450,7 @@ export const VersionParams = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.appVersion = reader.uint64() as Long;
+          message.appVersion = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -491,16 +462,13 @@ export const VersionParams = {
 
   fromJSON(object: any): VersionParams {
     return {
-      appVersion: isSet(object.appVersion)
-        ? Long.fromString(object.appVersion)
-        : Long.UZERO,
+      appVersion: isSet(object.appVersion) ? String(object.appVersion) : "0",
     };
   },
 
   toJSON(message: VersionParams): unknown {
     const obj: any = {};
-    message.appVersion !== undefined &&
-      (obj.appVersion = (message.appVersion || Long.UZERO).toString());
+    message.appVersion !== undefined && (obj.appVersion = message.appVersion);
     return obj;
   },
 
@@ -508,16 +476,13 @@ export const VersionParams = {
     object: I,
   ): VersionParams {
     const message = createBaseVersionParams();
-    message.appVersion =
-      object.appVersion !== undefined && object.appVersion !== null
-        ? Long.fromValue(object.appVersion)
-        : Long.UZERO;
+    message.appVersion = object.appVersion ?? "0";
     return message;
   },
 };
 
 function createBaseHashedParams(): HashedParams {
-  return { blockMaxBytes: Long.ZERO, blockMaxGas: Long.ZERO };
+  return { blockMaxBytes: "0", blockMaxGas: "0" };
 }
 
 export const HashedParams = {
@@ -525,10 +490,10 @@ export const HashedParams = {
     message: HashedParams,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.blockMaxBytes.isZero()) {
+    if (message.blockMaxBytes !== "0") {
       writer.uint32(8).int64(message.blockMaxBytes);
     }
-    if (!message.blockMaxGas.isZero()) {
+    if (message.blockMaxGas !== "0") {
       writer.uint32(16).int64(message.blockMaxGas);
     }
     return writer;
@@ -542,10 +507,10 @@ export const HashedParams = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.blockMaxBytes = reader.int64() as Long;
+          message.blockMaxBytes = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.blockMaxGas = reader.int64() as Long;
+          message.blockMaxGas = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -558,20 +523,18 @@ export const HashedParams = {
   fromJSON(object: any): HashedParams {
     return {
       blockMaxBytes: isSet(object.blockMaxBytes)
-        ? Long.fromString(object.blockMaxBytes)
-        : Long.ZERO,
-      blockMaxGas: isSet(object.blockMaxGas)
-        ? Long.fromString(object.blockMaxGas)
-        : Long.ZERO,
+        ? String(object.blockMaxBytes)
+        : "0",
+      blockMaxGas: isSet(object.blockMaxGas) ? String(object.blockMaxGas) : "0",
     };
   },
 
   toJSON(message: HashedParams): unknown {
     const obj: any = {};
     message.blockMaxBytes !== undefined &&
-      (obj.blockMaxBytes = (message.blockMaxBytes || Long.ZERO).toString());
+      (obj.blockMaxBytes = message.blockMaxBytes);
     message.blockMaxGas !== undefined &&
-      (obj.blockMaxGas = (message.blockMaxGas || Long.ZERO).toString());
+      (obj.blockMaxGas = message.blockMaxGas);
     return obj;
   },
 
@@ -579,14 +542,8 @@ export const HashedParams = {
     object: I,
   ): HashedParams {
     const message = createBaseHashedParams();
-    message.blockMaxBytes =
-      object.blockMaxBytes !== undefined && object.blockMaxBytes !== null
-        ? Long.fromValue(object.blockMaxBytes)
-        : Long.ZERO;
-    message.blockMaxGas =
-      object.blockMaxGas !== undefined && object.blockMaxGas !== null
-        ? Long.fromValue(object.blockMaxGas)
-        : Long.ZERO;
+    message.blockMaxBytes = object.blockMaxBytes ?? "0";
+    message.blockMaxGas = object.blockMaxGas ?? "0";
     return message;
   },
 };
@@ -602,8 +559,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -619,6 +574,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

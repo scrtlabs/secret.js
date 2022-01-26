@@ -11,9 +11,9 @@ export interface NetAddress {
 }
 
 export interface ProtocolVersion {
-  p2p: Long;
-  block: Long;
-  app: Long;
+  p2p: string;
+  block: string;
+  app: string;
 }
 
 export interface DefaultNodeInfo {
@@ -105,7 +105,7 @@ export const NetAddress = {
 };
 
 function createBaseProtocolVersion(): ProtocolVersion {
-  return { p2p: Long.UZERO, block: Long.UZERO, app: Long.UZERO };
+  return { p2p: "0", block: "0", app: "0" };
 }
 
 export const ProtocolVersion = {
@@ -113,13 +113,13 @@ export const ProtocolVersion = {
     message: ProtocolVersion,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.p2p.isZero()) {
+    if (message.p2p !== "0") {
       writer.uint32(8).uint64(message.p2p);
     }
-    if (!message.block.isZero()) {
+    if (message.block !== "0") {
       writer.uint32(16).uint64(message.block);
     }
-    if (!message.app.isZero()) {
+    if (message.app !== "0") {
       writer.uint32(24).uint64(message.app);
     }
     return writer;
@@ -133,13 +133,13 @@ export const ProtocolVersion = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.p2p = reader.uint64() as Long;
+          message.p2p = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.block = reader.uint64() as Long;
+          message.block = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.app = reader.uint64() as Long;
+          message.app = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -151,20 +151,17 @@ export const ProtocolVersion = {
 
   fromJSON(object: any): ProtocolVersion {
     return {
-      p2p: isSet(object.p2p) ? Long.fromString(object.p2p) : Long.UZERO,
-      block: isSet(object.block) ? Long.fromString(object.block) : Long.UZERO,
-      app: isSet(object.app) ? Long.fromString(object.app) : Long.UZERO,
+      p2p: isSet(object.p2p) ? String(object.p2p) : "0",
+      block: isSet(object.block) ? String(object.block) : "0",
+      app: isSet(object.app) ? String(object.app) : "0",
     };
   },
 
   toJSON(message: ProtocolVersion): unknown {
     const obj: any = {};
-    message.p2p !== undefined &&
-      (obj.p2p = (message.p2p || Long.UZERO).toString());
-    message.block !== undefined &&
-      (obj.block = (message.block || Long.UZERO).toString());
-    message.app !== undefined &&
-      (obj.app = (message.app || Long.UZERO).toString());
+    message.p2p !== undefined && (obj.p2p = message.p2p);
+    message.block !== undefined && (obj.block = message.block);
+    message.app !== undefined && (obj.app = message.app);
     return obj;
   },
 
@@ -172,18 +169,9 @@ export const ProtocolVersion = {
     object: I,
   ): ProtocolVersion {
     const message = createBaseProtocolVersion();
-    message.p2p =
-      object.p2p !== undefined && object.p2p !== null
-        ? Long.fromValue(object.p2p)
-        : Long.UZERO;
-    message.block =
-      object.block !== undefined && object.block !== null
-        ? Long.fromValue(object.block)
-        : Long.UZERO;
-    message.app =
-      object.app !== undefined && object.app !== null
-        ? Long.fromValue(object.app)
-        : Long.UZERO;
+    message.p2p = object.p2p ?? "0";
+    message.block = object.block ?? "0";
+    message.app = object.app ?? "0";
     return message;
   },
 };
@@ -458,8 +446,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -475,6 +461,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

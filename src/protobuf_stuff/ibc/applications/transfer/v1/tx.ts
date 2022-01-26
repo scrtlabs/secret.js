@@ -31,7 +31,7 @@ export interface MsgTransfer {
    * Timeout timestamp (in nanoseconds) relative to the current block timestamp.
    * The timeout is disabled when set to 0.
    */
-  timeoutTimestamp: Long;
+  timeoutTimestamp: string;
 }
 
 /** MsgTransferResponse defines the Msg/Transfer response type. */
@@ -45,7 +45,7 @@ function createBaseMsgTransfer(): MsgTransfer {
     sender: "",
     receiver: "",
     timeoutHeight: undefined,
-    timeoutTimestamp: Long.UZERO,
+    timeoutTimestamp: "0",
   };
 }
 
@@ -72,7 +72,7 @@ export const MsgTransfer = {
     if (message.timeoutHeight !== undefined) {
       Height.encode(message.timeoutHeight, writer.uint32(50).fork()).ldelim();
     }
-    if (!message.timeoutTimestamp.isZero()) {
+    if (message.timeoutTimestamp !== "0") {
       writer.uint32(56).uint64(message.timeoutTimestamp);
     }
     return writer;
@@ -104,7 +104,7 @@ export const MsgTransfer = {
           message.timeoutHeight = Height.decode(reader, reader.uint32());
           break;
         case 7:
-          message.timeoutTimestamp = reader.uint64() as Long;
+          message.timeoutTimestamp = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -127,8 +127,8 @@ export const MsgTransfer = {
         ? Height.fromJSON(object.timeoutHeight)
         : undefined,
       timeoutTimestamp: isSet(object.timeoutTimestamp)
-        ? Long.fromString(object.timeoutTimestamp)
-        : Long.UZERO,
+        ? String(object.timeoutTimestamp)
+        : "0",
     };
   },
 
@@ -146,9 +146,7 @@ export const MsgTransfer = {
         ? Height.toJSON(message.timeoutHeight)
         : undefined);
     message.timeoutTimestamp !== undefined &&
-      (obj.timeoutTimestamp = (
-        message.timeoutTimestamp || Long.UZERO
-      ).toString());
+      (obj.timeoutTimestamp = message.timeoutTimestamp);
     return obj;
   },
 
@@ -168,10 +166,7 @@ export const MsgTransfer = {
       object.timeoutHeight !== undefined && object.timeoutHeight !== null
         ? Height.fromPartial(object.timeoutHeight)
         : undefined;
-    message.timeoutTimestamp =
-      object.timeoutTimestamp !== undefined && object.timeoutTimestamp !== null
-        ? Long.fromValue(object.timeoutTimestamp)
-        : Long.UZERO;
+    message.timeoutTimestamp = object.timeoutTimestamp ?? "0";
     return message;
   },
 };
@@ -264,8 +259,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -281,6 +274,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

@@ -237,7 +237,7 @@ export interface QueryDelegatorValidatorResponse {
  */
 export interface QueryHistoricalInfoRequest {
   /** height defines at which height to query the historical info. */
-  height: Long;
+  height: string;
 }
 
 /**
@@ -2011,7 +2011,7 @@ export const QueryDelegatorValidatorResponse = {
 };
 
 function createBaseQueryHistoricalInfoRequest(): QueryHistoricalInfoRequest {
-  return { height: Long.ZERO };
+  return { height: "0" };
 }
 
 export const QueryHistoricalInfoRequest = {
@@ -2019,7 +2019,7 @@ export const QueryHistoricalInfoRequest = {
     message: QueryHistoricalInfoRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
     return writer;
@@ -2036,7 +2036,7 @@ export const QueryHistoricalInfoRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -2048,14 +2048,13 @@ export const QueryHistoricalInfoRequest = {
 
   fromJSON(object: any): QueryHistoricalInfoRequest {
     return {
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
     };
   },
 
   toJSON(message: QueryHistoricalInfoRequest): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     return obj;
   },
 
@@ -2063,10 +2062,7 @@ export const QueryHistoricalInfoRequest = {
     object: I,
   ): QueryHistoricalInfoRequest {
     const message = createBaseQueryHistoricalInfoRequest();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     return message;
   },
 };
@@ -2635,8 +2631,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -2652,6 +2646,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

@@ -103,8 +103,8 @@ export interface Header {
  * supports positive values.
  */
 export interface Fraction {
-  numerator: Long;
-  denominator: Long;
+  numerator: string;
+  denominator: string;
 }
 
 function createBaseClientState(): ClientState {
@@ -650,7 +650,7 @@ export const Header = {
 };
 
 function createBaseFraction(): Fraction {
-  return { numerator: Long.UZERO, denominator: Long.UZERO };
+  return { numerator: "0", denominator: "0" };
 }
 
 export const Fraction = {
@@ -658,10 +658,10 @@ export const Fraction = {
     message: Fraction,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.numerator.isZero()) {
+    if (message.numerator !== "0") {
       writer.uint32(8).uint64(message.numerator);
     }
-    if (!message.denominator.isZero()) {
+    if (message.denominator !== "0") {
       writer.uint32(16).uint64(message.denominator);
     }
     return writer;
@@ -675,10 +675,10 @@ export const Fraction = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.numerator = reader.uint64() as Long;
+          message.numerator = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.denominator = reader.uint64() as Long;
+          message.denominator = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -690,34 +690,23 @@ export const Fraction = {
 
   fromJSON(object: any): Fraction {
     return {
-      numerator: isSet(object.numerator)
-        ? Long.fromString(object.numerator)
-        : Long.UZERO,
-      denominator: isSet(object.denominator)
-        ? Long.fromString(object.denominator)
-        : Long.UZERO,
+      numerator: isSet(object.numerator) ? String(object.numerator) : "0",
+      denominator: isSet(object.denominator) ? String(object.denominator) : "0",
     };
   },
 
   toJSON(message: Fraction): unknown {
     const obj: any = {};
-    message.numerator !== undefined &&
-      (obj.numerator = (message.numerator || Long.UZERO).toString());
+    message.numerator !== undefined && (obj.numerator = message.numerator);
     message.denominator !== undefined &&
-      (obj.denominator = (message.denominator || Long.UZERO).toString());
+      (obj.denominator = message.denominator);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Fraction>, I>>(object: I): Fraction {
     const message = createBaseFraction();
-    message.numerator =
-      object.numerator !== undefined && object.numerator !== null
-        ? Long.fromValue(object.numerator)
-        : Long.UZERO;
-    message.denominator =
-      object.denominator !== undefined && object.denominator !== null
-        ? Long.fromValue(object.denominator)
-        : Long.UZERO;
+    message.numerator = object.numerator ?? "0";
+    message.denominator = object.denominator ?? "0";
     return message;
   },
 };
@@ -767,8 +756,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -786,13 +773,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -807,8 +794,8 @@ function fromJsonTimestamp(o: any): Timestamp {
   }
 }
 
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
+function longToString(long: Long) {
+  return long.toString();
 }
 
 if (_m0.util.Long !== Long) {

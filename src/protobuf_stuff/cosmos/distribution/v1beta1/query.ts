@@ -68,9 +68,9 @@ export interface QueryValidatorSlashesRequest {
   /** validator_address defines the validator address to query for. */
   validatorAddress: string;
   /** starting_height defines the optional starting height to query the slashes. */
-  startingHeight: Long;
+  startingHeight: string;
   /** starting_height defines the optional ending height to query the slashes. */
-  endingHeight: Long;
+  endingHeight: string;
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
 }
@@ -560,8 +560,8 @@ export const QueryValidatorCommissionResponse = {
 function createBaseQueryValidatorSlashesRequest(): QueryValidatorSlashesRequest {
   return {
     validatorAddress: "",
-    startingHeight: Long.UZERO,
-    endingHeight: Long.UZERO,
+    startingHeight: "0",
+    endingHeight: "0",
     pagination: undefined,
   };
 }
@@ -574,10 +574,10 @@ export const QueryValidatorSlashesRequest = {
     if (message.validatorAddress !== "") {
       writer.uint32(10).string(message.validatorAddress);
     }
-    if (!message.startingHeight.isZero()) {
+    if (message.startingHeight !== "0") {
       writer.uint32(16).uint64(message.startingHeight);
     }
-    if (!message.endingHeight.isZero()) {
+    if (message.endingHeight !== "0") {
       writer.uint32(24).uint64(message.endingHeight);
     }
     if (message.pagination !== undefined) {
@@ -600,10 +600,10 @@ export const QueryValidatorSlashesRequest = {
           message.validatorAddress = reader.string();
           break;
         case 2:
-          message.startingHeight = reader.uint64() as Long;
+          message.startingHeight = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.endingHeight = reader.uint64() as Long;
+          message.endingHeight = longToString(reader.uint64() as Long);
           break;
         case 4:
           message.pagination = PageRequest.decode(reader, reader.uint32());
@@ -622,11 +622,11 @@ export const QueryValidatorSlashesRequest = {
         ? String(object.validatorAddress)
         : "",
       startingHeight: isSet(object.startingHeight)
-        ? Long.fromString(object.startingHeight)
-        : Long.UZERO,
+        ? String(object.startingHeight)
+        : "0",
       endingHeight: isSet(object.endingHeight)
-        ? Long.fromString(object.endingHeight)
-        : Long.UZERO,
+        ? String(object.endingHeight)
+        : "0",
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
@@ -638,9 +638,9 @@ export const QueryValidatorSlashesRequest = {
     message.validatorAddress !== undefined &&
       (obj.validatorAddress = message.validatorAddress);
     message.startingHeight !== undefined &&
-      (obj.startingHeight = (message.startingHeight || Long.UZERO).toString());
+      (obj.startingHeight = message.startingHeight);
     message.endingHeight !== undefined &&
-      (obj.endingHeight = (message.endingHeight || Long.UZERO).toString());
+      (obj.endingHeight = message.endingHeight);
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
@@ -653,14 +653,8 @@ export const QueryValidatorSlashesRequest = {
   ): QueryValidatorSlashesRequest {
     const message = createBaseQueryValidatorSlashesRequest();
     message.validatorAddress = object.validatorAddress ?? "";
-    message.startingHeight =
-      object.startingHeight !== undefined && object.startingHeight !== null
-        ? Long.fromValue(object.startingHeight)
-        : Long.UZERO;
-    message.endingHeight =
-      object.endingHeight !== undefined && object.endingHeight !== null
-        ? Long.fromValue(object.endingHeight)
-        : Long.UZERO;
+    message.startingHeight = object.startingHeight ?? "0";
+    message.endingHeight = object.endingHeight ?? "0";
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
@@ -1727,8 +1721,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1744,6 +1736,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

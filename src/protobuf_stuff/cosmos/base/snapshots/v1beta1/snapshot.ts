@@ -6,7 +6,7 @@ export const protobufPackage = "cosmos.base.snapshots.v1beta1";
 
 /** Snapshot contains Tendermint state sync snapshot info. */
 export interface Snapshot {
-  height: Long;
+  height: string;
   format: number;
   chunks: number;
   hash: Uint8Array;
@@ -21,7 +21,7 @@ export interface Metadata {
 
 function createBaseSnapshot(): Snapshot {
   return {
-    height: Long.UZERO,
+    height: "0",
     format: 0,
     chunks: 0,
     hash: new Uint8Array(),
@@ -34,7 +34,7 @@ export const Snapshot = {
     message: Snapshot,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).uint64(message.height);
     }
     if (message.format !== 0) {
@@ -60,7 +60,7 @@ export const Snapshot = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.uint64() as Long;
+          message.height = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.format = reader.uint32();
@@ -84,9 +84,7 @@ export const Snapshot = {
 
   fromJSON(object: any): Snapshot {
     return {
-      height: isSet(object.height)
-        ? Long.fromString(object.height)
-        : Long.UZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       format: isSet(object.format) ? Number(object.format) : 0,
       chunks: isSet(object.chunks) ? Number(object.chunks) : 0,
       hash: isSet(object.hash)
@@ -100,8 +98,7 @@ export const Snapshot = {
 
   toJSON(message: Snapshot): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.UZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.format !== undefined && (obj.format = Math.round(message.format));
     message.chunks !== undefined && (obj.chunks = Math.round(message.chunks));
     message.hash !== undefined &&
@@ -117,10 +114,7 @@ export const Snapshot = {
 
   fromPartial<I extends Exact<DeepPartial<Snapshot>, I>>(object: I): Snapshot {
     const message = createBaseSnapshot();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.UZERO;
+    message.height = object.height ?? "0";
     message.format = object.format ?? 0;
     message.chunks = object.chunks ?? 0;
     message.hash = object.hash ?? new Uint8Array();
@@ -237,8 +231,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -254,6 +246,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

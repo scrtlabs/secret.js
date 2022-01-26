@@ -9,7 +9,7 @@ export const protobufPackage = "cosmos.capability.v1beta1";
  * provided to a Capability must be globally unique.
  */
 export interface Capability {
-  index: Long;
+  index: string;
 }
 
 /**
@@ -30,7 +30,7 @@ export interface CapabilityOwners {
 }
 
 function createBaseCapability(): Capability {
-  return { index: Long.UZERO };
+  return { index: "0" };
 }
 
 export const Capability = {
@@ -38,7 +38,7 @@ export const Capability = {
     message: Capability,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.index.isZero()) {
+    if (message.index !== "0") {
       writer.uint32(8).uint64(message.index);
     }
     return writer;
@@ -52,7 +52,7 @@ export const Capability = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.index = reader.uint64() as Long;
+          message.index = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -64,14 +64,13 @@ export const Capability = {
 
   fromJSON(object: any): Capability {
     return {
-      index: isSet(object.index) ? Long.fromString(object.index) : Long.UZERO,
+      index: isSet(object.index) ? String(object.index) : "0",
     };
   },
 
   toJSON(message: Capability): unknown {
     const obj: any = {};
-    message.index !== undefined &&
-      (obj.index = (message.index || Long.UZERO).toString());
+    message.index !== undefined && (obj.index = message.index);
     return obj;
   },
 
@@ -79,10 +78,7 @@ export const Capability = {
     object: I,
   ): Capability {
     const message = createBaseCapability();
-    message.index =
-      object.index !== undefined && object.index !== null
-        ? Long.fromValue(object.index)
-        : Long.UZERO;
+    message.index = object.index ?? "0";
     return message;
   },
 };
@@ -216,8 +212,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -233,6 +227,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

@@ -7,7 +7,7 @@ OUT_DIR="${SCRIPT_PATH}/../src/protobuf_stuff"
 mkdir -p "$OUT_DIR"
 
 PLUGIN_PATH="${SCRIPT_PATH}/../node_modules/.bin/protoc-gen-ts_proto"
-TS_PROTO_OPTS="esModuleInterop=true,forceLong=long,useOptionals=true,useDate=false,lowerCaseServiceMethods=true"
+TS_PROTO_OPTS="esModuleInterop=true,forceLong=string,useOptionals=true,useDate=false,lowerCaseServiceMethods=true"
 
 # Path to this plugin, Note this must be an abolsute path on Windows
 PLUGIN_PATH="${SCRIPT_PATH}/../node_modules/.bin/protoc-gen-ts_proto"

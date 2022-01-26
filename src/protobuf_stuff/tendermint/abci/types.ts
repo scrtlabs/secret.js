@@ -109,8 +109,8 @@ export interface RequestFlush {}
 
 export interface RequestInfo {
   version: string;
-  blockVersion: Long;
-  p2pVersion: Long;
+  blockVersion: string;
+  p2pVersion: string;
 }
 
 /** nondeterministic */
@@ -125,13 +125,13 @@ export interface RequestInitChain {
   consensusParams?: ConsensusParams;
   validators: ValidatorUpdate[];
   appStateBytes: Uint8Array;
-  initialHeight: Long;
+  initialHeight: string;
 }
 
 export interface RequestQuery {
   data: Uint8Array;
   path: string;
-  height: Long;
+  height: string;
   prove: boolean;
 }
 
@@ -152,7 +152,7 @@ export interface RequestDeliverTx {
 }
 
 export interface RequestEndBlock {
-  height: Long;
+  height: string;
 }
 
 export interface RequestCommit {}
@@ -170,7 +170,7 @@ export interface RequestOfferSnapshot {
 
 /** loads a snapshot chunk */
 export interface RequestLoadSnapshotChunk {
-  height: Long;
+  height: string;
   format: number;
   chunk: number;
 }
@@ -215,8 +215,8 @@ export interface ResponseFlush {}
 export interface ResponseInfo {
   data: string;
   version: string;
-  appVersion: Long;
-  lastBlockHeight: Long;
+  appVersion: string;
+  lastBlockHeight: string;
   lastBlockAppHash: Uint8Array;
 }
 
@@ -240,11 +240,11 @@ export interface ResponseQuery {
   log: string;
   /** nondeterministic */
   info: string;
-  index: Long;
+  index: string;
   key: Uint8Array;
   value: Uint8Array;
   proofOps?: ProofOps;
-  height: Long;
+  height: string;
   codespace: string;
 }
 
@@ -259,8 +259,8 @@ export interface ResponseCheckTx {
   log: string;
   /** nondeterministic */
   info: string;
-  gasWanted: Long;
-  gasUsed: Long;
+  gasWanted: string;
+  gasUsed: string;
   events: Event[];
   codespace: string;
 }
@@ -272,8 +272,8 @@ export interface ResponseDeliverTx {
   log: string;
   /** nondeterministic */
   info: string;
-  gasWanted: Long;
-  gasUsed: Long;
+  gasWanted: string;
+  gasUsed: string;
   events: Event[];
   codespace: string;
 }
@@ -287,7 +287,7 @@ export interface ResponseEndBlock {
 export interface ResponseCommit {
   /** reserve 1 */
   data: Uint8Array;
-  retainHeight: Long;
+  retainHeight: string;
 }
 
 export interface ResponseListSnapshots {
@@ -456,9 +456,9 @@ export interface ConsensusParams {
 /** BlockParams contains limits on the block size. */
 export interface BlockParams {
   /** Note: must be greater than 0 */
-  maxBytes: Long;
+  maxBytes: string;
   /** Note: must be greater or equal to -1 */
-  maxGas: Long;
+  maxGas: string;
 }
 
 export interface LastCommitInfo {
@@ -490,7 +490,7 @@ export interface EventAttribute {
  * One usage is indexing transaction results.
  */
 export interface TxResult {
-  height: Long;
+  height: string;
   index: number;
   tx: Uint8Array;
   result?: ResponseDeliverTx;
@@ -501,13 +501,13 @@ export interface Validator {
   /** The first 20 bytes of SHA256(public key) */
   address: Uint8Array;
   /** PubKey pub_key = 2 [(gogoproto.nullable)=false]; */
-  power: Long;
+  power: string;
 }
 
 /** ValidatorUpdate */
 export interface ValidatorUpdate {
   pubKey?: PublicKey;
-  power: Long;
+  power: string;
 }
 
 /** VoteInfo */
@@ -521,7 +521,7 @@ export interface Evidence {
   /** The offending validator */
   validator?: Validator;
   /** The height when the offense occurred */
-  height: Long;
+  height: string;
   /** The corresponding time where the offense occurred */
   time?: Timestamp;
   /**
@@ -529,12 +529,12 @@ export interface Evidence {
    * not store historical validators.
    * https://github.com/tendermint/tendermint/issues/4581
    */
-  totalVotingPower: Long;
+  totalVotingPower: string;
 }
 
 export interface Snapshot {
   /** The height at which the snapshot was taken */
-  height: Long;
+  height: string;
   /** The application-specific snapshot format */
   format: number;
   /** Number of chunks in the snapshot */
@@ -994,7 +994,7 @@ export const RequestFlush = {
 };
 
 function createBaseRequestInfo(): RequestInfo {
-  return { version: "", blockVersion: Long.UZERO, p2pVersion: Long.UZERO };
+  return { version: "", blockVersion: "0", p2pVersion: "0" };
 }
 
 export const RequestInfo = {
@@ -1005,10 +1005,10 @@ export const RequestInfo = {
     if (message.version !== "") {
       writer.uint32(10).string(message.version);
     }
-    if (!message.blockVersion.isZero()) {
+    if (message.blockVersion !== "0") {
       writer.uint32(16).uint64(message.blockVersion);
     }
-    if (!message.p2pVersion.isZero()) {
+    if (message.p2pVersion !== "0") {
       writer.uint32(24).uint64(message.p2pVersion);
     }
     return writer;
@@ -1025,10 +1025,10 @@ export const RequestInfo = {
           message.version = reader.string();
           break;
         case 2:
-          message.blockVersion = reader.uint64() as Long;
+          message.blockVersion = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.p2pVersion = reader.uint64() as Long;
+          message.p2pVersion = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -1042,11 +1042,9 @@ export const RequestInfo = {
     return {
       version: isSet(object.version) ? String(object.version) : "",
       blockVersion: isSet(object.blockVersion)
-        ? Long.fromString(object.blockVersion)
-        : Long.UZERO,
-      p2pVersion: isSet(object.p2pVersion)
-        ? Long.fromString(object.p2pVersion)
-        : Long.UZERO,
+        ? String(object.blockVersion)
+        : "0",
+      p2pVersion: isSet(object.p2pVersion) ? String(object.p2pVersion) : "0",
     };
   },
 
@@ -1054,9 +1052,8 @@ export const RequestInfo = {
     const obj: any = {};
     message.version !== undefined && (obj.version = message.version);
     message.blockVersion !== undefined &&
-      (obj.blockVersion = (message.blockVersion || Long.UZERO).toString());
-    message.p2pVersion !== undefined &&
-      (obj.p2pVersion = (message.p2pVersion || Long.UZERO).toString());
+      (obj.blockVersion = message.blockVersion);
+    message.p2pVersion !== undefined && (obj.p2pVersion = message.p2pVersion);
     return obj;
   },
 
@@ -1065,14 +1062,8 @@ export const RequestInfo = {
   ): RequestInfo {
     const message = createBaseRequestInfo();
     message.version = object.version ?? "";
-    message.blockVersion =
-      object.blockVersion !== undefined && object.blockVersion !== null
-        ? Long.fromValue(object.blockVersion)
-        : Long.UZERO;
-    message.p2pVersion =
-      object.p2pVersion !== undefined && object.p2pVersion !== null
-        ? Long.fromValue(object.p2pVersion)
-        : Long.UZERO;
+    message.blockVersion = object.blockVersion ?? "0";
+    message.p2pVersion = object.p2pVersion ?? "0";
     return message;
   },
 };
@@ -1147,7 +1138,7 @@ function createBaseRequestInitChain(): RequestInitChain {
     consensusParams: undefined,
     validators: [],
     appStateBytes: new Uint8Array(),
-    initialHeight: Long.ZERO,
+    initialHeight: "0",
   };
 }
 
@@ -1174,7 +1165,7 @@ export const RequestInitChain = {
     if (message.appStateBytes.length !== 0) {
       writer.uint32(42).bytes(message.appStateBytes);
     }
-    if (!message.initialHeight.isZero()) {
+    if (message.initialHeight !== "0") {
       writer.uint32(48).int64(message.initialHeight);
     }
     return writer;
@@ -1208,7 +1199,7 @@ export const RequestInitChain = {
           message.appStateBytes = reader.bytes();
           break;
         case 6:
-          message.initialHeight = reader.int64() as Long;
+          message.initialHeight = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -1232,8 +1223,8 @@ export const RequestInitChain = {
         ? bytesFromBase64(object.appStateBytes)
         : new Uint8Array(),
       initialHeight: isSet(object.initialHeight)
-        ? Long.fromString(object.initialHeight)
-        : Long.ZERO,
+        ? String(object.initialHeight)
+        : "0",
     };
   },
 
@@ -1260,7 +1251,7 @@ export const RequestInitChain = {
           : new Uint8Array(),
       ));
     message.initialHeight !== undefined &&
-      (obj.initialHeight = (message.initialHeight || Long.ZERO).toString());
+      (obj.initialHeight = message.initialHeight);
     return obj;
   },
 
@@ -1280,16 +1271,13 @@ export const RequestInitChain = {
     message.validators =
       object.validators?.map((e) => ValidatorUpdate.fromPartial(e)) || [];
     message.appStateBytes = object.appStateBytes ?? new Uint8Array();
-    message.initialHeight =
-      object.initialHeight !== undefined && object.initialHeight !== null
-        ? Long.fromValue(object.initialHeight)
-        : Long.ZERO;
+    message.initialHeight = object.initialHeight ?? "0";
     return message;
   },
 };
 
 function createBaseRequestQuery(): RequestQuery {
-  return { data: new Uint8Array(), path: "", height: Long.ZERO, prove: false };
+  return { data: new Uint8Array(), path: "", height: "0", prove: false };
 }
 
 export const RequestQuery = {
@@ -1303,7 +1291,7 @@ export const RequestQuery = {
     if (message.path !== "") {
       writer.uint32(18).string(message.path);
     }
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(24).int64(message.height);
     }
     if (message.prove === true) {
@@ -1326,7 +1314,7 @@ export const RequestQuery = {
           message.path = reader.string();
           break;
         case 3:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 4:
           message.prove = reader.bool();
@@ -1345,7 +1333,7 @@ export const RequestQuery = {
         ? bytesFromBase64(object.data)
         : new Uint8Array(),
       path: isSet(object.path) ? String(object.path) : "",
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       prove: isSet(object.prove) ? Boolean(object.prove) : false,
     };
   },
@@ -1357,8 +1345,7 @@ export const RequestQuery = {
         message.data !== undefined ? message.data : new Uint8Array(),
       ));
     message.path !== undefined && (obj.path = message.path);
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.prove !== undefined && (obj.prove = message.prove);
     return obj;
   },
@@ -1369,10 +1356,7 @@ export const RequestQuery = {
     const message = createBaseRequestQuery();
     message.data = object.data ?? new Uint8Array();
     message.path = object.path ?? "";
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.prove = object.prove ?? false;
     return message;
   },
@@ -1622,7 +1606,7 @@ export const RequestDeliverTx = {
 };
 
 function createBaseRequestEndBlock(): RequestEndBlock {
-  return { height: Long.ZERO };
+  return { height: "0" };
 }
 
 export const RequestEndBlock = {
@@ -1630,7 +1614,7 @@ export const RequestEndBlock = {
     message: RequestEndBlock,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
     return writer;
@@ -1644,7 +1628,7 @@ export const RequestEndBlock = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -1656,14 +1640,13 @@ export const RequestEndBlock = {
 
   fromJSON(object: any): RequestEndBlock {
     return {
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
     };
   },
 
   toJSON(message: RequestEndBlock): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     return obj;
   },
 
@@ -1671,10 +1654,7 @@ export const RequestEndBlock = {
     object: I,
   ): RequestEndBlock {
     const message = createBaseRequestEndBlock();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     return message;
   },
 };
@@ -1850,7 +1830,7 @@ export const RequestOfferSnapshot = {
 };
 
 function createBaseRequestLoadSnapshotChunk(): RequestLoadSnapshotChunk {
-  return { height: Long.UZERO, format: 0, chunk: 0 };
+  return { height: "0", format: 0, chunk: 0 };
 }
 
 export const RequestLoadSnapshotChunk = {
@@ -1858,7 +1838,7 @@ export const RequestLoadSnapshotChunk = {
     message: RequestLoadSnapshotChunk,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).uint64(message.height);
     }
     if (message.format !== 0) {
@@ -1881,7 +1861,7 @@ export const RequestLoadSnapshotChunk = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.uint64() as Long;
+          message.height = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.format = reader.uint32();
@@ -1899,9 +1879,7 @@ export const RequestLoadSnapshotChunk = {
 
   fromJSON(object: any): RequestLoadSnapshotChunk {
     return {
-      height: isSet(object.height)
-        ? Long.fromString(object.height)
-        : Long.UZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       format: isSet(object.format) ? Number(object.format) : 0,
       chunk: isSet(object.chunk) ? Number(object.chunk) : 0,
     };
@@ -1909,8 +1887,7 @@ export const RequestLoadSnapshotChunk = {
 
   toJSON(message: RequestLoadSnapshotChunk): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.UZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.format !== undefined && (obj.format = Math.round(message.format));
     message.chunk !== undefined && (obj.chunk = Math.round(message.chunk));
     return obj;
@@ -1920,10 +1897,7 @@ export const RequestLoadSnapshotChunk = {
     object: I,
   ): RequestLoadSnapshotChunk {
     const message = createBaseRequestLoadSnapshotChunk();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.UZERO;
+    message.height = object.height ?? "0";
     message.format = object.format ?? 0;
     message.chunk = object.chunk ?? 0;
     return message;
@@ -2540,8 +2514,8 @@ function createBaseResponseInfo(): ResponseInfo {
   return {
     data: "",
     version: "",
-    appVersion: Long.UZERO,
-    lastBlockHeight: Long.ZERO,
+    appVersion: "0",
+    lastBlockHeight: "0",
     lastBlockAppHash: new Uint8Array(),
   };
 }
@@ -2557,10 +2531,10 @@ export const ResponseInfo = {
     if (message.version !== "") {
       writer.uint32(18).string(message.version);
     }
-    if (!message.appVersion.isZero()) {
+    if (message.appVersion !== "0") {
       writer.uint32(24).uint64(message.appVersion);
     }
-    if (!message.lastBlockHeight.isZero()) {
+    if (message.lastBlockHeight !== "0") {
       writer.uint32(32).int64(message.lastBlockHeight);
     }
     if (message.lastBlockAppHash.length !== 0) {
@@ -2583,10 +2557,10 @@ export const ResponseInfo = {
           message.version = reader.string();
           break;
         case 3:
-          message.appVersion = reader.uint64() as Long;
+          message.appVersion = longToString(reader.uint64() as Long);
           break;
         case 4:
-          message.lastBlockHeight = reader.int64() as Long;
+          message.lastBlockHeight = longToString(reader.int64() as Long);
           break;
         case 5:
           message.lastBlockAppHash = reader.bytes();
@@ -2603,12 +2577,10 @@ export const ResponseInfo = {
     return {
       data: isSet(object.data) ? String(object.data) : "",
       version: isSet(object.version) ? String(object.version) : "",
-      appVersion: isSet(object.appVersion)
-        ? Long.fromString(object.appVersion)
-        : Long.UZERO,
+      appVersion: isSet(object.appVersion) ? String(object.appVersion) : "0",
       lastBlockHeight: isSet(object.lastBlockHeight)
-        ? Long.fromString(object.lastBlockHeight)
-        : Long.ZERO,
+        ? String(object.lastBlockHeight)
+        : "0",
       lastBlockAppHash: isSet(object.lastBlockAppHash)
         ? bytesFromBase64(object.lastBlockAppHash)
         : new Uint8Array(),
@@ -2619,10 +2591,9 @@ export const ResponseInfo = {
     const obj: any = {};
     message.data !== undefined && (obj.data = message.data);
     message.version !== undefined && (obj.version = message.version);
-    message.appVersion !== undefined &&
-      (obj.appVersion = (message.appVersion || Long.UZERO).toString());
+    message.appVersion !== undefined && (obj.appVersion = message.appVersion);
     message.lastBlockHeight !== undefined &&
-      (obj.lastBlockHeight = (message.lastBlockHeight || Long.ZERO).toString());
+      (obj.lastBlockHeight = message.lastBlockHeight);
     message.lastBlockAppHash !== undefined &&
       (obj.lastBlockAppHash = base64FromBytes(
         message.lastBlockAppHash !== undefined
@@ -2638,14 +2609,8 @@ export const ResponseInfo = {
     const message = createBaseResponseInfo();
     message.data = object.data ?? "";
     message.version = object.version ?? "";
-    message.appVersion =
-      object.appVersion !== undefined && object.appVersion !== null
-        ? Long.fromValue(object.appVersion)
-        : Long.UZERO;
-    message.lastBlockHeight =
-      object.lastBlockHeight !== undefined && object.lastBlockHeight !== null
-        ? Long.fromValue(object.lastBlockHeight)
-        : Long.ZERO;
+    message.appVersion = object.appVersion ?? "0";
+    message.lastBlockHeight = object.lastBlockHeight ?? "0";
     message.lastBlockAppHash = object.lastBlockAppHash ?? new Uint8Array();
     return message;
   },
@@ -2834,11 +2799,11 @@ function createBaseResponseQuery(): ResponseQuery {
     code: 0,
     log: "",
     info: "",
-    index: Long.ZERO,
+    index: "0",
     key: new Uint8Array(),
     value: new Uint8Array(),
     proofOps: undefined,
-    height: Long.ZERO,
+    height: "0",
     codespace: "",
   };
 }
@@ -2857,7 +2822,7 @@ export const ResponseQuery = {
     if (message.info !== "") {
       writer.uint32(34).string(message.info);
     }
-    if (!message.index.isZero()) {
+    if (message.index !== "0") {
       writer.uint32(40).int64(message.index);
     }
     if (message.key.length !== 0) {
@@ -2869,7 +2834,7 @@ export const ResponseQuery = {
     if (message.proofOps !== undefined) {
       ProofOps.encode(message.proofOps, writer.uint32(66).fork()).ldelim();
     }
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(72).int64(message.height);
     }
     if (message.codespace !== "") {
@@ -2895,7 +2860,7 @@ export const ResponseQuery = {
           message.info = reader.string();
           break;
         case 5:
-          message.index = reader.int64() as Long;
+          message.index = longToString(reader.int64() as Long);
           break;
         case 6:
           message.key = reader.bytes();
@@ -2907,7 +2872,7 @@ export const ResponseQuery = {
           message.proofOps = ProofOps.decode(reader, reader.uint32());
           break;
         case 9:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 10:
           message.codespace = reader.string();
@@ -2925,7 +2890,7 @@ export const ResponseQuery = {
       code: isSet(object.code) ? Number(object.code) : 0,
       log: isSet(object.log) ? String(object.log) : "",
       info: isSet(object.info) ? String(object.info) : "",
-      index: isSet(object.index) ? Long.fromString(object.index) : Long.ZERO,
+      index: isSet(object.index) ? String(object.index) : "0",
       key: isSet(object.key) ? bytesFromBase64(object.key) : new Uint8Array(),
       value: isSet(object.value)
         ? bytesFromBase64(object.value)
@@ -2933,7 +2898,7 @@ export const ResponseQuery = {
       proofOps: isSet(object.proofOps)
         ? ProofOps.fromJSON(object.proofOps)
         : undefined,
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       codespace: isSet(object.codespace) ? String(object.codespace) : "",
     };
   },
@@ -2943,8 +2908,7 @@ export const ResponseQuery = {
     message.code !== undefined && (obj.code = Math.round(message.code));
     message.log !== undefined && (obj.log = message.log);
     message.info !== undefined && (obj.info = message.info);
-    message.index !== undefined &&
-      (obj.index = (message.index || Long.ZERO).toString());
+    message.index !== undefined && (obj.index = message.index);
     message.key !== undefined &&
       (obj.key = base64FromBytes(
         message.key !== undefined ? message.key : new Uint8Array(),
@@ -2957,8 +2921,7 @@ export const ResponseQuery = {
       (obj.proofOps = message.proofOps
         ? ProofOps.toJSON(message.proofOps)
         : undefined);
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.codespace !== undefined && (obj.codespace = message.codespace);
     return obj;
   },
@@ -2970,20 +2933,14 @@ export const ResponseQuery = {
     message.code = object.code ?? 0;
     message.log = object.log ?? "";
     message.info = object.info ?? "";
-    message.index =
-      object.index !== undefined && object.index !== null
-        ? Long.fromValue(object.index)
-        : Long.ZERO;
+    message.index = object.index ?? "0";
     message.key = object.key ?? new Uint8Array();
     message.value = object.value ?? new Uint8Array();
     message.proofOps =
       object.proofOps !== undefined && object.proofOps !== null
         ? ProofOps.fromPartial(object.proofOps)
         : undefined;
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.codespace = object.codespace ?? "";
     return message;
   },
@@ -3055,8 +3012,8 @@ function createBaseResponseCheckTx(): ResponseCheckTx {
     data: new Uint8Array(),
     log: "",
     info: "",
-    gasWanted: Long.ZERO,
-    gasUsed: Long.ZERO,
+    gasWanted: "0",
+    gasUsed: "0",
     events: [],
     codespace: "",
   };
@@ -3079,10 +3036,10 @@ export const ResponseCheckTx = {
     if (message.info !== "") {
       writer.uint32(34).string(message.info);
     }
-    if (!message.gasWanted.isZero()) {
+    if (message.gasWanted !== "0") {
       writer.uint32(40).int64(message.gasWanted);
     }
-    if (!message.gasUsed.isZero()) {
+    if (message.gasUsed !== "0") {
       writer.uint32(48).int64(message.gasUsed);
     }
     for (const v of message.events) {
@@ -3114,10 +3071,10 @@ export const ResponseCheckTx = {
           message.info = reader.string();
           break;
         case 5:
-          message.gasWanted = reader.int64() as Long;
+          message.gasWanted = longToString(reader.int64() as Long);
           break;
         case 6:
-          message.gasUsed = reader.int64() as Long;
+          message.gasUsed = longToString(reader.int64() as Long);
           break;
         case 7:
           message.events.push(Event.decode(reader, reader.uint32()));
@@ -3141,12 +3098,8 @@ export const ResponseCheckTx = {
         : new Uint8Array(),
       log: isSet(object.log) ? String(object.log) : "",
       info: isSet(object.info) ? String(object.info) : "",
-      gasWanted: isSet(object.gas_wanted)
-        ? Long.fromString(object.gas_wanted)
-        : Long.ZERO,
-      gasUsed: isSet(object.gas_used)
-        ? Long.fromString(object.gas_used)
-        : Long.ZERO,
+      gasWanted: isSet(object.gas_wanted) ? String(object.gas_wanted) : "0",
+      gasUsed: isSet(object.gas_used) ? String(object.gas_used) : "0",
       events: Array.isArray(object?.events)
         ? object.events.map((e: any) => Event.fromJSON(e))
         : [],
@@ -3163,10 +3116,8 @@ export const ResponseCheckTx = {
       ));
     message.log !== undefined && (obj.log = message.log);
     message.info !== undefined && (obj.info = message.info);
-    message.gasWanted !== undefined &&
-      (obj.gas_wanted = (message.gasWanted || Long.ZERO).toString());
-    message.gasUsed !== undefined &&
-      (obj.gas_used = (message.gasUsed || Long.ZERO).toString());
+    message.gasWanted !== undefined && (obj.gas_wanted = message.gasWanted);
+    message.gasUsed !== undefined && (obj.gas_used = message.gasUsed);
     if (message.events) {
       obj.events = message.events.map((e) => (e ? Event.toJSON(e) : undefined));
     } else {
@@ -3184,14 +3135,8 @@ export const ResponseCheckTx = {
     message.data = object.data ?? new Uint8Array();
     message.log = object.log ?? "";
     message.info = object.info ?? "";
-    message.gasWanted =
-      object.gasWanted !== undefined && object.gasWanted !== null
-        ? Long.fromValue(object.gasWanted)
-        : Long.ZERO;
-    message.gasUsed =
-      object.gasUsed !== undefined && object.gasUsed !== null
-        ? Long.fromValue(object.gasUsed)
-        : Long.ZERO;
+    message.gasWanted = object.gasWanted ?? "0";
+    message.gasUsed = object.gasUsed ?? "0";
     message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
     message.codespace = object.codespace ?? "";
     return message;
@@ -3204,8 +3149,8 @@ function createBaseResponseDeliverTx(): ResponseDeliverTx {
     data: new Uint8Array(),
     log: "",
     info: "",
-    gasWanted: Long.ZERO,
-    gasUsed: Long.ZERO,
+    gasWanted: "0",
+    gasUsed: "0",
     events: [],
     codespace: "",
   };
@@ -3228,10 +3173,10 @@ export const ResponseDeliverTx = {
     if (message.info !== "") {
       writer.uint32(34).string(message.info);
     }
-    if (!message.gasWanted.isZero()) {
+    if (message.gasWanted !== "0") {
       writer.uint32(40).int64(message.gasWanted);
     }
-    if (!message.gasUsed.isZero()) {
+    if (message.gasUsed !== "0") {
       writer.uint32(48).int64(message.gasUsed);
     }
     for (const v of message.events) {
@@ -3263,10 +3208,10 @@ export const ResponseDeliverTx = {
           message.info = reader.string();
           break;
         case 5:
-          message.gasWanted = reader.int64() as Long;
+          message.gasWanted = longToString(reader.int64() as Long);
           break;
         case 6:
-          message.gasUsed = reader.int64() as Long;
+          message.gasUsed = longToString(reader.int64() as Long);
           break;
         case 7:
           message.events.push(Event.decode(reader, reader.uint32()));
@@ -3290,12 +3235,8 @@ export const ResponseDeliverTx = {
         : new Uint8Array(),
       log: isSet(object.log) ? String(object.log) : "",
       info: isSet(object.info) ? String(object.info) : "",
-      gasWanted: isSet(object.gas_wanted)
-        ? Long.fromString(object.gas_wanted)
-        : Long.ZERO,
-      gasUsed: isSet(object.gas_used)
-        ? Long.fromString(object.gas_used)
-        : Long.ZERO,
+      gasWanted: isSet(object.gas_wanted) ? String(object.gas_wanted) : "0",
+      gasUsed: isSet(object.gas_used) ? String(object.gas_used) : "0",
       events: Array.isArray(object?.events)
         ? object.events.map((e: any) => Event.fromJSON(e))
         : [],
@@ -3312,10 +3253,8 @@ export const ResponseDeliverTx = {
       ));
     message.log !== undefined && (obj.log = message.log);
     message.info !== undefined && (obj.info = message.info);
-    message.gasWanted !== undefined &&
-      (obj.gas_wanted = (message.gasWanted || Long.ZERO).toString());
-    message.gasUsed !== undefined &&
-      (obj.gas_used = (message.gasUsed || Long.ZERO).toString());
+    message.gasWanted !== undefined && (obj.gas_wanted = message.gasWanted);
+    message.gasUsed !== undefined && (obj.gas_used = message.gasUsed);
     if (message.events) {
       obj.events = message.events.map((e) => (e ? Event.toJSON(e) : undefined));
     } else {
@@ -3333,14 +3272,8 @@ export const ResponseDeliverTx = {
     message.data = object.data ?? new Uint8Array();
     message.log = object.log ?? "";
     message.info = object.info ?? "";
-    message.gasWanted =
-      object.gasWanted !== undefined && object.gasWanted !== null
-        ? Long.fromValue(object.gasWanted)
-        : Long.ZERO;
-    message.gasUsed =
-      object.gasUsed !== undefined && object.gasUsed !== null
-        ? Long.fromValue(object.gasUsed)
-        : Long.ZERO;
+    message.gasWanted = object.gasWanted ?? "0";
+    message.gasUsed = object.gasUsed ?? "0";
     message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
     message.codespace = object.codespace ?? "";
     return message;
@@ -3452,7 +3385,7 @@ export const ResponseEndBlock = {
 };
 
 function createBaseResponseCommit(): ResponseCommit {
-  return { data: new Uint8Array(), retainHeight: Long.ZERO };
+  return { data: new Uint8Array(), retainHeight: "0" };
 }
 
 export const ResponseCommit = {
@@ -3463,7 +3396,7 @@ export const ResponseCommit = {
     if (message.data.length !== 0) {
       writer.uint32(18).bytes(message.data);
     }
-    if (!message.retainHeight.isZero()) {
+    if (message.retainHeight !== "0") {
       writer.uint32(24).int64(message.retainHeight);
     }
     return writer;
@@ -3480,7 +3413,7 @@ export const ResponseCommit = {
           message.data = reader.bytes();
           break;
         case 3:
-          message.retainHeight = reader.int64() as Long;
+          message.retainHeight = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -3496,8 +3429,8 @@ export const ResponseCommit = {
         ? bytesFromBase64(object.data)
         : new Uint8Array(),
       retainHeight: isSet(object.retainHeight)
-        ? Long.fromString(object.retainHeight)
-        : Long.ZERO,
+        ? String(object.retainHeight)
+        : "0",
     };
   },
 
@@ -3508,7 +3441,7 @@ export const ResponseCommit = {
         message.data !== undefined ? message.data : new Uint8Array(),
       ));
     message.retainHeight !== undefined &&
-      (obj.retainHeight = (message.retainHeight || Long.ZERO).toString());
+      (obj.retainHeight = message.retainHeight);
     return obj;
   },
 
@@ -3517,10 +3450,7 @@ export const ResponseCommit = {
   ): ResponseCommit {
     const message = createBaseResponseCommit();
     message.data = object.data ?? new Uint8Array();
-    message.retainHeight =
-      object.retainHeight !== undefined && object.retainHeight !== null
-        ? Long.fromValue(object.retainHeight)
-        : Long.ZERO;
+    message.retainHeight = object.retainHeight ?? "0";
     return message;
   },
 };
@@ -3937,7 +3867,7 @@ export const ConsensusParams = {
 };
 
 function createBaseBlockParams(): BlockParams {
-  return { maxBytes: Long.ZERO, maxGas: Long.ZERO };
+  return { maxBytes: "0", maxGas: "0" };
 }
 
 export const BlockParams = {
@@ -3945,10 +3875,10 @@ export const BlockParams = {
     message: BlockParams,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.maxBytes.isZero()) {
+    if (message.maxBytes !== "0") {
       writer.uint32(8).int64(message.maxBytes);
     }
-    if (!message.maxGas.isZero()) {
+    if (message.maxGas !== "0") {
       writer.uint32(16).int64(message.maxGas);
     }
     return writer;
@@ -3962,10 +3892,10 @@ export const BlockParams = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.maxBytes = reader.int64() as Long;
+          message.maxBytes = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.maxGas = reader.int64() as Long;
+          message.maxGas = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -3977,19 +3907,15 @@ export const BlockParams = {
 
   fromJSON(object: any): BlockParams {
     return {
-      maxBytes: isSet(object.maxBytes)
-        ? Long.fromString(object.maxBytes)
-        : Long.ZERO,
-      maxGas: isSet(object.maxGas) ? Long.fromString(object.maxGas) : Long.ZERO,
+      maxBytes: isSet(object.maxBytes) ? String(object.maxBytes) : "0",
+      maxGas: isSet(object.maxGas) ? String(object.maxGas) : "0",
     };
   },
 
   toJSON(message: BlockParams): unknown {
     const obj: any = {};
-    message.maxBytes !== undefined &&
-      (obj.maxBytes = (message.maxBytes || Long.ZERO).toString());
-    message.maxGas !== undefined &&
-      (obj.maxGas = (message.maxGas || Long.ZERO).toString());
+    message.maxBytes !== undefined && (obj.maxBytes = message.maxBytes);
+    message.maxGas !== undefined && (obj.maxGas = message.maxGas);
     return obj;
   },
 
@@ -3997,14 +3923,8 @@ export const BlockParams = {
     object: I,
   ): BlockParams {
     const message = createBaseBlockParams();
-    message.maxBytes =
-      object.maxBytes !== undefined && object.maxBytes !== null
-        ? Long.fromValue(object.maxBytes)
-        : Long.ZERO;
-    message.maxGas =
-      object.maxGas !== undefined && object.maxGas !== null
-        ? Long.fromValue(object.maxGas)
-        : Long.ZERO;
+    message.maxBytes = object.maxBytes ?? "0";
+    message.maxGas = object.maxGas ?? "0";
     return message;
   },
 };
@@ -4230,12 +4150,7 @@ export const EventAttribute = {
 };
 
 function createBaseTxResult(): TxResult {
-  return {
-    height: Long.ZERO,
-    index: 0,
-    tx: new Uint8Array(),
-    result: undefined,
-  };
+  return { height: "0", index: 0, tx: new Uint8Array(), result: undefined };
 }
 
 export const TxResult = {
@@ -4243,7 +4158,7 @@ export const TxResult = {
     message: TxResult,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
     if (message.index !== 0) {
@@ -4269,7 +4184,7 @@ export const TxResult = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 2:
           message.index = reader.uint32();
@@ -4290,7 +4205,7 @@ export const TxResult = {
 
   fromJSON(object: any): TxResult {
     return {
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       index: isSet(object.index) ? Number(object.index) : 0,
       tx: isSet(object.tx) ? bytesFromBase64(object.tx) : new Uint8Array(),
       result: isSet(object.result)
@@ -4301,8 +4216,7 @@ export const TxResult = {
 
   toJSON(message: TxResult): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.index !== undefined && (obj.index = Math.round(message.index));
     message.tx !== undefined &&
       (obj.tx = base64FromBytes(
@@ -4317,10 +4231,7 @@ export const TxResult = {
 
   fromPartial<I extends Exact<DeepPartial<TxResult>, I>>(object: I): TxResult {
     const message = createBaseTxResult();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.index = object.index ?? 0;
     message.tx = object.tx ?? new Uint8Array();
     message.result =
@@ -4332,7 +4243,7 @@ export const TxResult = {
 };
 
 function createBaseValidator(): Validator {
-  return { address: new Uint8Array(), power: Long.ZERO };
+  return { address: new Uint8Array(), power: "0" };
 }
 
 export const Validator = {
@@ -4343,7 +4254,7 @@ export const Validator = {
     if (message.address.length !== 0) {
       writer.uint32(10).bytes(message.address);
     }
-    if (!message.power.isZero()) {
+    if (message.power !== "0") {
       writer.uint32(24).int64(message.power);
     }
     return writer;
@@ -4360,7 +4271,7 @@ export const Validator = {
           message.address = reader.bytes();
           break;
         case 3:
-          message.power = reader.int64() as Long;
+          message.power = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -4375,7 +4286,7 @@ export const Validator = {
       address: isSet(object.address)
         ? bytesFromBase64(object.address)
         : new Uint8Array(),
-      power: isSet(object.power) ? Long.fromString(object.power) : Long.ZERO,
+      power: isSet(object.power) ? String(object.power) : "0",
     };
   },
 
@@ -4385,8 +4296,7 @@ export const Validator = {
       (obj.address = base64FromBytes(
         message.address !== undefined ? message.address : new Uint8Array(),
       ));
-    message.power !== undefined &&
-      (obj.power = (message.power || Long.ZERO).toString());
+    message.power !== undefined && (obj.power = message.power);
     return obj;
   },
 
@@ -4395,16 +4305,13 @@ export const Validator = {
   ): Validator {
     const message = createBaseValidator();
     message.address = object.address ?? new Uint8Array();
-    message.power =
-      object.power !== undefined && object.power !== null
-        ? Long.fromValue(object.power)
-        : Long.ZERO;
+    message.power = object.power ?? "0";
     return message;
   },
 };
 
 function createBaseValidatorUpdate(): ValidatorUpdate {
-  return { pubKey: undefined, power: Long.ZERO };
+  return { pubKey: undefined, power: "0" };
 }
 
 export const ValidatorUpdate = {
@@ -4415,7 +4322,7 @@ export const ValidatorUpdate = {
     if (message.pubKey !== undefined) {
       PublicKey.encode(message.pubKey, writer.uint32(10).fork()).ldelim();
     }
-    if (!message.power.isZero()) {
+    if (message.power !== "0") {
       writer.uint32(16).int64(message.power);
     }
     return writer;
@@ -4432,7 +4339,7 @@ export const ValidatorUpdate = {
           message.pubKey = PublicKey.decode(reader, reader.uint32());
           break;
         case 2:
-          message.power = reader.int64() as Long;
+          message.power = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -4447,7 +4354,7 @@ export const ValidatorUpdate = {
       pubKey: isSet(object.pubKey)
         ? PublicKey.fromJSON(object.pubKey)
         : undefined,
-      power: isSet(object.power) ? Long.fromString(object.power) : Long.ZERO,
+      power: isSet(object.power) ? String(object.power) : "0",
     };
   },
 
@@ -4457,8 +4364,7 @@ export const ValidatorUpdate = {
       (obj.pubKey = message.pubKey
         ? PublicKey.toJSON(message.pubKey)
         : undefined);
-    message.power !== undefined &&
-      (obj.power = (message.power || Long.ZERO).toString());
+    message.power !== undefined && (obj.power = message.power);
     return obj;
   },
 
@@ -4470,10 +4376,7 @@ export const ValidatorUpdate = {
       object.pubKey !== undefined && object.pubKey !== null
         ? PublicKey.fromPartial(object.pubKey)
         : undefined;
-    message.power =
-      object.power !== undefined && object.power !== null
-        ? Long.fromValue(object.power)
-        : Long.ZERO;
+    message.power = object.power ?? "0";
     return message;
   },
 };
@@ -4554,9 +4457,9 @@ function createBaseEvidence(): Evidence {
   return {
     type: 0,
     validator: undefined,
-    height: Long.ZERO,
+    height: "0",
     time: undefined,
-    totalVotingPower: Long.ZERO,
+    totalVotingPower: "0",
   };
 }
 
@@ -4571,13 +4474,13 @@ export const Evidence = {
     if (message.validator !== undefined) {
       Validator.encode(message.validator, writer.uint32(18).fork()).ldelim();
     }
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(24).int64(message.height);
     }
     if (message.time !== undefined) {
       Timestamp.encode(message.time, writer.uint32(34).fork()).ldelim();
     }
-    if (!message.totalVotingPower.isZero()) {
+    if (message.totalVotingPower !== "0") {
       writer.uint32(40).int64(message.totalVotingPower);
     }
     return writer;
@@ -4597,13 +4500,13 @@ export const Evidence = {
           message.validator = Validator.decode(reader, reader.uint32());
           break;
         case 3:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 4:
           message.time = Timestamp.decode(reader, reader.uint32());
           break;
         case 5:
-          message.totalVotingPower = reader.int64() as Long;
+          message.totalVotingPower = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -4619,11 +4522,11 @@ export const Evidence = {
       validator: isSet(object.validator)
         ? Validator.fromJSON(object.validator)
         : undefined,
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
       totalVotingPower: isSet(object.totalVotingPower)
-        ? Long.fromString(object.totalVotingPower)
-        : Long.ZERO,
+        ? String(object.totalVotingPower)
+        : "0",
     };
   },
 
@@ -4634,14 +4537,11 @@ export const Evidence = {
       (obj.validator = message.validator
         ? Validator.toJSON(message.validator)
         : undefined);
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.time !== undefined &&
       (obj.time = fromTimestamp(message.time).toISOString());
     message.totalVotingPower !== undefined &&
-      (obj.totalVotingPower = (
-        message.totalVotingPower || Long.ZERO
-      ).toString());
+      (obj.totalVotingPower = message.totalVotingPower);
     return obj;
   },
 
@@ -4652,25 +4552,19 @@ export const Evidence = {
       object.validator !== undefined && object.validator !== null
         ? Validator.fromPartial(object.validator)
         : undefined;
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.time =
       object.time !== undefined && object.time !== null
         ? Timestamp.fromPartial(object.time)
         : undefined;
-    message.totalVotingPower =
-      object.totalVotingPower !== undefined && object.totalVotingPower !== null
-        ? Long.fromValue(object.totalVotingPower)
-        : Long.ZERO;
+    message.totalVotingPower = object.totalVotingPower ?? "0";
     return message;
   },
 };
 
 function createBaseSnapshot(): Snapshot {
   return {
-    height: Long.UZERO,
+    height: "0",
     format: 0,
     chunks: 0,
     hash: new Uint8Array(),
@@ -4683,7 +4577,7 @@ export const Snapshot = {
     message: Snapshot,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).uint64(message.height);
     }
     if (message.format !== 0) {
@@ -4709,7 +4603,7 @@ export const Snapshot = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.uint64() as Long;
+          message.height = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.format = reader.uint32();
@@ -4733,9 +4627,7 @@ export const Snapshot = {
 
   fromJSON(object: any): Snapshot {
     return {
-      height: isSet(object.height)
-        ? Long.fromString(object.height)
-        : Long.UZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       format: isSet(object.format) ? Number(object.format) : 0,
       chunks: isSet(object.chunks) ? Number(object.chunks) : 0,
       hash: isSet(object.hash)
@@ -4749,8 +4641,7 @@ export const Snapshot = {
 
   toJSON(message: Snapshot): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.UZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.format !== undefined && (obj.format = Math.round(message.format));
     message.chunks !== undefined && (obj.chunks = Math.round(message.chunks));
     message.hash !== undefined &&
@@ -4766,10 +4657,7 @@ export const Snapshot = {
 
   fromPartial<I extends Exact<DeepPartial<Snapshot>, I>>(object: I): Snapshot {
     const message = createBaseSnapshot();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.UZERO;
+    message.height = object.height ?? "0";
     message.format = object.format ?? 0;
     message.chunks = object.chunks ?? 0;
     message.hash = object.hash ?? new Uint8Array();
@@ -5046,8 +4934,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -5065,13 +4951,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -5086,8 +4972,8 @@ function fromJsonTimestamp(o: any): Timestamp {
   }
 }
 
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
+function longToString(long: Long) {
+  return long.toString();
 }
 
 if (_m0.util.Long !== Long) {

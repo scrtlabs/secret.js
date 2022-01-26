@@ -67,9 +67,9 @@ export interface QueryConsensusStateRequest {
   /** client identifier */
   clientId: string;
   /** consensus state revision number */
-  revisionNumber: Long;
+  revisionNumber: string;
   /** consensus state revision height */
-  revisionHeight: Long;
+  revisionHeight: string;
   /**
    * latest_height overrrides the height field and queries the latest stored
    * ConsensusState
@@ -488,8 +488,8 @@ export const QueryClientStatesResponse = {
 function createBaseQueryConsensusStateRequest(): QueryConsensusStateRequest {
   return {
     clientId: "",
-    revisionNumber: Long.UZERO,
-    revisionHeight: Long.UZERO,
+    revisionNumber: "0",
+    revisionHeight: "0",
     latestHeight: false,
   };
 }
@@ -502,10 +502,10 @@ export const QueryConsensusStateRequest = {
     if (message.clientId !== "") {
       writer.uint32(10).string(message.clientId);
     }
-    if (!message.revisionNumber.isZero()) {
+    if (message.revisionNumber !== "0") {
       writer.uint32(16).uint64(message.revisionNumber);
     }
-    if (!message.revisionHeight.isZero()) {
+    if (message.revisionHeight !== "0") {
       writer.uint32(24).uint64(message.revisionHeight);
     }
     if (message.latestHeight === true) {
@@ -528,10 +528,10 @@ export const QueryConsensusStateRequest = {
           message.clientId = reader.string();
           break;
         case 2:
-          message.revisionNumber = reader.uint64() as Long;
+          message.revisionNumber = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.revisionHeight = reader.uint64() as Long;
+          message.revisionHeight = longToString(reader.uint64() as Long);
           break;
         case 4:
           message.latestHeight = reader.bool();
@@ -548,11 +548,11 @@ export const QueryConsensusStateRequest = {
     return {
       clientId: isSet(object.clientId) ? String(object.clientId) : "",
       revisionNumber: isSet(object.revisionNumber)
-        ? Long.fromString(object.revisionNumber)
-        : Long.UZERO,
+        ? String(object.revisionNumber)
+        : "0",
       revisionHeight: isSet(object.revisionHeight)
-        ? Long.fromString(object.revisionHeight)
-        : Long.UZERO,
+        ? String(object.revisionHeight)
+        : "0",
       latestHeight: isSet(object.latestHeight)
         ? Boolean(object.latestHeight)
         : false,
@@ -563,9 +563,9 @@ export const QueryConsensusStateRequest = {
     const obj: any = {};
     message.clientId !== undefined && (obj.clientId = message.clientId);
     message.revisionNumber !== undefined &&
-      (obj.revisionNumber = (message.revisionNumber || Long.UZERO).toString());
+      (obj.revisionNumber = message.revisionNumber);
     message.revisionHeight !== undefined &&
-      (obj.revisionHeight = (message.revisionHeight || Long.UZERO).toString());
+      (obj.revisionHeight = message.revisionHeight);
     message.latestHeight !== undefined &&
       (obj.latestHeight = message.latestHeight);
     return obj;
@@ -576,14 +576,8 @@ export const QueryConsensusStateRequest = {
   ): QueryConsensusStateRequest {
     const message = createBaseQueryConsensusStateRequest();
     message.clientId = object.clientId ?? "";
-    message.revisionNumber =
-      object.revisionNumber !== undefined && object.revisionNumber !== null
-        ? Long.fromValue(object.revisionNumber)
-        : Long.UZERO;
-    message.revisionHeight =
-      object.revisionHeight !== undefined && object.revisionHeight !== null
-        ? Long.fromValue(object.revisionHeight)
-        : Long.UZERO;
+    message.revisionNumber = object.revisionNumber ?? "0";
+    message.revisionHeight = object.revisionHeight ?? "0";
     message.latestHeight = object.latestHeight ?? false;
     return message;
   },
@@ -1530,8 +1524,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1547,6 +1539,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

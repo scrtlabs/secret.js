@@ -46,7 +46,7 @@ export interface ValidatorMissedBlocks {
 /** MissedBlock contains height and missed status as boolean. */
 export interface MissedBlock {
   /** index is the height at which the block was missed. */
-  index: Long;
+  index: string;
   /** missed is the missed status. */
   missed: boolean;
 }
@@ -306,7 +306,7 @@ export const ValidatorMissedBlocks = {
 };
 
 function createBaseMissedBlock(): MissedBlock {
-  return { index: Long.ZERO, missed: false };
+  return { index: "0", missed: false };
 }
 
 export const MissedBlock = {
@@ -314,7 +314,7 @@ export const MissedBlock = {
     message: MissedBlock,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.index.isZero()) {
+    if (message.index !== "0") {
       writer.uint32(8).int64(message.index);
     }
     if (message.missed === true) {
@@ -331,7 +331,7 @@ export const MissedBlock = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.index = reader.int64() as Long;
+          message.index = longToString(reader.int64() as Long);
           break;
         case 2:
           message.missed = reader.bool();
@@ -346,15 +346,14 @@ export const MissedBlock = {
 
   fromJSON(object: any): MissedBlock {
     return {
-      index: isSet(object.index) ? Long.fromString(object.index) : Long.ZERO,
+      index: isSet(object.index) ? String(object.index) : "0",
       missed: isSet(object.missed) ? Boolean(object.missed) : false,
     };
   },
 
   toJSON(message: MissedBlock): unknown {
     const obj: any = {};
-    message.index !== undefined &&
-      (obj.index = (message.index || Long.ZERO).toString());
+    message.index !== undefined && (obj.index = message.index);
     message.missed !== undefined && (obj.missed = message.missed);
     return obj;
   },
@@ -363,10 +362,7 @@ export const MissedBlock = {
     object: I,
   ): MissedBlock {
     const message = createBaseMissedBlock();
-    message.index =
-      object.index !== undefined && object.index !== null
-        ? Long.fromValue(object.index)
-        : Long.ZERO;
+    message.index = object.index ?? "0";
     message.missed = object.missed ?? false;
     return message;
   },
@@ -383,8 +379,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -400,6 +394,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

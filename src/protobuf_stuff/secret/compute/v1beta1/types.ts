@@ -68,7 +68,7 @@ export interface ContractCustomInfo {
 
 /** ContractInfo stores a WASM contract instance */
 export interface ContractInfo {
-  codeId: Long;
+  codeId: string;
   creator: Uint8Array;
   /** bytes admin = 3 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"]; */
   label: string;
@@ -82,9 +82,9 @@ export interface ContractInfo {
 /** AbsoluteTxPosition can be used to sort contracts */
 export interface AbsoluteTxPosition {
   /** BlockHeight is the block the contract was created at */
-  blockHeight: Long;
+  blockHeight: string;
   /** TxIndex is a monotonic counter within the block (actual transaction index, or gas consumed) */
-  txIndex: Long;
+  txIndex: string;
 }
 
 /** Model is a struct that holds a KV pair */
@@ -316,7 +316,7 @@ export const ContractCustomInfo = {
 
 function createBaseContractInfo(): ContractInfo {
   return {
-    codeId: Long.UZERO,
+    codeId: "0",
     creator: new Uint8Array(),
     label: "",
     created: undefined,
@@ -328,7 +328,7 @@ export const ContractInfo = {
     message: ContractInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(8).uint64(message.codeId);
     }
     if (message.creator.length !== 0) {
@@ -354,7 +354,7 @@ export const ContractInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.creator = reader.bytes();
@@ -375,9 +375,7 @@ export const ContractInfo = {
 
   fromJSON(object: any): ContractInfo {
     return {
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
       creator: isSet(object.creator)
         ? bytesFromBase64(object.creator)
         : new Uint8Array(),
@@ -390,8 +388,7 @@ export const ContractInfo = {
 
   toJSON(message: ContractInfo): unknown {
     const obj: any = {};
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     message.creator !== undefined &&
       (obj.creator = base64FromBytes(
         message.creator !== undefined ? message.creator : new Uint8Array(),
@@ -408,10 +405,7 @@ export const ContractInfo = {
     object: I,
   ): ContractInfo {
     const message = createBaseContractInfo();
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     message.creator = object.creator ?? new Uint8Array();
     message.label = object.label ?? "";
     message.created =
@@ -423,7 +417,7 @@ export const ContractInfo = {
 };
 
 function createBaseAbsoluteTxPosition(): AbsoluteTxPosition {
-  return { blockHeight: Long.ZERO, txIndex: Long.UZERO };
+  return { blockHeight: "0", txIndex: "0" };
 }
 
 export const AbsoluteTxPosition = {
@@ -431,10 +425,10 @@ export const AbsoluteTxPosition = {
     message: AbsoluteTxPosition,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.blockHeight.isZero()) {
+    if (message.blockHeight !== "0") {
       writer.uint32(8).int64(message.blockHeight);
     }
-    if (!message.txIndex.isZero()) {
+    if (message.txIndex !== "0") {
       writer.uint32(16).uint64(message.txIndex);
     }
     return writer;
@@ -448,10 +442,10 @@ export const AbsoluteTxPosition = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.blockHeight = reader.int64() as Long;
+          message.blockHeight = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.txIndex = reader.uint64() as Long;
+          message.txIndex = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -463,21 +457,16 @@ export const AbsoluteTxPosition = {
 
   fromJSON(object: any): AbsoluteTxPosition {
     return {
-      blockHeight: isSet(object.blockHeight)
-        ? Long.fromString(object.blockHeight)
-        : Long.ZERO,
-      txIndex: isSet(object.txIndex)
-        ? Long.fromString(object.txIndex)
-        : Long.UZERO,
+      blockHeight: isSet(object.blockHeight) ? String(object.blockHeight) : "0",
+      txIndex: isSet(object.txIndex) ? String(object.txIndex) : "0",
     };
   },
 
   toJSON(message: AbsoluteTxPosition): unknown {
     const obj: any = {};
     message.blockHeight !== undefined &&
-      (obj.blockHeight = (message.blockHeight || Long.ZERO).toString());
-    message.txIndex !== undefined &&
-      (obj.txIndex = (message.txIndex || Long.UZERO).toString());
+      (obj.blockHeight = message.blockHeight);
+    message.txIndex !== undefined && (obj.txIndex = message.txIndex);
     return obj;
   },
 
@@ -485,14 +474,8 @@ export const AbsoluteTxPosition = {
     object: I,
   ): AbsoluteTxPosition {
     const message = createBaseAbsoluteTxPosition();
-    message.blockHeight =
-      object.blockHeight !== undefined && object.blockHeight !== null
-        ? Long.fromValue(object.blockHeight)
-        : Long.ZERO;
-    message.txIndex =
-      object.txIndex !== undefined && object.txIndex !== null
-        ? Long.fromValue(object.txIndex)
-        : Long.UZERO;
+    message.blockHeight = object.blockHeight ?? "0";
+    message.txIndex = object.txIndex ?? "0";
     return message;
   },
 };
@@ -608,8 +591,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -625,6 +606,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

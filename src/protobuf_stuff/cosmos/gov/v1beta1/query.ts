@@ -23,7 +23,7 @@ export const protobufPackage = "cosmos.gov.v1beta1";
 /** QueryProposalRequest is the request type for the Query/Proposal RPC method. */
 export interface QueryProposalRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
 }
 
 /** QueryProposalResponse is the response type for the Query/Proposal RPC method. */
@@ -56,7 +56,7 @@ export interface QueryProposalsResponse {
 /** QueryVoteRequest is the request type for the Query/Vote RPC method. */
 export interface QueryVoteRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
   /** voter defines the oter address for the proposals. */
   voter: string;
 }
@@ -70,7 +70,7 @@ export interface QueryVoteResponse {
 /** QueryVotesRequest is the request type for the Query/Votes RPC method. */
 export interface QueryVotesRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
 }
@@ -105,7 +105,7 @@ export interface QueryParamsResponse {
 /** QueryDepositRequest is the request type for the Query/Deposit RPC method. */
 export interface QueryDepositRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
   /** depositor defines the deposit addresses from the proposals. */
   depositor: string;
 }
@@ -119,7 +119,7 @@ export interface QueryDepositResponse {
 /** QueryDepositsRequest is the request type for the Query/Deposits RPC method. */
 export interface QueryDepositsRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
 }
@@ -134,7 +134,7 @@ export interface QueryDepositsResponse {
 /** QueryTallyResultRequest is the request type for the Query/Tally RPC method. */
 export interface QueryTallyResultRequest {
   /** proposal_id defines the unique id of the proposal. */
-  proposalId: Long;
+  proposalId: string;
 }
 
 /** QueryTallyResultResponse is the response type for the Query/Tally RPC method. */
@@ -144,7 +144,7 @@ export interface QueryTallyResultResponse {
 }
 
 function createBaseQueryProposalRequest(): QueryProposalRequest {
-  return { proposalId: Long.UZERO };
+  return { proposalId: "0" };
 }
 
 export const QueryProposalRequest = {
@@ -152,7 +152,7 @@ export const QueryProposalRequest = {
     message: QueryProposalRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     return writer;
@@ -169,7 +169,7 @@ export const QueryProposalRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -181,16 +181,13 @@ export const QueryProposalRequest = {
 
   fromJSON(object: any): QueryProposalRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
     };
   },
 
   toJSON(message: QueryProposalRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     return obj;
   },
 
@@ -198,10 +195,7 @@ export const QueryProposalRequest = {
     object: I,
   ): QueryProposalRequest {
     const message = createBaseQueryProposalRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     return message;
   },
 };
@@ -453,7 +447,7 @@ export const QueryProposalsResponse = {
 };
 
 function createBaseQueryVoteRequest(): QueryVoteRequest {
-  return { proposalId: Long.UZERO, voter: "" };
+  return { proposalId: "0", voter: "" };
 }
 
 export const QueryVoteRequest = {
@@ -461,7 +455,7 @@ export const QueryVoteRequest = {
     message: QueryVoteRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.voter !== "") {
@@ -478,7 +472,7 @@ export const QueryVoteRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.voter = reader.string();
@@ -493,17 +487,14 @@ export const QueryVoteRequest = {
 
   fromJSON(object: any): QueryVoteRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       voter: isSet(object.voter) ? String(object.voter) : "",
     };
   },
 
   toJSON(message: QueryVoteRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.voter !== undefined && (obj.voter = message.voter);
     return obj;
   },
@@ -512,10 +503,7 @@ export const QueryVoteRequest = {
     object: I,
   ): QueryVoteRequest {
     const message = createBaseQueryVoteRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.voter = object.voter ?? "";
     return message;
   },
@@ -580,7 +568,7 @@ export const QueryVoteResponse = {
 };
 
 function createBaseQueryVotesRequest(): QueryVotesRequest {
-  return { proposalId: Long.UZERO, pagination: undefined };
+  return { proposalId: "0", pagination: undefined };
 }
 
 export const QueryVotesRequest = {
@@ -588,7 +576,7 @@ export const QueryVotesRequest = {
     message: QueryVotesRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.pagination !== undefined) {
@@ -605,7 +593,7 @@ export const QueryVotesRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.pagination = PageRequest.decode(reader, reader.uint32());
@@ -620,9 +608,7 @@ export const QueryVotesRequest = {
 
   fromJSON(object: any): QueryVotesRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
@@ -631,8 +617,7 @@ export const QueryVotesRequest = {
 
   toJSON(message: QueryVotesRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
@@ -644,10 +629,7 @@ export const QueryVotesRequest = {
     object: I,
   ): QueryVotesRequest {
     const message = createBaseQueryVotesRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
@@ -900,7 +882,7 @@ export const QueryParamsResponse = {
 };
 
 function createBaseQueryDepositRequest(): QueryDepositRequest {
-  return { proposalId: Long.UZERO, depositor: "" };
+  return { proposalId: "0", depositor: "" };
 }
 
 export const QueryDepositRequest = {
@@ -908,7 +890,7 @@ export const QueryDepositRequest = {
     message: QueryDepositRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.depositor !== "") {
@@ -925,7 +907,7 @@ export const QueryDepositRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.depositor = reader.string();
@@ -940,17 +922,14 @@ export const QueryDepositRequest = {
 
   fromJSON(object: any): QueryDepositRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       depositor: isSet(object.depositor) ? String(object.depositor) : "",
     };
   },
 
   toJSON(message: QueryDepositRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.depositor !== undefined && (obj.depositor = message.depositor);
     return obj;
   },
@@ -959,10 +938,7 @@ export const QueryDepositRequest = {
     object: I,
   ): QueryDepositRequest {
     const message = createBaseQueryDepositRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.depositor = object.depositor ?? "";
     return message;
   },
@@ -1034,7 +1010,7 @@ export const QueryDepositResponse = {
 };
 
 function createBaseQueryDepositsRequest(): QueryDepositsRequest {
-  return { proposalId: Long.UZERO, pagination: undefined };
+  return { proposalId: "0", pagination: undefined };
 }
 
 export const QueryDepositsRequest = {
@@ -1042,7 +1018,7 @@ export const QueryDepositsRequest = {
     message: QueryDepositsRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.pagination !== undefined) {
@@ -1062,7 +1038,7 @@ export const QueryDepositsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.pagination = PageRequest.decode(reader, reader.uint32());
@@ -1077,9 +1053,7 @@ export const QueryDepositsRequest = {
 
   fromJSON(object: any): QueryDepositsRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
@@ -1088,8 +1062,7 @@ export const QueryDepositsRequest = {
 
   toJSON(message: QueryDepositsRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
@@ -1101,10 +1074,7 @@ export const QueryDepositsRequest = {
     object: I,
   ): QueryDepositsRequest {
     const message = createBaseQueryDepositsRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
@@ -1200,7 +1170,7 @@ export const QueryDepositsResponse = {
 };
 
 function createBaseQueryTallyResultRequest(): QueryTallyResultRequest {
-  return { proposalId: Long.UZERO };
+  return { proposalId: "0" };
 }
 
 export const QueryTallyResultRequest = {
@@ -1208,7 +1178,7 @@ export const QueryTallyResultRequest = {
     message: QueryTallyResultRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     return writer;
@@ -1225,7 +1195,7 @@ export const QueryTallyResultRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -1237,16 +1207,13 @@ export const QueryTallyResultRequest = {
 
   fromJSON(object: any): QueryTallyResultRequest {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
     };
   },
 
   toJSON(message: QueryTallyResultRequest): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     return obj;
   },
 
@@ -1254,10 +1221,7 @@ export const QueryTallyResultRequest = {
     object: I,
   ): QueryTallyResultRequest {
     const message = createBaseQueryTallyResultRequest();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     return message;
   },
 };
@@ -1472,8 +1436,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1489,6 +1451,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

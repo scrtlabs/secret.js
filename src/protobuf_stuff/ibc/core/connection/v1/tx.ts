@@ -18,7 +18,7 @@ export interface MsgConnectionOpenInit {
   clientId: string;
   counterparty?: Counterparty;
   version?: Version;
-  delayPeriod: Long;
+  delayPeriod: string;
   signer: string;
 }
 
@@ -41,7 +41,7 @@ export interface MsgConnectionOpenTry {
   previousConnectionId: string;
   clientState?: Any;
   counterparty?: Counterparty;
-  delayPeriod: Long;
+  delayPeriod: string;
   counterpartyVersions: Version[];
   proofHeight?: Height;
   /**
@@ -109,7 +109,7 @@ function createBaseMsgConnectionOpenInit(): MsgConnectionOpenInit {
     clientId: "",
     counterparty: undefined,
     version: undefined,
-    delayPeriod: Long.UZERO,
+    delayPeriod: "0",
     signer: "",
   };
 }
@@ -131,7 +131,7 @@ export const MsgConnectionOpenInit = {
     if (message.version !== undefined) {
       Version.encode(message.version, writer.uint32(26).fork()).ldelim();
     }
-    if (!message.delayPeriod.isZero()) {
+    if (message.delayPeriod !== "0") {
       writer.uint32(32).uint64(message.delayPeriod);
     }
     if (message.signer !== "") {
@@ -160,7 +160,7 @@ export const MsgConnectionOpenInit = {
           message.version = Version.decode(reader, reader.uint32());
           break;
         case 4:
-          message.delayPeriod = reader.uint64() as Long;
+          message.delayPeriod = longToString(reader.uint64() as Long);
           break;
         case 5:
           message.signer = reader.string();
@@ -182,9 +182,7 @@ export const MsgConnectionOpenInit = {
       version: isSet(object.version)
         ? Version.fromJSON(object.version)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod)
-        ? Long.fromString(object.delayPeriod)
-        : Long.UZERO,
+      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
       signer: isSet(object.signer) ? String(object.signer) : "",
     };
   },
@@ -201,7 +199,7 @@ export const MsgConnectionOpenInit = {
         ? Version.toJSON(message.version)
         : undefined);
     message.delayPeriod !== undefined &&
-      (obj.delayPeriod = (message.delayPeriod || Long.UZERO).toString());
+      (obj.delayPeriod = message.delayPeriod);
     message.signer !== undefined && (obj.signer = message.signer);
     return obj;
   },
@@ -219,10 +217,7 @@ export const MsgConnectionOpenInit = {
       object.version !== undefined && object.version !== null
         ? Version.fromPartial(object.version)
         : undefined;
-    message.delayPeriod =
-      object.delayPeriod !== undefined && object.delayPeriod !== null
-        ? Long.fromValue(object.delayPeriod)
-        : Long.UZERO;
+    message.delayPeriod = object.delayPeriod ?? "0";
     message.signer = object.signer ?? "";
     return message;
   },
@@ -281,7 +276,7 @@ function createBaseMsgConnectionOpenTry(): MsgConnectionOpenTry {
     previousConnectionId: "",
     clientState: undefined,
     counterparty: undefined,
-    delayPeriod: Long.UZERO,
+    delayPeriod: "0",
     counterpartyVersions: [],
     proofHeight: undefined,
     proofInit: new Uint8Array(),
@@ -312,7 +307,7 @@ export const MsgConnectionOpenTry = {
         writer.uint32(34).fork(),
       ).ldelim();
     }
-    if (!message.delayPeriod.isZero()) {
+    if (message.delayPeriod !== "0") {
       writer.uint32(40).uint64(message.delayPeriod);
     }
     for (const v of message.counterpartyVersions) {
@@ -362,7 +357,7 @@ export const MsgConnectionOpenTry = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 5:
-          message.delayPeriod = reader.uint64() as Long;
+          message.delayPeriod = longToString(reader.uint64() as Long);
           break;
         case 6:
           message.counterpartyVersions.push(
@@ -407,9 +402,7 @@ export const MsgConnectionOpenTry = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod)
-        ? Long.fromString(object.delayPeriod)
-        : Long.UZERO,
+      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
       counterpartyVersions: Array.isArray(object?.counterpartyVersions)
         ? object.counterpartyVersions.map((e: any) => Version.fromJSON(e))
         : [],
@@ -446,7 +439,7 @@ export const MsgConnectionOpenTry = {
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
     message.delayPeriod !== undefined &&
-      (obj.delayPeriod = (message.delayPeriod || Long.UZERO).toString());
+      (obj.delayPeriod = message.delayPeriod);
     if (message.counterpartyVersions) {
       obj.counterpartyVersions = message.counterpartyVersions.map((e) =>
         e ? Version.toJSON(e) : undefined,
@@ -496,10 +489,7 @@ export const MsgConnectionOpenTry = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.delayPeriod =
-      object.delayPeriod !== undefined && object.delayPeriod !== null
-        ? Long.fromValue(object.delayPeriod)
-        : Long.UZERO;
+    message.delayPeriod = object.delayPeriod ?? "0";
     message.counterpartyVersions =
       object.counterpartyVersions?.map((e) => Version.fromPartial(e)) || [];
     message.proofHeight =
@@ -1112,8 +1102,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1129,6 +1117,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

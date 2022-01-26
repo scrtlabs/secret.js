@@ -12,7 +12,7 @@ export const protobufPackage = "cosmos.base.abci.v1beta1";
  */
 export interface TxResponse {
   /** The block height */
-  height: Long;
+  height: string;
   /** The transaction hash. */
   txhash: string;
   /** Namespace for the Code */
@@ -31,9 +31,9 @@ export interface TxResponse {
   /** Additional information. May be non-deterministic. */
   info: string;
   /** Amount of gas requested for transaction. */
-  gasWanted: Long;
+  gasWanted: string;
   /** Amount of gas consumed by transaction. */
-  gasUsed: Long;
+  gasUsed: string;
   /** The request transaction bytes. */
   tx?: Any;
   /**
@@ -76,9 +76,9 @@ export interface Attribute {
 /** GasInfo defines tx execution gas context. */
 export interface GasInfo {
   /** GasWanted is the maximum units of work we allow this tx to perform. */
-  gasWanted: Long;
+  gasWanted: string;
   /** GasUsed is the amount of gas actually consumed. */
-  gasUsed: Long;
+  gasUsed: string;
 }
 
 /** Result is the union of ResponseFormat and ResponseCheckTx. */
@@ -126,22 +126,22 @@ export interface TxMsgData {
 /** SearchTxsResult defines a structure for querying txs pageable */
 export interface SearchTxsResult {
   /** Count of all txs */
-  totalCount: Long;
+  totalCount: string;
   /** Count of txs in current page */
-  count: Long;
+  count: string;
   /** Index of current page, start from 1 */
-  pageNumber: Long;
+  pageNumber: string;
   /** Count of total pages */
-  pageTotal: Long;
+  pageTotal: string;
   /** Max count txs per page */
-  limit: Long;
+  limit: string;
   /** List of txs in current page */
   txs: TxResponse[];
 }
 
 function createBaseTxResponse(): TxResponse {
   return {
-    height: Long.ZERO,
+    height: "0",
     txhash: "",
     codespace: "",
     code: 0,
@@ -149,8 +149,8 @@ function createBaseTxResponse(): TxResponse {
     rawLog: "",
     logs: [],
     info: "",
-    gasWanted: Long.ZERO,
-    gasUsed: Long.ZERO,
+    gasWanted: "0",
+    gasUsed: "0",
     tx: undefined,
     timestamp: "",
   };
@@ -161,7 +161,7 @@ export const TxResponse = {
     message: TxResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
     if (message.txhash !== "") {
@@ -185,10 +185,10 @@ export const TxResponse = {
     if (message.info !== "") {
       writer.uint32(66).string(message.info);
     }
-    if (!message.gasWanted.isZero()) {
+    if (message.gasWanted !== "0") {
       writer.uint32(72).int64(message.gasWanted);
     }
-    if (!message.gasUsed.isZero()) {
+    if (message.gasUsed !== "0") {
       writer.uint32(80).int64(message.gasUsed);
     }
     if (message.tx !== undefined) {
@@ -208,7 +208,7 @@ export const TxResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 2:
           message.txhash = reader.string();
@@ -232,10 +232,10 @@ export const TxResponse = {
           message.info = reader.string();
           break;
         case 9:
-          message.gasWanted = reader.int64() as Long;
+          message.gasWanted = longToString(reader.int64() as Long);
           break;
         case 10:
-          message.gasUsed = reader.int64() as Long;
+          message.gasUsed = longToString(reader.int64() as Long);
           break;
         case 11:
           message.tx = Any.decode(reader, reader.uint32());
@@ -253,7 +253,7 @@ export const TxResponse = {
 
   fromJSON(object: any): TxResponse {
     return {
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       txhash: isSet(object.txhash) ? String(object.txhash) : "",
       codespace: isSet(object.codespace) ? String(object.codespace) : "",
       code: isSet(object.code) ? Number(object.code) : 0,
@@ -263,12 +263,8 @@ export const TxResponse = {
         ? object.logs.map((e: any) => ABCIMessageLog.fromJSON(e))
         : [],
       info: isSet(object.info) ? String(object.info) : "",
-      gasWanted: isSet(object.gasWanted)
-        ? Long.fromString(object.gasWanted)
-        : Long.ZERO,
-      gasUsed: isSet(object.gasUsed)
-        ? Long.fromString(object.gasUsed)
-        : Long.ZERO,
+      gasWanted: isSet(object.gasWanted) ? String(object.gasWanted) : "0",
+      gasUsed: isSet(object.gasUsed) ? String(object.gasUsed) : "0",
       tx: isSet(object.tx) ? Any.fromJSON(object.tx) : undefined,
       timestamp: isSet(object.timestamp) ? String(object.timestamp) : "",
     };
@@ -276,8 +272,7 @@ export const TxResponse = {
 
   toJSON(message: TxResponse): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.txhash !== undefined && (obj.txhash = message.txhash);
     message.codespace !== undefined && (obj.codespace = message.codespace);
     message.code !== undefined && (obj.code = Math.round(message.code));
@@ -291,10 +286,8 @@ export const TxResponse = {
       obj.logs = [];
     }
     message.info !== undefined && (obj.info = message.info);
-    message.gasWanted !== undefined &&
-      (obj.gasWanted = (message.gasWanted || Long.ZERO).toString());
-    message.gasUsed !== undefined &&
-      (obj.gasUsed = (message.gasUsed || Long.ZERO).toString());
+    message.gasWanted !== undefined && (obj.gasWanted = message.gasWanted);
+    message.gasUsed !== undefined && (obj.gasUsed = message.gasUsed);
     message.tx !== undefined &&
       (obj.tx = message.tx ? Any.toJSON(message.tx) : undefined);
     message.timestamp !== undefined && (obj.timestamp = message.timestamp);
@@ -305,10 +298,7 @@ export const TxResponse = {
     object: I,
   ): TxResponse {
     const message = createBaseTxResponse();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.txhash = object.txhash ?? "";
     message.codespace = object.codespace ?? "";
     message.code = object.code ?? 0;
@@ -316,14 +306,8 @@ export const TxResponse = {
     message.rawLog = object.rawLog ?? "";
     message.logs = object.logs?.map((e) => ABCIMessageLog.fromPartial(e)) || [];
     message.info = object.info ?? "";
-    message.gasWanted =
-      object.gasWanted !== undefined && object.gasWanted !== null
-        ? Long.fromValue(object.gasWanted)
-        : Long.ZERO;
-    message.gasUsed =
-      object.gasUsed !== undefined && object.gasUsed !== null
-        ? Long.fromValue(object.gasUsed)
-        : Long.ZERO;
+    message.gasWanted = object.gasWanted ?? "0";
+    message.gasUsed = object.gasUsed ?? "0";
     message.tx =
       object.tx !== undefined && object.tx !== null
         ? Any.fromPartial(object.tx)
@@ -551,7 +535,7 @@ export const Attribute = {
 };
 
 function createBaseGasInfo(): GasInfo {
-  return { gasWanted: Long.UZERO, gasUsed: Long.UZERO };
+  return { gasWanted: "0", gasUsed: "0" };
 }
 
 export const GasInfo = {
@@ -559,10 +543,10 @@ export const GasInfo = {
     message: GasInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.gasWanted.isZero()) {
+    if (message.gasWanted !== "0") {
       writer.uint32(8).uint64(message.gasWanted);
     }
-    if (!message.gasUsed.isZero()) {
+    if (message.gasUsed !== "0") {
       writer.uint32(16).uint64(message.gasUsed);
     }
     return writer;
@@ -576,10 +560,10 @@ export const GasInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.gasWanted = reader.uint64() as Long;
+          message.gasWanted = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.gasUsed = reader.uint64() as Long;
+          message.gasUsed = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -591,34 +575,22 @@ export const GasInfo = {
 
   fromJSON(object: any): GasInfo {
     return {
-      gasWanted: isSet(object.gasWanted)
-        ? Long.fromString(object.gasWanted)
-        : Long.UZERO,
-      gasUsed: isSet(object.gasUsed)
-        ? Long.fromString(object.gasUsed)
-        : Long.UZERO,
+      gasWanted: isSet(object.gasWanted) ? String(object.gasWanted) : "0",
+      gasUsed: isSet(object.gasUsed) ? String(object.gasUsed) : "0",
     };
   },
 
   toJSON(message: GasInfo): unknown {
     const obj: any = {};
-    message.gasWanted !== undefined &&
-      (obj.gasWanted = (message.gasWanted || Long.UZERO).toString());
-    message.gasUsed !== undefined &&
-      (obj.gasUsed = (message.gasUsed || Long.UZERO).toString());
+    message.gasWanted !== undefined && (obj.gasWanted = message.gasWanted);
+    message.gasUsed !== undefined && (obj.gasUsed = message.gasUsed);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<GasInfo>, I>>(object: I): GasInfo {
     const message = createBaseGasInfo();
-    message.gasWanted =
-      object.gasWanted !== undefined && object.gasWanted !== null
-        ? Long.fromValue(object.gasWanted)
-        : Long.UZERO;
-    message.gasUsed =
-      object.gasUsed !== undefined && object.gasUsed !== null
-        ? Long.fromValue(object.gasUsed)
-        : Long.UZERO;
+    message.gasWanted = object.gasWanted ?? "0";
+    message.gasUsed = object.gasUsed ?? "0";
     return message;
   },
 };
@@ -907,11 +879,11 @@ export const TxMsgData = {
 
 function createBaseSearchTxsResult(): SearchTxsResult {
   return {
-    totalCount: Long.UZERO,
-    count: Long.UZERO,
-    pageNumber: Long.UZERO,
-    pageTotal: Long.UZERO,
-    limit: Long.UZERO,
+    totalCount: "0",
+    count: "0",
+    pageNumber: "0",
+    pageTotal: "0",
+    limit: "0",
     txs: [],
   };
 }
@@ -921,19 +893,19 @@ export const SearchTxsResult = {
     message: SearchTxsResult,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.totalCount.isZero()) {
+    if (message.totalCount !== "0") {
       writer.uint32(8).uint64(message.totalCount);
     }
-    if (!message.count.isZero()) {
+    if (message.count !== "0") {
       writer.uint32(16).uint64(message.count);
     }
-    if (!message.pageNumber.isZero()) {
+    if (message.pageNumber !== "0") {
       writer.uint32(24).uint64(message.pageNumber);
     }
-    if (!message.pageTotal.isZero()) {
+    if (message.pageTotal !== "0") {
       writer.uint32(32).uint64(message.pageTotal);
     }
-    if (!message.limit.isZero()) {
+    if (message.limit !== "0") {
       writer.uint32(40).uint64(message.limit);
     }
     for (const v of message.txs) {
@@ -950,19 +922,19 @@ export const SearchTxsResult = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.totalCount = reader.uint64() as Long;
+          message.totalCount = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.count = reader.uint64() as Long;
+          message.count = longToString(reader.uint64() as Long);
           break;
         case 3:
-          message.pageNumber = reader.uint64() as Long;
+          message.pageNumber = longToString(reader.uint64() as Long);
           break;
         case 4:
-          message.pageTotal = reader.uint64() as Long;
+          message.pageTotal = longToString(reader.uint64() as Long);
           break;
         case 5:
-          message.limit = reader.uint64() as Long;
+          message.limit = longToString(reader.uint64() as Long);
           break;
         case 6:
           message.txs.push(TxResponse.decode(reader, reader.uint32()));
@@ -977,17 +949,11 @@ export const SearchTxsResult = {
 
   fromJSON(object: any): SearchTxsResult {
     return {
-      totalCount: isSet(object.totalCount)
-        ? Long.fromString(object.totalCount)
-        : Long.UZERO,
-      count: isSet(object.count) ? Long.fromString(object.count) : Long.UZERO,
-      pageNumber: isSet(object.pageNumber)
-        ? Long.fromString(object.pageNumber)
-        : Long.UZERO,
-      pageTotal: isSet(object.pageTotal)
-        ? Long.fromString(object.pageTotal)
-        : Long.UZERO,
-      limit: isSet(object.limit) ? Long.fromString(object.limit) : Long.UZERO,
+      totalCount: isSet(object.totalCount) ? String(object.totalCount) : "0",
+      count: isSet(object.count) ? String(object.count) : "0",
+      pageNumber: isSet(object.pageNumber) ? String(object.pageNumber) : "0",
+      pageTotal: isSet(object.pageTotal) ? String(object.pageTotal) : "0",
+      limit: isSet(object.limit) ? String(object.limit) : "0",
       txs: Array.isArray(object?.txs)
         ? object.txs.map((e: any) => TxResponse.fromJSON(e))
         : [],
@@ -996,16 +962,11 @@ export const SearchTxsResult = {
 
   toJSON(message: SearchTxsResult): unknown {
     const obj: any = {};
-    message.totalCount !== undefined &&
-      (obj.totalCount = (message.totalCount || Long.UZERO).toString());
-    message.count !== undefined &&
-      (obj.count = (message.count || Long.UZERO).toString());
-    message.pageNumber !== undefined &&
-      (obj.pageNumber = (message.pageNumber || Long.UZERO).toString());
-    message.pageTotal !== undefined &&
-      (obj.pageTotal = (message.pageTotal || Long.UZERO).toString());
-    message.limit !== undefined &&
-      (obj.limit = (message.limit || Long.UZERO).toString());
+    message.totalCount !== undefined && (obj.totalCount = message.totalCount);
+    message.count !== undefined && (obj.count = message.count);
+    message.pageNumber !== undefined && (obj.pageNumber = message.pageNumber);
+    message.pageTotal !== undefined && (obj.pageTotal = message.pageTotal);
+    message.limit !== undefined && (obj.limit = message.limit);
     if (message.txs) {
       obj.txs = message.txs.map((e) => (e ? TxResponse.toJSON(e) : undefined));
     } else {
@@ -1018,26 +979,11 @@ export const SearchTxsResult = {
     object: I,
   ): SearchTxsResult {
     const message = createBaseSearchTxsResult();
-    message.totalCount =
-      object.totalCount !== undefined && object.totalCount !== null
-        ? Long.fromValue(object.totalCount)
-        : Long.UZERO;
-    message.count =
-      object.count !== undefined && object.count !== null
-        ? Long.fromValue(object.count)
-        : Long.UZERO;
-    message.pageNumber =
-      object.pageNumber !== undefined && object.pageNumber !== null
-        ? Long.fromValue(object.pageNumber)
-        : Long.UZERO;
-    message.pageTotal =
-      object.pageTotal !== undefined && object.pageTotal !== null
-        ? Long.fromValue(object.pageTotal)
-        : Long.UZERO;
-    message.limit =
-      object.limit !== undefined && object.limit !== null
-        ? Long.fromValue(object.limit)
-        : Long.UZERO;
+    message.totalCount = object.totalCount ?? "0";
+    message.count = object.count ?? "0";
+    message.pageNumber = object.pageNumber ?? "0";
+    message.pageTotal = object.pageTotal ?? "0";
+    message.limit = object.limit ?? "0";
     message.txs = object.txs?.map((e) => TxResponse.fromPartial(e)) || [];
     return message;
   },
@@ -1088,8 +1034,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1105,6 +1049,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

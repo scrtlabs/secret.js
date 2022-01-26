@@ -19,7 +19,7 @@ export interface SnapshotStoreItem {
 export interface SnapshotIAVLItem {
   key: Uint8Array;
   value: Uint8Array;
-  version: Long;
+  version: string;
   height: number;
 }
 
@@ -163,7 +163,7 @@ function createBaseSnapshotIAVLItem(): SnapshotIAVLItem {
   return {
     key: new Uint8Array(),
     value: new Uint8Array(),
-    version: Long.ZERO,
+    version: "0",
     height: 0,
   };
 }
@@ -179,7 +179,7 @@ export const SnapshotIAVLItem = {
     if (message.value.length !== 0) {
       writer.uint32(18).bytes(message.value);
     }
-    if (!message.version.isZero()) {
+    if (message.version !== "0") {
       writer.uint32(24).int64(message.version);
     }
     if (message.height !== 0) {
@@ -202,7 +202,7 @@ export const SnapshotIAVLItem = {
           message.value = reader.bytes();
           break;
         case 3:
-          message.version = reader.int64() as Long;
+          message.version = longToString(reader.int64() as Long);
           break;
         case 4:
           message.height = reader.int32();
@@ -221,9 +221,7 @@ export const SnapshotIAVLItem = {
       value: isSet(object.value)
         ? bytesFromBase64(object.value)
         : new Uint8Array(),
-      version: isSet(object.version)
-        ? Long.fromString(object.version)
-        : Long.ZERO,
+      version: isSet(object.version) ? String(object.version) : "0",
       height: isSet(object.height) ? Number(object.height) : 0,
     };
   },
@@ -238,8 +236,7 @@ export const SnapshotIAVLItem = {
       (obj.value = base64FromBytes(
         message.value !== undefined ? message.value : new Uint8Array(),
       ));
-    message.version !== undefined &&
-      (obj.version = (message.version || Long.ZERO).toString());
+    message.version !== undefined && (obj.version = message.version);
     message.height !== undefined && (obj.height = Math.round(message.height));
     return obj;
   },
@@ -250,10 +247,7 @@ export const SnapshotIAVLItem = {
     const message = createBaseSnapshotIAVLItem();
     message.key = object.key ?? new Uint8Array();
     message.value = object.value ?? new Uint8Array();
-    message.version =
-      object.version !== undefined && object.version !== null
-        ? Long.fromValue(object.version)
-        : Long.ZERO;
+    message.version = object.version ?? "0";
     message.height = object.height ?? 0;
     return message;
   },
@@ -304,8 +298,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -321,6 +313,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

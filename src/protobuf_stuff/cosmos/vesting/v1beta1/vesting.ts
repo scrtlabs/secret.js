@@ -15,7 +15,7 @@ export interface BaseVestingAccount {
   originalVesting: Coin[];
   delegatedFree: Coin[];
   delegatedVesting: Coin[];
-  endTime: Long;
+  endTime: string;
 }
 
 function createBaseBaseVestingAccount(): BaseVestingAccount {
@@ -24,7 +24,7 @@ function createBaseBaseVestingAccount(): BaseVestingAccount {
     originalVesting: [],
     delegatedFree: [],
     delegatedVesting: [],
-    endTime: Long.ZERO,
+    endTime: "0",
   };
 }
 
@@ -48,7 +48,7 @@ export const BaseVestingAccount = {
     for (const v of message.delegatedVesting) {
       Coin.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    if (!message.endTime.isZero()) {
+    if (message.endTime !== "0") {
       writer.uint32(40).int64(message.endTime);
     }
     return writer;
@@ -74,7 +74,7 @@ export const BaseVestingAccount = {
           message.delegatedVesting.push(Coin.decode(reader, reader.uint32()));
           break;
         case 5:
-          message.endTime = reader.int64() as Long;
+          message.endTime = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -98,9 +98,7 @@ export const BaseVestingAccount = {
       delegatedVesting: Array.isArray(object?.delegatedVesting)
         ? object.delegatedVesting.map((e: any) => Coin.fromJSON(e))
         : [],
-      endTime: isSet(object.endTime)
-        ? Long.fromString(object.endTime)
-        : Long.ZERO,
+      endTime: isSet(object.endTime) ? String(object.endTime) : "0",
     };
   },
 
@@ -131,8 +129,7 @@ export const BaseVestingAccount = {
     } else {
       obj.delegatedVesting = [];
     }
-    message.endTime !== undefined &&
-      (obj.endTime = (message.endTime || Long.ZERO).toString());
+    message.endTime !== undefined && (obj.endTime = message.endTime);
     return obj;
   },
 
@@ -150,10 +147,7 @@ export const BaseVestingAccount = {
       object.delegatedFree?.map((e) => Coin.fromPartial(e)) || [];
     message.delegatedVesting =
       object.delegatedVesting?.map((e) => Coin.fromPartial(e)) || [];
-    message.endTime =
-      object.endTime !== undefined && object.endTime !== null
-        ? Long.fromValue(object.endTime)
-        : Long.ZERO;
+    message.endTime = object.endTime ?? "0";
     return message;
   },
 };
@@ -169,8 +163,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -186,6 +178,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

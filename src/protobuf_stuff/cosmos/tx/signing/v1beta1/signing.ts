@@ -89,7 +89,7 @@ export interface SignatureDescriptor {
    * number of committed transactions signed by a given address. It is used to prevent
    * replay attacks.
    */
-  sequence: Long;
+  sequence: string;
 }
 
 /** Data represents signature data */
@@ -185,7 +185,7 @@ export const SignatureDescriptors = {
 };
 
 function createBaseSignatureDescriptor(): SignatureDescriptor {
-  return { publicKey: undefined, data: undefined, sequence: Long.UZERO };
+  return { publicKey: undefined, data: undefined, sequence: "0" };
 }
 
 export const SignatureDescriptor = {
@@ -202,7 +202,7 @@ export const SignatureDescriptor = {
         writer.uint32(18).fork(),
       ).ldelim();
     }
-    if (!message.sequence.isZero()) {
+    if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
     }
     return writer;
@@ -225,7 +225,7 @@ export const SignatureDescriptor = {
           );
           break;
         case 3:
-          message.sequence = reader.uint64() as Long;
+          message.sequence = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -243,9 +243,7 @@ export const SignatureDescriptor = {
       data: isSet(object.data)
         ? SignatureDescriptor_Data.fromJSON(object.data)
         : undefined,
-      sequence: isSet(object.sequence)
-        ? Long.fromString(object.sequence)
-        : Long.UZERO,
+      sequence: isSet(object.sequence) ? String(object.sequence) : "0",
     };
   },
 
@@ -259,8 +257,7 @@ export const SignatureDescriptor = {
       (obj.data = message.data
         ? SignatureDescriptor_Data.toJSON(message.data)
         : undefined);
-    message.sequence !== undefined &&
-      (obj.sequence = (message.sequence || Long.UZERO).toString());
+    message.sequence !== undefined && (obj.sequence = message.sequence);
     return obj;
   },
 
@@ -276,10 +273,7 @@ export const SignatureDescriptor = {
       object.data !== undefined && object.data !== null
         ? SignatureDescriptor_Data.fromPartial(object.data)
         : undefined;
-    message.sequence =
-      object.sequence !== undefined && object.sequence !== null
-        ? Long.fromValue(object.sequence)
-        : Long.UZERO;
+    message.sequence = object.sequence ?? "0";
     return message;
   },
 };
@@ -585,8 +579,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -602,6 +594,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

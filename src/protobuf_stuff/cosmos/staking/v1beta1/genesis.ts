@@ -41,7 +41,7 @@ export interface LastValidatorPower {
   /** address is the address of the validator. */
   address: string;
   /** power defines the power of the validator. */
-  power: Long;
+  power: string;
 }
 
 function createBaseGenesisState(): GenesisState {
@@ -241,7 +241,7 @@ export const GenesisState = {
 };
 
 function createBaseLastValidatorPower(): LastValidatorPower {
-  return { address: "", power: Long.ZERO };
+  return { address: "", power: "0" };
 }
 
 export const LastValidatorPower = {
@@ -252,7 +252,7 @@ export const LastValidatorPower = {
     if (message.address !== "") {
       writer.uint32(10).string(message.address);
     }
-    if (!message.power.isZero()) {
+    if (message.power !== "0") {
       writer.uint32(16).int64(message.power);
     }
     return writer;
@@ -269,7 +269,7 @@ export const LastValidatorPower = {
           message.address = reader.string();
           break;
         case 2:
-          message.power = reader.int64() as Long;
+          message.power = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -282,15 +282,14 @@ export const LastValidatorPower = {
   fromJSON(object: any): LastValidatorPower {
     return {
       address: isSet(object.address) ? String(object.address) : "",
-      power: isSet(object.power) ? Long.fromString(object.power) : Long.ZERO,
+      power: isSet(object.power) ? String(object.power) : "0",
     };
   },
 
   toJSON(message: LastValidatorPower): unknown {
     const obj: any = {};
     message.address !== undefined && (obj.address = message.address);
-    message.power !== undefined &&
-      (obj.power = (message.power || Long.ZERO).toString());
+    message.power !== undefined && (obj.power = message.power);
     return obj;
   },
 
@@ -299,10 +298,7 @@ export const LastValidatorPower = {
   ): LastValidatorPower {
     const message = createBaseLastValidatorPower();
     message.address = object.address ?? "";
-    message.power =
-      object.power !== undefined && object.power !== null
-        ? Long.fromValue(object.power)
-        : Long.ZERO;
+    message.power = object.power ?? "0";
     return message;
   },
 };
@@ -352,8 +348,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -369,6 +363,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

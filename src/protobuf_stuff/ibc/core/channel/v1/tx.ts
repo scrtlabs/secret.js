@@ -122,7 +122,7 @@ export interface MsgTimeout {
   packet?: Packet;
   proofUnreceived: Uint8Array;
   proofHeight?: Height;
-  nextSequenceRecv: Long;
+  nextSequenceRecv: string;
   signer: string;
 }
 
@@ -135,7 +135,7 @@ export interface MsgTimeoutOnClose {
   proofUnreceived: Uint8Array;
   proofClose: Uint8Array;
   proofHeight?: Height;
-  nextSequenceRecv: Long;
+  nextSequenceRecv: string;
   signer: string;
 }
 
@@ -1247,7 +1247,7 @@ function createBaseMsgTimeout(): MsgTimeout {
     packet: undefined,
     proofUnreceived: new Uint8Array(),
     proofHeight: undefined,
-    nextSequenceRecv: Long.UZERO,
+    nextSequenceRecv: "0",
     signer: "",
   };
 }
@@ -1266,7 +1266,7 @@ export const MsgTimeout = {
     if (message.proofHeight !== undefined) {
       Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
     }
-    if (!message.nextSequenceRecv.isZero()) {
+    if (message.nextSequenceRecv !== "0") {
       writer.uint32(32).uint64(message.nextSequenceRecv);
     }
     if (message.signer !== "") {
@@ -1292,7 +1292,7 @@ export const MsgTimeout = {
           message.proofHeight = Height.decode(reader, reader.uint32());
           break;
         case 4:
-          message.nextSequenceRecv = reader.uint64() as Long;
+          message.nextSequenceRecv = longToString(reader.uint64() as Long);
           break;
         case 5:
           message.signer = reader.string();
@@ -1315,8 +1315,8 @@ export const MsgTimeout = {
         ? Height.fromJSON(object.proofHeight)
         : undefined,
       nextSequenceRecv: isSet(object.nextSequenceRecv)
-        ? Long.fromString(object.nextSequenceRecv)
-        : Long.UZERO,
+        ? String(object.nextSequenceRecv)
+        : "0",
       signer: isSet(object.signer) ? String(object.signer) : "",
     };
   },
@@ -1336,9 +1336,7 @@ export const MsgTimeout = {
         ? Height.toJSON(message.proofHeight)
         : undefined);
     message.nextSequenceRecv !== undefined &&
-      (obj.nextSequenceRecv = (
-        message.nextSequenceRecv || Long.UZERO
-      ).toString());
+      (obj.nextSequenceRecv = message.nextSequenceRecv);
     message.signer !== undefined && (obj.signer = message.signer);
     return obj;
   },
@@ -1356,10 +1354,7 @@ export const MsgTimeout = {
       object.proofHeight !== undefined && object.proofHeight !== null
         ? Height.fromPartial(object.proofHeight)
         : undefined;
-    message.nextSequenceRecv =
-      object.nextSequenceRecv !== undefined && object.nextSequenceRecv !== null
-        ? Long.fromValue(object.nextSequenceRecv)
-        : Long.UZERO;
+    message.nextSequenceRecv = object.nextSequenceRecv ?? "0";
     message.signer = object.signer ?? "";
     return message;
   },
@@ -1415,7 +1410,7 @@ function createBaseMsgTimeoutOnClose(): MsgTimeoutOnClose {
     proofUnreceived: new Uint8Array(),
     proofClose: new Uint8Array(),
     proofHeight: undefined,
-    nextSequenceRecv: Long.UZERO,
+    nextSequenceRecv: "0",
     signer: "",
   };
 }
@@ -1437,7 +1432,7 @@ export const MsgTimeoutOnClose = {
     if (message.proofHeight !== undefined) {
       Height.encode(message.proofHeight, writer.uint32(34).fork()).ldelim();
     }
-    if (!message.nextSequenceRecv.isZero()) {
+    if (message.nextSequenceRecv !== "0") {
       writer.uint32(40).uint64(message.nextSequenceRecv);
     }
     if (message.signer !== "") {
@@ -1466,7 +1461,7 @@ export const MsgTimeoutOnClose = {
           message.proofHeight = Height.decode(reader, reader.uint32());
           break;
         case 5:
-          message.nextSequenceRecv = reader.uint64() as Long;
+          message.nextSequenceRecv = longToString(reader.uint64() as Long);
           break;
         case 6:
           message.signer = reader.string();
@@ -1492,8 +1487,8 @@ export const MsgTimeoutOnClose = {
         ? Height.fromJSON(object.proofHeight)
         : undefined,
       nextSequenceRecv: isSet(object.nextSequenceRecv)
-        ? Long.fromString(object.nextSequenceRecv)
-        : Long.UZERO,
+        ? String(object.nextSequenceRecv)
+        : "0",
       signer: isSet(object.signer) ? String(object.signer) : "",
     };
   },
@@ -1519,9 +1514,7 @@ export const MsgTimeoutOnClose = {
         ? Height.toJSON(message.proofHeight)
         : undefined);
     message.nextSequenceRecv !== undefined &&
-      (obj.nextSequenceRecv = (
-        message.nextSequenceRecv || Long.UZERO
-      ).toString());
+      (obj.nextSequenceRecv = message.nextSequenceRecv);
     message.signer !== undefined && (obj.signer = message.signer);
     return obj;
   },
@@ -1540,10 +1533,7 @@ export const MsgTimeoutOnClose = {
       object.proofHeight !== undefined && object.proofHeight !== null
         ? Height.fromPartial(object.proofHeight)
         : undefined;
-    message.nextSequenceRecv =
-      object.nextSequenceRecv !== undefined && object.nextSequenceRecv !== null
-        ? Long.fromValue(object.nextSequenceRecv)
-        : Long.UZERO;
+    message.nextSequenceRecv = object.nextSequenceRecv ?? "0";
     message.signer = object.signer ?? "";
     return message;
   },
@@ -2013,8 +2003,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -2030,6 +2018,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

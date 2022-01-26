@@ -22,7 +22,7 @@ export interface MsgInstantiateContract {
    *  bytes admin = 2 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"];
    */
   callbackCodeHash: string;
-  codeId: Long;
+  codeId: string;
   label: string;
   initMsg: Uint8Array;
   initFunds: Coin[];
@@ -140,7 +140,7 @@ function createBaseMsgInstantiateContract(): MsgInstantiateContract {
   return {
     sender: new Uint8Array(),
     callbackCodeHash: "",
-    codeId: Long.UZERO,
+    codeId: "0",
     label: "",
     initMsg: new Uint8Array(),
     initFunds: [],
@@ -159,7 +159,7 @@ export const MsgInstantiateContract = {
     if (message.callbackCodeHash !== "") {
       writer.uint32(18).string(message.callbackCodeHash);
     }
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(24).uint64(message.codeId);
     }
     if (message.label !== "") {
@@ -194,7 +194,7 @@ export const MsgInstantiateContract = {
           message.callbackCodeHash = reader.string();
           break;
         case 3:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         case 4:
           message.label = reader.string();
@@ -224,9 +224,7 @@ export const MsgInstantiateContract = {
       callbackCodeHash: isSet(object.callbackCodeHash)
         ? String(object.callbackCodeHash)
         : "",
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
       label: isSet(object.label) ? String(object.label) : "",
       initMsg: isSet(object.initMsg)
         ? bytesFromBase64(object.initMsg)
@@ -248,8 +246,7 @@ export const MsgInstantiateContract = {
       ));
     message.callbackCodeHash !== undefined &&
       (obj.callbackCodeHash = message.callbackCodeHash);
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     message.label !== undefined && (obj.label = message.label);
     message.initMsg !== undefined &&
       (obj.initMsg = base64FromBytes(
@@ -277,10 +274,7 @@ export const MsgInstantiateContract = {
     const message = createBaseMsgInstantiateContract();
     message.sender = object.sender ?? new Uint8Array();
     message.callbackCodeHash = object.callbackCodeHash ?? "";
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     message.label = object.label ?? "";
     message.initMsg = object.initMsg ?? new Uint8Array();
     message.initFunds = object.initFunds?.map((e) => Coin.fromPartial(e)) || [];
@@ -471,8 +465,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -488,6 +480,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

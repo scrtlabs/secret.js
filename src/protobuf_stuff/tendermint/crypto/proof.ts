@@ -5,8 +5,8 @@ import _m0 from "protobufjs/minimal";
 export const protobufPackage = "tendermint.crypto";
 
 export interface Proof {
-  total: Long;
-  index: Long;
+  total: string;
+  index: string;
   leafHash: Uint8Array;
   aunts: Uint8Array[];
 }
@@ -41,20 +41,15 @@ export interface ProofOps {
 }
 
 function createBaseProof(): Proof {
-  return {
-    total: Long.ZERO,
-    index: Long.ZERO,
-    leafHash: new Uint8Array(),
-    aunts: [],
-  };
+  return { total: "0", index: "0", leafHash: new Uint8Array(), aunts: [] };
 }
 
 export const Proof = {
   encode(message: Proof, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (!message.total.isZero()) {
+    if (message.total !== "0") {
       writer.uint32(8).int64(message.total);
     }
-    if (!message.index.isZero()) {
+    if (message.index !== "0") {
       writer.uint32(16).int64(message.index);
     }
     if (message.leafHash.length !== 0) {
@@ -74,10 +69,10 @@ export const Proof = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.total = reader.int64() as Long;
+          message.total = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.index = reader.int64() as Long;
+          message.index = longToString(reader.int64() as Long);
           break;
         case 3:
           message.leafHash = reader.bytes();
@@ -95,8 +90,8 @@ export const Proof = {
 
   fromJSON(object: any): Proof {
     return {
-      total: isSet(object.total) ? Long.fromString(object.total) : Long.ZERO,
-      index: isSet(object.index) ? Long.fromString(object.index) : Long.ZERO,
+      total: isSet(object.total) ? String(object.total) : "0",
+      index: isSet(object.index) ? String(object.index) : "0",
       leafHash: isSet(object.leafHash)
         ? bytesFromBase64(object.leafHash)
         : new Uint8Array(),
@@ -108,10 +103,8 @@ export const Proof = {
 
   toJSON(message: Proof): unknown {
     const obj: any = {};
-    message.total !== undefined &&
-      (obj.total = (message.total || Long.ZERO).toString());
-    message.index !== undefined &&
-      (obj.index = (message.index || Long.ZERO).toString());
+    message.total !== undefined && (obj.total = message.total);
+    message.index !== undefined && (obj.index = message.index);
     message.leafHash !== undefined &&
       (obj.leafHash = base64FromBytes(
         message.leafHash !== undefined ? message.leafHash : new Uint8Array(),
@@ -128,14 +121,8 @@ export const Proof = {
 
   fromPartial<I extends Exact<DeepPartial<Proof>, I>>(object: I): Proof {
     const message = createBaseProof();
-    message.total =
-      object.total !== undefined && object.total !== null
-        ? Long.fromValue(object.total)
-        : Long.ZERO;
-    message.index =
-      object.index !== undefined && object.index !== null
-        ? Long.fromValue(object.index)
-        : Long.ZERO;
+    message.total = object.total ?? "0";
+    message.index = object.index ?? "0";
     message.leafHash = object.leafHash ?? new Uint8Array();
     message.aunts = object.aunts?.map((e) => e) || [];
     return message;
@@ -461,8 +448,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -478,6 +463,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

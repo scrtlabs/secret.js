@@ -21,7 +21,7 @@ export interface GenesisState {
   /** create localhost on initialization */
   createLocalhost: boolean;
   /** the sequence for the next generated client identifier */
-  nextClientSequence: Long;
+  nextClientSequence: string;
 }
 
 /**
@@ -51,7 +51,7 @@ function createBaseGenesisState(): GenesisState {
     clientsMetadata: [],
     params: undefined,
     createLocalhost: false,
-    nextClientSequence: Long.UZERO,
+    nextClientSequence: "0",
   };
 }
 
@@ -75,7 +75,7 @@ export const GenesisState = {
     if (message.createLocalhost === true) {
       writer.uint32(40).bool(message.createLocalhost);
     }
-    if (!message.nextClientSequence.isZero()) {
+    if (message.nextClientSequence !== "0") {
       writer.uint32(48).uint64(message.nextClientSequence);
     }
     return writer;
@@ -110,7 +110,7 @@ export const GenesisState = {
           message.createLocalhost = reader.bool();
           break;
         case 6:
-          message.nextClientSequence = reader.uint64() as Long;
+          message.nextClientSequence = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -140,8 +140,8 @@ export const GenesisState = {
         ? Boolean(object.createLocalhost)
         : false,
       nextClientSequence: isSet(object.nextClientSequence)
-        ? Long.fromString(object.nextClientSequence)
-        : Long.UZERO,
+        ? String(object.nextClientSequence)
+        : "0",
     };
   },
 
@@ -173,9 +173,7 @@ export const GenesisState = {
     message.createLocalhost !== undefined &&
       (obj.createLocalhost = message.createLocalhost);
     message.nextClientSequence !== undefined &&
-      (obj.nextClientSequence = (
-        message.nextClientSequence || Long.UZERO
-      ).toString());
+      (obj.nextClientSequence = message.nextClientSequence);
     return obj;
   },
 
@@ -198,11 +196,7 @@ export const GenesisState = {
         ? Params.fromPartial(object.params)
         : undefined;
     message.createLocalhost = object.createLocalhost ?? false;
-    message.nextClientSequence =
-      object.nextClientSequence !== undefined &&
-      object.nextClientSequence !== null
-        ? Long.fromValue(object.nextClientSequence)
-        : Long.UZERO;
+    message.nextClientSequence = object.nextClientSequence ?? "0";
     return message;
   },
 };
@@ -400,8 +394,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -417,6 +409,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

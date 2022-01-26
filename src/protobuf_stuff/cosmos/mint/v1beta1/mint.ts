@@ -25,7 +25,7 @@ export interface Params {
   /** goal of percent bonded atoms */
   goalBonded: string;
   /** expected blocks per year */
-  blocksPerYear: Long;
+  blocksPerYear: string;
 }
 
 function createBaseMinter(): Minter {
@@ -99,7 +99,7 @@ function createBaseParams(): Params {
     inflationMax: "",
     inflationMin: "",
     goalBonded: "",
-    blocksPerYear: Long.UZERO,
+    blocksPerYear: "0",
   };
 }
 
@@ -123,7 +123,7 @@ export const Params = {
     if (message.goalBonded !== "") {
       writer.uint32(42).string(message.goalBonded);
     }
-    if (!message.blocksPerYear.isZero()) {
+    if (message.blocksPerYear !== "0") {
       writer.uint32(48).uint64(message.blocksPerYear);
     }
     return writer;
@@ -152,7 +152,7 @@ export const Params = {
           message.goalBonded = reader.string();
           break;
         case 6:
-          message.blocksPerYear = reader.uint64() as Long;
+          message.blocksPerYear = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -176,8 +176,8 @@ export const Params = {
         : "",
       goalBonded: isSet(object.goalBonded) ? String(object.goalBonded) : "",
       blocksPerYear: isSet(object.blocksPerYear)
-        ? Long.fromString(object.blocksPerYear)
-        : Long.UZERO,
+        ? String(object.blocksPerYear)
+        : "0",
     };
   },
 
@@ -192,7 +192,7 @@ export const Params = {
       (obj.inflationMin = message.inflationMin);
     message.goalBonded !== undefined && (obj.goalBonded = message.goalBonded);
     message.blocksPerYear !== undefined &&
-      (obj.blocksPerYear = (message.blocksPerYear || Long.UZERO).toString());
+      (obj.blocksPerYear = message.blocksPerYear);
     return obj;
   },
 
@@ -203,10 +203,7 @@ export const Params = {
     message.inflationMax = object.inflationMax ?? "";
     message.inflationMin = object.inflationMin ?? "";
     message.goalBonded = object.goalBonded ?? "";
-    message.blocksPerYear =
-      object.blocksPerYear !== undefined && object.blocksPerYear !== null
-        ? Long.fromValue(object.blocksPerYear)
-        : Long.UZERO;
+    message.blocksPerYear = object.blocksPerYear ?? "0";
     return message;
   },
 };
@@ -222,8 +219,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -239,6 +234,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

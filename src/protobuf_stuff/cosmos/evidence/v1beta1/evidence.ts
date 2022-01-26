@@ -10,19 +10,14 @@ export const protobufPackage = "cosmos.evidence.v1beta1";
  * signing misbehavior.
  */
 export interface Equivocation {
-  height: Long;
+  height: string;
   time?: Timestamp;
-  power: Long;
+  power: string;
   consensusAddress: string;
 }
 
 function createBaseEquivocation(): Equivocation {
-  return {
-    height: Long.ZERO,
-    time: undefined,
-    power: Long.ZERO,
-    consensusAddress: "",
-  };
+  return { height: "0", time: undefined, power: "0", consensusAddress: "" };
 }
 
 export const Equivocation = {
@@ -30,13 +25,13 @@ export const Equivocation = {
     message: Equivocation,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.height.isZero()) {
+    if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
     if (message.time !== undefined) {
       Timestamp.encode(message.time, writer.uint32(18).fork()).ldelim();
     }
-    if (!message.power.isZero()) {
+    if (message.power !== "0") {
       writer.uint32(24).int64(message.power);
     }
     if (message.consensusAddress !== "") {
@@ -53,13 +48,13 @@ export const Equivocation = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.height = reader.int64() as Long;
+          message.height = longToString(reader.int64() as Long);
           break;
         case 2:
           message.time = Timestamp.decode(reader, reader.uint32());
           break;
         case 3:
-          message.power = reader.int64() as Long;
+          message.power = longToString(reader.int64() as Long);
           break;
         case 4:
           message.consensusAddress = reader.string();
@@ -74,9 +69,9 @@ export const Equivocation = {
 
   fromJSON(object: any): Equivocation {
     return {
-      height: isSet(object.height) ? Long.fromString(object.height) : Long.ZERO,
+      height: isSet(object.height) ? String(object.height) : "0",
       time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
-      power: isSet(object.power) ? Long.fromString(object.power) : Long.ZERO,
+      power: isSet(object.power) ? String(object.power) : "0",
       consensusAddress: isSet(object.consensusAddress)
         ? String(object.consensusAddress)
         : "",
@@ -85,12 +80,10 @@ export const Equivocation = {
 
   toJSON(message: Equivocation): unknown {
     const obj: any = {};
-    message.height !== undefined &&
-      (obj.height = (message.height || Long.ZERO).toString());
+    message.height !== undefined && (obj.height = message.height);
     message.time !== undefined &&
       (obj.time = fromTimestamp(message.time).toISOString());
-    message.power !== undefined &&
-      (obj.power = (message.power || Long.ZERO).toString());
+    message.power !== undefined && (obj.power = message.power);
     message.consensusAddress !== undefined &&
       (obj.consensusAddress = message.consensusAddress);
     return obj;
@@ -100,18 +93,12 @@ export const Equivocation = {
     object: I,
   ): Equivocation {
     const message = createBaseEquivocation();
-    message.height =
-      object.height !== undefined && object.height !== null
-        ? Long.fromValue(object.height)
-        : Long.ZERO;
+    message.height = object.height ?? "0";
     message.time =
       object.time !== undefined && object.time !== null
         ? Timestamp.fromPartial(object.time)
         : undefined;
-    message.power =
-      object.power !== undefined && object.power !== null
-        ? Long.fromValue(object.power)
-        : Long.ZERO;
+    message.power = object.power ?? "0";
     message.consensusAddress = object.consensusAddress ?? "";
     return message;
   },
@@ -128,8 +115,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -147,13 +132,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -168,8 +153,8 @@ function fromJsonTimestamp(o: any): Timestamp {
   }
 }
 
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
+function longToString(long: Long) {
+  return long.toString();
 }
 
 if (_m0.util.Long !== Long) {

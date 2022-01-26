@@ -162,14 +162,14 @@ export interface TextProposal {
  * proposal.
  */
 export interface Deposit {
-  proposalId: Long;
+  proposalId: string;
   depositor: string;
   amount: Coin[];
 }
 
 /** Proposal defines the core field members of a governance proposal. */
 export interface Proposal {
-  proposalId: Long;
+  proposalId: string;
   content?: Any;
   status: ProposalStatus;
   finalTallyResult?: TallyResult;
@@ -193,7 +193,7 @@ export interface TallyResult {
  * A Vote consists of a proposal ID, the voter, and the vote option.
  */
 export interface Vote {
-  proposalId: Long;
+  proposalId: string;
   voter: string;
   /**
    * Deprecated: Prefer to use `options` instead. This field is set in queries
@@ -368,7 +368,7 @@ export const TextProposal = {
 };
 
 function createBaseDeposit(): Deposit {
-  return { proposalId: Long.UZERO, depositor: "", amount: [] };
+  return { proposalId: "0", depositor: "", amount: [] };
 }
 
 export const Deposit = {
@@ -376,7 +376,7 @@ export const Deposit = {
     message: Deposit,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.depositor !== "") {
@@ -396,7 +396,7 @@ export const Deposit = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.depositor = reader.string();
@@ -414,9 +414,7 @@ export const Deposit = {
 
   fromJSON(object: any): Deposit {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       depositor: isSet(object.depositor) ? String(object.depositor) : "",
       amount: Array.isArray(object?.amount)
         ? object.amount.map((e: any) => Coin.fromJSON(e))
@@ -426,8 +424,7 @@ export const Deposit = {
 
   toJSON(message: Deposit): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.depositor !== undefined && (obj.depositor = message.depositor);
     if (message.amount) {
       obj.amount = message.amount.map((e) => (e ? Coin.toJSON(e) : undefined));
@@ -439,10 +436,7 @@ export const Deposit = {
 
   fromPartial<I extends Exact<DeepPartial<Deposit>, I>>(object: I): Deposit {
     const message = createBaseDeposit();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.depositor = object.depositor ?? "";
     message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
     return message;
@@ -451,7 +445,7 @@ export const Deposit = {
 
 function createBaseProposal(): Proposal {
   return {
-    proposalId: Long.UZERO,
+    proposalId: "0",
     content: undefined,
     status: 0,
     finalTallyResult: undefined,
@@ -468,7 +462,7 @@ export const Proposal = {
     message: Proposal,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.content !== undefined) {
@@ -518,7 +512,7 @@ export const Proposal = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.content = Any.decode(reader, reader.uint32());
@@ -557,9 +551,7 @@ export const Proposal = {
 
   fromJSON(object: any): Proposal {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       content: isSet(object.content) ? Any.fromJSON(object.content) : undefined,
       status: isSet(object.status) ? proposalStatusFromJSON(object.status) : 0,
       finalTallyResult: isSet(object.finalTallyResult)
@@ -585,8 +577,7 @@ export const Proposal = {
 
   toJSON(message: Proposal): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.content !== undefined &&
       (obj.content = message.content ? Any.toJSON(message.content) : undefined);
     message.status !== undefined &&
@@ -619,10 +610,7 @@ export const Proposal = {
 
   fromPartial<I extends Exact<DeepPartial<Proposal>, I>>(object: I): Proposal {
     const message = createBaseProposal();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.content =
       object.content !== undefined && object.content !== null
         ? Any.fromPartial(object.content)
@@ -736,12 +724,12 @@ export const TallyResult = {
 };
 
 function createBaseVote(): Vote {
-  return { proposalId: Long.UZERO, voter: "", option: 0, options: [] };
+  return { proposalId: "0", voter: "", option: 0, options: [] };
 }
 
 export const Vote = {
   encode(message: Vote, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (!message.proposalId.isZero()) {
+    if (message.proposalId !== "0") {
       writer.uint32(8).uint64(message.proposalId);
     }
     if (message.voter !== "") {
@@ -764,7 +752,7 @@ export const Vote = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.proposalId = reader.uint64() as Long;
+          message.proposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.voter = reader.string();
@@ -787,9 +775,7 @@ export const Vote = {
 
   fromJSON(object: any): Vote {
     return {
-      proposalId: isSet(object.proposalId)
-        ? Long.fromString(object.proposalId)
-        : Long.UZERO,
+      proposalId: isSet(object.proposalId) ? String(object.proposalId) : "0",
       voter: isSet(object.voter) ? String(object.voter) : "",
       option: isSet(object.option) ? voteOptionFromJSON(object.option) : 0,
       options: Array.isArray(object?.options)
@@ -800,8 +786,7 @@ export const Vote = {
 
   toJSON(message: Vote): unknown {
     const obj: any = {};
-    message.proposalId !== undefined &&
-      (obj.proposalId = (message.proposalId || Long.UZERO).toString());
+    message.proposalId !== undefined && (obj.proposalId = message.proposalId);
     message.voter !== undefined && (obj.voter = message.voter);
     message.option !== undefined &&
       (obj.option = voteOptionToJSON(message.option));
@@ -817,10 +802,7 @@ export const Vote = {
 
   fromPartial<I extends Exact<DeepPartial<Vote>, I>>(object: I): Vote {
     const message = createBaseVote();
-    message.proposalId =
-      object.proposalId !== undefined && object.proposalId !== null
-        ? Long.fromValue(object.proposalId)
-        : Long.UZERO;
+    message.proposalId = object.proposalId ?? "0";
     message.voter = object.voter ?? "";
     message.option = object.option ?? 0;
     message.options =
@@ -1112,8 +1094,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1131,13 +1111,13 @@ export type Exact<P, I extends P> = P extends Builtin
       >;
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = numberToLong(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = t.seconds.toNumber() * 1_000;
+  let millis = Number(t.seconds) * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis);
 }
@@ -1152,8 +1132,8 @@ function fromJsonTimestamp(o: any): Timestamp {
   }
 }
 
-function numberToLong(number: number) {
-  return Long.fromNumber(number);
+function longToString(long: Long) {
+  return long.toString();
 }
 
 if (_m0.util.Long !== Long) {

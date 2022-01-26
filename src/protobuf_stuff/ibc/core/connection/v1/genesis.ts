@@ -13,14 +13,14 @@ export interface GenesisState {
   connections: IdentifiedConnection[];
   clientConnectionPaths: ConnectionPaths[];
   /** the sequence for the next generated connection identifier */
-  nextConnectionSequence: Long;
+  nextConnectionSequence: string;
 }
 
 function createBaseGenesisState(): GenesisState {
   return {
     connections: [],
     clientConnectionPaths: [],
-    nextConnectionSequence: Long.UZERO,
+    nextConnectionSequence: "0",
   };
 }
 
@@ -35,7 +35,7 @@ export const GenesisState = {
     for (const v of message.clientConnectionPaths) {
       ConnectionPaths.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-    if (!message.nextConnectionSequence.isZero()) {
+    if (message.nextConnectionSequence !== "0") {
       writer.uint32(24).uint64(message.nextConnectionSequence);
     }
     return writer;
@@ -59,7 +59,9 @@ export const GenesisState = {
           );
           break;
         case 3:
-          message.nextConnectionSequence = reader.uint64() as Long;
+          message.nextConnectionSequence = longToString(
+            reader.uint64() as Long,
+          );
           break;
         default:
           reader.skipType(tag & 7);
@@ -80,8 +82,8 @@ export const GenesisState = {
           )
         : [],
       nextConnectionSequence: isSet(object.nextConnectionSequence)
-        ? Long.fromString(object.nextConnectionSequence)
-        : Long.UZERO,
+        ? String(object.nextConnectionSequence)
+        : "0",
     };
   },
 
@@ -102,9 +104,7 @@ export const GenesisState = {
       obj.clientConnectionPaths = [];
     }
     message.nextConnectionSequence !== undefined &&
-      (obj.nextConnectionSequence = (
-        message.nextConnectionSequence || Long.UZERO
-      ).toString());
+      (obj.nextConnectionSequence = message.nextConnectionSequence);
     return obj;
   },
 
@@ -118,11 +118,7 @@ export const GenesisState = {
       object.clientConnectionPaths?.map((e) =>
         ConnectionPaths.fromPartial(e),
       ) || [];
-    message.nextConnectionSequence =
-      object.nextConnectionSequence !== undefined &&
-      object.nextConnectionSequence !== null
-        ? Long.fromValue(object.nextConnectionSequence)
-        : Long.UZERO;
+    message.nextConnectionSequence = object.nextConnectionSequence ?? "0";
     return message;
   },
 };
@@ -138,8 +134,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -155,6 +149,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

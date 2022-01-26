@@ -103,7 +103,7 @@ export interface Timestamp {
    * 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
    * 9999-12-31T23:59:59Z inclusive.
    */
-  seconds: Long;
+  seconds: string;
   /**
    * Non-negative fractions of a second at nanosecond resolution. Negative
    * second values with fractions must still have non-negative nanos values
@@ -114,7 +114,7 @@ export interface Timestamp {
 }
 
 function createBaseTimestamp(): Timestamp {
-  return { seconds: Long.ZERO, nanos: 0 };
+  return { seconds: "0", nanos: 0 };
 }
 
 export const Timestamp = {
@@ -122,7 +122,7 @@ export const Timestamp = {
     message: Timestamp,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.seconds.isZero()) {
+    if (message.seconds !== "0") {
       writer.uint32(8).int64(message.seconds);
     }
     if (message.nanos !== 0) {
@@ -139,7 +139,7 @@ export const Timestamp = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.seconds = reader.int64() as Long;
+          message.seconds = longToString(reader.int64() as Long);
           break;
         case 2:
           message.nanos = reader.int32();
@@ -154,17 +154,14 @@ export const Timestamp = {
 
   fromJSON(object: any): Timestamp {
     return {
-      seconds: isSet(object.seconds)
-        ? Long.fromString(object.seconds)
-        : Long.ZERO,
+      seconds: isSet(object.seconds) ? String(object.seconds) : "0",
       nanos: isSet(object.nanos) ? Number(object.nanos) : 0,
     };
   },
 
   toJSON(message: Timestamp): unknown {
     const obj: any = {};
-    message.seconds !== undefined &&
-      (obj.seconds = (message.seconds || Long.ZERO).toString());
+    message.seconds !== undefined && (obj.seconds = message.seconds);
     message.nanos !== undefined && (obj.nanos = Math.round(message.nanos));
     return obj;
   },
@@ -173,10 +170,7 @@ export const Timestamp = {
     object: I,
   ): Timestamp {
     const message = createBaseTimestamp();
-    message.seconds =
-      object.seconds !== undefined && object.seconds !== null
-        ? Long.fromValue(object.seconds)
-        : Long.ZERO;
+    message.seconds = object.seconds ?? "0";
     message.nanos = object.nanos ?? 0;
     return message;
   },
@@ -193,8 +187,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -210,6 +202,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

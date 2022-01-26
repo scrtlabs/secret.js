@@ -27,7 +27,7 @@ export interface QueryContractHistoryRequest {
 
 export interface QueryContractsByCodeRequest {
   /** grpc-gateway_out does not support Go style CodID */
-  codeId: Long;
+  codeId: string;
 }
 
 /** ContractInfoWithAddress adds the address (key) to the ContractInfo representation */
@@ -66,12 +66,12 @@ export interface QuerySmartContractStateResponse {
 
 export interface QueryCodeRequest {
   /** grpc-gateway_out does not support Go style CodID */
-  codeId: Long;
+  codeId: string;
 }
 
 export interface CodeInfoResponse {
   /** id for legacy support */
-  codeId: Long;
+  codeId: string;
   creator: Uint8Array;
   dataHash: Uint8Array;
   source: string;
@@ -319,7 +319,7 @@ export const QueryContractHistoryRequest = {
 };
 
 function createBaseQueryContractsByCodeRequest(): QueryContractsByCodeRequest {
-  return { codeId: Long.UZERO };
+  return { codeId: "0" };
 }
 
 export const QueryContractsByCodeRequest = {
@@ -327,7 +327,7 @@ export const QueryContractsByCodeRequest = {
     message: QueryContractsByCodeRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(8).uint64(message.codeId);
     }
     return writer;
@@ -344,7 +344,7 @@ export const QueryContractsByCodeRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -356,16 +356,13 @@ export const QueryContractsByCodeRequest = {
 
   fromJSON(object: any): QueryContractsByCodeRequest {
     return {
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
     };
   },
 
   toJSON(message: QueryContractsByCodeRequest): unknown {
     const obj: any = {};
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     return obj;
   },
 
@@ -373,10 +370,7 @@ export const QueryContractsByCodeRequest = {
     object: I,
   ): QueryContractsByCodeRequest {
     const message = createBaseQueryContractsByCodeRequest();
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     return message;
   },
 };
@@ -855,7 +849,7 @@ export const QuerySmartContractStateResponse = {
 };
 
 function createBaseQueryCodeRequest(): QueryCodeRequest {
-  return { codeId: Long.UZERO };
+  return { codeId: "0" };
 }
 
 export const QueryCodeRequest = {
@@ -863,7 +857,7 @@ export const QueryCodeRequest = {
     message: QueryCodeRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(8).uint64(message.codeId);
     }
     return writer;
@@ -877,7 +871,7 @@ export const QueryCodeRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -889,16 +883,13 @@ export const QueryCodeRequest = {
 
   fromJSON(object: any): QueryCodeRequest {
     return {
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
     };
   },
 
   toJSON(message: QueryCodeRequest): unknown {
     const obj: any = {};
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     return obj;
   },
 
@@ -906,17 +897,14 @@ export const QueryCodeRequest = {
     object: I,
   ): QueryCodeRequest {
     const message = createBaseQueryCodeRequest();
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     return message;
   },
 };
 
 function createBaseCodeInfoResponse(): CodeInfoResponse {
   return {
-    codeId: Long.UZERO,
+    codeId: "0",
     creator: new Uint8Array(),
     dataHash: new Uint8Array(),
     source: "",
@@ -929,7 +917,7 @@ export const CodeInfoResponse = {
     message: CodeInfoResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.codeId.isZero()) {
+    if (message.codeId !== "0") {
       writer.uint32(8).uint64(message.codeId);
     }
     if (message.creator.length !== 0) {
@@ -955,7 +943,7 @@ export const CodeInfoResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = reader.uint64() as Long;
+          message.codeId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.creator = reader.bytes();
@@ -979,9 +967,7 @@ export const CodeInfoResponse = {
 
   fromJSON(object: any): CodeInfoResponse {
     return {
-      codeId: isSet(object.codeId)
-        ? Long.fromString(object.codeId)
-        : Long.UZERO,
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
       creator: isSet(object.creator)
         ? bytesFromBase64(object.creator)
         : new Uint8Array(),
@@ -995,8 +981,7 @@ export const CodeInfoResponse = {
 
   toJSON(message: CodeInfoResponse): unknown {
     const obj: any = {};
-    message.codeId !== undefined &&
-      (obj.codeId = (message.codeId || Long.UZERO).toString());
+    message.codeId !== undefined && (obj.codeId = message.codeId);
     message.creator !== undefined &&
       (obj.creator = base64FromBytes(
         message.creator !== undefined ? message.creator : new Uint8Array(),
@@ -1014,10 +999,7 @@ export const CodeInfoResponse = {
     object: I,
   ): CodeInfoResponse {
     const message = createBaseCodeInfoResponse();
-    message.codeId =
-      object.codeId !== undefined && object.codeId !== null
-        ? Long.fromValue(object.codeId)
-        : Long.UZERO;
+    message.codeId = object.codeId ?? "0";
     message.creator = object.creator ?? new Uint8Array();
     message.dataHash = object.dataHash ?? new Uint8Array();
     message.source = object.source ?? "";
@@ -1642,8 +1624,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -1659,6 +1639,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

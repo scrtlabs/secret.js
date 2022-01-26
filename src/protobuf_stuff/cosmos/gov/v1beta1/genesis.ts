@@ -15,7 +15,7 @@ export const protobufPackage = "cosmos.gov.v1beta1";
 /** GenesisState defines the gov module's genesis state. */
 export interface GenesisState {
   /** starting_proposal_id is the ID of the starting proposal. */
-  startingProposalId: Long;
+  startingProposalId: string;
   /** deposits defines all the deposits present at genesis. */
   deposits: Deposit[];
   /** votes defines all the votes present at genesis. */
@@ -32,7 +32,7 @@ export interface GenesisState {
 
 function createBaseGenesisState(): GenesisState {
   return {
-    startingProposalId: Long.UZERO,
+    startingProposalId: "0",
     deposits: [],
     votes: [],
     proposals: [],
@@ -47,7 +47,7 @@ export const GenesisState = {
     message: GenesisState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (!message.startingProposalId.isZero()) {
+    if (message.startingProposalId !== "0") {
       writer.uint32(8).uint64(message.startingProposalId);
     }
     for (const v of message.deposits) {
@@ -88,7 +88,7 @@ export const GenesisState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.startingProposalId = reader.uint64() as Long;
+          message.startingProposalId = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.deposits.push(Deposit.decode(reader, reader.uint32()));
@@ -119,8 +119,8 @@ export const GenesisState = {
   fromJSON(object: any): GenesisState {
     return {
       startingProposalId: isSet(object.startingProposalId)
-        ? Long.fromString(object.startingProposalId)
-        : Long.UZERO,
+        ? String(object.startingProposalId)
+        : "0",
       deposits: Array.isArray(object?.deposits)
         ? object.deposits.map((e: any) => Deposit.fromJSON(e))
         : [],
@@ -145,9 +145,7 @@ export const GenesisState = {
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
     message.startingProposalId !== undefined &&
-      (obj.startingProposalId = (
-        message.startingProposalId || Long.UZERO
-      ).toString());
+      (obj.startingProposalId = message.startingProposalId);
     if (message.deposits) {
       obj.deposits = message.deposits.map((e) =>
         e ? Deposit.toJSON(e) : undefined,
@@ -186,11 +184,7 @@ export const GenesisState = {
     object: I,
   ): GenesisState {
     const message = createBaseGenesisState();
-    message.startingProposalId =
-      object.startingProposalId !== undefined &&
-      object.startingProposalId !== null
-        ? Long.fromValue(object.startingProposalId)
-        : Long.UZERO;
+    message.startingProposalId = object.startingProposalId ?? "0";
     message.deposits =
       object.deposits?.map((e) => Deposit.fromPartial(e)) || [];
     message.votes = object.votes?.map((e) => Vote.fromPartial(e)) || [];
@@ -223,8 +217,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -240,6 +232,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

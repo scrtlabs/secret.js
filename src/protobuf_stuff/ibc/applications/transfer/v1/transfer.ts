@@ -13,7 +13,7 @@ export interface FungibleTokenPacketData {
   /** the token denomination to be transferred */
   denom: string;
   /** the token amount to be transferred */
-  amount: Long;
+  amount: string;
   /** the sender address */
   sender: string;
   /** the recipient address on the destination chain */
@@ -54,7 +54,7 @@ export interface Params {
 }
 
 function createBaseFungibleTokenPacketData(): FungibleTokenPacketData {
-  return { denom: "", amount: Long.UZERO, sender: "", receiver: "" };
+  return { denom: "", amount: "0", sender: "", receiver: "" };
 }
 
 export const FungibleTokenPacketData = {
@@ -65,7 +65,7 @@ export const FungibleTokenPacketData = {
     if (message.denom !== "") {
       writer.uint32(10).string(message.denom);
     }
-    if (!message.amount.isZero()) {
+    if (message.amount !== "0") {
       writer.uint32(16).uint64(message.amount);
     }
     if (message.sender !== "") {
@@ -91,7 +91,7 @@ export const FungibleTokenPacketData = {
           message.denom = reader.string();
           break;
         case 2:
-          message.amount = reader.uint64() as Long;
+          message.amount = longToString(reader.uint64() as Long);
           break;
         case 3:
           message.sender = reader.string();
@@ -110,9 +110,7 @@ export const FungibleTokenPacketData = {
   fromJSON(object: any): FungibleTokenPacketData {
     return {
       denom: isSet(object.denom) ? String(object.denom) : "",
-      amount: isSet(object.amount)
-        ? Long.fromString(object.amount)
-        : Long.UZERO,
+      amount: isSet(object.amount) ? String(object.amount) : "0",
       sender: isSet(object.sender) ? String(object.sender) : "",
       receiver: isSet(object.receiver) ? String(object.receiver) : "",
     };
@@ -121,8 +119,7 @@ export const FungibleTokenPacketData = {
   toJSON(message: FungibleTokenPacketData): unknown {
     const obj: any = {};
     message.denom !== undefined && (obj.denom = message.denom);
-    message.amount !== undefined &&
-      (obj.amount = (message.amount || Long.UZERO).toString());
+    message.amount !== undefined && (obj.amount = message.amount);
     message.sender !== undefined && (obj.sender = message.sender);
     message.receiver !== undefined && (obj.receiver = message.receiver);
     return obj;
@@ -133,10 +130,7 @@ export const FungibleTokenPacketData = {
   ): FungibleTokenPacketData {
     const message = createBaseFungibleTokenPacketData();
     message.denom = object.denom ?? "";
-    message.amount =
-      object.amount !== undefined && object.amount !== null
-        ? Long.fromValue(object.amount)
-        : Long.UZERO;
+    message.amount = object.amount ?? "0";
     message.sender = object.sender ?? "";
     message.receiver = object.receiver ?? "";
     return message;
@@ -284,8 +278,6 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
-  : T extends Long
-  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -301,6 +293,10 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToString(long: Long) {
+  return long.toString();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

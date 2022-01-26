@@ -1,7 +1,6 @@
 import { JsonObject } from "@cosmjs/cosmwasm-stargate";
 import { fromUtf8, toUtf8 } from "@cosmjs/encoding";
 import { createProtobufRpcClient, QueryClient } from "@cosmjs/stargate";
-import Long from "long";
 import {
   QueryClientImpl,
   QueryCodeResponse,
@@ -46,12 +45,12 @@ export function setupComputeExtension(base: QueryClient): ComputeExtension {
         return queryService.codes(request);
       },
       getCodeWasm: async (id: number) => {
-        const request = { codeId: Long.fromNumber(id) };
+        const request = { codeId: String(id) };
         return queryService.code(request);
       },
-      listContractsByCode: async (id: number, paginationKey?: Uint8Array) => {
+      listContractsByCode: async (id: number) => {
         const request = {
-          codeId: Long.fromNumber(id),
+          codeId: String(id),
         };
         return queryService.contractsByCode(request);
       },
