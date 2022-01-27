@@ -16,10 +16,9 @@ import {
   AuthQuerier,
   AuthzQuerier,
   BankQuerier,
-  ComputeQuerier,
   DistributionQuerier,
   EvidenceQuerier,
-  FeeGrantQuerier,
+  FeegrantQuerier,
   GovQuerier,
   IbcChannelQuerier,
   IbcClientQuerier,
@@ -27,12 +26,12 @@ import {
   IbcTransferQuerier,
   MintQuerier,
   ParamsQuerier,
-  RegistrationQuerier,
   SlashingQuerier,
   StakingQuerier,
   TendermintQuerier,
   UpgradeQuerier,
-} from "./queriers";
+} from "./query/cosmos";
+import { ComputeQuerier, RegistrationQuerier } from "./query/secret";
 
 export interface SecretJsSigningOptions {
   broadcastTimeoutMs?: number;
@@ -58,7 +57,7 @@ type Querier = {
   compute: ComputeQuerier;
   distribution: DistributionQuerier;
   evidence: EvidenceQuerier;
-  feegrant: FeeGrantQuerier;
+  feegrant: FeegrantQuerier;
   gov: GovQuerier;
   ibc_channel: IbcChannelQuerier;
   ibc_client: IbcClientQuerier;
@@ -146,7 +145,7 @@ export class SecretNetworkClient extends SigningCosmWasmClient {
       compute: new ComputeQuerier(rpc),
       distribution: new DistributionQuerier(rpc),
       evidence: new EvidenceQuerier(rpc),
-      feegrant: new FeeGrantQuerier(rpc),
+      feegrant: new FeegrantQuerier(rpc),
       gov: new GovQuerier(rpc),
       ibc_channel: new IbcChannelQuerier(rpc),
       ibc_client: new IbcClientQuerier(rpc),
