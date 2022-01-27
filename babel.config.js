@@ -1,4 +1,4 @@
-// Bable is only needed for Jest to work with TypeScript
+// Babel is only needed for Jest to work with TypeScript
 
 module.exports = {
   presets: [
