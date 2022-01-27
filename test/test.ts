@@ -1,3 +1,4 @@
+import { clearConfigCache } from "prettier";
 import util from "util";
 import { SecretNetworkClient } from "../src";
 const exec = util.promisify(require("child_process").exec);
@@ -15,7 +16,7 @@ type Account = {
   mnemonic: string;
 };
 
-const accounts: { [name: string]: Account | null } = {
+let accounts: { [name: string]: Account | null } = {
   a: null,
   b: null,
   c: null,
@@ -135,11 +136,20 @@ describe("queries", () => {
         "http://localhost:26657",
       );
 
-      const x = await secretjs.query.compute.codes({});
+      const { balance } = await secretjs.query.bank.balance({
+        address: accounts.a!.address,
+        denom: "uscrt",
+      });
 
-      console.log(x);
+      console.log(
+        `Account ${accounts.a!.address} has: ${balance?.amount} ${
+          balance?.denom
+        }`,
+      );
 
-      expect(1 + 2).toBe(3);
+      const { pool } = await secretjs.query.distribution.communityPool({});
+      console.log("Community Pool has these coins:");
+      pool.forEach((coin) => console.log(coin.amount, coin.denom));
     },
     1000 * 60 * 60,
   );
