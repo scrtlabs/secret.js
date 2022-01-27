@@ -4,14 +4,16 @@
 // 1. Abstract "address: Uint8Array" in the underlying types as "address: string".
 // 2. Add Secret Network encryption
 
-export { QueryClientImpl as RegistrationQuerier } from "../protobuf_stuff/secret/registration/v1beta1/query";
+import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
+import { EncryptionUtils } from "../encryption";
 import {
-  QueryClientImpl,
   CodeInfoResponse as ProtobufCodeInfoResponse,
+  QueryClientImpl,
 } from "../protobuf_stuff/secret/compute/v1beta1/query";
 import { ContractInfo as ProtobufContractInfo } from "../protobuf_stuff/secret/compute/v1beta1/types";
-import { bech32 } from "bech32";
-import { toHex } from "@cosmjs/encoding";
+import { QueryClientImpl as RegistrationQuerier } from "../protobuf_stuff/secret/registration/v1beta1/query";
+export { RegistrationQuerier };
 
 interface Rpc {
   request(
@@ -67,7 +69,7 @@ export type ContractInfoWithAddress = {
 export type QueryContractRequest = {
   /** The address of the contract */
   address: string;
-  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string.
+  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string. This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -77,7 +79,7 @@ export type QueryContractRequest = {
    */
   codeHash: string;
   /** A JSON object that will be passed to the contract as a query */
-  query: any;
+  query: object;
 };
 
 export type CodeInfoResponse = {
@@ -89,24 +91,25 @@ export type CodeInfoResponse = {
 };
 
 export type QueryCodeResponse = {
-  codeInfo?: CodeInfoResponse;
+  codeInfo: CodeInfoResponse;
   data: Uint8Array;
 };
 
 export class ComputeQuerier {
   private readonly client: QueryClientImpl;
+  private readonly encryption: EncryptionUtils;
 
   constructor(rpc: Rpc) {
     this.client = new QueryClientImpl(rpc);
+    this.encryption = new EncryptionUtils(new RegistrationQuerier(rpc));
   }
 
   /** Get metadata of a Secret Contract */
-  async contractInfo(
-    request: QueryContractInfoRequest,
-  ): Promise<QueryContractInfoResponse> {
-    const address = addressToBytes(request.address);
+  async contractInfo({
+    address,
+  }: QueryContractInfoRequest): Promise<QueryContractInfoResponse> {
     const response = await this.client.contractInfo({
-      address,
+      address: addressToBytes(address),
     });
 
     return {
@@ -134,18 +137,33 @@ export class ComputeQuerier {
   }
 
   /** Query a Secret Contract */
-  async queryContract(request: QueryContractRequest): Promise<any> {
-    return;
+  async queryContract({
+    address,
+    codeHash,
+    query,
+  }: QueryContractRequest): Promise<object> {
+    const encryptedQuery = await this.encryption.encrypt(codeHash, query);
+    const nonce = encryptedQuery.slice(0, 32);
+
+    const { data: encryptedResult } = await this.client.smartContractState({
+      address: addressToBytes(address),
+      queryData: encryptedQuery,
+    });
+
+    const decryptedBase64Result = await this.encryption.decrypt(
+      encryptedResult,
+      nonce,
+    );
+
+    return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Result))));
   }
 
   /** Get WASM bytecode and metadata for a code id */
-  async code(codeId: string): Promise<QueryCodeResponse> {
-    const response = await this.client.code({ codeId });
+  async code(codeId: number): Promise<QueryCodeResponse> {
+    const response = await this.client.code({ codeId: String(codeId) });
 
     return {
-      codeInfo: response.codeInfo
-        ? codeInfoResponseFromProtobuf(response.codeInfo)
-        : undefined,
+      codeInfo: codeInfoResponseFromProtobuf(response.codeInfo),
       data: response.data,
     };
   }
@@ -164,10 +182,10 @@ export function addressToBytes(address: string): Uint8Array {
 }
 
 export function bytesToAddress(bytes: Uint8Array): string {
-  return bech32.encode("secret", bech32.fromWords(bytes));
+  return bech32.encode("secret", bech32.toWords(bytes));
 }
 
-export function contractInfoFromProtobuf(
+function contractInfoFromProtobuf(
   contractInfo: ProtobufContractInfo,
 ): ContractInfo {
   return {
@@ -178,14 +196,23 @@ export function contractInfoFromProtobuf(
   };
 }
 
-export function codeInfoResponseFromProtobuf(
-  codeInfo: ProtobufCodeInfoResponse,
+function codeInfoResponseFromProtobuf(
+  codeInfo?: ProtobufCodeInfoResponse,
 ): CodeInfoResponse {
-  return {
-    codeId: codeInfo.codeId,
-    creator: bytesToAddress(codeInfo.creator),
-    codeHash: toHex(codeInfo.dataHash),
-    source: codeInfo.source,
-    builder: codeInfo.builder,
-  };
+  return codeInfo
+    ? {
+        codeId: codeInfo.codeId,
+        creator: bytesToAddress(codeInfo.creator),
+        codeHash: toHex(codeInfo.dataHash),
+        source: codeInfo.source,
+        builder: codeInfo.builder,
+      }
+    : {
+        // This should never happen
+        codeId: "",
+        creator: "",
+        codeHash: "",
+        source: "",
+        builder: "",
+      };
 }

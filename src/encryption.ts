@@ -1,9 +1,9 @@
-import * as miscreant from "miscreant";
-import { fromBase64, toUtf8 } from "@cosmjs/encoding";
+import { toUtf8 } from "@cosmjs/encoding";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
-import secureRandom from "secure-random";
-import axios from "axios";
 import hkdf from "js-crypto-hkdf";
+import * as miscreant from "miscreant";
+import secureRandom from "secure-random";
+import { RegistrationQuerier } from "./query/secret";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 
@@ -20,22 +20,25 @@ const hkdfSalt: Uint8Array = Uint8Array.from([
   0x2e, 0xa6, 0x37, 0xd7, 0xe9, 0x6d,
 ]);
 
-export class EnigmaUtils implements SecretUtils {
-  private readonly apiUrl: string;
-  public readonly seed: Uint8Array;
+export class EncryptionUtils implements SecretUtils {
+  private readonly registrationQuerier: RegistrationQuerier;
+  private readonly seed: Uint8Array;
   private readonly privkey: Uint8Array;
   public readonly pubkey: Uint8Array;
   private consensusIoPubKey: Uint8Array = new Uint8Array(); // cache
 
-  public constructor(apiUrl: string, seed?: Uint8Array) {
-    this.apiUrl = apiUrl;
+  public constructor(
+    registrationQuerier: RegistrationQuerier,
+    seed?: Uint8Array,
+  ) {
+    this.registrationQuerier = registrationQuerier;
     if (!seed) {
-      this.seed = EnigmaUtils.GenerateNewSeed();
+      this.seed = EncryptionUtils.GenerateNewSeed();
     } else {
       this.seed = seed;
     }
-    const { privkey, pubkey } = EnigmaUtils.GenerateNewKeyPairFromSeed(
-      this.seed
+    const { privkey, pubkey } = EncryptionUtils.GenerateNewKeyPairFromSeed(
+      this.seed,
     );
     this.privkey = privkey;
     this.pubkey = pubkey;
@@ -45,8 +48,8 @@ export class EnigmaUtils implements SecretUtils {
     privkey: Uint8Array;
     pubkey: Uint8Array;
   } {
-    return EnigmaUtils.GenerateNewKeyPairFromSeed(
-      EnigmaUtils.GenerateNewSeed()
+    return EncryptionUtils.GenerateNewKeyPairFromSeed(
+      EncryptionUtils.GenerateNewSeed(),
     );
   }
 
@@ -67,15 +70,9 @@ export class EnigmaUtils implements SecretUtils {
       return this.consensusIoPubKey;
     }
 
-    const {
-      data: {
-        result: { TxKey },
-      },
-    } = await axios.get(this.apiUrl + "/reg/tx-key", {
-      headers: { "Content-Type": "application/json" },
-    });
+    const { key } = await this.registrationQuerier.txKey({});
+    this.consensusIoPubKey = key;
 
-    this.consensusIoPubKey = fromBase64(TxKey);
     return this.consensusIoPubKey;
   }
 
@@ -88,14 +85,14 @@ export class EnigmaUtils implements SecretUtils {
       "SHA-256",
       32,
       "",
-      hkdfSalt
+      hkdfSalt,
     );
     return txEncryptionKey;
   }
 
   public async encrypt(
     contractCodeHash: string,
-    msg: object
+    msg: object,
   ): Promise<Uint8Array> {
     const nonce = secureRandom(32, {
       type: "Uint8Array",
@@ -106,7 +103,7 @@ export class EnigmaUtils implements SecretUtils {
     const siv = await miscreant.SIV.importKey(
       txEncryptionKey,
       "AES-SIV",
-      cryptoProvider
+      cryptoProvider,
     );
 
     const plaintext = toUtf8(contractCodeHash + JSON.stringify(msg));
@@ -119,7 +116,7 @@ export class EnigmaUtils implements SecretUtils {
 
   public async decrypt(
     ciphertext: Uint8Array,
-    nonce: Uint8Array
+    nonce: Uint8Array,
   ): Promise<Uint8Array> {
     if (!ciphertext?.length) {
       return new Uint8Array();
@@ -130,7 +127,7 @@ export class EnigmaUtils implements SecretUtils {
     const siv = await miscreant.SIV.importKey(
       txEncryptionKey,
       "AES-SIV",
-      cryptoProvider
+      cryptoProvider,
     );
 
     const plaintext = await siv.open(ciphertext, [new Uint8Array()]);

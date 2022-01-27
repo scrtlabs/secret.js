@@ -45,4 +45,4 @@ export { BroadcastTxResponse, StdFee } from "@cosmjs/stargate";
 
 export { SecretNetworkClient } from "./secret_network_client";
 
-export { SecretUtils, EnigmaUtils } from "./encryption";
+export { SecretUtils, EncryptionUtils as EnigmaUtils } from "./encryption";
