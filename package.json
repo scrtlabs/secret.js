@@ -7,7 +7,7 @@
   "license": "MIT",
   "author": "SCRT Labs",
   "files": [
-    "dist"
+    "dist/**/*"
   ],
   "scripts": {
     "build": "tsc",

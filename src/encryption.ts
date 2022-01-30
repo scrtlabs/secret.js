@@ -1,4 +1,4 @@
-import { toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8, toHex, toUtf8 } from "@cosmjs/encoding";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
 import hkdf from "js-crypto-hkdf";
 import * as miscreant from "miscreant";
@@ -7,20 +7,18 @@ import { RegistrationQuerier } from "./query/secret";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 
-export interface SecretUtils {
+export interface Encryption {
   getPubkey: () => Promise<Uint8Array>;
   decrypt: (ciphertext: Uint8Array, nonce: Uint8Array) => Promise<Uint8Array>;
   encrypt: (contractCodeHash: string, msg: object) => Promise<Uint8Array>;
   getTxEncryptionKey: (nonce: Uint8Array) => Promise<Uint8Array>;
 }
 
-const hkdfSalt: Uint8Array = Uint8Array.from([
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x4b, 0xea, 0xd8,
-  0xdf, 0x69, 0x99, 0x08, 0x52, 0xc2, 0x02, 0xdb, 0x0e, 0x00, 0x97, 0xc1, 0xa1,
-  0x2e, 0xa6, 0x37, 0xd7, 0xe9, 0x6d,
-]);
+const hkdfSalt: Uint8Array = fromHex(
+  "000000000000000000024bead8df69990852c202db0e0097c1a12ea637d7e96d",
+);
 
-export class EncryptionUtils implements SecretUtils {
+export class EncryptionImpl implements Encryption {
   private readonly registrationQuerier: RegistrationQuerier;
   private readonly seed: Uint8Array;
   private readonly privkey: Uint8Array;
@@ -33,11 +31,11 @@ export class EncryptionUtils implements SecretUtils {
   ) {
     this.registrationQuerier = registrationQuerier;
     if (!seed) {
-      this.seed = EncryptionUtils.GenerateNewSeed();
+      this.seed = EncryptionImpl.GenerateNewSeed();
     } else {
       this.seed = seed;
     }
-    const { privkey, pubkey } = EncryptionUtils.GenerateNewKeyPairFromSeed(
+    const { privkey, pubkey } = EncryptionImpl.GenerateNewKeyPairFromSeed(
       this.seed,
     );
     this.privkey = privkey;
@@ -48,8 +46,8 @@ export class EncryptionUtils implements SecretUtils {
     privkey: Uint8Array;
     pubkey: Uint8Array;
   } {
-    return EncryptionUtils.GenerateNewKeyPairFromSeed(
-      EncryptionUtils.GenerateNewSeed(),
+    return EncryptionImpl.GenerateNewKeyPairFromSeed(
+      EncryptionImpl.GenerateNewSeed(),
     );
   }
 
@@ -71,7 +69,7 @@ export class EncryptionUtils implements SecretUtils {
     }
 
     const { key } = await this.registrationQuerier.txKey({});
-    this.consensusIoPubKey = key;
+    this.consensusIoPubKey = extractPubkey(key);
 
     return this.consensusIoPubKey;
   }
@@ -137,4 +135,69 @@ export class EncryptionUtils implements SecretUtils {
   getPubkey(): Promise<Uint8Array> {
     return Promise.resolve(this.pubkey);
   }
+}
+
+// extractPubkey ported from https://github.com/enigmampc/SecretNetwork/blob/8ab20a273570bfb3d55d67e0300ecbdc67e0e739/x/registration/remote_attestation/remote_attestation.go#L25
+function extractPubkey(cert: Uint8Array): Uint8Array {
+  const nsCmtOid = new Uint8Array([
+    0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x86, 0xf8, 0x42, 0x01, 0x0d,
+  ]); // Netscape Comment OID
+  const payload = extractAsn1Value(cert, nsCmtOid);
+
+  try {
+    // Try SW mode
+
+    const pubkey = fromBase64(fromUtf8(payload));
+    if (pubkey.length === 32) {
+      return pubkey;
+    }
+  } catch (e) {
+    // Not SW mode
+  }
+
+  try {
+    // Try HW mode
+    // Ported from https://github.com/scrtlabs/SecretNetwork/blob/8ab20a273570bfb3d55d67e0300ecbdc67e0e739/x/registration/remote_attestation/remote_attestation.go#L110
+
+    const quoteHex = fromBase64(
+      JSON.parse(fromUtf8(fromBase64(JSON.parse(fromUtf8(payload)).report)))
+        .isvEnclaveQuoteBody,
+    );
+
+    const reportData = quoteHex.slice(368, 400);
+    return reportData;
+  } catch (e) {
+    throw new Error(
+      "Cannot extract tx io pubkey: error parsing certificate - malformed certificate",
+    );
+  }
+}
+
+function extractAsn1Value(cert: Uint8Array, oid: Uint8Array): Uint8Array {
+  let offset = toHex(cert).indexOf(toHex(oid)) / 2;
+  if (!Number.isInteger(offset)) {
+    throw new Error("Error parsing certificate - malformed certificate");
+  }
+  offset += 12; // 11 + TAG (0x04)
+
+  // we will be accessing offset + 2, so make sure it's not out-of-bounds
+  if (offset + 2 >= cert.length) {
+    throw new Error("Error parsing certificate - malformed certificate");
+  }
+
+  let length = cert[offset];
+  if (length > 0x80) {
+    length = cert[offset + 1] * 0x100 + cert[offset + 2];
+    offset += 2;
+  }
+
+  if (offset + length + 1 >= cert.length) {
+    throw new Error("Error parsing certificate - malformed certificate");
+  }
+
+  // Obtain Netscape Comment
+  offset += 1;
+  const payload = cert.slice(offset, offset + length);
+
+  return payload;
 }
