@@ -18,7 +18,6 @@ import { DeliverTxResponse, IndexedTx, SignerData } from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { StdFee } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
-import { GetSyncingRequest } from "./protobuf_stuff/cosmos/base/tendermint/v1beta1/query";
 import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
 import { TxBody, TxRaw } from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
 import { Any } from "./protobuf_stuff/google/protobuf/any";
@@ -433,7 +432,7 @@ export class SecretNetworkClient {
       const chainId = this.chainId;
       signerData = {
         accountNumber: Number((account.account as BaseAccount).accountNumber),
-        accountSequence: Number((account.account as BaseAccount).sequence),
+        sequence: Number((account.account as BaseAccount).sequence),
         chainId: chainId,
       };
     }
@@ -448,7 +447,7 @@ export class SecretNetworkClient {
     messages: Msg[],
     fee: StdFee,
     memo: string,
-    { accountNumber, accountSequence: sequence, chainId }: SignerData,
+    { accountNumber, sequence, chainId }: SignerData,
   ): Promise<TxRaw> {
     if (isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
@@ -527,7 +526,7 @@ export class SecretNetworkClient {
     messages: Msg[],
     fee: StdFee,
     memo: string,
-    { accountNumber, accountSequence: sequence, chainId }: SignerData,
+    { accountNumber, sequence, chainId }: SignerData,
   ): Promise<TxRaw> {
     if (!isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
