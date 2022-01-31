@@ -85,6 +85,7 @@ export class SecretNetworkClient {
   public signer: OfflineSigner;
   public chainId: string;
 
+  /** init creates a new SecretNetworkClient client. For a readonly client pass only the `rpcUrl` para. */
   public static async init(
     rpcUrl: string,
     signingParams: SigningParams = {

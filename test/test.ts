@@ -1,5 +1,9 @@
 import util from "util";
 import { SecretNetworkClient } from "../src";
+import {
+  BaseAccount,
+  ModuleAccount,
+} from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 const exec = util.promisify(require("child_process").exec);
 
 async function sleep(ms: number) {
@@ -175,7 +179,63 @@ afterAll(async () => {
   }
 });
 
-describe("queries", () => {
+describe("x/auth", () => {
+  test("accounts()", async () => {
+    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+
+    const result = await secretjs.query.auth.accounts({});
+
+    // 2 account with a balance (a & b) and 7 module accounts
+    expect(result.length).toBe(9);
+    expect(result.filter((x) => x.type === "ModuleAccount").length).toBe(7);
+    expect(result.filter((x) => x.type === "BaseAccount").length).toBe(2);
+    expect(
+      result.filter((x) => {
+        if (x.type !== "BaseAccount") {
+          return false;
+        }
+
+        const account = x.account as BaseAccount;
+
+        return (
+          account.address === accounts.a.address ||
+          account.address === accounts.b.address
+        );
+      }).length,
+    ).toBe(2);
+  });
+  test("account()", async () => {
+    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+
+    const response = await secretjs.query.auth.account({
+      address: accounts.b.address,
+    });
+
+    expect(response.type).toBe("BaseAccount");
+
+    const account = response.account as BaseAccount;
+
+    expect(account.address).toBe(accounts.b.address);
+    expect(account.accountNumber).toBe("1");
+    expect(account.sequence).toBe("0");
+  });
+  test("params()", async () => {
+    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+
+    const response = await secretjs.query.auth.params();
+    expect(response).toEqual({
+      params: {
+        maxMemoCharacters: "256",
+        sigVerifyCostEd25519: "590",
+        sigVerifyCostSecp256k1: "1000",
+        txSigLimit: "7",
+        txSizeCostPerByte: "10",
+      },
+    });
+  });
+});
+
+describe("x/compute", () => {
   let sSCRT: string;
 
   beforeAll(async () => {
@@ -210,23 +270,33 @@ describe("queries", () => {
   }, SECONDS_30 * 2 * 10);
 
   test(
-    "query sSCRT",
+    "query contract",
     async () => {
-      const secretjs = await SecretNetworkClient.connect(
-        "http://localhost:26657",
-      );
+      const secretjs = await SecretNetworkClient.init("http://localhost:26657");
 
       const {
         codeInfo: { codeHash },
       } = await secretjs.query.compute.code(1);
 
-      const x = await secretjs.query.compute.queryContract({
+      type Result = {
+        token_info: {
+          decimals: number;
+          name: string;
+          symbol: string;
+          total_supply: string;
+        };
+      };
+
+      const { token_info } = (await secretjs.query.compute.queryContract({
         address: sSCRT,
         codeHash,
         query: { token_info: {} },
-      });
+      })) as Result;
 
-      console.log(x);
+      expect(token_info.decimals).toBe(6);
+      expect(token_info.name).toBe("Secret SCRT");
+      expect(token_info.symbol).toBe("SSCRT");
+      expect(token_info.total_supply).toBe("1");
     },
     1000 * 60 * 60,
   );

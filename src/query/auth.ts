@@ -11,7 +11,6 @@ import {
   QueryAccountRequest,
   QueryAccountsRequest,
   QueryClientImpl,
-  QueryParamsRequest,
   QueryParamsResponse,
 } from "../protobuf_stuff/cosmos/auth/v1beta1/query";
 import { BaseVestingAccount } from "../protobuf_stuff/cosmos/vesting/v1beta1/vesting";
@@ -25,7 +24,11 @@ interface Rpc {
   ): Promise<Uint8Array>;
 }
 
-type Account = BaseAccount | ModuleAccount | BaseVestingAccount | null;
+type Account = {
+  type: "BaseAccount" | "ModuleAccount" | "BaseVestingAccount";
+  account: BaseAccount | ModuleAccount | BaseVestingAccount;
+} | null;
+export { Account, BaseAccount, ModuleAccount, BaseVestingAccount };
 
 /** AuthQuerier is the query interface for the x/auth module */
 export class AuthQuerier /* implements Query */ {
@@ -39,13 +42,13 @@ export class AuthQuerier /* implements Query */ {
     return response.accounts.map((a) => accountFromAny(a));
   }
   /** Account returns account details based on address. */
-  async account(request: QueryAccountRequest): Promise<Account> {
-    const response = await this.baseQuerier.account(request);
+  async account({ address }: QueryAccountRequest): Promise<Account> {
+    const response = await this.baseQuerier.account({ address });
     return response.account ? accountFromAny(response.account) : null;
   }
   /** Params queries all parameters. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
-    return this.baseQuerier.params(request);
+  params(): Promise<QueryParamsResponse> {
+    return this.baseQuerier.params({});
   }
 }
 
@@ -53,20 +56,23 @@ export class AuthQuerier /* implements Query */ {
  * Takes an `Any` encoded account from the chain and converts it into common `Account` types.
  * Adapted from https://github.com/cosmos/cosmjs/blob/17ea689da849aec49055a7985a9780a1c7d581ac/packages/stargate/src/accounts.ts#L38-L84
  */
-export function accountFromAny(input: Any): Account {
+function accountFromAny(input: Any): Account {
   const { typeUrl, value } = input;
 
   switch (typeUrl) {
     // auth
     case "/cosmos.auth.v1beta1.BaseAccount":
-      return BaseAccount.decode(value);
+      return { type: "BaseAccount", account: BaseAccount.decode(value) };
     case "/cosmos.auth.v1beta1.ModuleAccount": {
-      return ModuleAccount.decode(value);
+      return { type: "ModuleAccount", account: ModuleAccount.decode(value) };
     }
 
     // vesting
     case "/cosmos.vesting.v1beta1.BaseVestingAccount": {
-      return BaseVestingAccount.decode(value);
+      return {
+        type: "BaseVestingAccount",
+        account: BaseVestingAccount.decode(value),
+      };
     }
 
     default:
