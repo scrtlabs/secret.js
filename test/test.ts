@@ -107,12 +107,12 @@ async function secretcliInit(
 beforeAll(async () => {
   try {
     // init testnet
-    console.log("Setting up local testnet...");
+    console.log("Setting up a local testnet...");
     await exec("docker rm -f secretjs-testnet || true");
     const { stdout, stderr } = await exec(
       "docker run -it -d -p 26657:26657 -p 26656:26656 -p 1317:1317 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
     );
-    console.log("stdout (testnet container id?):", stdout);
+    // console.log("stdout (testnet container id?):", stdout);
     if (stderr) {
       console.error("stderr:", stderr);
     }
@@ -135,6 +135,13 @@ beforeAll(async () => {
                 const match = logs.match(getMnemonicRegexForAccount(account));
                 if (match) {
                   accounts[account] = JSON.parse(match[0]) as Account;
+                  console.log(
+                    `Genesis account "${account}": ${JSON.stringify(
+                      accounts[account],
+                      null,
+                      4,
+                    )}`,
+                  );
                 }
               }
             }
@@ -170,7 +177,7 @@ afterAll(async () => {
   try {
     console.log("Tearing down local testnet...");
     const { stdout, stderr } = await exec("docker rm -f secretjs-testnet");
-    console.log("stdout (testnet container name?):", stdout);
+    // console.log("stdout (testnet container name?):", stdout);
     if (stderr) {
       console.error("stderr:", stderr);
     }
@@ -179,7 +186,7 @@ afterAll(async () => {
   }
 });
 
-describe("x/auth", () => {
+describe("query.auth", () => {
   test("accounts()", async () => {
     const secretjs = await SecretNetworkClient.init("http://localhost:26657");
 
@@ -204,6 +211,7 @@ describe("x/auth", () => {
       }).length,
     ).toBe(2);
   });
+
   test("account()", async () => {
     const secretjs = await SecretNetworkClient.init("http://localhost:26657");
 
@@ -219,6 +227,7 @@ describe("x/auth", () => {
     expect(account.accountNumber).toBe("1");
     expect(account.sequence).toBe("0");
   });
+
   test("params()", async () => {
     const secretjs = await SecretNetworkClient.init("http://localhost:26657");
 
@@ -235,7 +244,7 @@ describe("x/auth", () => {
   });
 });
 
-describe("x/compute", () => {
+describe("query.compute", () => {
   let sSCRT: string;
 
   beforeAll(async () => {
@@ -269,35 +278,35 @@ describe("x/compute", () => {
     console.log("code id", codeId);
   }, SECONDS_30 * 2 * 10);
 
-  test(
-    "query contract",
-    async () => {
-      const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+  test("queryContract()", async () => {
+    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
 
-      const {
-        codeInfo: { codeHash },
-      } = await secretjs.query.compute.code(1);
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(1);
 
-      type Result = {
-        token_info: {
-          decimals: number;
-          name: string;
-          symbol: string;
-          total_supply: string;
-        };
+    type Result = {
+      token_info: {
+        decimals: number;
+        name: string;
+        symbol: string;
+        total_supply: string;
       };
+    };
 
-      const { token_info } = (await secretjs.query.compute.queryContract({
-        address: sSCRT,
-        codeHash,
-        query: { token_info: {} },
-      })) as Result;
+    const result = (await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      codeHash,
+      query: { token_info: {} },
+    })) as Result;
 
-      expect(token_info.decimals).toBe(6);
-      expect(token_info.name).toBe("Secret SCRT");
-      expect(token_info.symbol).toBe("SSCRT");
-      expect(token_info.total_supply).toBe("1");
-    },
-    1000 * 60 * 60,
-  );
+    expect(result).toEqual({
+      token_info: {
+        decimals: 6,
+        name: "Secret SCRT",
+        symbol: "SSCRT",
+        total_supply: "1",
+      },
+    });
+  });
 });
