@@ -1,6 +1,5 @@
 // Auto-generated
 // See scripts/generate_query.js
-export { QueryClientImpl as AuthQuerier } from "../protobuf_stuff/cosmos/auth/v1beta1/query";
 export { QueryClientImpl as AuthzQuerier } from "../protobuf_stuff/cosmos/authz/v1beta1/query";
 export { QueryClientImpl as BankQuerier } from "../protobuf_stuff/cosmos/bank/v1beta1/query";
 export { ServiceClientImpl as TendermintQuerier } from "../protobuf_stuff/cosmos/base/tendermint/v1beta1/query";

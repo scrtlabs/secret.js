@@ -1,8 +1,8 @@
 // For future wanderers:
 // This file is written manually with a few goals in mind:
 // 1. Proxy the auto-generated QueryClientImpl from "src/protobuf_stuff/secret/compute/v1beta1/query.tx" (See the "scripts/generate_protobuf.sh" script)
-// 1. Abstract "address: Uint8Array" in the underlying types as "address: string".
-// 2. Add Secret Network encryption
+// 2. Abstract "address: Uint8Array" in the underlying types as "address: string".
+// 3. Add Secret Network encryption
 
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";

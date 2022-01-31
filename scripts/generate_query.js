@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 
 const path = require("path");
-const fs = require("fs");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
-
-async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 (async () => {
   await exec(`mkdir -p "${__dirname}/../src/query/"`);
@@ -23,6 +18,8 @@ async function sleep(ms) {
   const modulesPaths = stdout
     .split("\n")
     .filter((modulePath) => modulePath.length > 0)
+    .filter((modulePath) => !modulePath.includes("/secret/"))
+    .filter((modulePath) => !modulePath.includes("/cosmos/auth/"))
     .map((modulePath) => path.relative(__dirname, modulePath.trim()))
     .map((modulePath) => modulePath.replace("../src/", "../"))
     .map((modulePath) => modulePath.replace(".ts", ""))
