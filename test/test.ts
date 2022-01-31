@@ -1,6 +1,7 @@
 import util from "util";
-import { SecretNetworkClient, SecretSecp256k1HdWallet, MsgSend } from "../src";
+import { MsgSend, SecretNetworkClient, SecretSecp256k1HdWallet } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
+import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
 
 async function sleep(ms: number) {
@@ -253,24 +254,56 @@ describe("tx.bank", () => {
       "http://localhost:26657",
       {
         signer: wallet,
-        signerAddress: address,
+        signerAddress: accounts.a.address,
         chainId: "secretdev-1",
       },
     );
 
+    const {
+      balance: { amount: aBalanceBefore },
+    } = await secretjs.query.bank.balance({
+      address: accounts.a.address,
+      denom: "uscrt",
+    });
+    const {
+      balance: { amount: cBalanceBefore },
+    } = await secretjs.query.bank.balance({
+      address: accounts.c.address,
+      denom: "uscrt",
+    });
+
     const msg = new MsgSend({
-      fromAddress: address,
+      fromAddress: accounts.a.address,
       toAddress: accounts.c.address,
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
-    const tx = await secretjs.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
       gasLimit: 100_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
     });
-    console.log(tx);
-  });
+
+    expect(tx.code).toBe(0);
+
+    const {
+      balance: { amount: aBalanceAfter },
+    } = await secretjs.query.bank.balance({
+      address: accounts.a.address,
+      denom: "uscrt",
+    });
+    const {
+      balance: { amount: cBalanceAfter },
+    } = await secretjs.query.bank.balance({
+      address: accounts.c.address,
+      denom: "uscrt",
+    });
+
+    expect(BigInt(aBalanceBefore) - BigInt(aBalanceAfter)).toBe(
+      1n + BigInt(gasToFee(100_000, 0.25)),
+    );
+    expect(BigInt(cBalanceAfter) - BigInt(cBalanceBefore)).toBe(1n);
+  }, 20_000);
 });
 
 describe("query.compute", () => {

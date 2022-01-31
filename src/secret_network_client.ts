@@ -65,13 +65,13 @@ export enum BroadcastMode {
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
    */
-  SYNC,
+  Sync,
   /**
    * Broadcast transaction to mempool and do not wait for CheckTx response.
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
    */
-  ASYNC,
+  Async,
 }
 
 export type SignAndBroadcastParams = {
@@ -81,14 +81,37 @@ export type SignAndBroadcastParams = {
   /** E.g. "uscrt" */
   feeDenom: string;
   memo?: string;
+  /** If false returns immediately with `transactionHash`. Defaults to `true`. */
+  waitForCommit?: boolean;
+  /**
+   * How much time (in milliseconds) to wait for tx to commit on-chain.
+   *
+   * Defaults to `60_000`. Ignored if `waitForCommit = false`.
+   */
   broadcastTimeoutMs?: number;
+  /**
+   * When waiting for tx to commit on-chain, this how much time (in milliseconds) to wait between checking if the tx is committed on-chain.
+   *
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to commit.
+   *
+   * Defaults to `6_000`. Ignored if `waitForCommit = false`.
+   */
   broadcastPollIntervalMs?: number;
+  /**
+   * If `BroadcastMode.Sync` - Broadcast transaction to mempool and wait for CheckTx response.
+   *
+   * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
+   *
+   * If `BroadcastMode.Async` Broadcast transaction to mempool and do not wait for CheckTx response.
+   *
+   * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
+   */
   broadcastMode?: BroadcastMode;
   /**
-   * explicitSignerData can be used to override chain-id, accountNumber & accountSequence.
-   * This is usefull when using {@link BroadcastMode.ASYNC} or when you don't want secretjs
-   * to query the accountNumber & accountSequence from the chain (for performance).
-   * */
+   * explicitSignerData can be used to override `chainId`, `accountNumber` & `accountSequence`.
+   * This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs
+   * to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
+   */
   explicitSignerData?: SignerData;
 };
 
@@ -124,6 +147,21 @@ type Querier = {
   staking: StakingQuerier;
   tendermint: TendermintQuerier;
   upgrade: UpgradeQuerier;
+  getTx: (id: string) => Promise<IndexedTx | null>;
+  txsQuery: (query: string) => Promise<IndexedTx[]>;
+};
+
+type TxSender = {
+  sign: (
+    messages: Msg[],
+    fee: StdFee,
+    memo: string,
+    explicitSignerData?: SignerData,
+  ) => Promise<TxRaw>;
+  signAndBroadcast: (
+    messages: Msg[],
+    params: SignAndBroadcastParams,
+  ) => Promise<DeliverTxResponse>;
 };
 
 interface SecretRpcClient {
@@ -136,6 +174,7 @@ interface SecretRpcClient {
 
 export class SecretNetworkClient {
   public query: Querier;
+  public tx: TxSender;
   public tendermint: Tendermint34Client;
   private signerAddress: string;
   private signer: OfflineSigner;
@@ -209,6 +248,13 @@ export class SecretNetworkClient {
       staking: new StakingQuerier(rpc),
       tendermint: new TendermintQuerier(rpc),
       upgrade: new UpgradeQuerier(rpc),
+      getTx: this.getTx.bind(this),
+      txsQuery: this.txsQuery.bind(this),
+    };
+
+    this.tx = {
+      sign: this.sign.bind(this),
+      signAndBroadcast: this.signAndBroadcast.bind(this),
     };
 
     if (signingParams.encryptionUtils) {
@@ -222,12 +268,12 @@ export class SecretNetworkClient {
     }
   }
 
-  public async getTx(id: string): Promise<IndexedTx | null> {
+  private async getTx(id: string): Promise<IndexedTx | null> {
     const results = await this.txsQuery(`tx.hash='${id}'`);
     return results[0] ?? null;
   }
 
-  public async txsQuery(query: string): Promise<readonly IndexedTx[]> {
+  private async txsQuery(query: string): Promise<IndexedTx[]> {
     const results = await this.tendermint.txSearchAll({ query: query });
     return results.txs.map((tx) => {
       return {
@@ -258,81 +304,78 @@ export class SecretNetworkClient {
     timeoutMs: number,
     pollIntervalMs: number,
     mode: BroadcastMode,
+    waitForCommit: boolean,
   ): Promise<DeliverTxResponse> {
-    let timedOut = false;
-    const txPollTimeout = setTimeout(() => {
-      timedOut = true;
-    }, timeoutMs);
+    const start = Date.now();
 
-    const pollForTx = async (txId: string): Promise<DeliverTxResponse> => {
-      if (timedOut) {
-        throw new Error(
-          `Transaction with ID ${txId} was submitted but was not yet found on the chain. You might want to check later.`,
-        );
-      }
-      await sleep(pollIntervalMs);
-      const result = await this.getTx(txId);
-      return result
-        ? {
-            code: result.code,
-            height: result.height,
-            rawLog: result.rawLog,
-            transactionHash: txId,
-            gasUsed: result.gasUsed,
-            gasWanted: result.gasWanted,
-          }
-        : pollForTx(txId);
-    };
-
-    let transactionId: string;
-    if (mode === BroadcastMode.SYNC) {
+    let txhash: string;
+    if (mode === BroadcastMode.Sync) {
       const broadcasted = await this.tendermint.broadcastTxSync({ tx });
       if (broadcasted.code) {
         throw new Error(
           `Broadcasting transaction failed with code ${broadcasted.code} (codespace: ${broadcasted.codeSpace}). Log: ${broadcasted.log}`,
         );
       }
-      transactionId = toHex(broadcasted.hash).toUpperCase();
+      txhash = toHex(broadcasted.hash).toUpperCase();
     } else {
       const broadcasted = await this.tendermint.broadcastTxAsync({ tx });
-      transactionId = toHex(broadcasted.hash).toUpperCase();
+      txhash = toHex(broadcasted.hash).toUpperCase();
     }
 
-    return new Promise((resolve, reject) =>
-      pollForTx(transactionId).then(
-        (value) => {
-          clearTimeout(txPollTimeout);
-          resolve(value);
-        },
-        (error) => {
-          clearTimeout(txPollTimeout);
-          reject(error);
-        },
-      ),
-    );
+    if (!waitForCommit) {
+      return {
+        code: -1,
+        height: -1,
+        transactionHash: txhash,
+        gasUsed: -1,
+        gasWanted: -1,
+      };
+    }
+
+    while (true) {
+      if (start + timeoutMs < Date.now()) {
+        throw new Error(
+          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
+        );
+      }
+
+      const result = await this.getTx(txhash);
+      if (result) {
+        return {
+          code: result.code,
+          height: result.height,
+          rawLog: result.rawLog,
+          transactionHash: txhash,
+          gasUsed: result.gasUsed,
+          gasWanted: result.gasWanted,
+        };
+      }
+
+      await sleep(pollIntervalMs);
+    }
   }
 
-  public async signAndBroadcast(
+  private async signAndBroadcast(
     messages: Msg[],
     {
       gasLimit,
-      gasPriceInFeeDenom: gasPrice,
+      gasPriceInFeeDenom,
       feeDenom,
       memo = "",
+      waitForCommit = true,
       broadcastTimeoutMs = 60_000,
-      broadcastPollIntervalMs = 5_000,
-      broadcastMode = BroadcastMode.SYNC,
+      broadcastPollIntervalMs = 6_000,
+      broadcastMode = BroadcastMode.Sync,
       explicitSignerData,
     }: SignAndBroadcastParams,
   ): Promise<DeliverTxResponse> {
     const txRaw = await this.sign(
-      this.signerAddress,
       messages,
       {
         gas: String(gasLimit),
         amount: [
           {
-            amount: String(Math.floor(gasLimit * gasPrice) + 1),
+            amount: String(gasToFee(gasLimit, gasPriceInFeeDenom)),
             denom: feeDenom,
           },
         ],
@@ -347,6 +390,7 @@ export class SecretNetworkClient {
       broadcastTimeoutMs,
       broadcastPollIntervalMs,
       broadcastMode,
+      waitForCommit,
     );
   }
 
@@ -360,8 +404,7 @@ export class SecretNetworkClient {
    * from the chain. This is needed when signing for a multisig account, but it also allows for offline signing
    * (See the SigningStargateClient.offline constructor).
    */
-  public async sign(
-    signerAddress: string,
+  private async sign(
     messages: Msg[],
     fee: StdFee,
     memo: string,
@@ -372,12 +415,12 @@ export class SecretNetworkClient {
       signerData = explicitSignerData;
     } else {
       const account = await this.query.auth.account({
-        address: signerAddress,
+        address: this.signerAddress,
       });
 
       if (!account) {
         throw new Error(
-          `Cannot find account "${signerAddress}", make sure it has a balance.`,
+          `Cannot find account "${this.signerAddress}", make sure it has a balance.`,
         );
       }
 
@@ -396,8 +439,8 @@ export class SecretNetworkClient {
     }
 
     return isOfflineDirectSigner(this.signer)
-      ? this.signDirect(signerAddress, messages, fee, memo, signerData)
-      : this.signAmino(signerAddress, messages, fee, memo, signerData);
+      ? this.signDirect(this.signerAddress, messages, fee, memo, signerData)
+      : this.signAmino(this.signerAddress, messages, fee, memo, signerData);
   }
 
   private async signAmino(
@@ -408,7 +451,7 @@ export class SecretNetworkClient {
     { accountNumber, accountSequence: sequence, chainId }: SignerData,
   ): Promise<TxRaw> {
     if (isOfflineDirectSigner(this.signer)) {
-      throw new Error(`Wrong signer type! Expected AminoSigner.`);
+      throw new Error("Wrong signer type! Expected AminoSigner.");
     }
 
     const accountFromSigner = (await this.signer.getAccounts()).find(
@@ -487,7 +530,7 @@ export class SecretNetworkClient {
     { accountNumber, accountSequence: sequence, chainId }: SignerData,
   ): Promise<TxRaw> {
     if (!isOfflineDirectSigner(this.signer)) {
-      throw new Error(`Wrong signer type! Expected DirectSigner.`);
+      throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 
     const accountFromSigner = (await this.signer.getAccounts()).find(
@@ -533,4 +576,8 @@ export class SecretNetworkClient {
 
 function sleep(ms: number) {
   return new Promise((accept, reject) => setTimeout(accept, ms));
+}
+
+export function gasToFee(gasLimit: number, gasPrice: number): number {
+  return Math.floor(gasLimit * gasPrice) + 1;
 }

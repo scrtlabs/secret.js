@@ -37,8 +37,8 @@ export class MsgSend implements Msg {
     return {
       type: "cosmos-sdk/MsgSend",
       value: {
-        fromAddress: this.fromAddress,
-        toAddress: this.toAddress,
+        from_address: this.fromAddress,
+        to_address: this.toAddress,
         amount: this.amount,
       },
     };
