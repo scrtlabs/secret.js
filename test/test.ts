@@ -1,9 +1,6 @@
 import util from "util";
-import { SecretNetworkClient } from "../src";
-import {
-  BaseAccount,
-  ModuleAccount,
-} from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
+import { SecretNetworkClient, SecretSecp256k1HdWallet, MsgSend } from "../src";
+import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 const exec = util.promisify(require("child_process").exec);
 
 async function sleep(ms: number) {
@@ -188,7 +185,7 @@ afterAll(async () => {
 
 describe("query.auth", () => {
   test("accounts()", async () => {
-    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const result = await secretjs.query.auth.accounts({});
 
@@ -213,7 +210,7 @@ describe("query.auth", () => {
   });
 
   test("account()", async () => {
-    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const response = await secretjs.query.auth.account({
       address: accounts.b.address,
@@ -229,7 +226,7 @@ describe("query.auth", () => {
   });
 
   test("params()", async () => {
-    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const response = await secretjs.query.auth.params();
     expect(response).toEqual({
@@ -241,6 +238,38 @@ describe("query.auth", () => {
         txSizeCostPerByte: "10",
       },
     });
+  });
+});
+
+describe("tx.bank", () => {
+  test("MsgSend", async () => {
+    const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
+      accounts.a.mnemonic,
+    );
+    const [{ address }] = await wallet.getAccounts();
+    expect(address).toBe(accounts.a.address);
+
+    const secretjs = await SecretNetworkClient.create(
+      "http://localhost:26657",
+      {
+        signer: wallet,
+        signerAddress: address,
+        chainId: "secretdev-1",
+      },
+    );
+
+    const msg = new MsgSend({
+      fromAddress: address,
+      toAddress: accounts.c.address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    });
+
+    const tx = await secretjs.signAndBroadcast([msg], {
+      gasLimit: 100_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+    console.log(tx);
   });
 });
 
@@ -279,7 +308,7 @@ describe("query.compute", () => {
   }, SECONDS_30 * 2 * 10);
 
   test("queryContract()", async () => {
-    const secretjs = await SecretNetworkClient.init("http://localhost:26657");
+    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const {
       codeInfo: { codeHash },

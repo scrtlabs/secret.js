@@ -7,7 +7,7 @@ import { RegistrationQuerier } from "./query/secret";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 
-export interface Encryption {
+export interface EncryptionUtils {
   getPubkey: () => Promise<Uint8Array>;
   decrypt: (ciphertext: Uint8Array, nonce: Uint8Array) => Promise<Uint8Array>;
   encrypt: (contractCodeHash: string, msg: object) => Promise<Uint8Array>;
@@ -17,8 +17,12 @@ export interface Encryption {
 const hkdfSalt: Uint8Array = fromHex(
   "000000000000000000024bead8df69990852c202db0e0097c1a12ea637d7e96d",
 );
+const mainnetConsensusIoPubKey = fromHex(
+  "083b1a03661211d5a4cc8d39a77795795862f7730645573b2bcc2c1920c53c04",
+);
+const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
-export class EncryptionImpl implements Encryption {
+export class EncryptionUtilsImpl implements EncryptionUtils {
   private readonly registrationQuerier: RegistrationQuerier;
   private readonly seed: Uint8Array;
   private readonly privkey: Uint8Array;
@@ -28,26 +32,35 @@ export class EncryptionImpl implements Encryption {
   public constructor(
     registrationQuerier: RegistrationQuerier,
     seed?: Uint8Array,
+    chainId?: string,
   ) {
     this.registrationQuerier = registrationQuerier;
+
     if (!seed) {
-      this.seed = EncryptionImpl.GenerateNewSeed();
+      this.seed = EncryptionUtilsImpl.GenerateNewSeed();
     } else {
       this.seed = seed;
     }
-    const { privkey, pubkey } = EncryptionImpl.GenerateNewKeyPairFromSeed(
+
+    const { privkey, pubkey } = EncryptionUtilsImpl.GenerateNewKeyPairFromSeed(
       this.seed,
     );
     this.privkey = privkey;
     this.pubkey = pubkey;
+
+    if (chainId && mainnetChainIds.has(chainId)) {
+      // Major speedup
+      // TODO: not sure if this is the best approach for detecting mainnet
+      this.consensusIoPubKey = mainnetConsensusIoPubKey;
+    }
   }
 
   public static GenerateNewKeyPair(): {
     privkey: Uint8Array;
     pubkey: Uint8Array;
   } {
-    return EncryptionImpl.GenerateNewKeyPairFromSeed(
-      EncryptionImpl.GenerateNewSeed(),
+    return EncryptionUtilsImpl.GenerateNewKeyPairFromSeed(
+      EncryptionUtilsImpl.GenerateNewSeed(),
     );
   }
 

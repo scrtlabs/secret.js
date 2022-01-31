@@ -6,7 +6,7 @@
 
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
-import { EncryptionImpl } from "../encryption";
+import { EncryptionUtilsImpl } from "../encryption";
 import {
   CodeInfoResponse as ProtobufCodeInfoResponse,
   QueryClientImpl,
@@ -97,11 +97,11 @@ export type QueryCodeResponse = {
 
 export class ComputeQuerier {
   private readonly client: QueryClientImpl;
-  private readonly encryption: EncryptionImpl;
+  private readonly encryption: EncryptionUtilsImpl;
 
   constructor(rpc: Rpc) {
     this.client = new QueryClientImpl(rpc);
-    this.encryption = new EncryptionImpl(new RegistrationQuerier(rpc));
+    this.encryption = new EncryptionUtilsImpl(new RegistrationQuerier(rpc));
   }
 
   /** Get metadata of a Secret Contract */
