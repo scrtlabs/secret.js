@@ -1,5 +1,10 @@
 import util from "util";
-import { MsgSend, SecretNetworkClient, SecretSecp256k1HdWallet } from "../src";
+import {
+  MsgSend,
+  MsgMultiSend,
+  SecretNetworkClient,
+  SecretSecp256k1HdWallet,
+} from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
@@ -13,9 +18,20 @@ type Account = {
   pubkey: string;
   mnemonic: string;
   wallet: SecretSecp256k1HdWallet;
+  secretjs: SecretNetworkClient;
 };
 
 const accounts: Account[] = [];
+
+function isAccountsFull(): boolean {
+  return (
+    accounts.length === 4 &&
+    !!accounts[0] &&
+    !!accounts[1] &&
+    !!accounts[2] &&
+    !!accounts[3]
+  );
+}
 
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -129,25 +145,38 @@ beforeAll(async () => {
       const accountIdToName = ["a", "b", "c", "d"];
       while (keepChecking) {
         try {
-          // extract mnemonics of genesis accounts from logs
+          if (!isAccountsFull()) {
+            // extract mnemonics of genesis accounts from logs
             const { stdout } = await exec("docker logs secretjs-testnet");
             const logs = String(stdout);
             for (const accountId of [0, 1, 2, 3]) {
-            if (!accounts[accountId]) {
+              if (!accounts[accountId]) {
                 const match = logs.match(
                   getMnemonicRegexForAccountName(accountIdToName[accountId]),
                 );
                 if (match) {
-                const parsedAccount = JSON.parse(match[0]);
-                parsedAccount.wallet =
-                  await SecretSecp256k1HdWallet.fromMnemonic(
-                    parsedAccount.mnemonic,
+                  const parsedAccount = JSON.parse(match[0]);
+                  parsedAccount.wallet =
+                    await SecretSecp256k1HdWallet.fromMnemonic(
+                      parsedAccount.mnemonic,
+                    );
+                  parsedAccount.secretjs = await SecretNetworkClient.create(
+                    "http://localhost:26657",
+                    {
+                      signer: parsedAccount.wallet,
+                      signerAddress: parsedAccount.address,
+                      chainId: "secretdev-1",
+                    },
                   );
-                accounts[accountId] = parsedAccount as Account;
+                  accounts[accountId] = parsedAccount as Account;
 
                   console.log(
                     `Genesis account "${accountId}": ${JSON.stringify(
-                    { ...accounts[accountId], wallet: undefined }, // don't flood the screen with wallet object internals
+                      {
+                        ...accounts[accountId],
+                        wallet: undefined, // don't flood the screen with wallet object internals
+                        secretjs: undefined, // don't flood the screen with secretjs object internals
+                      },
                       null,
                       4,
                     )}`,
@@ -155,6 +184,7 @@ beforeAll(async () => {
                 }
               }
             }
+          }
 
           // check if the network has started (i.e. block number >= 1)
           const { stdout: status } = await exec(
@@ -165,7 +195,7 @@ beforeAll(async () => {
 
           if (
             Number(resp?.SyncInfo?.latest_block_height) >= 1 &&
-            accounts.filter((a) => a).length === 4
+            isAccountsFull()
           ) {
             clearTimeout(rejectTimeoout);
             accept();
@@ -197,7 +227,7 @@ afterAll(async () => {
 
 describe("query.auth", () => {
   test("accounts()", async () => {
-    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
+    const secretjs = accounts[0].secretjs;
 
     const result = await secretjs.query.auth.accounts({});
 
@@ -222,7 +252,7 @@ describe("query.auth", () => {
   });
 
   test("account()", async () => {
-    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
+    const secretjs = accounts[0].secretjs;
 
     const response = await secretjs.query.auth.account({
       address: accounts[1].address,
@@ -242,7 +272,7 @@ describe("query.auth", () => {
   });
 
   test("params()", async () => {
-    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
+    const secretjs = accounts[0].secretjs;
 
     const response = await secretjs.query.auth.params();
     expect(response).toEqual({
@@ -254,48 +284,6 @@ describe("query.auth", () => {
         txSizeCostPerByte: "10",
       },
     });
-  });
-});
-
-describe("tx.bank", () => {
-  test("MsgSend", async () => {
-    const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
-      accounts[0].mnemonic,
-    );
-    const [{ address }] = await wallet.getAccounts();
-    expect(address).toBe(accounts[0].address);
-
-    const secretjs = await SecretNetworkClient.create(
-      "http://localhost:26657",
-      {
-        signer: wallet,
-        signerAddress: accounts[0].address,
-        chainId: "secretdev-1",
-      },
-    );
-
-    const aBefore = await getBalance(secretjs, accounts[0].address);
-    const cBefore = await getBalance(secretjs, accounts[2].address);
-
-    const msg = new MsgSend({
-      fromAddress: accounts[0].address,
-      toAddress: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
-    });
-
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
-      gasLimit: 100_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
-
-    expect(tx.code).toBe(0);
-
-    const aAfter = await getBalance(secretjs, accounts[0].address);
-    const cAfter = await getBalance(secretjs, accounts[2].address);
-
-    expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(100_000, 0.25)));
-    expect(cAfter - cBefore).toBe(BigInt(1));
   });
 });
 
@@ -334,7 +322,7 @@ describe("query.compute", () => {
   }, SECONDS_30 * 2 * 10);
 
   test("queryContract()", async () => {
-    const secretjs = await SecretNetworkClient.create("http://localhost:26657");
+    const secretjs = accounts[0].secretjs;
 
     const {
       codeInfo: { codeHash },
@@ -363,5 +351,79 @@ describe("query.compute", () => {
         total_supply: "1",
       },
     });
+  });
+});
+
+describe("tx.bank", () => {
+  test("MsgSend", async () => {
+    const secretjs = accounts[0].secretjs;
+
+    const aBefore = await getBalance(secretjs, accounts[0].address);
+    const cBefore = await getBalance(secretjs, accounts[2].address);
+
+    const gasLimit = 20_000;
+    const msg = new MsgSend({
+      fromAddress: accounts[0].address,
+      toAddress: accounts[2].address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: gasLimit,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const aAfter = await getBalance(secretjs, accounts[0].address);
+    const cAfter = await getBalance(secretjs, accounts[2].address);
+
+    expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(gasLimit, 0.25)));
+    expect(cAfter - cBefore).toBe(BigInt(1));
+  });
+
+  test("MsgMultiSend", async () => {
+    const secretjs = accounts[0].secretjs;
+
+    const aBefore = await getBalance(secretjs, accounts[0].address);
+    const bBefore = await getBalance(secretjs, accounts[1].address);
+    const cBefore = await getBalance(secretjs, accounts[2].address);
+
+    const gasLimit = 20_000;
+    const msg = new MsgMultiSend({
+      inputs: [
+        {
+          address: accounts[0].address,
+          coins: [{ denom: "uscrt", amount: "2" }],
+        },
+      ],
+      outputs: [
+        {
+          address: accounts[1].address,
+          coins: [{ denom: "uscrt", amount: "1" }],
+        },
+        {
+          address: accounts[2].address,
+          coins: [{ denom: "uscrt", amount: "1" }],
+        },
+      ],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: gasLimit,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const aAfter = await getBalance(secretjs, accounts[0].address);
+    const bAfter = await getBalance(secretjs, accounts[1].address);
+    const cAfter = await getBalance(secretjs, accounts[2].address);
+
+    expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.25)));
+    expect(bAfter - bBefore).toBe(BigInt(1));
+    expect(cAfter - cBefore).toBe(BigInt(1));
   });
 });
