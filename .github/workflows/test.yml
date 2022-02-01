@@ -4,6 +4,9 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: docker pull enigmampc/secret-network-sw-dev:v1.2.2-1
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
       - run: yarn
       - run: yarn test
