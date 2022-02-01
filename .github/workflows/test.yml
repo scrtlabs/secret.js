@@ -1,0 +1,9 @@
+name: Run Tests
+on: [push]
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker pull enigmampc/secret-network-sw-dev:v1.2.2-1
+      - run: yarn
+      - run: yarn test
