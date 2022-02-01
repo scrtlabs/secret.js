@@ -227,7 +227,7 @@ afterAll(async () => {
 
 describe("query.auth", () => {
   test("accounts()", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const result = await secretjs.query.auth.accounts({});
 
@@ -252,7 +252,7 @@ describe("query.auth", () => {
   });
 
   test("account()", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const response = await secretjs.query.auth.account({
       address: accounts[1].address,
@@ -272,7 +272,7 @@ describe("query.auth", () => {
   });
 
   test("params()", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const response = await secretjs.query.auth.params();
     expect(response).toEqual({
@@ -322,7 +322,7 @@ describe("query.compute", () => {
   }, SECONDS_30 * 2 * 10);
 
   test("queryContract()", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const {
       codeInfo: { codeHash },
@@ -356,7 +356,7 @@ describe("query.compute", () => {
 
 describe("tx.bank", () => {
   test("MsgSend", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const aBefore = await getBalance(secretjs, accounts[0].address);
     const cBefore = await getBalance(secretjs, accounts[2].address);
@@ -384,7 +384,7 @@ describe("tx.bank", () => {
   });
 
   test("MsgMultiSend", async () => {
-    const secretjs = accounts[0].secretjs;
+    const { secretjs } = accounts[0];
 
     const aBefore = await getBalance(secretjs, accounts[0].address);
     const bBefore = await getBalance(secretjs, accounts[1].address);
