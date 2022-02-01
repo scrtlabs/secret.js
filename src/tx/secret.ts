@@ -1,4 +1,6 @@
 import { toBase64 } from "@cosmjs/encoding";
+import is_gzip from "is-gzip";
+import pako from "pako";
 import { Coin, EncryptionUtils } from "..";
 import {
   MsgExecuteContract as MsgExecuteContractProto,
@@ -127,6 +129,7 @@ export class MsgExecuteContract implements Msg {
     this.sentFunds = sentFunds;
     this.codeHash = codeHash;
   }
+
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
     const encryptedContractInput = await utils.encrypt(this.codeHash, this.msg);
     const msgContent: MsgExecuteContractProto = {
@@ -161,12 +164,59 @@ export class MsgExecuteContract implements Msg {
   }
 }
 
+export interface MsgStoreCodeParams {
+  sender: string;
+  /** WASMByteCode can be raw or gzip compressed */
+  wasmByteCode: Uint8Array;
+  /** Source is a valid absolute HTTPS URI to the contract's source code, optional */
+  source: string;
+  /** Builder is a valid docker image name with tag, optional */
+  builder: string;
+}
+
 export class MsgStoreCode implements Msg {
-  constructor(msg: MsgStoreCodeProto) {}
+  public sender: string;
+  public wasmByteCode: Uint8Array;
+  public source: string;
+  public builder: string;
+
+  constructor({ sender, wasmByteCode, source, builder }: MsgStoreCodeParams) {
+    this.sender = sender;
+    this.source = source;
+    this.builder = builder;
+
+    if (is_gzip(wasmByteCode)) {
+      this.wasmByteCode = wasmByteCode;
+    } else {
+      this.wasmByteCode = pako.gzip(wasmByteCode, { level: 9 });
+    }
+  }
+
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    const msgContent: MsgStoreCodeProto = {
+      sender: addressToBytes(this.sender),
+      wasmByteCode: this.wasmByteCode,
+      source: this.source,
+      builder: this.builder,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgStoreCode`,
+      value: msgContent,
+      encode: (): Uint8Array => {
+        return MsgStoreCodeProto.encode(msgContent).finish();
+      },
+    };
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    return {
+      type: "wasm/MsgExecuteContract",
+      value: {
+        sender: this.sender,
+        wasm_byte_code: toBase64(this.wasmByteCode),
+        source: this.source ? this.source : undefined,
+        builder: this.builder ? this.builder : undefined,
+      },
+    };
   }
 }
