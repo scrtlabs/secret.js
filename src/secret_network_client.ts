@@ -47,10 +47,7 @@ import {
 import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
 import { Msg, ProtoMsg } from "./tx/types";
 
-export type SigningOptions = {
-  broadcastTimeoutMs?: number;
-  broadcastPollIntervalMs?: number;
-};
+export { DeliverTxResponse, OfflineSigner, isOfflineDirectSigner };
 
 export type SigningParams = {
   signerAddress: string;

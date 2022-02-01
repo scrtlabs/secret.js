@@ -7,6 +7,8 @@ import {
   MsgStoreCode,
   MsgInstantiateContract,
   MsgExecuteContract,
+  MsgSubmitProposal,
+  ProposalType,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
@@ -43,6 +45,20 @@ async function sleep(ms: number) {
 
 function getMnemonicRegexForAccountName(account: string) {
   return new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
+}
+
+function findLogValue(log: any, key: string): string | null {
+  for (const l of log) {
+    for (const e of l.events) {
+      for (const a of e.attributes) {
+        if (a.key === key) {
+          return String(a.value);
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 async function waitForTx(txhash: string): Promise<any> {
@@ -544,5 +560,74 @@ describe("tx.compute", () => {
     expect(log[0].events[0].attributes[3].value).toBe(contractAddress);
     expect(log[0].events[1].attributes[0].key).toBe("contract_address");
     expect(log[0].events[1].attributes[0].value).toBe(contractAddress);
+  });
+});
+
+describe("tx.gov", () => {
+  // In this batch of tests each test assumes the success of previous tests
+  // This is done to save setup time for each test
+
+  let proposalId: number;
+
+  describe("MsgSubmitProposal", () => {
+    test("TextProposal", async () => {
+      const { secretjs } = accounts[0];
+
+      const msg = new MsgSubmitProposal({
+        type: ProposalType.TextProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi",
+          description: "Hello",
+        },
+      });
+
+      const tx = await secretjs.tx.signAndBroadcast([msg], {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      });
+
+      expect(tx.code).toBe(0);
+
+      const log = JSON.parse(tx.rawLog!);
+
+      expect(findLogValue(log, "proposal_type")).toBe("Text");
+
+      proposalId = Number(findLogValue(log, "proposal_id"));
+      expect(proposalId).toBeGreaterThanOrEqual(1);
+    });
+
+    test("CommunityPoolSpendProposal", async () => {
+      const { secretjs } = accounts[0];
+
+      const msg = new MsgSubmitProposal({
+        type: ProposalType.CommunityPoolSpendProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi",
+          description: "Hello",
+          recipient: accounts[1].address,
+          amount: [{ amount: "1", denom: "uscrt" }],
+        },
+      });
+
+      const tx = await secretjs.tx.signAndBroadcast([msg], {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      });
+
+      expect(tx.code).toBe(0);
+
+      const log = JSON.parse(tx.rawLog!);
+
+      expect(findLogValue(log, "proposal_type")).toBe("CommunityPoolSpend");
+      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
+        1,
+      );
+    });
   });
 });
