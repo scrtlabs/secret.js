@@ -102,6 +102,22 @@ async function secretcliInit(
   );
 }
 
+async function getBalance(
+  secretjs: SecretNetworkClient,
+  address: string,
+): Promise<bigint> {
+  const response = await secretjs.query.bank.balance({
+    address,
+    denom: "uscrt",
+  });
+
+  if (response.balance) {
+    return BigInt(response.balance.amount);
+  } else {
+    return BigInt(0);
+  }
+}
+
 beforeAll(async () => {
   try {
     // init testnet
@@ -182,7 +198,7 @@ afterAll(async () => {
   } catch (e) {
     console.error("Teardown failed:", e);
   }
-});
+}, SECONDS_30);
 
 describe("query.auth", () => {
   test("accounts()", async () => {
@@ -192,11 +208,11 @@ describe("query.auth", () => {
 
     // 2 account with a balance (a & b) and 7 module accounts
     expect(result.length).toBe(9);
-    expect(result.filter((x) => x.type === "ModuleAccount").length).toBe(7);
-    expect(result.filter((x) => x.type === "BaseAccount").length).toBe(2);
+    expect(result.filter((x) => x?.type === "ModuleAccount").length).toBe(7);
+    expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(2);
     expect(
       result.filter((x) => {
-        if (x.type !== "BaseAccount") {
+        if (x?.type !== "BaseAccount") {
           return false;
         }
 
@@ -214,15 +230,19 @@ describe("query.auth", () => {
     const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const response = await secretjs.query.auth.account({
-      address: accounts.b.address,
+      address: accounts.a.address,
     });
+
+    if (!response) {
+      fail(`Account "${accounts.a.address}" should exist`);
+    }
 
     expect(response.type).toBe("BaseAccount");
 
     const account = response.account as BaseAccount;
 
-    expect(account.address).toBe(accounts.b.address);
-    expect(account.accountNumber).toBe("1");
+    expect(account.address).toBe(accounts.a.address);
+    expect(account.accountNumber).toBe("0");
     expect(account.sequence).toBe("0");
   });
 
@@ -259,18 +279,8 @@ describe("tx.bank", () => {
       },
     );
 
-    const {
-      balance: { amount: aBalanceBefore },
-    } = await secretjs.query.bank.balance({
-      address: accounts.a.address,
-      denom: "uscrt",
-    });
-    const {
-      balance: { amount: cBalanceBefore },
-    } = await secretjs.query.bank.balance({
-      address: accounts.c.address,
-      denom: "uscrt",
-    });
+    const aBefore = await getBalance(secretjs, accounts.a.address);
+    const cBefore = await getBalance(secretjs, accounts.c.address);
 
     const msg = new MsgSend({
       fromAddress: accounts.a.address,
@@ -286,24 +296,12 @@ describe("tx.bank", () => {
 
     expect(tx.code).toBe(0);
 
-    const {
-      balance: { amount: aBalanceAfter },
-    } = await secretjs.query.bank.balance({
-      address: accounts.a.address,
-      denom: "uscrt",
-    });
-    const {
-      balance: { amount: cBalanceAfter },
-    } = await secretjs.query.bank.balance({
-      address: accounts.c.address,
-      denom: "uscrt",
-    });
+    const aAfter = await getBalance(secretjs, accounts.a.address);
+    const cAfter = await getBalance(secretjs, accounts.c.address);
 
-    expect(BigInt(aBalanceBefore) - BigInt(aBalanceAfter)).toBe(
-      1n + BigInt(gasToFee(100_000, 0.25)),
-    );
-    expect(BigInt(cBalanceAfter) - BigInt(cBalanceBefore)).toBe(1n);
-  }, 20_000);
+    expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(100_000, 0.25)));
+    expect(cAfter - cBefore).toBe(BigInt(1));
+  });
 });
 
 describe("query.compute", () => {

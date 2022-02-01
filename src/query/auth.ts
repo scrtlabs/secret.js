@@ -24,11 +24,12 @@ interface Rpc {
   ): Promise<Uint8Array>;
 }
 
-type Account = {
+type AccountData = {
   type: "BaseAccount" | "ModuleAccount" | "BaseVestingAccount";
   account: BaseAccount | ModuleAccount | BaseVestingAccount;
-} | null;
-export { Account, BaseAccount, ModuleAccount, BaseVestingAccount };
+};
+type Account = AccountData | null;
+export { Account, AccountData, BaseAccount, ModuleAccount, BaseVestingAccount };
 
 /** AuthQuerier is the query interface for the x/auth module */
 export class AuthQuerier /* implements Query */ {
