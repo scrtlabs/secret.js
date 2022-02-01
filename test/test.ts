@@ -230,19 +230,19 @@ describe("query.auth", () => {
     const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const response = await secretjs.query.auth.account({
-      address: accounts.a.address,
+      address: accounts.b.address,
     });
 
     if (!response) {
-      fail(`Account "${accounts.a.address}" should exist`);
+      fail(`Account "${accounts.b.address}" should exist`);
     }
 
     expect(response.type).toBe("BaseAccount");
 
     const account = response.account as BaseAccount;
 
-    expect(account.address).toBe(accounts.a.address);
-    expect(account.accountNumber).toBe("0");
+    expect(account.address).toBe(accounts.b.address);
+    expect(account.accountNumber).toBe("1");
     expect(account.sequence).toBe("0");
   });
 
