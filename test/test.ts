@@ -321,8 +321,6 @@ describe("query.compute", () => {
       "sSCRT",
       accounts[0],
     );
-
-    console.log("code id", codeId);
   }, SECONDS_30 * 2 * 10);
 
   test("queryContract()", async () => {
@@ -433,6 +431,9 @@ describe("tx.bank", () => {
 });
 
 describe("tx.compute", () => {
+  // In this batch of tests each test assumes the success of previous tests
+  // This is done to save setup time for each test
+
   let codeId: number;
   let contractAddress: string;
   let contractCodeHash: string;
@@ -466,6 +467,8 @@ describe("tx.compute", () => {
   });
 
   test("MsgInstantiateContract", async () => {
+    // This test assumes the success of MsgStoreCode
+
     const { secretjs } = accounts[0];
 
     const {
@@ -513,6 +516,8 @@ describe("tx.compute", () => {
   });
 
   test("MsgExecuteContract", async () => {
+    // This test assumes the success of MsgStoreCode & MsgInstantiateContract
+
     const { secretjs } = accounts[0];
 
     const msg = new MsgExecuteContract({
