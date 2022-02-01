@@ -4,10 +4,14 @@ import {
   MsgMultiSend,
   SecretNetworkClient,
   SecretSecp256k1HdWallet,
+  MsgStoreCode,
+  MsgInstantiateContract,
+  MsgExecuteContract,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
+import fs from "fs";
 
 const SECONDS_30 = 30_000;
 
@@ -171,14 +175,14 @@ beforeAll(async () => {
                   accounts[accountId] = parsedAccount as Account;
 
                   console.log(
-                    `Genesis account "${accountId}": ${JSON.stringify(
+                    `account[${accountId}]:\n${JSON.stringify(
                       {
                         ...accounts[accountId],
                         wallet: undefined, // don't flood the screen with wallet object internals
                         secretjs: undefined, // don't flood the screen with secretjs object internals
                       },
                       null,
-                      4,
+                      2,
                     )}`,
                   );
                 }
@@ -425,5 +429,115 @@ describe("tx.bank", () => {
     expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.25)));
     expect(bAfter - bBefore).toBe(BigInt(1));
     expect(cAfter - cBefore).toBe(BigInt(1));
+  });
+});
+
+describe("tx.compute", () => {
+  let codeId: number;
+  let contractAddress: string;
+  let contractCodeHash: string;
+
+  test("MsgStoreCode", async () => {
+    const { secretjs } = accounts[0];
+
+    const msg = new MsgStoreCode({
+      sender: accounts[0].address,
+      wasmByteCode: fs.readFileSync(
+        `${__dirname}/snip20-ibc.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const log = JSON.parse(tx.rawLog!);
+
+    expect(log[0].events[0].attributes[3].key).toBe("code_id");
+    expect(Number(log[0].events[0].attributes[3].value)).toBeGreaterThan(0);
+
+    codeId = Number(log[0].events[0].attributes[3].value);
+  });
+
+  test("MsgInstantiateContract", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const msg = new MsgInstantiateContract({
+      sender: accounts[0].address,
+      codeId,
+      codeHash,
+      initMsg: {
+        name: "Secret SCRT",
+        admin: accounts[0].address,
+        symbol: "SSCRT",
+        decimals: 6,
+        initial_balances: [{ address: accounts[0].address, amount: "1" }],
+        prng_seed: "eW8=",
+        config: {
+          public_total_supply: true,
+          enable_deposit: true,
+          enable_redeem: true,
+          enable_mint: false,
+          enable_burn: false,
+        },
+        supported_denoms: ["uscrt"],
+      },
+      label: `label-${Date.now()}`,
+      initFunds: [],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const log = JSON.parse(tx.rawLog!);
+
+    expect(log[0].events[0].attributes[4].key).toBe("contract_address");
+
+    contractAddress = String(log[0].events[0].attributes[4].value);
+    contractCodeHash = String(codeHash);
+  });
+
+  test("MsgExecuteContract", async () => {
+    const { secretjs } = accounts[0];
+
+    const msg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract: contractAddress,
+      codeHash: contractCodeHash,
+      msg: { set_viewing_key: { key: "banana 🍌" } },
+      sentFunds: [],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const log = JSON.parse(tx.rawLog!);
+
+    expect(log[0].events[0].attributes[0].key).toBe("action");
+    expect(log[0].events[0].attributes[0].value).toBe("execute");
+    expect(log[0].events[0].attributes[3].key).toBe("contract_address");
+    expect(log[0].events[0].attributes[3].value).toBe(contractAddress);
+    expect(log[0].events[1].attributes[0].key).toBe("contract_address");
+    expect(log[0].events[1].attributes[0].value).toBe(contractAddress);
   });
 });

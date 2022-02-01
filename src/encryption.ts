@@ -3,7 +3,7 @@ import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
 import hkdf from "js-crypto-hkdf";
 import * as miscreant from "miscreant";
 import secureRandom from "secure-random";
-import { RegistrationQuerier } from "./query/secret";
+import { RegistrationQuerier } from "./query/compute";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 

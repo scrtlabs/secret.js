@@ -14,9 +14,13 @@ import {
   makeSignDoc as makeSignDocProto,
   OfflineSigner,
 } from "@cosmjs/proto-signing";
-import { DeliverTxResponse, IndexedTx, SignerData } from "@cosmjs/stargate";
+import {
+  DeliverTxResponse,
+  IndexedTx,
+  SignerData,
+  StdFee,
+} from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { StdFee } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
 import { TxBody, TxRaw } from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
@@ -40,7 +44,7 @@ import {
   TendermintQuerier,
   UpgradeQuerier,
 } from "./query/cosmos";
-import { ComputeQuerier, RegistrationQuerier } from "./query/secret";
+import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
 import { Msg, ProtoMsg } from "./tx/types";
 
 export type SigningOptions = {

@@ -8,12 +8,14 @@ import {
 import { Coin } from "../protobuf_stuff/cosmos/base/v1beta1/coin";
 export { Coin, Input, Output };
 
+export type MsgSendParams = MsgSendProto;
+
 export class MsgSend implements Msg {
   public fromAddress: string;
   public toAddress: string;
   public amount: Coin[];
 
-  constructor({ fromAddress, toAddress, amount }: MsgSendProto) {
+  constructor({ fromAddress, toAddress, amount }: MsgSendParams) {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.amount = amount;
@@ -47,11 +49,13 @@ export class MsgSend implements Msg {
   }
 }
 
+export type MsgMultiSendParams = MsgMultiSendProto;
+
 export class MsgMultiSend implements Msg {
   public inputs: Input[];
   public outputs: Output[];
 
-  constructor({ inputs, outputs }: MsgMultiSendProto) {
+  constructor({ inputs, outputs }: MsgMultiSendParams) {
     this.inputs = inputs;
     this.outputs = outputs;
   }

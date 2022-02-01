@@ -8,7 +8,7 @@ import {
   MsgStoreCode as MsgStoreCodeProto,
   protobufPackage,
 } from "../protobuf_stuff/secret/compute/v1beta1/msg";
-import { addressToBytes } from "../query/secret";
+import { addressToBytes } from "../query/compute";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams {
@@ -30,9 +30,10 @@ export interface MsgInstantiateContractParams {
 
 export class MsgInstantiateContract implements Msg {
   public sender: string;
-  public codeId: number;
+  public codeId: string;
   public label: string;
   public initMsg: object;
+  private initMsgEncrypted: Uint8Array | null;
   public initFunds: Coin[];
   public codeHash: string;
 
@@ -45,25 +46,31 @@ export class MsgInstantiateContract implements Msg {
     codeHash,
   }: MsgInstantiateContractParams) {
     this.sender = sender;
-    this.codeId = codeId;
+    this.codeId = String(codeId);
     this.label = label;
     this.initMsg = initMsg;
+    this.initMsgEncrypted = null;
     this.initFunds = initFunds;
-    this.codeHash = codeHash;
+    this.codeHash = codeHash.replace("0x", "");
   }
+
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
-    const encryptedContractInput = await utils.encrypt(
-      this.codeHash,
-      this.initMsg,
-    );
+    if (!this.initMsgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.initMsgEncrypted = await utils.encrypt(this.codeHash, this.initMsg);
+    }
+
     const msgContent: MsgInstantiateContractProto = {
       sender: addressToBytes(this.sender),
-      callbackCodeHash: "",
-      codeId: String(this.codeId),
+      codeId: this.codeId,
       label: this.label,
-      initMsg: encryptedContractInput,
+      initMsg: this.initMsgEncrypted,
       initFunds: this.initFunds,
+      // callbackSig & callbackCodeHash are internal stuff that doesn't matter here
       callbackSig: new Uint8Array(),
+      callbackCodeHash: "",
     };
 
     return {
@@ -74,19 +81,22 @@ export class MsgInstantiateContract implements Msg {
       },
     };
   }
+
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
-    const encryptedContractInput = await utils.encrypt(
-      this.codeHash,
-      this.initMsg,
-    );
+    if (!this.initMsgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.initMsgEncrypted = await utils.encrypt(this.codeHash, this.initMsg);
+    }
 
     return {
       type: "wasm/MsgInstantiateContract",
       value: {
         sender: this.sender,
-        code_id: String(this.codeId),
+        code_id: this.codeId,
         label: this.label,
-        init_msg: toBase64(encryptedContractInput),
+        init_msg: toBase64(this.initMsgEncrypted),
         init_funds: this.initFunds,
       },
     };
@@ -113,6 +123,7 @@ export class MsgExecuteContract implements Msg {
   public sender: string;
   public contract: string;
   public msg: object;
+  private msgEncrypted: Uint8Array | null;
   public sentFunds: Coin[];
   public codeHash: string;
 
@@ -126,19 +137,27 @@ export class MsgExecuteContract implements Msg {
     this.sender = sender;
     this.contract = contract;
     this.msg = msg;
+    this.msgEncrypted = null;
     this.sentFunds = sentFunds;
-    this.codeHash = codeHash;
+    this.codeHash = codeHash.replace("0x", "");
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
-    const encryptedContractInput = await utils.encrypt(this.codeHash, this.msg);
+    if (!this.msgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
+    }
+
     const msgContent: MsgExecuteContractProto = {
       sender: addressToBytes(this.sender),
       contract: addressToBytes(this.contract),
-      callbackCodeHash: "",
-      msg: encryptedContractInput,
+      msg: this.msgEncrypted,
       sentFunds: this.sentFunds,
+      // callbackSig & callbackCodeHash are internal stuff that doesn't matter here
       callbackSig: new Uint8Array(),
+      callbackCodeHash: "",
     };
 
     return {
@@ -150,14 +169,19 @@ export class MsgExecuteContract implements Msg {
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
-    const encryptedContractInput = await utils.encrypt(this.codeHash, this.msg);
+    if (!this.msgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
+    }
 
     return {
       type: "wasm/MsgExecuteContract",
       value: {
         sender: this.sender,
         contract: this.contract,
-        msg: toBase64(encryptedContractInput),
+        msg: toBase64(this.msgEncrypted),
         sent_funds: this.sentFunds,
       },
     };
@@ -210,12 +234,12 @@ export class MsgStoreCode implements Msg {
   }
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "wasm/MsgExecuteContract",
+      type: "wasm/MsgStoreCode",
       value: {
         sender: this.sender,
         wasm_byte_code: toBase64(this.wasmByteCode),
-        source: this.source ? this.source : undefined,
-        builder: this.builder ? this.builder : undefined,
+        source: this.source.length > 0 ? this.source : undefined,
+        builder: this.builder.length > 0 ? this.builder : undefined,
       },
     };
   }
