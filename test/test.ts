@@ -4,9 +4,6 @@ import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 const SECONDS_30 = 30_000;
 
 type Account = {
@@ -29,14 +26,18 @@ function isEmpty(a: Account): boolean {
   return a.name === "";
 }
 
-let accounts: { [name: string]: Account } = {
-  a: emptyAccount,
-  b: emptyAccount,
-  c: emptyAccount,
-  d: emptyAccount,
-};
+const accounts: Account[] = [
+  emptyAccount,
+  emptyAccount,
+  emptyAccount,
+  emptyAccount,
+];
 
-function getMnemonicRegexForAccount(account: string) {
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getMnemonicRegexForAccountName(account: string) {
   return new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
 }
 
@@ -138,20 +139,23 @@ beforeAll(async () => {
         reject();
       }, SECONDS_30); // reject after X time
 
+      const accountIdToName = { 0: "a", 1: "b", 2: "c", 3: "d" };
       while (keepChecking) {
         try {
           // extract mnemonics of genesis accounts from logs
           if (Object.values(accounts).find((a) => isEmpty(a))) {
             const { stdout } = await exec("docker logs secretjs-testnet");
             const logs = String(stdout);
-            for (const account of Object.keys(accounts)) {
-              if (isEmpty(accounts[account])) {
-                const match = logs.match(getMnemonicRegexForAccount(account));
+            for (const accountId of [0, 1, 2, 3]) {
+              if (isEmpty(accounts[accountId])) {
+                const match = logs.match(
+                  getMnemonicRegexForAccountName(accountIdToName[accountId]),
+                );
                 if (match) {
-                  accounts[account] = JSON.parse(match[0]) as Account;
+                  accounts[accountId] = JSON.parse(match[0]) as Account;
                   console.log(
-                    `Genesis account "${account}": ${JSON.stringify(
-                      accounts[account],
+                    `Genesis account "${accountId}": ${JSON.stringify(
+                      accounts[accountId],
                       null,
                       4,
                     )}`,
@@ -219,8 +223,8 @@ describe("query.auth", () => {
         const account = x.account as BaseAccount;
 
         return (
-          account.address === accounts.a.address ||
-          account.address === accounts.b.address
+          account.address === accounts[0].address ||
+          account.address === accounts[1].address
         );
       }).length,
     ).toBe(2);
@@ -230,18 +234,18 @@ describe("query.auth", () => {
     const secretjs = await SecretNetworkClient.create("http://localhost:26657");
 
     const response = await secretjs.query.auth.account({
-      address: accounts.b.address,
+      address: accounts[1].address,
     });
 
     if (!response) {
-      fail(`Account "${accounts.b.address}" should exist`);
+      fail(`Account "${accounts[1].address}" should exist`);
     }
 
     expect(response.type).toBe("BaseAccount");
 
     const account = response.account as BaseAccount;
 
-    expect(account.address).toBe(accounts.b.address);
+    expect(account.address).toBe(accounts[1].address);
     expect(account.accountNumber).toBe("1");
     expect(account.sequence).toBe("0");
   });
@@ -265,26 +269,26 @@ describe("query.auth", () => {
 describe("tx.bank", () => {
   test("MsgSend", async () => {
     const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
-      accounts.a.mnemonic,
+      accounts[0].mnemonic,
     );
     const [{ address }] = await wallet.getAccounts();
-    expect(address).toBe(accounts.a.address);
+    expect(address).toBe(accounts[0].address);
 
     const secretjs = await SecretNetworkClient.create(
       "http://localhost:26657",
       {
         signer: wallet,
-        signerAddress: accounts.a.address,
+        signerAddress: accounts[0].address,
         chainId: "secretdev-1",
       },
     );
 
-    const aBefore = await getBalance(secretjs, accounts.a.address);
-    const cBefore = await getBalance(secretjs, accounts.c.address);
+    const aBefore = await getBalance(secretjs, accounts[0].address);
+    const cBefore = await getBalance(secretjs, accounts[2].address);
 
     const msg = new MsgSend({
-      fromAddress: accounts.a.address,
-      toAddress: accounts.c.address,
+      fromAddress: accounts[0].address,
+      toAddress: accounts[2].address,
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
@@ -296,8 +300,8 @@ describe("tx.bank", () => {
 
     expect(tx.code).toBe(0);
 
-    const aAfter = await getBalance(secretjs, accounts.a.address);
-    const cAfter = await getBalance(secretjs, accounts.c.address);
+    const aAfter = await getBalance(secretjs, accounts[0].address);
+    const cAfter = await getBalance(secretjs, accounts[2].address);
 
     expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(100_000, 0.25)));
     expect(cAfter - cBefore).toBe(BigInt(1));
@@ -310,17 +314,17 @@ describe("query.compute", () => {
   beforeAll(async () => {
     const codeId = await secretcliStore(
       `${__dirname}/snip20-ibc.wasm.gz`,
-      accounts.a,
+      accounts[0],
     );
 
     sSCRT = await secretcliInit(
       codeId,
       {
         name: "Secret SCRT",
-        admin: accounts.a.address,
+        admin: accounts[0].address,
         symbol: "SSCRT",
         decimals: 6,
-        initial_balances: [{ address: accounts.a.address, amount: "1" }],
+        initial_balances: [{ address: accounts[0].address, amount: "1" }],
         prng_seed: "eW8=",
         config: {
           public_total_supply: true,
@@ -332,7 +336,7 @@ describe("query.compute", () => {
         supported_denoms: ["uscrt"],
       },
       "sSCRT",
-      accounts.a,
+      accounts[0],
     );
 
     console.log("code id", codeId);
