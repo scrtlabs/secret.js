@@ -1,4 +1,4 @@
-import { AminoMsg, Msg, ProtoMsg } from ".";
+import { AminoMsg, Msg, ProtoMsg } from "./types";
 import { Input, Output } from "../protobuf_stuff/cosmos/bank/v1beta1/bank";
 import {
   MsgMultiSend as MsgMultiSendProto,

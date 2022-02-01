@@ -1,0 +1,58 @@
+import {
+  MsgBeginRedelegate as MsgBeginRedelegateProto,
+  MsgCreateValidator as MsgCreateValidatorProto,
+  MsgDelegate as MsgDelegateProto,
+  MsgEditValidator as MsgEditValidatorProto,
+  MsgUndelegate as MsgUndelegateProto,
+} from "../protobuf_stuff/cosmos/staking/v1beta1/tx";
+import { AminoMsg, Msg, ProtoMsg } from "./types";
+
+export class MsgCreateValidator implements Msg {
+  constructor(msg: MsgCreateValidatorProto) {}
+  toProto(): ProtoMsg {
+    throw new Error("Method not implemented.");
+  }
+  toAmino(): AminoMsg {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class MsgEditValidator implements Msg {
+  constructor(msg: MsgEditValidatorProto) {}
+  toProto(): ProtoMsg {
+    throw new Error("Method not implemented.");
+  }
+  toAmino(): AminoMsg {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class MsgDelegate implements Msg {
+  constructor(msg: MsgDelegateProto) {}
+  toProto(): ProtoMsg {
+    throw new Error("Method not implemented.");
+  }
+  toAmino(): AminoMsg {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class MsgBeginRedelegate implements Msg {
+  constructor(msg: MsgBeginRedelegateProto) {}
+  toProto(): ProtoMsg {
+    throw new Error("Method not implemented.");
+  }
+  toAmino(): AminoMsg {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class MsgUndelegate implements Msg {
+  constructor(msg: MsgUndelegateProto) {}
+  toProto(): ProtoMsg {
+    throw new Error("Method not implemented.");
+  }
+  toAmino(): AminoMsg {
+    throw new Error("Method not implemented.");
+  }
+}

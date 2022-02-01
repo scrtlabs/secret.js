@@ -41,7 +41,7 @@ import {
   UpgradeQuerier,
 } from "./query/cosmos";
 import { ComputeQuerier, RegistrationQuerier } from "./query/secret";
-import { Msg, ProtoMsg } from "./tx";
+import { Msg, ProtoMsg } from "./tx/types";
 
 export type SigningOptions = {
   broadcastTimeoutMs?: number;
