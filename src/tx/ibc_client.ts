@@ -8,40 +8,40 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgUpdateClient implements Msg {
   constructor(msg: MsgUpdateClientProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgUpgradeClient implements Msg {
   constructor(msg: MsgUpgradeClientProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgSubmitMisbehaviour implements Msg {
   constructor(msg: MsgSubmitMisbehaviourProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgCreateClient implements Msg {
   constructor(msg: MsgCreateClientProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }

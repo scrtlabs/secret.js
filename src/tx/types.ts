@@ -1,3 +1,5 @@
+import { EncryptionUtils } from "..";
+
 export interface ProtoMsg {
   typeUrl: string;
   value: any;
@@ -10,6 +12,6 @@ export type AminoMsg = {
 };
 
 export interface Msg {
-  toProto(): ProtoMsg;
-  toAmino(): AminoMsg;
+  toProto(utils: EncryptionUtils): Promise<ProtoMsg>;
+  toAmino(utils: EncryptionUtils): Promise<AminoMsg>;
 }

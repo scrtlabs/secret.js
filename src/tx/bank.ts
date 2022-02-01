@@ -19,21 +19,23 @@ export class MsgSend implements Msg {
     this.amount = amount;
   }
 
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      fromAddress: this.fromAddress,
+      toAddress: this.toAddress,
+      amount: this.amount,
+    };
+
     return {
       typeUrl: `/${protobufPackage}.MsgSend`,
-      value: {
-        fromAddress: this.fromAddress,
-        toAddress: this.toAddress,
-        amount: this.amount,
-      },
-      encode: (): Uint8Array => {
-        return MsgSendProto.encode(this).finish();
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgSendProto.encode(msgContent).finish();
       },
     };
   }
 
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgSend",
       value: {
@@ -54,20 +56,22 @@ export class MsgMultiSend implements Msg {
     this.outputs = outputs;
   }
 
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      inputs: this.inputs,
+      outputs: this.outputs,
+    };
+
     return {
       typeUrl: `/${protobufPackage}.MsgMultiSend`,
-      value: {
-        inputs: this.inputs,
-        outputs: this.outputs,
-      },
-      encode: (): Uint8Array => {
-        return MsgMultiSendProto.encode(this).finish();
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgMultiSendProto.encode(msgContent).finish();
       },
     };
   }
 
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgMultiSend",
       value: {

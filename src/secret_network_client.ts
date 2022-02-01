@@ -463,7 +463,9 @@ export class SecretNetworkClient {
       encodeSecp256k1Pubkey(accountFromSigner.pubkey),
     );
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
-    const msgs = messages.map((msg) => msg.toAmino());
+    const msgs = await Promise.all(
+      messages.map((msg) => msg.toAmino(this.encryptionUtils)),
+    );
     const signDoc = makeSignDocAmino(
       msgs,
       fee,
@@ -479,7 +481,9 @@ export class SecretNetworkClient {
     const signedTxBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
-        messages: messages.map((msg) => msg.toProto()),
+        messages: await Promise.all(
+          messages.map((msg) => msg.toProto(this.encryptionUtils)),
+        ),
         memo: signed.memo,
       },
     };
@@ -544,7 +548,9 @@ export class SecretNetworkClient {
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
-        messages: messages.map((msg) => msg.toProto()),
+        messages: await Promise.all(
+          messages.map((msg) => msg.toProto(this.encryptionUtils)),
+        ),
         memo: memo,
       },
     };

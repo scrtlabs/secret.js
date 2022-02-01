@@ -3,10 +3,10 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgVerifyInvariant implements Msg {
   constructor(msg: MsgVerifyInvariantProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }

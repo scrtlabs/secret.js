@@ -8,40 +8,40 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgConnectionOpenInit implements Msg {
   constructor(msg: MsgConnectionOpenInitProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgConnectionOpenTry implements Msg {
   constructor(msg: MsgConnectionOpenTryProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgConnectionOpenAck implements Msg {
   constructor(msg: MsgConnectionOpenAckProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgConnectionOpenConfirm implements Msg {
   constructor(msg: MsgConnectionOpenConfirmProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }

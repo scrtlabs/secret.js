@@ -8,10 +8,10 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 export class MsgGrant implements Msg {
   constructor(msg: MsgGrantProto) {}
 
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
@@ -19,10 +19,10 @@ export class MsgGrant implements Msg {
 export class MsgExec implements Msg {
   constructor(msg: MsgExecProto) {}
 
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
@@ -30,10 +30,10 @@ export class MsgExec implements Msg {
 export class MsgRevoke implements Msg {
   constructor(msg: MsgRevokeProto) {}
 
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }

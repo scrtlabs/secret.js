@@ -9,50 +9,50 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgCreateValidator implements Msg {
   constructor(msg: MsgCreateValidatorProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgEditValidator implements Msg {
   constructor(msg: MsgEditValidatorProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgDelegate implements Msg {
   constructor(msg: MsgDelegateProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgBeginRedelegate implements Msg {
   constructor(msg: MsgBeginRedelegateProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgUndelegate implements Msg {
   constructor(msg: MsgUndelegateProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }

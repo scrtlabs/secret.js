@@ -6,20 +6,20 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgGrantAllowance implements Msg {
   constructor(msg: MsgGrantAllowanceProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
 
 export class MsgRevokeAllowance implements Msg {
   constructor(msg: MsgRevokeAllowanceProto) {}
-  toProto(): ProtoMsg {
+  async toProto(): Promise<ProtoMsg> {
     throw new Error("Method not implemented.");
   }
-  toAmino(): AminoMsg {
+  async toAmino(): Promise<AminoMsg> {
     throw new Error("Method not implemented.");
   }
 }
