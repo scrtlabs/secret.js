@@ -12,26 +12,10 @@ type Account = {
   address: string;
   pubkey: string;
   mnemonic: string;
+  wallet: SecretSecp256k1HdWallet;
 };
 
-const emptyAccount: Account = {
-  name: "",
-  type: "",
-  address: "",
-  pubkey: "",
-  mnemonic: "",
-};
-
-function isEmpty(a: Account): boolean {
-  return a.name === "";
-}
-
-const accounts: Account[] = [
-  emptyAccount,
-  emptyAccount,
-  emptyAccount,
-  emptyAccount,
-];
+const accounts: Account[] = [];
 
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -133,29 +117,37 @@ beforeAll(async () => {
     }
 
     return new Promise<void>(async (accept, reject) => {
+      // Wait for chain to start (blocks > 0)
+      // Also extract genesis accounts for easy usage in the tests
+
       let keepChecking = true;
       const rejectTimeoout = setTimeout(() => {
         keepChecking = false;
         reject();
       }, SECONDS_30); // reject after X time
 
-      const accountIdToName = { 0: "a", 1: "b", 2: "c", 3: "d" };
+      const accountIdToName = ["a", "b", "c", "d"];
       while (keepChecking) {
         try {
           // extract mnemonics of genesis accounts from logs
-          if (Object.values(accounts).find((a) => isEmpty(a))) {
             const { stdout } = await exec("docker logs secretjs-testnet");
             const logs = String(stdout);
             for (const accountId of [0, 1, 2, 3]) {
-              if (isEmpty(accounts[accountId])) {
+            if (!accounts[accountId]) {
                 const match = logs.match(
                   getMnemonicRegexForAccountName(accountIdToName[accountId]),
                 );
                 if (match) {
-                  accounts[accountId] = JSON.parse(match[0]) as Account;
+                const parsedAccount = JSON.parse(match[0]);
+                parsedAccount.wallet =
+                  await SecretSecp256k1HdWallet.fromMnemonic(
+                    parsedAccount.mnemonic,
+                  );
+                accounts[accountId] = parsedAccount as Account;
+
                   console.log(
                     `Genesis account "${accountId}": ${JSON.stringify(
-                      accounts[accountId],
+                    { ...accounts[accountId], wallet: undefined }, // don't flood the screen with wallet object internals
                       null,
                       4,
                     )}`,
@@ -163,7 +155,6 @@ beforeAll(async () => {
                 }
               }
             }
-          }
 
           // check if the network has started (i.e. block number >= 1)
           const { stdout: status } = await exec(
@@ -174,7 +165,7 @@ beforeAll(async () => {
 
           if (
             Number(resp?.SyncInfo?.latest_block_height) >= 1 &&
-            !Object.values(accounts).find((a) => isEmpty(a))
+            accounts.filter((a) => a).length === 4
           ) {
             clearTimeout(rejectTimeoout);
             accept();
