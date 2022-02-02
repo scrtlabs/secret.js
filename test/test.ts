@@ -49,18 +49,22 @@ function getMnemonicRegexForAccountName(account: string) {
   return new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
 }
 
-function findLogValue(log: any, key: string): string | null {
-  for (const l of log) {
+function getValueFromRawLog(rawLog: string | undefined, key: string): string {
+  if (!rawLog) {
+    return "";
+  }
+
+  for (const l of JSON.parse(rawLog)) {
     for (const e of l.events) {
       for (const a of e.attributes) {
-        if (a.key === key) {
+        if (`${e.type}.${a.key}` === key) {
           return String(a.value);
         }
       }
     }
   }
 
-  return null;
+  return "";
 }
 
 async function waitForTx(txhash: string): Promise<any> {
@@ -449,13 +453,6 @@ describe("tx.bank", () => {
 });
 
 describe("tx.compute", () => {
-  // In this batch of tests each test assumes the success of previous tests
-  // This is done to save setup time for each test
-
-  let codeId: number;
-  let contractAddress: string;
-  let contractCodeHash: string;
-
   test("MsgStoreCode", async () => {
     const { secretjs } = accounts[0];
 
@@ -475,19 +472,34 @@ describe("tx.compute", () => {
     });
 
     expect(tx.code).toBe(0);
-
-    const log = JSON.parse(tx.rawLog!);
-
-    expect(log[0].events[0].attributes[3].key).toBe("code_id");
-    expect(Number(log[0].events[0].attributes[3].value)).toBeGreaterThan(0);
-
-    codeId = Number(log[0].events[0].attributes[3].value);
+    expect(
+      Number(getValueFromRawLog(tx.rawLog, "message.code_id")),
+    ).toBeGreaterThan(0);
   });
 
   test("MsgInstantiateContract", async () => {
-    // This test assumes the success of MsgStoreCode
-
     const { secretjs } = accounts[0];
+
+    const msgStore = new MsgStoreCode({
+      sender: accounts[0].address,
+      wasmByteCode: fs.readFileSync(
+        `${__dirname}/snip20-ibc.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    });
+
+    const txStore = await secretjs.tx.signAndBroadcast([msgStore], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
 
     const {
       codeInfo: { codeHash },
@@ -525,23 +537,78 @@ describe("tx.compute", () => {
 
     expect(tx.code).toBe(0);
 
-    const log = JSON.parse(tx.rawLog!);
-
-    expect(log[0].events[0].attributes[4].key).toBe("contract_address");
-
-    contractAddress = String(log[0].events[0].attributes[4].value);
-    contractCodeHash = String(codeHash);
+    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("instantiate");
+    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+      "secret1",
+    );
   });
 
   test("MsgExecuteContract", async () => {
-    // This test assumes the success of MsgStoreCode & MsgInstantiateContract
-
     const { secretjs } = accounts[0];
+
+    const msgStore = new MsgStoreCode({
+      sender: accounts[0].address,
+      wasmByteCode: fs.readFileSync(
+        `${__dirname}/snip20-ibc.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    });
+
+    const txStore = await secretjs.tx.signAndBroadcast([msgStore], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const msgInit = new MsgInstantiateContract({
+      sender: accounts[0].address,
+      codeId,
+      codeHash,
+      initMsg: {
+        name: "Secret SCRT",
+        admin: accounts[0].address,
+        symbol: "SSCRT",
+        decimals: 6,
+        initial_balances: [{ address: accounts[0].address, amount: "1" }],
+        prng_seed: "eW8=",
+        config: {
+          public_total_supply: true,
+          enable_deposit: true,
+          enable_redeem: true,
+          enable_mint: false,
+          enable_burn: false,
+        },
+        supported_denoms: ["uscrt"],
+      },
+      label: `label-${Date.now()}`,
+      initFunds: [],
+    });
+
+    const txInit = await secretjs.tx.signAndBroadcast([msgInit], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txInit.code).toBe(0);
+
+    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
 
     const msg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract: contractAddress,
-      codeHash: contractCodeHash,
+      contract,
+      codeHash,
       msg: { set_viewing_key: { key: "banana 🍌" } },
       sentFunds: [],
     });
@@ -554,14 +621,10 @@ describe("tx.compute", () => {
 
     expect(tx.code).toBe(0);
 
-    const log = JSON.parse(tx.rawLog!);
-
-    expect(log[0].events[0].attributes[0].key).toBe("action");
-    expect(log[0].events[0].attributes[0].value).toBe("execute");
-    expect(log[0].events[0].attributes[3].key).toBe("contract_address");
-    expect(log[0].events[0].attributes[3].value).toBe(contractAddress);
-    expect(log[0].events[1].attributes[0].key).toBe("contract_address");
-    expect(log[0].events[1].attributes[0].value).toBe(contractAddress);
+    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("execute");
+    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
+      contract,
+    );
   });
 });
 
@@ -607,11 +670,13 @@ describe("tx.gov", () => {
 
       expect(tx.code).toBe(0);
 
-      const log = JSON.parse(tx.rawLog!);
+      expect(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+      ).toBe("Text");
 
-      expect(findLogValue(log, "proposal_type")).toBe("Text");
-
-      proposalId = Number(findLogValue(log, "proposal_id"));
+      proposalId = Number(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id"),
+      );
       expect(proposalId).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
@@ -644,12 +709,12 @@ describe("tx.gov", () => {
 
       expect(tx.code).toBe(0);
 
-      const log = JSON.parse(tx.rawLog!);
-
-      expect(findLogValue(log, "proposal_type")).toBe("CommunityPoolSpend");
-      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+      ).toBe("CommunityPoolSpend");
+      expect(
+        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
@@ -682,12 +747,12 @@ describe("tx.gov", () => {
 
       expect(tx.code).toBe(0);
 
-      const log = JSON.parse(tx.rawLog!);
-
-      expect(findLogValue(log, "proposal_type")).toBe("ParameterChange");
-      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+      ).toBe("ParameterChange");
+      expect(
+        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
@@ -725,12 +790,12 @@ describe("tx.gov", () => {
 
       expect(tx.code).toBe(0);
 
-      const log = JSON.parse(tx.rawLog!);
-
-      expect(findLogValue(log, "proposal_type")).toBe("SoftwareUpgrade");
-      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+      ).toBe("SoftwareUpgrade");
+      expect(
+        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
@@ -760,12 +825,12 @@ describe("tx.gov", () => {
 
       expect(tx.code).toBe(0);
 
-      const log = JSON.parse(tx.rawLog!);
-
-      expect(findLogValue(log, "proposal_type")).toBe("CancelSoftwareUpgrade");
-      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(
+        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+      ).toBe("CancelSoftwareUpgrade");
+      expect(
+        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
