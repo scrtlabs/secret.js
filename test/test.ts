@@ -812,8 +812,8 @@ describe("tx.gov", () => {
         proposer: accounts[0].address,
         initialDeposit: [],
         content: {
-          title: "Hi let's upgrade",
-          description: "PROD NO FEAR",
+          title: "Hi let's cancel",
+          description: "PROD FEAR",
         },
       });
 
