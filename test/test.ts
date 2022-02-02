@@ -15,6 +15,7 @@ import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
 import fs from "fs";
+import { Proposal } from "../src/protobuf_stuff/cosmos/gov/v1beta1/gov";
 
 const SECONDS_30 = 30_000;
 
@@ -570,17 +571,23 @@ describe("tx.gov", () => {
 
   let proposalId: number;
 
+  async function getAllProposals(
+    secretjs: SecretNetworkClient,
+  ): Promise<Proposal[]> {
+    const { proposals } = await secretjs.query.gov.proposals({
+      proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+      voter: "",
+      depositor: "",
+    });
+
+    return proposals;
+  }
+
   describe("MsgSubmitProposal", () => {
     test("TextProposal", async () => {
       const { secretjs } = accounts[0];
 
-      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
-        {
-          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-          voter: "",
-          depositor: "",
-        },
-      );
+      const proposalsBefore = await getAllProposals(secretjs);
 
       const msg = new MsgSubmitProposal({
         type: ProposalType.TextProposal,
@@ -607,11 +614,7 @@ describe("tx.gov", () => {
       proposalId = Number(findLogValue(log, "proposal_id"));
       expect(proposalId).toBeGreaterThanOrEqual(1);
 
-      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
-        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-        voter: "",
-        depositor: "",
-      });
+      const proposalsAfter = await getAllProposals(secretjs);
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
@@ -619,13 +622,7 @@ describe("tx.gov", () => {
     test("CommunityPoolSpendProposal", async () => {
       const { secretjs } = accounts[0];
 
-      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
-        {
-          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-          voter: "",
-          depositor: "",
-        },
-      );
+      const proposalsBefore = await getAllProposals(secretjs);
 
       const msg = new MsgSubmitProposal({
         type: ProposalType.CommunityPoolSpendProposal,
@@ -654,11 +651,7 @@ describe("tx.gov", () => {
         1,
       );
 
-      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
-        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-        voter: "",
-        depositor: "",
-      });
+      const proposalsAfter = await getAllProposals(secretjs);
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
@@ -666,13 +659,7 @@ describe("tx.gov", () => {
     test("ParameterChangeProposal", async () => {
       const { secretjs } = accounts[0];
 
-      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
-        {
-          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-          voter: "",
-          depositor: "",
-        },
-      );
+      const proposalsBefore = await getAllProposals(secretjs);
 
       const msg = new MsgSubmitProposal({
         type: ProposalType.ParameterChangeProposal,
@@ -702,11 +689,7 @@ describe("tx.gov", () => {
         1,
       );
 
-      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
-        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-        voter: "",
-        depositor: "",
-      });
+      const proposalsAfter = await getAllProposals(secretjs);
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
