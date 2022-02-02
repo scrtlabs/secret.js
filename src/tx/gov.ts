@@ -26,7 +26,7 @@ import {
 } from "../protobuf_stuff/ibc/core/client/v1/client";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export type Proposal =
+export type ProposalContent =
   | TextProposalContent
   | CommunityPoolSpendProposalContent
   | ParameterChangeProposalContent
@@ -49,42 +49,62 @@ export {
 
 export enum ProposalType {
   /** @see {@link TextProposalContent} for input type */
-  TextProposal,
+  TextProposal = "TextProposal",
 
   /** @see {@link CommunityPoolSpendProposalContent} for input type */
-  CommunityPoolSpendProposal,
+  CommunityPoolSpendProposal = "CommunityPoolSpendProposal",
 
   /**
    * @see {@link ParameterChangeProposalContent} for input type
    * @see {@link https://docs.scrt.network/guides/governance} for possible subspaces, keys and values.
    */
-  ParameterChangeProposal,
+  ParameterChangeProposal = "ParameterChangeProposal",
 
-  /** @see {@link ClientUpdateProposalContent} for input type */
-  ClientUpdateProposal,
+  /**
+   * @see {@link ClientUpdateProposalContent} for input type
+   * Not supported with Amino signer.
+   */
+  ClientUpdateProposal = "ClientUpdateProposal",
 
-  /** @see {@link UpgradeProposalContent} for input type */
-  UpgradeProposal,
+  /**
+   * @see {@link UpgradeProposalContent} for input type
+   * Not supported with Amino signer.
+   */
+  UpgradeProposal = "UpgradeProposal",
 
   /** @see {@link SoftwareUpgradeProposalContent} for input type */
-  SoftwareUpgradeProposal,
+  SoftwareUpgradeProposal = "SoftwareUpgradeProposal",
 
   /** @see {@link CancelSoftwareUpgradeProposalContent} for input type */
-  CancelSoftwareUpgradeProposal,
+  CancelSoftwareUpgradeProposal = "CancelSoftwareUpgradeProposal",
 }
+
+const proposalTypeToAminoType: Map<ProposalType, string> = new Map([
+  [ProposalType.TextProposal, "cosmos-sdk/TextProposal"],
+  [
+    ProposalType.CommunityPoolSpendProposal,
+    "cosmos-sdk/CommunityPoolSpendProposal",
+  ],
+  [ProposalType.ParameterChangeProposal, "cosmos-sdk/ParameterChangeProposal"],
+  [ProposalType.SoftwareUpgradeProposal, "cosmos-sdk/SoftwareUpgradeProposal"],
+  [
+    ProposalType.CancelSoftwareUpgradeProposal,
+    "cosmos-sdk/CancelSoftwareUpgradeProposal",
+  ],
+]);
 
 export interface MsgSubmitProposalParams {
   type: ProposalType;
-  content: Proposal;
+  content: ProposalContent;
   initialDeposit: Coin[];
   proposer: string;
 }
 
 export class MsgSubmitProposal implements Msg {
-  public content: Proposal;
+  public type: ProposalType;
+  public content: ProposalContent;
   public initialDeposit: Coin[];
   public proposer: string;
-  public type: ProposalType;
 
   constructor({
     type,
@@ -189,51 +209,22 @@ export class MsgSubmitProposal implements Msg {
   }
 
   async toAmino(): Promise<AminoMsg> {
-    let type: string;
-
-    switch (this.type) {
-      case ProposalType.TextProposal:
-        type = "cosmos-sdk/TextProposal";
-        break;
-
-      case ProposalType.CommunityPoolSpendProposal:
-        type = "cosmos-sdk/CommunityPoolSpendProposal";
-        break;
-
-      case ProposalType.ParameterChangeProposal:
-        type = "cosmos-sdk/ParameterChangeProposal";
-        break;
-
-      case ProposalType.ClientUpdateProposal:
-        throw new Error(
-          'Proposal of type "ClientUpdateProposal" is not supported with an Amino signer.',
-        );
-
-      case ProposalType.UpgradeProposal:
-        throw new Error(
-          'Proposal of type "UpgradeProposal" is not supported with an Amino signer.',
-        );
-
-      case ProposalType.SoftwareUpgradeProposal:
-        type = "cosmos-sdk/SoftwareUpgradeProposal";
-        break;
-
-      case ProposalType.CancelSoftwareUpgradeProposal:
-        type = "cosmos-sdk/CancelSoftwareUpgradeProposal";
-        break;
-
-      default:
-        throw new Error(
-          `Unknown proposal type: "${this.type}" - ${JSON.stringify(
-            this.content,
-          )}`,
-        );
+    const contentType = proposalTypeToAminoType.get(this.type);
+    if (!contentType) {
+      throw new Error(
+        `Proposal of type "${String(
+          this.type,
+        )}" is not supported with an Amino signer.`,
+      );
     }
 
     return {
       type: "cosmos-sdk/MsgSubmitProposal",
       value: {
-        content: { type, value: this.content },
+        content: {
+          type: contentType,
+          value: this.content,
+        },
         initial_deposit: this.initialDeposit,
         proposer: this.proposer,
       },
