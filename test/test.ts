@@ -693,5 +693,83 @@ describe("tx.gov", () => {
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
+
+    test.skip("SoftwareUpgradeProposal", async () => {
+      // TODO make this work
+      // https://discord.com/channels/669268347736686612/680435043570941973/938352848905863178
+
+      const { secretjs } = accounts[0];
+
+      const proposalsBefore = await getAllProposals(secretjs);
+
+      const msg = new MsgSubmitProposal({
+        type: ProposalType.SoftwareUpgradeProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi let's upgrade",
+          description: "PROD NO FEAR",
+          plan: {
+            name: "Shockwave!",
+            height: "1000000",
+            info: "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F",
+          },
+        },
+      });
+
+      const tx = await secretjs.tx.signAndBroadcast([msg], {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      });
+
+      expect(tx.code).toBe(0);
+
+      const log = JSON.parse(tx.rawLog!);
+
+      expect(findLogValue(log, "proposal_type")).toBe("SoftwareUpgrade");
+      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
+        1,
+      );
+
+      const proposalsAfter = await getAllProposals(secretjs);
+
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    });
+
+    test("CancelSoftwareUpgradeProposal", async () => {
+      const { secretjs } = accounts[0];
+
+      const proposalsBefore = await getAllProposals(secretjs);
+
+      const msg = new MsgSubmitProposal({
+        type: ProposalType.CancelSoftwareUpgradeProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi let's upgrade",
+          description: "PROD NO FEAR",
+        },
+      });
+
+      const tx = await secretjs.tx.signAndBroadcast([msg], {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      });
+
+      expect(tx.code).toBe(0);
+
+      const log = JSON.parse(tx.rawLog!);
+
+      expect(findLogValue(log, "proposal_type")).toBe("CancelSoftwareUpgrade");
+      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
+        1,
+      );
+
+      const proposalsAfter = await getAllProposals(secretjs);
+
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    });
   });
 });
