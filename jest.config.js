@@ -2,6 +2,6 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testTimeout: 20000,
+  testTimeout: 30_000,
   modulePathIgnorePatterns: ["scripts/SecretNetwork", "dist"],
 };
