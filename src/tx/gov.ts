@@ -1,6 +1,9 @@
 import { Coin } from "..";
-import { CommunityPoolSpendProposal } from "../protobuf_stuff/cosmos/distribution/v1beta1/distribution";
-import { TextProposal } from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
+import { CommunityPoolSpendProposal as CommunityPoolSpendProposalContent } from "../protobuf_stuff/cosmos/distribution/v1beta1/distribution";
+import {
+  ProposalStatus,
+  TextProposal as TextProposalContent,
+} from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
 import {
   MsgDeposit as MsgDepositProto,
   MsgSubmitProposal as MsgSubmitProposalProto,
@@ -8,44 +11,65 @@ import {
   MsgVoteWeighted as MsgVoteWeightedProto,
   protobufPackage,
 } from "../protobuf_stuff/cosmos/gov/v1beta1/tx";
-import { ParameterChangeProposal } from "../protobuf_stuff/cosmos/params/v1beta1/params";
 import {
-  CancelSoftwareUpgradeProposal,
-  SoftwareUpgradeProposal,
+  ParamChange,
+  ParameterChangeProposal as ParameterChangeProposalContent,
+} from "../protobuf_stuff/cosmos/params/v1beta1/params";
+import {
+  CancelSoftwareUpgradeProposal as CancelSoftwareUpgradeProposalContent,
+  SoftwareUpgradeProposal as SoftwareUpgradeProposalContent,
 } from "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade";
 import { Any } from "../protobuf_stuff/google/protobuf/any";
 import {
-  ClientUpdateProposal,
-  UpgradeProposal,
+  ClientUpdateProposal as ClientUpdateProposalContent,
+  UpgradeProposal as UpgradeProposalContent,
 } from "../protobuf_stuff/ibc/core/client/v1/client";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type Proposal =
-  | TextProposal
-  | CommunityPoolSpendProposal
-  | ParameterChangeProposal
-  | ClientUpdateProposal
-  | UpgradeProposal
-  | SoftwareUpgradeProposal
-  | CancelSoftwareUpgradeProposal;
+  | TextProposalContent
+  | CommunityPoolSpendProposalContent
+  | ParameterChangeProposalContent
+  | ClientUpdateProposalContent
+  | UpgradeProposalContent
+  | SoftwareUpgradeProposalContent
+  | CancelSoftwareUpgradeProposalContent;
 
 export {
-  TextProposal,
-  CommunityPoolSpendProposal,
-  ParameterChangeProposal,
-  ClientUpdateProposal,
-  UpgradeProposal,
-  SoftwareUpgradeProposal,
-  CancelSoftwareUpgradeProposal,
+  TextProposalContent,
+  CommunityPoolSpendProposalContent,
+  ParameterChangeProposalContent,
+  ClientUpdateProposalContent,
+  UpgradeProposalContent,
+  SoftwareUpgradeProposalContent,
+  CancelSoftwareUpgradeProposalContent,
+  ProposalStatus,
+  ParamChange,
 };
 
 export enum ProposalType {
+  /** @see {@link TextProposalContent} for input type */
   TextProposal,
+
+  /** @see {@link CommunityPoolSpendProposalContent} for input type */
   CommunityPoolSpendProposal,
+
+  /**
+   * @see {@link ParameterChangeProposalContent} for input type
+   * @see {@link https://docs.scrt.network/guides/governance} for possible subspaces, keys and values.
+   */
   ParameterChangeProposal,
+
+  /** @see {@link ClientUpdateProposalContent} for input type */
   ClientUpdateProposal,
+
+  /** @see {@link UpgradeProposalContent} for input type */
   UpgradeProposal,
+
+  /** @see {@link SoftwareUpgradeProposalContent} for input type */
   SoftwareUpgradeProposal,
+
+  /** @see {@link CancelSoftwareUpgradeProposalContent} for input type */
   CancelSoftwareUpgradeProposal,
 }
 
@@ -81,8 +105,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.TextProposal:
         content = Any.fromPartial({
           typeUrl: "/cosmos.gov.v1beta1.TextProposal",
-          value: TextProposal.encode(
-            TextProposal.fromPartial(this.content),
+          value: TextProposalContent.encode(
+            TextProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -90,8 +114,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.CommunityPoolSpendProposal:
         content = Any.fromPartial({
           typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
-          value: CommunityPoolSpendProposal.encode(
-            CommunityPoolSpendProposal.fromPartial(this.content),
+          value: CommunityPoolSpendProposalContent.encode(
+            CommunityPoolSpendProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -99,8 +123,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.ParameterChangeProposal:
         content = Any.fromPartial({
           typeUrl: "/cosmos.params.v1beta1.ParameterChangeProposal",
-          value: ParameterChangeProposal.encode(
-            ParameterChangeProposal.fromPartial(this.content),
+          value: ParameterChangeProposalContent.encode(
+            ParameterChangeProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -108,8 +132,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.ClientUpdateProposal:
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.ClientUpdateProposal",
-          value: ClientUpdateProposal.encode(
-            ClientUpdateProposal.fromPartial(this.content),
+          value: ClientUpdateProposalContent.encode(
+            ClientUpdateProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -117,8 +141,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.UpgradeProposal:
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.UpgradeProposal",
-          value: UpgradeProposal.encode(
-            UpgradeProposal.fromPartial(this.content),
+          value: UpgradeProposalContent.encode(
+            UpgradeProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -126,8 +150,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.SoftwareUpgradeProposal:
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
-          value: SoftwareUpgradeProposal.encode(
-            SoftwareUpgradeProposal.fromPartial(this.content),
+          value: SoftwareUpgradeProposalContent.encode(
+            SoftwareUpgradeProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -135,8 +159,8 @@ export class MsgSubmitProposal implements Msg {
       case ProposalType.CancelSoftwareUpgradeProposal:
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
-          value: CancelSoftwareUpgradeProposal.encode(
-            CancelSoftwareUpgradeProposal.fromPartial(this.content),
+          value: CancelSoftwareUpgradeProposalContent.encode(
+            CancelSoftwareUpgradeProposalContent.fromPartial(this.content),
           ).finish(),
         });
         break;

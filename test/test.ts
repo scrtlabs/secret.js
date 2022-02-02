@@ -9,6 +9,7 @@ import {
   MsgExecuteContract,
   MsgSubmitProposal,
   ProposalType,
+  ProposalStatus,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
@@ -573,6 +574,14 @@ describe("tx.gov", () => {
     test("TextProposal", async () => {
       const { secretjs } = accounts[0];
 
+      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
+        {
+          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+          voter: "",
+          depositor: "",
+        },
+      );
+
       const msg = new MsgSubmitProposal({
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
@@ -597,10 +606,26 @@ describe("tx.gov", () => {
 
       proposalId = Number(findLogValue(log, "proposal_id"));
       expect(proposalId).toBeGreaterThanOrEqual(1);
+
+      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
+        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+        voter: "",
+        depositor: "",
+      });
+
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
     test("CommunityPoolSpendProposal", async () => {
       const { secretjs } = accounts[0];
+
+      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
+        {
+          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+          voter: "",
+          depositor: "",
+        },
+      );
 
       const msg = new MsgSubmitProposal({
         type: ProposalType.CommunityPoolSpendProposal,
@@ -628,6 +653,62 @@ describe("tx.gov", () => {
       expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
         1,
       );
+
+      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
+        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+        voter: "",
+        depositor: "",
+      });
+
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    });
+
+    test("ParameterChangeProposal", async () => {
+      const { secretjs } = accounts[0];
+
+      const { proposals: proposalsBefore } = await secretjs.query.gov.proposals(
+        {
+          proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+          voter: "",
+          depositor: "",
+        },
+      );
+
+      const msg = new MsgSubmitProposal({
+        type: ProposalType.ParameterChangeProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi",
+          description: "YOLO",
+          changes: [
+            { subspace: "auth", key: "MaxMemoCharacters", value: '"512"' },
+          ],
+        },
+      });
+
+      const tx = await secretjs.tx.signAndBroadcast([msg], {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      });
+
+      expect(tx.code).toBe(0);
+
+      const log = JSON.parse(tx.rawLog!);
+
+      expect(findLogValue(log, "proposal_type")).toBe("ParameterChange");
+      expect(Number(findLogValue(log, "proposal_id"))).toBeGreaterThanOrEqual(
+        1,
+      );
+
+      const { proposals: proposalsAfter } = await secretjs.query.gov.proposals({
+        proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+        voter: "",
+        depositor: "",
+      });
+
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
   });
 });
