@@ -9,7 +9,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - [Secret.js](#secretjs)
   - [Table of Contents](#table-of-contents)
   - [Key Features](#key-features)
-  - [Alpha Version Notice](#alpha-version-notice)
+  - [Beta Version Notice](#beta-version-notice)
   - [Installation](#installation)
     - [NPM](#npm)
     - [Yarn](#yarn)
@@ -28,9 +28,9 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - Handles input/output encryption/decryption for Secret Contracts.
 - Works in Node.js, modern web browsers and React Native.
 
-## Alpha Version Notice
+## Beta Version Notice
 
-Full list of features and their working status:
+List of features and their working status:
 
 - [x] Local HD wallet with Secret Network key derivation path
 - [ ] Queries
@@ -173,13 +173,13 @@ Full list of features and their working status:
 ### NPM
 
 ```bash
-npm install secretjs@alpha
+npm install secretjs@beta
 ```
 
 ### Yarn
 
 ```bash
-yarn add secretjs@alpha
+yarn add secretjs@beta
 ```
 
 ## Usage
