@@ -1,8 +1,8 @@
-# Secret.js
+# SecretJS
 
 The JavaScript SDK for Secret Network.
 
-Secret.js a JavaScript SDK for writing applications that interact with the Secret Network blockchain. It aims to be a complete library for interacting with the Secret Network blockchain and its ecosystem.
+SecretJS a JavaScript SDK for writing applications that interact with the Secret Network blockchain. It aims to be a complete library for interacting with the Secret Network blockchain and its ecosystem.
 
 ## Table of Contents
 
