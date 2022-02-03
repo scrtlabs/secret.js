@@ -188,7 +188,7 @@ yarn add secretjs@beta
 
 ```typescript
 // To create a readonly secretjs client, just pass in an RPC endpoint
-const secretjs = SecretNetworkClient.create(
+const secretjs = await SecretNetworkClient.create(
   "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
 );
 
@@ -223,7 +223,7 @@ const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
 const [{ address: me }] = await wallet.getAccounts();
 
 // To create a signer secretjs client, also pass in a wallet
-const secretjs = SecretNetworkClient.create(
+const secretjs = await SecretNetworkClient.create(
   "https://rpc.pulsar.griptapejs.com/",
   {
     signer: wallet,
