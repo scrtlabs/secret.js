@@ -30,102 +30,102 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 
 ## Beta Version Notice
 
-❌ - TODO  
-🚸 - Implemented  
-✅ - Implemented + Tested
+🟥 - TODO  
+🟨 - Implemented  
+🟩 - Implemented + Tested
 
-- ✅ Local HD wallet with Secret Network key derivation path
-- 🚸 Queries
-  - 🚸 getTx(txhash)
-  - 🚸 txsQuery(queryString)
-  - 🚸 auth
-  - 🚸 authz
-  - 🚸 bank
-  - 🚸 compute
-  - 🚸 distribution
-  - 🚸 evidence
-  - 🚸 feegrant
-  - 🚸 gov
-  - 🚸 ibc_channel
-  - 🚸 ibc_client
-  - 🚸 ibc_connection
-  - 🚸 ibc_transfer
-  - 🚸 mint
-  - 🚸 params
-  - 🚸 registration
-  - 🚸 slashing
-  - 🚸 staking
-  - 🚸 tendermint
-  - 🚸 upgrade
-- ❌ Transactions
-  - ❌ authz
-    - ❌ MsgExec
-    - ❌ MsgRevoke
-    - ❌ MsgGrant
-  - ✅ bank
-    - ✅ MsgSend
-    - ✅ MsgMultiSend
-  - ✅ compute
-    - ✅ MsgStoreCode
-    - ✅ MsgInstantiateContract
-      - ❌ output decryption
-    - ✅ MsgExecuteContract
-      - ❌ output decryption
-  - ❌ crisis
-    - ❌ MsgVerifyInvariant
-  - ❌ distribution
-    - ❌ MsgWithdrawDelegatorReward
-    - ❌ MsgWithdrawValidatorCommission
-    - ❌ MsgFundCommunityPool
-    - ❌ MsgSetWithdrawAddress
-  - ❌ evidence
-    - ❌ MsgSubmitEvidence
-  - ❌ feegrant
-    - ❌ MsgRevokeAllowance
-    - ❌ MsgGrantAllowance
-  - ❌ gov
-    - ❌ MsgSubmitProposal
-      - ✅ TextProposalContent
-      - ✅ CommunityPoolSpendProposalContent
-      - ✅ ParameterChangeProposalContent
-      - 🚸 ClientUpdateProposalContent
-      - 🚸 UpgradeProposalContent
-      - 🚸 SoftwareUpgradeProposalContent - signature missmatch bug
-      - ✅ CancelSoftwareUpgradeProposalContent
-    - ❌ MsgVote
-    - ❌ MsgVoteWeighted
-    - ❌ MsgDeposit
-  - ❌ ibc_channel
-    - ❌ MsgChannelCloseConfirm
-    - ❌ MsgRecvPacket
-    - ❌ MsgTimeout
-    - ❌ MsgTimeoutOnClose
-    - ❌ MsgChannelOpenInit
-    - ❌ MsgAcknowledgement
-    - ❌ MsgChannelOpenTry
-    - ❌ MsgChannelOpenAck
-    - ❌ MsgChannelOpenConfirm
-    - ❌ MsgChannelCloseInit
-  - ❌ ibc_client
-    - ❌ MsgUpgradeClient
-    - ❌ MsgSubmitMisbehaviour
-    - ❌ MsgCreateClient
-    - ❌ MsgUpdateClient
-  - ❌ ibc_connection
-    - ❌ MsgConnectionOpenTry
-    - ❌ MsgConnectionOpenAck
-    - ❌ MsgConnectionOpenConfirm
-    - ❌ MsgConnectionOpenInit
-  - ❌ ibc_transfer
-    - ❌ MsgTransfer
-  - ❌ slashing
-    - ❌ MsgUnjail
-  - ❌ staking
-    - ❌ MsgCreateValidator
-    - ❌ MsgEditValidator
-    - ❌ MsgDelegate
-    - ❌ MsgBeginRedelegate
-    - ❌ MsgUndelegate
+- 🟩 Local HD wallet with Secret Network key derivation path
+- 🟨 Queries
+  - 🟨 getTx(txhash)
+  - 🟨 txsQuery(queryString)
+  - 🟨 auth
+  - 🟨 authz
+  - 🟨 bank
+  - 🟨 compute
+  - 🟨 distribution
+  - 🟨 evidence
+  - 🟨 feegrant
+  - 🟨 gov
+  - 🟨 ibc_channel
+  - 🟨 ibc_client
+  - 🟨 ibc_connection
+  - 🟨 ibc_transfer
+  - 🟨 mint
+  - 🟨 params
+  - 🟨 registration
+  - 🟨 slashing
+  - 🟨 staking
+  - 🟨 tendermint
+  - 🟨 upgrade
+- 🟥 Transactions
+  - 🟥 authz
+    - 🟥 MsgExec
+    - 🟥 MsgRevoke
+    - 🟥 MsgGrant
+  - 🟩 bank
+    - 🟩 MsgSend
+    - 🟩 MsgMultiSend
+  - 🟩 compute
+    - 🟩 MsgStoreCode
+    - 🟩 MsgInstantiateContract
+      - 🟥 output decryption
+    - 🟩 MsgExecuteContract
+      - 🟥 output decryption
+  - 🟥 crisis
+    - 🟥 MsgVerifyInvariant
+  - 🟥 distribution
+    - 🟥 MsgWithdrawDelegatorReward
+    - 🟥 MsgWithdrawValidatorCommission
+    - 🟥 MsgFundCommunityPool
+    - 🟥 MsgSetWithdrawAddress
+  - 🟥 evidence
+    - 🟥 MsgSubmitEvidence
+  - 🟥 feegrant
+    - 🟥 MsgRevokeAllowance
+    - 🟥 MsgGrantAllowance
+  - 🟥 gov
+    - 🟥 MsgSubmitProposal
+      - 🟩 TextProposalContent
+      - 🟩 CommunityPoolSpendProposalContent
+      - 🟩 ParameterChangeProposalContent
+      - 🟨 ClientUpdateProposalContent
+      - 🟨 UpgradeProposalContent
+      - 🟨 SoftwareUpgradeProposalContent - signature missmatch bug
+      - 🟩 CancelSoftwareUpgradeProposalContent
+    - 🟥 MsgVote
+    - 🟥 MsgVoteWeighted
+    - 🟥 MsgDeposit
+  - 🟥 ibc_channel
+    - 🟥 MsgChannelCloseConfirm
+    - 🟥 MsgRecvPacket
+    - 🟥 MsgTimeout
+    - 🟥 MsgTimeoutOnClose
+    - 🟥 MsgChannelOpenInit
+    - 🟥 MsgAcknowledgement
+    - 🟥 MsgChannelOpenTry
+    - 🟥 MsgChannelOpenAck
+    - 🟥 MsgChannelOpenConfirm
+    - 🟥 MsgChannelCloseInit
+  - 🟥 ibc_client
+    - 🟥 MsgUpgradeClient
+    - 🟥 MsgSubmitMisbehaviour
+    - 🟥 MsgCreateClient
+    - 🟥 MsgUpdateClient
+  - 🟥 ibc_connection
+    - 🟥 MsgConnectionOpenTry
+    - 🟥 MsgConnectionOpenAck
+    - 🟥 MsgConnectionOpenConfirm
+    - 🟥 MsgConnectionOpenInit
+  - 🟥 ibc_transfer
+    - 🟥 MsgTransfer
+  - 🟥 slashing
+    - 🟥 MsgUnjail
+  - 🟥 staking
+    - 🟥 MsgCreateValidator
+    - 🟥 MsgEditValidator
+    - 🟥 MsgDelegate
+    - 🟥 MsgBeginRedelegate
+    - 🟥 MsgUndelegate
 
 ## Installation
 
