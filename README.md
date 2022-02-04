@@ -30,143 +30,102 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 
 ## Beta Version Notice
 
-List of features and their working status:
+❌ - TODO  
+🚸 - Implemented  
+✅ - Implemented + Tested
 
-- [x] Local HD wallet with Secret Network key derivation path
-- [ ] Queries
-  - [ ] getTx(txhash)
-    - [x] working
-    - [ ] tested
-  - [ ] txsQuery(queryString)
-    - [x] working
-    - [ ] tested
-  - [ ] auth
-    - [x] working
-    - [ ] tested
-  - [ ] authz
-    - [x] working
-    - [ ] tested
-  - [ ] bank
-    - [x] working
-    - [ ] tested
-  - [ ] compute
-    - [x] working
-    - [ ] tested
-  - [ ] distribution
-    - [x] working
-    - [ ] tested
-  - [ ] evidence
-    - [x] working
-    - [ ] tested
-  - [ ] feegrant
-    - [x] working
-    - [ ] tested
-  - [ ] gov
-    - [x] working
-    - [ ] tested
-  - [ ] ibc_channel
-    - [x] working
-    - [ ] tested
-  - [ ] ibc_client
-    - [x] working
-    - [ ] tested
-  - [ ] ibc_connection
-    - [x] working
-    - [ ] tested
-  - [ ] ibc_transfer
-    - [x] working
-    - [ ] tested
-  - [ ] mint
-    - [x] working
-    - [ ] tested
-  - [ ] params
-    - [x] working
-    - [ ] tested
-  - [ ] registration
-    - [x] working
-    - [ ] tested
-  - [ ] slashing
-    - [x] working
-    - [ ] tested
-  - [ ] staking
-    - [x] working
-    - [ ] tested
-  - [ ] tendermint
-    - [x] working
-    - [ ] tested
-  - [ ] upgrade
-    - [x] working
-    - [ ] tested
-- [ ] Transactions
-
-  - [ ] authz
-    - [ ] MsgExec
-    - [ ] MsgRevoke
-    - [ ] MsgGrant
-  - [x] bank
-    - [x] MsgSend
-    - [x] MsgMultiSend
-  - [x] compute
-    - [x] MsgStoreCode
-    - [x] MsgInstantiateContract
-      - [ ] output decryption
-    - [x] MsgExecuteContract
-      - [ ] output decryption
-  - [ ] crisis
-    - [ ] MsgVerifyInvariant
-  - [ ] distribution
-    - [ ] MsgWithdrawDelegatorReward
-    - [ ] MsgWithdrawValidatorCommission
-    - [ ] MsgFundCommunityPool
-    - [ ] MsgSetWithdrawAddress
-  - [ ] evidence
-    - [ ] MsgSubmitEvidence
-  - [ ] feegrant
-    - [ ] MsgRevokeAllowance
-    - [ ] MsgGrantAllowance
-  - [ ] gov
-    - [ ] MsgSubmitProposal
-      - [x] TextProposalContent
-      - [x] CommunityPoolSpendProposalContent
-      - [x] ParameterChangeProposalContent
-      - [ ] ClientUpdateProposalContent
-      - [ ] UpgradeProposalContent
-      - [ ] SoftwareUpgradeProposalContent - signature missmatch bug
-      - [x] CancelSoftwareUpgradeProposalContent
-    - [ ] MsgVote
-    - [ ] MsgVoteWeighted
-    - [ ] MsgDeposit
-  - [ ] ibc_channel
-    - [ ] MsgChannelCloseConfirm
-    - [ ] MsgRecvPacket
-    - [ ] MsgTimeout
-    - [ ] MsgTimeoutOnClose
-    - [ ] MsgChannelOpenInit
-    - [ ] MsgAcknowledgement
-    - [ ] MsgChannelOpenTry
-    - [ ] MsgChannelOpenAck
-    - [ ] MsgChannelOpenConfirm
-    - [ ] MsgChannelCloseInit
-  - [ ] ibc_client
-    - [ ] MsgUpgradeClient
-    - [ ] MsgSubmitMisbehaviour
-    - [ ] MsgCreateClient
-    - [ ] MsgUpdateClient
-  - [ ] ibc_connection
-    - [ ] MsgConnectionOpenTry
-    - [ ] MsgConnectionOpenAck
-    - [ ] MsgConnectionOpenConfirm
-    - [ ] MsgConnectionOpenInit
-  - [ ] ibc_transfer
-    - [ ] MsgTransfer
-  - [ ] slashing
-    - [ ] MsgUnjail
-  - [ ] staking
-    - [ ] MsgCreateValidator
-    - [ ] MsgEditValidator
-    - [ ] MsgDelegate
-    - [ ] MsgBeginRedelegate
-    - [ ] MsgUndelegate
+- ✅ Local HD wallet with Secret Network key derivation path
+- 🚸 Queries
+  - 🚸 getTx(txhash)
+  - 🚸 txsQuery(queryString)
+  - 🚸 auth
+  - 🚸 authz
+  - 🚸 bank
+  - 🚸 compute
+  - 🚸 distribution
+  - 🚸 evidence
+  - 🚸 feegrant
+  - 🚸 gov
+  - 🚸 ibc_channel
+  - 🚸 ibc_client
+  - 🚸 ibc_connection
+  - 🚸 ibc_transfer
+  - 🚸 mint
+  - 🚸 params
+  - 🚸 registration
+  - 🚸 slashing
+  - 🚸 staking
+  - 🚸 tendermint
+  - 🚸 upgrade
+- ❌ Transactions
+  - ❌ authz
+    - ❌ MsgExec
+    - ❌ MsgRevoke
+    - ❌ MsgGrant
+  - ✅ bank
+    - ✅ MsgSend
+    - ✅ MsgMultiSend
+  - ✅ compute
+    - ✅ MsgStoreCode
+    - ✅ MsgInstantiateContract
+      - ❌ output decryption
+    - ✅ MsgExecuteContract
+      - ❌ output decryption
+  - ❌ crisis
+    - ❌ MsgVerifyInvariant
+  - ❌ distribution
+    - ❌ MsgWithdrawDelegatorReward
+    - ❌ MsgWithdrawValidatorCommission
+    - ❌ MsgFundCommunityPool
+    - ❌ MsgSetWithdrawAddress
+  - ❌ evidence
+    - ❌ MsgSubmitEvidence
+  - ❌ feegrant
+    - ❌ MsgRevokeAllowance
+    - ❌ MsgGrantAllowance
+  - ❌ gov
+    - ❌ MsgSubmitProposal
+      - ✅ TextProposalContent
+      - ✅ CommunityPoolSpendProposalContent
+      - ✅ ParameterChangeProposalContent
+      - 🚸 ClientUpdateProposalContent
+      - 🚸 UpgradeProposalContent
+      - 🚸 SoftwareUpgradeProposalContent - signature missmatch bug
+      - ✅ CancelSoftwareUpgradeProposalContent
+    - ❌ MsgVote
+    - ❌ MsgVoteWeighted
+    - ❌ MsgDeposit
+  - ❌ ibc_channel
+    - ❌ MsgChannelCloseConfirm
+    - ❌ MsgRecvPacket
+    - ❌ MsgTimeout
+    - ❌ MsgTimeoutOnClose
+    - ❌ MsgChannelOpenInit
+    - ❌ MsgAcknowledgement
+    - ❌ MsgChannelOpenTry
+    - ❌ MsgChannelOpenAck
+    - ❌ MsgChannelOpenConfirm
+    - ❌ MsgChannelCloseInit
+  - ❌ ibc_client
+    - ❌ MsgUpgradeClient
+    - ❌ MsgSubmitMisbehaviour
+    - ❌ MsgCreateClient
+    - ❌ MsgUpdateClient
+  - ❌ ibc_connection
+    - ❌ MsgConnectionOpenTry
+    - ❌ MsgConnectionOpenAck
+    - ❌ MsgConnectionOpenConfirm
+    - ❌ MsgConnectionOpenInit
+  - ❌ ibc_transfer
+    - ❌ MsgTransfer
+  - ❌ slashing
+    - ❌ MsgUnjail
+  - ❌ staking
+    - ❌ MsgCreateValidator
+    - ❌ MsgEditValidator
+    - ❌ MsgDelegate
+    - ❌ MsgBeginRedelegate
+    - ❌ MsgUndelegate
 
 ## Installation
 
@@ -217,6 +176,8 @@ console.log(`sSCRT has a total supply of ${token_info.total_supply} sSCRT!`);
 ### Broadcasting Transactions
 
 ```typescript
+import { SecretSecp256k1HdWallet, SecretNetworkClient } from "secretjs";
+
 const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
 );
