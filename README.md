@@ -146,6 +146,8 @@ yarn add secretjs@beta
 ### Sending Queries
 
 ```typescript
+import { SecretNetworkClient } from "secretjs";
+
 // To create a readonly secretjs client, just pass in an RPC endpoint
 const secretjs = await SecretNetworkClient.create(
   "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
@@ -176,7 +178,12 @@ console.log(`sSCRT has a total supply of ${token_info.total_supply} sSCRT!`);
 ### Broadcasting Transactions
 
 ```typescript
-import { SecretSecp256k1HdWallet, SecretNetworkClient } from "secretjs";
+import {
+  SecretSecp256k1HdWallet,
+  SecretNetworkClient,
+  MsgSend,
+  MsgMultiSend,
+} from "secretjs";
 
 const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
