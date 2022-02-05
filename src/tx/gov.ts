@@ -218,12 +218,25 @@ export class MsgSubmitProposal implements Msg {
       );
     }
 
+    let content: any = this.content;
+    if (this.type === ProposalType.SoftwareUpgradeProposal) {
+      if (content.plan) {
+        content = {
+          ...content,
+          plan: {
+            type: "cosmos-sdk/Plan",
+            value: { ...content.plan },
+          },
+        };
+      }
+    }
+
     return {
       type: "cosmos-sdk/MsgSubmitProposal",
       value: {
         content: {
           type: contentType,
-          value: this.content,
+          value: content,
         },
         initial_deposit: this.initialDeposit,
         proposer: this.proposer,
