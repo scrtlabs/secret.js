@@ -4,9 +4,9 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 export class MsgUnjail implements Msg {
   constructor(msg: MsgUnjailProto) {}
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgUnjail not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgUnjail not implemented.");
   }
 }

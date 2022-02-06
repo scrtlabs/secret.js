@@ -9,10 +9,10 @@ export class MsgGrant implements Msg {
   constructor(msg: MsgGrantProto) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgGrant not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgGrant not implemented.");
   }
 }
 
@@ -20,10 +20,10 @@ export class MsgExec implements Msg {
   constructor(msg: MsgExecProto) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgExec not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgExec not implemented.");
   }
 }
 
@@ -31,9 +31,9 @@ export class MsgRevoke implements Msg {
   constructor(msg: MsgRevokeProto) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgRevoke not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgRevoke not implemented.");
   }
 }

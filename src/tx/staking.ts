@@ -22,10 +22,10 @@ export class MsgCreateValidator implements Msg {
 export class MsgEditValidator implements Msg {
   constructor(msg: MsgEditValidatorProto) {}
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgEditValidator not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgEditValidator not implemented.");
   }
 }
 
@@ -81,10 +81,10 @@ export class MsgDelegate implements Msg {
 export class MsgBeginRedelegate implements Msg {
   constructor(msg: MsgBeginRedelegateProto) {}
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgBeginRedelegate not implemented.");
   }
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    throw new Error("MsgBeginRedelegate not implemented.");
   }
 }
 
