@@ -13,6 +13,7 @@ import {
   MsgVote,
   VoteOption,
   MsgDeposit,
+  MsgVoteWeighted,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
@@ -885,6 +886,58 @@ describe("tx.gov", () => {
     );
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
       '{"option":1,"weight":"1.000000000000000000"}',
+    );
+  });
+
+  test("MsgVoteWeighted", async () => {
+    const { secretjs } = accounts[0];
+
+    const msgSubmit = new MsgSubmitProposal({
+      type: ProposalType.TextProposal,
+      proposer: accounts[0].address,
+      initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+      content: {
+        title: "Please vote yes",
+        description: "Please don't vote no",
+      },
+    });
+
+    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txSubmit.code).toBe(0);
+    const proposalId = getValueFromRawLog(
+      txSubmit.rawLog,
+      "submit_proposal.proposal_id",
+    );
+
+    // vote yes with 70% of my power
+    const msg = new MsgVoteWeighted({
+      voter: accounts[0].address,
+      proposalId,
+      options: [
+        // weights must sum to 1.0
+        { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
+        { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
+      ],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
+      proposalId,
+    );
+    expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
+      '{"option":1,"weight":"0.700000000000000000"}\n{"option":2,"weight":"0.300000000000000000"}',
     );
   });
 

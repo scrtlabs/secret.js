@@ -19,6 +19,7 @@
     "@cosmjs/stargate": "0.27.0",
     "@cosmjs/tendermint-rpc": "0.27.0",
     "bech32": "2.0.0",
+    "bignumber.js": "9.0.2",
     "cosmjs-types": "0.2.0",
     "curve25519-js": "0.0.4",
     "is-gzip": "2.0.0",
