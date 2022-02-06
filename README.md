@@ -34,7 +34,9 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 🟨 - Implemented  
 🟩 - Implemented + Tested
 
-- 🟩 Local HD wallet with Secret Network key derivation path
+- 🟥 Local HD wallet with Secret Network key derivation path
+  - 🟨 Amino signer
+  - 🟥 Protobuf signer
 - 🟨 Queries
   - 🟨 getTx(txhash)
   - 🟨 txsQuery(queryString)
@@ -84,7 +86,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgRevokeAllowance
     - 🟥 MsgGrantAllowance
   - 🟥 gov
-    - 🟥 MsgSubmitProposal
+    - 🟨 MsgSubmitProposal
       - 🟩 TextProposalContent
       - 🟩 CommunityPoolSpendProposalContent
       - 🟩 ParameterChangeProposalContent
@@ -95,7 +97,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgVote
     - 🟥 MsgVoteWeighted
     - 🟥 MsgDeposit
-  - 🟥 ibc_channel
+  - 🟥 ibc_channel (low priority)
     - 🟥 MsgChannelCloseConfirm
     - 🟥 MsgRecvPacket
     - 🟥 MsgTimeout
@@ -106,12 +108,12 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgChannelOpenAck
     - 🟥 MsgChannelOpenConfirm
     - 🟥 MsgChannelCloseInit
-  - 🟥 ibc_client
+  - 🟥 ibc_client (low priority)
     - 🟥 MsgUpgradeClient
     - 🟥 MsgSubmitMisbehaviour
     - 🟥 MsgCreateClient
     - 🟥 MsgUpdateClient
-  - 🟥 ibc_connection
+  - 🟥 ibc_connection (low priority)
     - 🟥 MsgConnectionOpenTry
     - 🟥 MsgConnectionOpenAck
     - 🟥 MsgConnectionOpenConfirm
