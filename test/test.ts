@@ -12,6 +12,7 @@ import {
   ProposalStatus,
   MsgVote,
   VoteOption,
+  MsgDeposit,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
@@ -885,5 +886,52 @@ describe("tx.gov", () => {
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
       '{"option":1,"weight":"1.000000000000000000"}',
     );
+  });
+
+  test("MsgDeposit", async () => {
+    const { secretjs } = accounts[0];
+
+    const msgSubmit = new MsgSubmitProposal({
+      type: ProposalType.TextProposal,
+      proposer: accounts[0].address,
+      initialDeposit: [],
+      content: {
+        title: "Hi",
+        description: "Hello",
+      },
+    });
+
+    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txSubmit.code).toBe(0);
+    const proposalId = getValueFromRawLog(
+      txSubmit.rawLog,
+      "submit_proposal.proposal_id",
+    );
+
+    const msg = new MsgDeposit({
+      depositor: accounts[0].address,
+      proposalId,
+      amount: [{ amount: "1", denom: "uscrt" }],
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const { deposit } = await secretjs.query.gov.deposit({
+      depositor: accounts[0].address,
+      proposalId,
+    });
+
+    expect(deposit?.amount).toEqual([{ amount: "1", denom: "uscrt" }]);
   });
 });

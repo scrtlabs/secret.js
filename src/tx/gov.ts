@@ -298,12 +298,43 @@ export class MsgVoteWeighted implements Msg {
   }
 }
 
+export type MsgDepositParams = MsgDepositProto;
+
 export class MsgDeposit implements Msg {
-  constructor(msg: MsgDepositProto) {}
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+  public proposalId: string;
+  public depositor: string;
+  public amount: Coin[];
+
+  constructor({ proposalId, depositor, amount }: MsgDepositParams) {
+    this.proposalId = proposalId;
+    this.depositor = depositor;
+    this.amount = amount;
   }
+
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      proposalId: this.proposalId,
+      depositor: this.depositor,
+      amount: this.amount,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgDeposit`,
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgDepositProto.encode(msgContent).finish();
+      },
+    };
+  }
+
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    return {
+      type: "cosmos-sdk/MsgDeposit",
+      value: {
+        proposal_id: this.proposalId,
+        depositor: this.depositor,
+        amount: this.amount,
+      },
+    };
   }
 }

@@ -40,10 +40,10 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - 🟨 Queries
   - 🟨 getTx(txhash)
   - 🟨 txsQuery(queryString)
-  - 🟨 auth
+  - 🟩 auth
   - 🟨 authz
   - 🟨 bank
-  - 🟨 compute
+  - 🟩 compute
   - 🟨 distribution
   - 🟨 evidence
   - 🟨 feegrant
