@@ -3,6 +3,7 @@ import { CommunityPoolSpendProposal as CommunityPoolSpendProposalContent } from 
 import {
   ProposalStatus,
   TextProposal as TextProposalContent,
+  VoteOption,
 } from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
 import {
   MsgDeposit as MsgDepositProto,
@@ -45,6 +46,7 @@ export {
   CancelSoftwareUpgradeProposalContent,
   ProposalStatus,
   ParamChange,
+  VoteOption,
 };
 
 export enum ProposalType {
@@ -245,13 +247,57 @@ export class MsgSubmitProposal implements Msg {
   }
 }
 
+export type MsgVoteProtoParams = MsgVoteProto;
+
 export class MsgVote implements Msg {
-  constructor(msg: MsgVoteProto) {}
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+  public voter: string;
+  public proposalId: string;
+  public option: VoteOption;
+
+  constructor({ voter, proposalId, option }: MsgVoteProtoParams) {
+    this.voter = voter;
+    this.proposalId = proposalId;
+    this.option = option;
   }
+
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      voter: this.voter,
+      proposalId: this.proposalId,
+      option: this.option,
+    };
+
+    console.log("proto");
+    console.log(msgContent);
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgVote`,
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgVoteProto.encode(msgContent).finish();
+      },
+    };
+  }
+
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    console.log("amino");
+    console.log({
+      type: "cosmos-sdk/MsgVote",
+      value: {
+        voter: this.voter,
+        proposal_id: this.proposalId,
+        option: String(this.option),
+      },
+    });
+
+    return {
+      type: "cosmos-sdk/MsgVote",
+      value: {
+        voter: this.voter,
+        proposal_id: this.proposalId,
+        option: this.option,
+      },
+    };
   }
 }
 

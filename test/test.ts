@@ -10,6 +10,8 @@ import {
   MsgSubmitProposal,
   ProposalType,
   ProposalStatus,
+  MsgVote,
+  VoteOption,
 } from "../src";
 import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
@@ -655,7 +657,7 @@ describe("tx.gov", () => {
       const msg = new MsgSubmitProposal({
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Hi",
           description: "Hello",
@@ -692,7 +694,7 @@ describe("tx.gov", () => {
       const msg = new MsgSubmitProposal({
         type: ProposalType.CommunityPoolSpendProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Hi",
           description: "Hello",
@@ -729,7 +731,7 @@ describe("tx.gov", () => {
       const msg = new MsgSubmitProposal({
         type: ProposalType.ParameterChangeProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Hi",
           description: "YOLO",
@@ -770,7 +772,7 @@ describe("tx.gov", () => {
       const msg = new MsgSubmitProposal({
         type: ProposalType.SoftwareUpgradeProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Hi let's upgrade",
           description: "PROD NO FEAR",
@@ -810,7 +812,7 @@ describe("tx.gov", () => {
       const msg = new MsgSubmitProposal({
         type: ProposalType.CancelSoftwareUpgradeProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Hi let's cancel",
           description: "PROD FEAR",
@@ -836,5 +838,52 @@ describe("tx.gov", () => {
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
+  });
+
+  test("MsgVote", async () => {
+    const { secretjs } = accounts[0];
+
+    const msgSubmit = new MsgSubmitProposal({
+      type: ProposalType.TextProposal,
+      proposer: accounts[0].address,
+      initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+      content: {
+        title: "Please vote yes",
+        description: "Please don't vote no",
+      },
+    });
+
+    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txSubmit.code).toBe(0);
+    const proposalId = getValueFromRawLog(
+      txSubmit.rawLog,
+      "submit_proposal.proposal_id",
+    );
+
+    const msg = new MsgVote({
+      voter: accounts[0].address,
+      proposalId,
+      option: VoteOption.VOTE_OPTION_YES,
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
+      proposalId,
+    );
+    expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
+      '{"option":1,"weight":"1.000000000000000000"}',
+    );
   });
 });
