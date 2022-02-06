@@ -17,6 +17,7 @@ import {
   BaseAccount,
   Proposal,
   MsgDelegate,
+  MsgUndelegate,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
@@ -1011,5 +1012,49 @@ describe("tx.staking", () => {
     } = await secretjs.query.staking.validators({ status: "" });
 
     expect(BigInt(tokensAfter) - BigInt(tokensBefore)).toBe(BigInt(1));
+  });
+
+  test("MsgUndelegate", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
+    } = await secretjs.query.staking.validators({ status: "" });
+
+    const msgDelegate = new MsgDelegate({
+      delegatorAddress: accounts[0].address,
+      validatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const txDelegate = await secretjs.tx.signAndBroadcast([msgDelegate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txDelegate.code).toBe(0);
+    const {
+      validators: [{ tokens: tokensAfterDelegate }],
+    } = await secretjs.query.staking.validators({ status: "" });
+    expect(BigInt(tokensAfterDelegate) - BigInt(tokensBefore)).toBe(BigInt(1));
+
+    const msg = new MsgUndelegate({
+      delegatorAddress: accounts[0].address,
+      validatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+    const {
+      validators: [{ tokens: tokensAfterUndelegate }],
+    } = await secretjs.query.staking.validators({ status: "" });
+    expect(tokensAfterUndelegate).toBe(tokensBefore);
   });
 });

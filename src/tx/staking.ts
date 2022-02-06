@@ -34,6 +34,7 @@ export type MsgDelegateParams = {
   validatorAddress: string;
   amount: Coin;
 };
+
 export class MsgDelegate implements Msg {
   public delegatorAddress: string;
   public validatorAddress: string;
@@ -87,12 +88,51 @@ export class MsgBeginRedelegate implements Msg {
   }
 }
 
+export interface MsgUndelegateParams {
+  delegatorAddress: string;
+  validatorAddress: string;
+  amount: Coin;
+}
+
 export class MsgUndelegate implements Msg {
-  constructor(msg: MsgUndelegateProto) {}
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not implemented.");
+  public delegatorAddress: string;
+  public validatorAddress: string;
+  public amount: Coin;
+
+  constructor({
+    delegatorAddress,
+    validatorAddress,
+    amount,
+  }: MsgUndelegateParams) {
+    this.delegatorAddress = delegatorAddress;
+    this.validatorAddress = validatorAddress;
+    this.amount = amount;
   }
+
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      delegatorAddress: this.delegatorAddress,
+      validatorAddress: this.validatorAddress,
+      amount: this.amount,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgUndelegate`,
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgUndelegateProto.encode(msgContent).finish();
+      },
+    };
+  }
+
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("Method not implemented.");
+    return {
+      type: "cosmos-sdk/MsgUndelegate",
+      value: {
+        delegator_address: this.delegatorAddress,
+        validator_address: this.validatorAddress,
+        amount: this.amount,
+      },
+    };
   }
 }

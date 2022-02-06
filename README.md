@@ -127,7 +127,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgEditValidator
     - 🟩 MsgDelegate
     - 🟥 MsgBeginRedelegate
-    - 🟥 MsgUndelegate
+    - 🟩 MsgUndelegate
 
 ## Installation
 
