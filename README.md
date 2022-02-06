@@ -16,6 +16,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
   - [Usage](#usage)
     - [Sending Queries](#sending-queries)
     - [Broadcasting Transactions](#broadcasting-transactions)
+  - [Migration from secretjs v0.17.x](#migration-from-secretjs-v017x)
   - [Full API](#full-api)
   - [Types](#types)
 
@@ -125,7 +126,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgUnjail
   - 🟥 staking
     - 🟩 MsgCreateValidator
-    - 🟥 MsgEditValidator
+    - 🟩 MsgEditValidator
     - 🟩 MsgDelegate
     - 🟥 MsgBeginRedelegate
     - 🟩 MsgUndelegate
@@ -250,6 +251,10 @@ const tx2 = await secretjs.tx.signAndBroadcast([msgSendToAliceAndBob], {
   feeDenom: "uscrt",
 });
 ```
+
+## Migration from secretjs v0.17.x
+
+TODO
 
 ## Full API
 

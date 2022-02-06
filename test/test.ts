@@ -19,6 +19,7 @@ import {
   MsgDelegate,
   MsgUndelegate,
   MsgCreateValidator,
+  MsgEditValidator,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
@@ -1098,5 +1099,79 @@ describe("tx.staking", () => {
       await secretjs.query.staking.validators({ status: "" });
 
     expect(validatorsAfter.length - validatorsBefore.length).toBe(1);
+  });
+
+  test("MsgEditValidator", async () => {
+    const { secretjs } = accounts[1];
+
+    const msgCreate = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[1].address,
+      commission: {
+        maxChangeRate: 0.01,
+        maxRate: 0.1,
+        rate: 0.05,
+      },
+      description: {
+        moniker: "banana",
+        identity: "papaya",
+        website: "watermelon.com",
+        securityContact: "info@watermelon.com",
+        details: "We are the banana papaya validator",
+      },
+      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      minSelfDelegation: "2",
+      value: { amount: "3", denom: "uscrt" },
+    });
+
+    const txCreate = await secretjs.tx.signAndBroadcast([msgCreate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txCreate.code).toBe(0);
+    const validatorAddress = getValueFromRawLog(
+      txCreate.rawLog,
+      "create_validator.validator",
+    );
+
+    const msg = new MsgEditValidator({
+      validatorAddress,
+      description: {
+        moniker: "papaya",
+        identity: "banana",
+        website: "com.watermelon",
+        securityContact: "as@com.com",
+        details: "We are the banana papaya validator yay!",
+      },
+      minSelfDelegation: "3",
+      // commissionRate: 0.04, // commission cannot be changed more than once in 24h
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const { validators } = await secretjs.query.staking.validators({
+      status: "",
+    });
+
+    const validator = validators.find(
+      (v) => v.operatorAddress === validatorAddress,
+    )!;
+
+    expect(validator).toBeTruthy();
+    expect(validator.description).toEqual({
+      moniker: "papaya",
+      identity: "banana",
+      website: "com.watermelon",
+      securityContact: "as@com.com",
+      details: "We are the banana papaya validator yay!",
+    });
+    expect(validator.minSelfDelegation).toBe("3");
   });
 });

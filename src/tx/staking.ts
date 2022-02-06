@@ -141,13 +141,77 @@ export class MsgCreateValidator implements Msg {
   }
 }
 
+export type MsgEditValidatorParams = {
+  validatorAddress: string;
+  /** if description is provided it updates all values */
+  description?: Description;
+  commissionRate?: number;
+  minSelfDelegation?: string;
+};
+
 export class MsgEditValidator implements Msg {
-  constructor(msg: MsgEditValidatorProto) {}
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgEditValidator not implemented.");
+  public validatorAddress: string;
+  public description?: Description;
+  public commissionRate?: number;
+  public minSelfDelegation?: string;
+
+  constructor({
+    description,
+    validatorAddress,
+    commissionRate,
+    minSelfDelegation,
+  }: MsgEditValidatorParams) {
+    this.validatorAddress = validatorAddress;
+    this.description = description;
+    this.commissionRate = commissionRate;
+    this.minSelfDelegation = minSelfDelegation;
   }
+
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent: MsgEditValidatorProto = {
+      validatorAddress: this.validatorAddress,
+      description: Description.fromPartial(this.description || {}),
+      commissionRate: this.commissionRate
+        ? new BigNumber(this.commissionRate).toFixed(18).replace(/0\.0*/, "")
+        : "",
+      minSelfDelegation: this.minSelfDelegation || "",
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgEditValidator`,
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgEditValidatorProto.encode(msgContent).finish();
+      },
+    };
+  }
+
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgEditValidator not implemented.");
+    let description;
+    if (this.description) {
+      description = {
+        moniker: this.description.moniker,
+        identity: this.description.identity,
+        website: this.description.website,
+        security_contact: this.description.securityContact,
+        details: this.description.details,
+      };
+    }
+
+    let commission_rate;
+    if (this.commissionRate) {
+      commission_rate = new BigNumber(this.commissionRate).toFixed(18);
+    }
+
+    return {
+      type: "cosmos-sdk/MsgEditValidator",
+      value: {
+        validator_address: this.validatorAddress,
+        description,
+        commission_rate,
+        min_self_delegation: this.minSelfDelegation,
+      },
+    };
   }
 }
 
