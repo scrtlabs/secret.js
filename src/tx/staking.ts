@@ -264,13 +264,58 @@ export class MsgDelegate implements Msg {
   }
 }
 
+export type MsgBeginRedelegateParams = {
+  delegatorAddress: string;
+  validatorSrcAddress: string;
+  validatorDstAddress: string;
+  amount: Coin;
+};
+
 export class MsgBeginRedelegate implements Msg {
-  constructor(msg: MsgBeginRedelegateProto) {}
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgBeginRedelegate not implemented.");
+  public delegatorAddress: string;
+  public validatorSrcAddress: string;
+  public validatorDstAddress: string;
+  public amount: Coin;
+
+  constructor({
+    delegatorAddress,
+    validatorSrcAddress,
+    validatorDstAddress,
+    amount,
+  }: MsgBeginRedelegateParams) {
+    this.delegatorAddress = delegatorAddress;
+    this.validatorSrcAddress = validatorSrcAddress;
+    this.validatorDstAddress = validatorDstAddress;
+    this.amount = amount;
   }
+
+  async toProto(): Promise<ProtoMsg> {
+    const msgContent: MsgBeginRedelegateProto = {
+      delegatorAddress: this.delegatorAddress,
+      validatorSrcAddress: this.validatorSrcAddress,
+      validatorDstAddress: this.validatorDstAddress,
+      amount: this.amount,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgBeginRedelegate`,
+      value: msgContent,
+      encode: function (): Uint8Array {
+        return MsgBeginRedelegateProto.encode(msgContent).finish();
+      },
+    };
+  }
+
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgBeginRedelegate not implemented.");
+    return {
+      type: "cosmos-sdk/MsgBeginRedelegate",
+      value: {
+        delegator_address: this.delegatorAddress,
+        validator_src_address: this.validatorSrcAddress,
+        validator_dst_address: this.validatorDstAddress,
+        amount: this.amount,
+      },
+    };
   }
 }
 
@@ -296,7 +341,7 @@ export class MsgUndelegate implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
+    const msgContent: MsgUndelegateProto = {
       delegatorAddress: this.delegatorAddress,
       validatorAddress: this.validatorAddress,
       amount: this.amount,

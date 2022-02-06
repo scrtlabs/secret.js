@@ -20,6 +20,7 @@ import {
   MsgUndelegate,
   MsgCreateValidator,
   MsgEditValidator,
+  MsgBeginRedelegate,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
@@ -1173,5 +1174,69 @@ describe("tx.staking", () => {
       details: "We are the banana papaya validator yay!",
     });
     expect(validator.minSelfDelegation).toBe("3");
+  });
+
+  test("MsgBeginRedelegate", async () => {
+    const { secretjs } = accounts[0];
+
+    const msgCreate = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[1].address,
+      commission: {
+        maxChangeRate: 0.01,
+        maxRate: 0.1,
+        rate: 0.05,
+      },
+      description: {
+        moniker: "banana",
+        identity: "papaya",
+        website: "watermelon.com",
+        securityContact: "info@watermelon.com",
+        details: "We are the banana papaya validator",
+      },
+      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      minSelfDelegation: "2",
+      value: { amount: "3", denom: "uscrt" },
+    });
+
+    const txCreate = await secretjs.tx.signAndBroadcast([msgCreate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txCreate.code).toBe(0);
+
+    const { validators } = await secretjs.query.staking.validators({
+      status: "",
+    });
+
+    const msgDelegate = new MsgDelegate({
+      delegatorAddress: accounts[0].address,
+      validatorAddress: validators[0].operatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const txDelegate = await secretjs.tx.signAndBroadcast([msgDelegate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txDelegate.code).toBe(0);
+
+    const msg = new MsgBeginRedelegate({
+      delegatorAddress: accounts[0].address,
+      validatorSrcAddress: validators[0].operatorAddress,
+      validatorDstAddress: validators[1].operatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
   });
 });
