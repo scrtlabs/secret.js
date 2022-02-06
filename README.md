@@ -94,7 +94,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
       - 🟨 UpgradeProposalContent
       - 🟨 SoftwareUpgradeProposalContent - signature missmatch bug
       - 🟩 CancelSoftwareUpgradeProposalContent
-    - 🟥 MsgVote
+    - 🟩 MsgVote
     - 🟥 MsgVoteWeighted
     - 🟥 MsgDeposit
   - 🟥 ibc_channel (low priority)

@@ -267,9 +267,6 @@ export class MsgVote implements Msg {
       option: this.option,
     };
 
-    console.log("proto");
-    console.log(msgContent);
-
     return {
       typeUrl: `/${protobufPackage}.MsgVote`,
       value: msgContent,
@@ -280,16 +277,6 @@ export class MsgVote implements Msg {
   }
 
   async toAmino(): Promise<AminoMsg> {
-    console.log("amino");
-    console.log({
-      type: "cosmos-sdk/MsgVote",
-      value: {
-        voter: this.voter,
-        proposal_id: this.proposalId,
-        option: String(this.option),
-      },
-    });
-
     return {
       type: "cosmos-sdk/MsgVote",
       value: {
