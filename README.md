@@ -85,18 +85,18 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
   - 🟥 feegrant
     - 🟥 MsgRevokeAllowance
     - 🟥 MsgGrantAllowance
-  - 🟥 gov
+  - 🟨 gov
     - 🟨 MsgSubmitProposal
       - 🟩 TextProposalContent
       - 🟩 CommunityPoolSpendProposalContent
       - 🟩 ParameterChangeProposalContent
       - 🟨 ClientUpdateProposalContent
       - 🟨 UpgradeProposalContent
-      - 🟨 SoftwareUpgradeProposalContent - signature missmatch bug
+      - 🟨 SoftwareUpgradeProposalContent - signature mismatch bug
       - 🟩 CancelSoftwareUpgradeProposalContent
     - 🟩 MsgVote
-    - 🟥 MsgVoteWeighted
-    - 🟥 MsgDeposit
+    - 🟩 MsgVoteWeighted
+    - 🟩 MsgDeposit
   - 🟥 ibc_channel (low priority)
     - 🟥 MsgChannelCloseConfirm
     - 🟥 MsgRecvPacket
