@@ -37,6 +37,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - 🟥 Local HD wallet with Secret Network key derivation path
   - 🟨 Amino signer
   - 🟥 Protobuf signer
+- 🟥 Test Keplr integration
 - 🟨 Queries
   - 🟨 getTx(txhash)
   - 🟨 txsQuery(queryString)
