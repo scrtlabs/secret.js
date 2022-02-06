@@ -323,7 +323,7 @@ export class MsgVoteWeighted implements Msg {
       proposalId: this.proposalId,
       options: this.options.map((o) => ({
         option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18).replace("0.", ""),
+        weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
       })),
     };
 
