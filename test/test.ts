@@ -14,12 +14,13 @@ import {
   VoteOption,
   MsgDeposit,
   MsgVoteWeighted,
+  BaseAccount,
+  Proposal,
+  MsgDelegate,
 } from "../src";
-import { BaseAccount } from "../src/protobuf_stuff/cosmos/auth/v1beta1/auth";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
 import fs from "fs";
-import { Proposal } from "../src/protobuf_stuff/cosmos/gov/v1beta1/gov";
 
 const SECONDS_30 = 30_000;
 
@@ -633,11 +634,6 @@ describe("tx.compute", () => {
 });
 
 describe("tx.gov", () => {
-  // In this batch of tests each test assumes the success of previous tests
-  // This is done to save setup time for each test
-
-  let proposalId: number;
-
   async function getAllProposals(
     secretjs: SecretNetworkClient,
   ): Promise<Proposal[]> {
@@ -678,10 +674,9 @@ describe("tx.gov", () => {
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
       ).toBe("Text");
 
-      proposalId = Number(
-        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id"),
-      );
-      expect(proposalId).toBeGreaterThanOrEqual(1);
+      expect(
+        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
@@ -986,5 +981,35 @@ describe("tx.gov", () => {
     });
 
     expect(deposit?.amount).toEqual([{ amount: "1", denom: "uscrt" }]);
+  });
+});
+
+describe("tx.staking", () => {
+  test("MsgDelegate", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
+    } = await secretjs.query.staking.validators({ status: "" });
+
+    const msg = new MsgDelegate({
+      delegatorAddress: accounts[0].address,
+      validatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const {
+      validators: [{ tokens: tokensAfter }],
+    } = await secretjs.query.staking.validators({ status: "" });
+
+    expect(BigInt(tokensAfter) - BigInt(tokensBefore)).toBe(BigInt(1));
   });
 });
