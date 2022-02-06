@@ -18,10 +18,13 @@ import {
   Proposal,
   MsgDelegate,
   MsgUndelegate,
+  MsgCreateValidator,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
 const exec = util.promisify(require("child_process").exec);
 import fs from "fs";
+import { toBase64 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
 
 const SECONDS_30 = 30_000;
 
@@ -1056,5 +1059,44 @@ describe("tx.staking", () => {
       validators: [{ tokens: tokensAfterUndelegate }],
     } = await secretjs.query.staking.validators({ status: "" });
     expect(tokensAfterUndelegate).toBe(tokensBefore);
+  });
+
+  test("MsgCreateValidator", async () => {
+    const { secretjs } = accounts[1];
+
+    const { validators: validatorsBefore } =
+      await secretjs.query.staking.validators({ status: "" });
+
+    const msg = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[1].address,
+      commission: {
+        maxChangeRate: 0.01,
+        maxRate: 0.1,
+        rate: 0.05,
+      },
+      description: {
+        moniker: "banana",
+        identity: "papaya",
+        website: "watermelon.com",
+        securityContact: "info@watermelon.com",
+        details: "We are the banana papaya validator",
+      },
+      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      minSelfDelegation: "1",
+      value: { amount: "1", denom: "uscrt" },
+    });
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+
+    const { validators: validatorsAfter } =
+      await secretjs.query.staking.validators({ status: "" });
+
+    expect(validatorsAfter.length - validatorsBefore.length).toBe(1);
   });
 });
