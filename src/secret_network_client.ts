@@ -6,7 +6,7 @@ import {
   OfflineAminoSigner,
   StdSignDoc,
 } from "@cosmjs/amino";
-import { fromBase64, toHex } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import {
   encodePubkey,
   isOfflineDirectSigner,
@@ -164,7 +164,7 @@ export type JsonLog = Array<{
 /**
  * The response after successfully broadcasting a transaction.
  */
-export type TxResponse = {
+export type DeliverTxResponse = {
   readonly height?: number;
   /** Error code. The transaction suceeded iff code is 0. */
   readonly code?: number;
@@ -185,16 +185,10 @@ export type TxResponse = {
 };
 
 type TxSender = {
-  sign: (
-    messages: Msg[],
-    fee: StdFee,
-    memo: string,
-    explicitSignerData?: SignerData,
-  ) => Promise<TxRaw>;
-  signAndBroadcast: (
+  broadcast: (
     messages: Msg[],
     params: SignAndBroadcastParams,
-  ) => Promise<TxResponse>;
+  ) => Promise<DeliverTxResponse>;
 };
 
 interface SecretRpcClient {
@@ -204,6 +198,8 @@ interface SecretRpcClient {
     data: Uint8Array,
   ): Promise<Uint8Array>;
 }
+
+type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
 
 export class SecretNetworkClient {
   public query: Querier;
@@ -286,8 +282,7 @@ export class SecretNetworkClient {
     };
 
     this.tx = {
-      sign: this.sign.bind(this),
-      signAndBroadcast: this.signAndBroadcast.bind(this),
+      broadcast: this.signAndBroadcast.bind(this),
     };
 
     if (signingParams.encryptionUtils) {
@@ -329,7 +324,7 @@ export class SecretNetworkClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a {@link TxResponse} is returned. The caller then
+   * If the transaction is included in a block, a {@link DeliverTxResponse} is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   private async broadcastTx(
@@ -338,7 +333,8 @@ export class SecretNetworkClient {
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
-  ): Promise<TxResponse> {
+    nonces: ComputeMsgToNonce,
+  ): Promise<DeliverTxResponse> {
     const start = Date.now();
 
     let txhash: string;
@@ -378,6 +374,29 @@ export class SecretNetworkClient {
             const log = jsonLog[msgIndex];
             for (const event of log.events) {
               for (const attr of event.attributes) {
+                // Try to decrypt
+                if (event.type === "wasm") {
+                  const nonce = nonces[msgIndex];
+                  if (nonce) {
+                    try {
+                      attr.key = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.key),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                    try {
+                      attr.value = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.value),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                  }
+                }
+
                 arrayLog.push({
                   msg: msgIndex,
                   type: event.type,
@@ -418,8 +437,8 @@ export class SecretNetworkClient {
       broadcastMode = BroadcastMode.Sync,
       explicitSignerData,
     }: SignAndBroadcastParams,
-  ): Promise<TxResponse> {
-    const txRaw = await this.sign(
+  ): Promise<DeliverTxResponse> {
+    const [txRaw, nonces] = await this.sign(
       messages,
       {
         gas: String(gasLimit),
@@ -441,6 +460,7 @@ export class SecretNetworkClient {
       broadcastCheckIntervalMs,
       broadcastMode,
       waitForCommit,
+      nonces,
     );
   }
 
@@ -459,7 +479,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
-  ): Promise<TxRaw> {
+  ): Promise<[TxRaw, ComputeMsgToNonce]> {
     let signerData: SignerData;
     if (explicitSignerData) {
       signerData = explicitSignerData;
@@ -499,7 +519,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<TxRaw> {
+  ): Promise<[TxRaw, ComputeMsgToNonce]> {
     if (isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
     }
@@ -529,16 +549,32 @@ export class SecretNetworkClient {
       signerAddress,
       signDoc,
     );
-    const signedTxBody = {
+    const nonces: ComputeMsgToNonce = {};
+    const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
-          messages.map((msg) => msg.toProto(this.encryptionUtils)),
+          messages.map(async (msg, index) => {
+            const asProto = await msg.toProto(this.encryptionUtils);
+            if (
+              asProto.typeUrl ===
+              "/secret.compute.v1beta1.MsgInstantiateContract"
+            ) {
+              nonces[index] = asProto.value.initMsg.slice(0, 32);
+            }
+            if (
+              asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+            ) {
+              nonces[index] = asProto.value.msg.slice(0, 32);
+            }
+
+            return asProto;
+          }),
         ),
-        memo: signed.memo,
+        memo: memo,
       },
     };
-    const signedTxBodyBytes = this.encodeTx(signedTxBody);
+    const txBodyBytes = this.encodeTx(txBody);
     const signedGasLimit = Number(signed.fee.gas);
     const signedSequence = Number(signed.sequence);
     const signedAuthInfoBytes = makeAuthInfoBytes(
@@ -547,11 +583,14 @@ export class SecretNetworkClient {
       signedGasLimit,
       signMode,
     );
-    return TxRaw.fromPartial({
-      bodyBytes: signedTxBodyBytes,
-      authInfoBytes: signedAuthInfoBytes,
-      signatures: [fromBase64(signature.signature)],
-    });
+    return [
+      TxRaw.fromPartial({
+        bodyBytes: txBodyBytes,
+        authInfoBytes: signedAuthInfoBytes,
+        signatures: [fromBase64(signature.signature)],
+      }),
+      nonces,
+    ];
   }
 
   private encodeTx(txBody: {
@@ -582,7 +621,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<TxRaw> {
+  ): Promise<[TxRaw, ComputeMsgToNonce]> {
     if (!isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
@@ -593,19 +632,36 @@ export class SecretNetworkClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
+
+    const nonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
-          messages.map((msg) => msg.toProto(this.encryptionUtils)),
+          messages.map(async (msg, index) => {
+            const asProto = await msg.toProto(this.encryptionUtils);
+            if (
+              asProto.typeUrl ===
+              "/secret.compute.v1beta1.MsgInstantiateContract"
+            ) {
+              nonces[index] = asProto.value.initMsg.slice(0, 32);
+            }
+            if (
+              asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+            ) {
+              nonces[index] = asProto.value.msg.slice(0, 32);
+            }
+
+            return asProto;
+          }),
         ),
         memo: memo,
       },
     };
     const txBodyBytes = this.encodeTx(txBody);
+    const pubkey = encodePubkey(
+      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
+    );
     const gasLimit = Number(fee.gas);
     const authInfoBytes = makeAuthInfoBytes(
       [{ pubkey, sequence }],
@@ -622,11 +678,14 @@ export class SecretNetworkClient {
       signerAddress,
       signDoc,
     );
-    return TxRaw.fromPartial({
-      bodyBytes: signed.bodyBytes,
-      authInfoBytes: signed.authInfoBytes,
-      signatures: [fromBase64(signature.signature)],
-    });
+    return [
+      TxRaw.fromPartial({
+        bodyBytes: signed.bodyBytes,
+        authInfoBytes: signed.authInfoBytes,
+        signatures: [fromBase64(signature.signature)],
+      }),
+      nonces,
+    ];
   }
 }
 

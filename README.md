@@ -72,9 +72,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
   - 🟩 compute
     - 🟩 MsgStoreCode
     - 🟩 MsgInstantiateContract
-      - 🟥 output decryption
     - 🟩 MsgExecuteContract
-      - 🟥 output decryption
   - 🟥 crisis
     - 🟥 MsgVerifyInvariant
   - 🟥 distribution
@@ -219,7 +217,7 @@ const msgSendToBob = new MsgSend({
   amount: [{ denom: "uscrt", amount: "1" }],
 });
 
-const tx1 = await secretjs.tx.signAndBroadcast([msgSendToAlice, msgSendToBob], {
+const tx1 = await secretjs.tx.broadcast([msgSendToAlice, msgSendToBob], {
   gasLimit: 40_000,
   gasPriceInFeeDenom: 0.25,
   feeDenom: "uscrt",
@@ -245,7 +243,7 @@ const msgSendToAliceAndBob = new MsgMultiSend({
   ],
 });
 
-const tx2 = await secretjs.tx.signAndBroadcast([msgSendToAliceAndBob], {
+const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
   gasLimit: 20_000,
   gasPriceInFeeDenom: 0.25,
   feeDenom: "uscrt",

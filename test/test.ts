@@ -250,7 +250,7 @@ beforeAll(async () => {
 
     const { secretjs } = accounts[0];
 
-    const tx = await secretjs.tx.signAndBroadcast([msgMultiSend], {
+    const tx = await secretjs.tx.broadcast([msgMultiSend], {
       gasLimit: 200_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -430,7 +430,7 @@ describe("tx.bank", () => {
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: gasLimit,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -472,7 +472,7 @@ describe("tx.bank", () => {
       ],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: gasLimit,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -503,7 +503,7 @@ describe("tx.compute", () => {
       builder: "",
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -527,7 +527,7 @@ describe("tx.compute", () => {
       builder: "",
     });
 
-    const txStore = await secretjs.tx.signAndBroadcast([msgStore], {
+    const txStore = await secretjs.tx.broadcast([msgStore], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -567,7 +567,7 @@ describe("tx.compute", () => {
       initFunds: [],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -587,13 +587,13 @@ describe("tx.compute", () => {
     const msgStore = new MsgStoreCode({
       sender: accounts[0].address,
       wasmByteCode: fs.readFileSync(
-        `${__dirname}/snip20-ibc.wasm.gz`,
+        `${__dirname}/snip721.wasm.gz`,
       ) as Uint8Array,
       source: "",
       builder: "",
     });
 
-    const txStore = await secretjs.tx.signAndBroadcast([msgStore], {
+    const txStore = await secretjs.tx.broadcast([msgStore], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -614,26 +614,21 @@ describe("tx.compute", () => {
       codeId,
       codeHash,
       initMsg: {
-        name: "Secret SCRT",
+        name: "SecretJS NFTs",
+        symbol: "YOLO",
         admin: accounts[0].address,
-        symbol: "SSCRT",
-        decimals: 6,
-        initial_balances: [{ address: accounts[0].address, amount: "1" }],
-        prng_seed: "eW8=",
-        config: {
-          public_total_supply: true,
-          enable_deposit: true,
-          enable_redeem: true,
-          enable_mint: false,
-          enable_burn: false,
+        entropy: "a2FraS1waXBpCg==",
+        royalty_info: {
+          decimal_places_in_rates: 4,
+          royalties: [{ recipient: accounts[0].address, rate: 700 }],
         },
-        supported_denoms: ["uscrt"],
+        config: { public_token_supply: true },
       },
       label: `label-${Date.now()}`,
       initFunds: [],
     });
 
-    const txInit = await secretjs.tx.signAndBroadcast([msgInit], {
+    const txInit = await secretjs.tx.broadcast([msgInit], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -643,15 +638,42 @@ describe("tx.compute", () => {
 
     const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
 
-    const msg = new MsgExecuteContract({
+    const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
       contract,
       codeHash,
-      msg: { set_viewing_key: { key: "banana 🍌" } },
+      msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const mintMsg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract,
+      codeHash,
+      msg: {
+        mint_nft: {
+          token_id: "1",
+          owner: accounts[0].address,
+          public_metadata: {
+            extension: {
+              image:
+                "https://scrt.network/secretnetwork-logo-secondary-black.png",
+              name: "secretnetwork-logo-secondary-black",
+            },
+          },
+          private_metadata: {
+            extension: {
+              image:
+                "https://scrt.network/secretnetwork-logo-primary-white.png",
+              name: "secretnetwork-logo-primary-white",
+            },
+          },
+        },
+      },
+      sentFunds: [],
+    });
+
+    const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -663,6 +685,10 @@ describe("tx.compute", () => {
     expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
       contract,
     );
+
+    // Check decryption
+    expect(tx.arrayLog![10].key).toBe("minted");
+    expect(tx.arrayLog![10].value).toBe("1");
   });
 });
 
@@ -695,7 +721,7 @@ describe("tx.gov", () => {
         },
       });
 
-      const tx = await secretjs.tx.signAndBroadcast([msg], {
+      const tx = await secretjs.tx.broadcast([msg], {
         gasLimit: 5_000_000,
         gasPriceInFeeDenom: 0.25,
         feeDenom: "uscrt",
@@ -733,7 +759,7 @@ describe("tx.gov", () => {
         },
       });
 
-      const tx = await secretjs.tx.signAndBroadcast([msg], {
+      const tx = await secretjs.tx.broadcast([msg], {
         gasLimit: 5_000_000,
         gasPriceInFeeDenom: 0.25,
         feeDenom: "uscrt",
@@ -771,7 +797,7 @@ describe("tx.gov", () => {
         },
       });
 
-      const tx = await secretjs.tx.signAndBroadcast([msg], {
+      const tx = await secretjs.tx.broadcast([msg], {
         gasLimit: 5_000_000,
         gasPriceInFeeDenom: 0.25,
         feeDenom: "uscrt",
@@ -814,7 +840,7 @@ describe("tx.gov", () => {
         },
       });
 
-      const tx = await secretjs.tx.signAndBroadcast([msg], {
+      const tx = await secretjs.tx.broadcast([msg], {
         gasLimit: 5_000_000,
         gasPriceInFeeDenom: 0.25,
         feeDenom: "uscrt",
@@ -849,7 +875,7 @@ describe("tx.gov", () => {
         },
       });
 
-      const tx = await secretjs.tx.signAndBroadcast([msg], {
+      const tx = await secretjs.tx.broadcast([msg], {
         gasLimit: 5_000_000,
         gasPriceInFeeDenom: 0.25,
         feeDenom: "uscrt",
@@ -883,7 +909,7 @@ describe("tx.gov", () => {
       },
     });
 
-    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -901,7 +927,7 @@ describe("tx.gov", () => {
       option: VoteOption.VOTE_OPTION_YES,
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -930,7 +956,7 @@ describe("tx.gov", () => {
       },
     });
 
-    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -953,7 +979,7 @@ describe("tx.gov", () => {
       ],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -982,7 +1008,7 @@ describe("tx.gov", () => {
       },
     });
 
-    const txSubmit = await secretjs.tx.signAndBroadcast([msgSubmit], {
+    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1000,7 +1026,7 @@ describe("tx.gov", () => {
       amount: [{ amount: "1", denom: "uscrt" }],
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1031,7 +1057,7 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1059,7 +1085,7 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const txDelegate = await secretjs.tx.signAndBroadcast([msgDelegate], {
+    const txDelegate = await secretjs.tx.broadcast([msgDelegate], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1077,7 +1103,7 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1115,7 +1141,7 @@ describe("tx.staking", () => {
       initialDelegation: { amount: "1", denom: "uscrt" },
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1151,7 +1177,7 @@ describe("tx.staking", () => {
       initialDelegation: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreateValidator = await secretjs.tx.signAndBroadcast(
+    const txCreateValidator = await secretjs.tx.broadcast(
       [msgCreateValidator],
       {
         gasLimit: 5_000_000,
@@ -1179,7 +1205,7 @@ describe("tx.staking", () => {
       // commissionRate: 0.04, // commission cannot be changed more than once in 24h
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1226,7 +1252,7 @@ describe("tx.staking", () => {
       initialDelegation: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreate = await accounts[3].secretjs.tx.signAndBroadcast(
+    const txCreate = await accounts[3].secretjs.tx.broadcast(
       [msgCreateValidator],
       {
         gasLimit: 5_000_000,
@@ -1247,14 +1273,11 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const txDelegate = await accounts[0].secretjs.tx.signAndBroadcast(
-      [msgDelegate],
-      {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      },
-    );
+    const txDelegate = await accounts[0].secretjs.tx.broadcast([msgDelegate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
 
     expect(txDelegate.code).toBe(0);
 
@@ -1265,7 +1288,7 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const tx = await accounts[0].secretjs.tx.signAndBroadcast([msg], {
+    const tx = await accounts[0].secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1298,7 +1321,7 @@ describe("tx.slashing", () => {
       initialDelegation: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreateValidator = await secretjs.tx.signAndBroadcast(
+    const txCreateValidator = await secretjs.tx.broadcast(
       [msgCreateValidator],
       {
         gasLimit: 5_000_000,
@@ -1318,7 +1341,7 @@ describe("tx.slashing", () => {
       validatorAddr,
     });
 
-    const txUnjail = await secretjs.tx.signAndBroadcast([msgUnjail], {
+    const txUnjail = await secretjs.tx.broadcast([msgUnjail], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
