@@ -991,6 +991,56 @@ describe("tx.gov", () => {
 });
 
 describe("tx.staking", () => {
+  beforeAll(async () => {
+    // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
+    for (let i = 4; i <= 19; i++) {
+      const wallet = await SecretSecp256k1HdWallet.generate();
+
+      accounts[i] = {
+        name: String(i),
+        type: "generated for tx.staking",
+        address: (await wallet.getAccounts())[0].address,
+        pubkey: JSON.stringify({
+          "@type": "cosmos.crypto.secp256k1.PubKey",
+          key: toBase64((await wallet.getAccounts())[0].pubkey),
+        }),
+        mnemonic: wallet.mnemonic,
+        wallet: wallet,
+        secretjs: await SecretNetworkClient.create("http://localhost:26657", {
+          signer: wallet,
+          signerAddress: (await wallet.getAccounts())[0].address,
+          chainId: "secretdev-1",
+        }),
+      };
+    }
+
+    expect(accounts.length).toBe(20);
+
+    // Send 100k SCRT from account 0 to each of accounts 1-19
+    const msg = new MsgMultiSend({
+      inputs: [
+        {
+          address: accounts[0].address,
+          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
+        },
+      ],
+      outputs: accounts.slice(1).map(({ address }) => ({
+        address,
+        coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
+      })),
+    });
+
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.signAndBroadcast([msg], {
+      gasLimit: 200_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+  });
+
   test("MsgDelegate", async () => {
     const { secretjs } = accounts[0];
 
@@ -1083,7 +1133,7 @@ describe("tx.staking", () => {
         securityContact: "info@watermelon.com",
         details: "We are the banana papaya validator",
       },
-      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      pubkey: toBase64(new Uint8Array(32).fill(1)),
       minSelfDelegation: "1",
       value: { amount: "1", denom: "uscrt" },
     });
@@ -1103,10 +1153,10 @@ describe("tx.staking", () => {
   });
 
   test("MsgEditValidator", async () => {
-    const { secretjs } = accounts[1];
+    const { secretjs } = accounts[2];
 
-    const msgCreate = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[1].address,
+    const msgCreateValidator = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[2].address,
       commission: {
         maxChangeRate: 0.01,
         maxRate: 0.1,
@@ -1119,12 +1169,12 @@ describe("tx.staking", () => {
         securityContact: "info@watermelon.com",
         details: "We are the banana papaya validator",
       },
-      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      pubkey: toBase64(new Uint8Array(32).fill(2)),
       minSelfDelegation: "2",
       value: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreate = await secretjs.tx.signAndBroadcast([msgCreate], {
+    const txCreate = await secretjs.tx.signAndBroadcast([msgCreateValidator], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
@@ -1177,10 +1227,8 @@ describe("tx.staking", () => {
   });
 
   test("MsgBeginRedelegate", async () => {
-    const { secretjs } = accounts[0];
-
-    const msgCreate = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[1].address,
+    const msgCreateValidator = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[3].address,
       commission: {
         maxChangeRate: 0.01,
         maxRate: 0.1,
@@ -1193,20 +1241,23 @@ describe("tx.staking", () => {
         securityContact: "info@watermelon.com",
         details: "We are the banana papaya validator",
       },
-      pubkey: toBase64(new Uint8Array(32).fill(0)),
+      pubkey: toBase64(new Uint8Array(32).fill(3)),
       minSelfDelegation: "2",
       value: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreate = await secretjs.tx.signAndBroadcast([msgCreate], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txCreate = await accounts[3].secretjs.tx.signAndBroadcast(
+      [msgCreateValidator],
+      {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      },
+    );
 
     expect(txCreate.code).toBe(0);
 
-    const { validators } = await secretjs.query.staking.validators({
+    const { validators } = await accounts[3].secretjs.query.staking.validators({
       status: "",
     });
 
@@ -1216,11 +1267,14 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const txDelegate = await secretjs.tx.signAndBroadcast([msgDelegate], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txDelegate = await accounts[0].secretjs.tx.signAndBroadcast(
+      [msgDelegate],
+      {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      },
+    );
 
     expect(txDelegate.code).toBe(0);
 
@@ -1231,7 +1285,7 @@ describe("tx.staking", () => {
       amount: { amount: "1", denom: "uscrt" },
     });
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await accounts[0].secretjs.tx.signAndBroadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",
