@@ -295,8 +295,8 @@ describe("query.auth", () => {
 
     const result = await secretjs.query.auth.accounts({});
 
-    // 2 account with a balance (a & b) and 7 module accounts
-    expect(result.length).toBe(9);
+    // 20 accounts with a balance and 7 module accounts
+    expect(result.length).toBe(27);
     expect(result.filter((x) => x?.type === "ModuleAccount").length).toBe(7);
     expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(2);
     expect(
