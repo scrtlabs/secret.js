@@ -40,8 +40,8 @@ export type MsgCreateValidatorParams = {
   selfDelegatorAddress: string;
   /** pubkey is a base64 string representation of the validator's ed25519 pubkey (32 bytes).*/
   pubkey: string;
-  /** value is the initial delegation from the self-delegator to its validator */
-  value: Coin;
+  /** initial delegation from the self-delegator to its validator */
+  initialDelegation: Coin;
 };
 
 export class MsgCreateValidator implements Msg {
@@ -51,7 +51,7 @@ export class MsgCreateValidator implements Msg {
   public delegatorAddress: string;
   public validatorAddress: string;
   public pubkey: string;
-  public value: Coin;
+  public initialDelegation: Coin;
 
   constructor({
     description,
@@ -59,7 +59,7 @@ export class MsgCreateValidator implements Msg {
     minSelfDelegation,
     selfDelegatorAddress,
     pubkey,
-    value,
+    initialDelegation,
   }: MsgCreateValidatorParams) {
     this.description = description;
     this.commission = commission;
@@ -70,7 +70,7 @@ export class MsgCreateValidator implements Msg {
       bech32.decode(selfDelegatorAddress).words,
     );
     this.pubkey = pubkey;
-    this.value = value;
+    this.initialDelegation = initialDelegation;
   }
 
   async toProto(): Promise<ProtoMsg> {
@@ -98,7 +98,7 @@ export class MsgCreateValidator implements Msg {
           }),
         ).finish(),
       }),
-      value: this.value,
+      value: this.initialDelegation,
     };
 
     return {
@@ -135,7 +135,7 @@ export class MsgCreateValidator implements Msg {
           type: "tendermint/PubKeyEd25519",
           value: this.pubkey,
         },
-        value: this.value,
+        value: this.initialDelegation,
       },
     };
   }

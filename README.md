@@ -122,8 +122,8 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgConnectionOpenInit
   - 🟥 ibc_transfer
     - 🟥 MsgTransfer
-  - 🟥 slashing
-    - 🟥 MsgUnjail
+  - 🟩 slashing
+    - 🟩 MsgUnjail
   - 🟩 staking
     - 🟩 MsgCreateValidator
     - 🟩 MsgEditValidator

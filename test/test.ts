@@ -15,6 +15,7 @@ import {
   MsgStoreCode,
   MsgSubmitProposal,
   MsgUndelegate,
+  MsgUnjail,
   MsgVote,
   MsgVoteWeighted,
   Proposal,
@@ -1111,7 +1112,7 @@ describe("tx.staking", () => {
       },
       pubkey: toBase64(new Uint8Array(32).fill(1)),
       minSelfDelegation: "1",
-      value: { amount: "1", denom: "uscrt" },
+      initialDelegation: { amount: "1", denom: "uscrt" },
     });
 
     const tx = await secretjs.tx.signAndBroadcast([msg], {
@@ -1147,18 +1148,21 @@ describe("tx.staking", () => {
       },
       pubkey: toBase64(new Uint8Array(32).fill(2)),
       minSelfDelegation: "2",
-      value: { amount: "3", denom: "uscrt" },
+      initialDelegation: { amount: "3", denom: "uscrt" },
     });
 
-    const txCreate = await secretjs.tx.signAndBroadcast([msgCreateValidator], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txCreateValidator = await secretjs.tx.signAndBroadcast(
+      [msgCreateValidator],
+      {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      },
+    );
 
-    expect(txCreate.code).toBe(0);
+    expect(txCreateValidator.code).toBe(0);
     const validatorAddress = getValueFromRawLog(
-      txCreate.rawLog,
+      txCreateValidator.rawLog,
       "create_validator.validator",
     );
 
@@ -1219,7 +1223,7 @@ describe("tx.staking", () => {
       },
       pubkey: toBase64(new Uint8Array(32).fill(3)),
       minSelfDelegation: "2",
-      value: { amount: "3", denom: "uscrt" },
+      initialDelegation: { amount: "3", denom: "uscrt" },
     });
 
     const txCreate = await accounts[3].secretjs.tx.signAndBroadcast(
@@ -1268,5 +1272,62 @@ describe("tx.staking", () => {
     });
 
     expect(tx.code).toBe(0);
+  });
+});
+
+describe("tx.slashing", () => {
+  test("MsgUnjail", async () => {
+    const { secretjs } = accounts[4];
+
+    const msgCreateValidator = new MsgCreateValidator({
+      selfDelegatorAddress: accounts[4].address,
+      commission: {
+        maxChangeRate: 0.01,
+        maxRate: 0.1,
+        rate: 0.05,
+      },
+      description: {
+        moniker: "banana",
+        identity: "papaya",
+        website: "watermelon.com",
+        securityContact: "info@watermelon.com",
+        details: "We are the banana papaya validator",
+      },
+      pubkey: toBase64(new Uint8Array(32).fill(4)),
+      minSelfDelegation: "2",
+      initialDelegation: { amount: "3", denom: "uscrt" },
+    });
+
+    const txCreateValidator = await secretjs.tx.signAndBroadcast(
+      [msgCreateValidator],
+      {
+        gasLimit: 5_000_000,
+        gasPriceInFeeDenom: 0.25,
+        feeDenom: "uscrt",
+      },
+    );
+
+    expect(txCreateValidator.code).toBe(0);
+
+    const validatorAddr = getValueFromRawLog(
+      txCreateValidator.rawLog,
+      "create_validator.validator",
+    );
+
+    const msgUnjail = new MsgUnjail({
+      validatorAddr,
+    });
+
+    const txUnjail = await secretjs.tx.signAndBroadcast([msgUnjail], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    // To jail a validator we have to be inactive for 10 minutes.
+    // This is too much for a test, so getting to "validator not jailed"
+    // is far enough for to make sure that MsgUnjail goes through.
+    expect(txUnjail.code).toBe(5);
+    expect(txUnjail.rawLog).toContain("validator not jailed");
   });
 });

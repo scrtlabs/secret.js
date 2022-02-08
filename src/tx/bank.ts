@@ -61,7 +61,7 @@ export class MsgMultiSend implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
+    const msgContent: MsgMultiSendProto = {
       inputs: this.inputs,
       outputs: this.outputs,
     };
