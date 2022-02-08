@@ -235,7 +235,7 @@ beforeAll(async () => {
     expect(accounts.length).toBe(20);
 
     // Send 100k SCRT from account 0 to each of accounts 1-19
-    const msg = new MsgMultiSend({
+    const msgMultiSend = new MsgMultiSend({
       inputs: [
         {
           address: accounts[0].address,
@@ -250,7 +250,7 @@ beforeAll(async () => {
 
     const { secretjs } = accounts[0];
 
-    const tx = await secretjs.tx.signAndBroadcast([msg], {
+    const tx = await secretjs.tx.signAndBroadcast([msgMultiSend], {
       gasLimit: 200_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",

@@ -14,18 +14,15 @@ import {
   makeSignDoc as makeSignDocProto,
   OfflineSigner,
 } from "@cosmjs/proto-signing";
-import {
-  DeliverTxResponse,
-  IndexedTx,
-  SignerData,
-  StdFee,
-} from "@cosmjs/stargate";
+import { IndexedTx, SignerData, StdFee } from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
+import { MsgData } from "./protobuf_stuff/cosmos/base/abci/v1beta1/abci";
 import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
 import { TxBody, TxRaw } from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
 import { Any } from "./protobuf_stuff/google/protobuf/any";
 import { AuthQuerier, BaseAccount } from "./query/auth";
+import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
 import {
   AuthzQuerier,
   BankQuerier,
@@ -44,10 +41,9 @@ import {
   TendermintQuerier,
   UpgradeQuerier,
 } from "./query/cosmos";
-import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
 import { Msg, ProtoMsg } from "./tx/types";
 
-export { DeliverTxResponse, OfflineSigner, isOfflineDirectSigner };
+export { MsgData, OfflineSigner, isOfflineDirectSigner };
 
 export type SigningParams = {
   signerAddress: string;
@@ -96,7 +92,7 @@ export type SignAndBroadcastParams = {
    *
    * Defaults to `6_000`. Ignored if `waitForCommit = false`.
    */
-  broadcastPollIntervalMs?: number;
+  broadcastCheckIntervalMs?: number;
   /**
    * If `BroadcastMode.Sync` - Broadcast transaction to mempool and wait for CheckTx response.
    *
@@ -151,6 +147,50 @@ type Querier = {
   txsQuery: (query: string) => Promise<IndexedTx[]>;
 };
 
+/**
+ * `key` is formatted as "msg-number.event-type.log-key", e.g. "0.wasm.contract_address"
+ */
+export type FlatLog = { [key: string]: string };
+
+export type ArrayLog = Array<{
+  msg: number;
+  type: string;
+  key: string;
+  value: string;
+}>;
+
+export type JsonLog = Array<{
+  events: Array<{
+    type: string;
+    attributes: Array<{ key: string; value: string }>;
+  }>;
+}>;
+
+/**
+ * The response after successfully broadcasting a transaction.
+ */
+export type TxResponse = {
+  readonly height?: number;
+  /** Error code. The transaction suceeded iff code is 0. */
+  readonly code?: number;
+  readonly transactionHash: string;
+  /**
+   * If code != 0, rawLog contains the error.
+   *
+   * If code = 0 you'll probably want to use `jsonLog`, `flatLog` or `arrayLog`.
+   */
+  readonly rawLog?: string;
+  /** If code = 0, `jsonLog = JSON.parse(rawLow)` */
+  readonly jsonLog?: JsonLog;
+  /** If code = 0, `arrayLog` is a flattened `jsonLog` */
+  readonly arrayLog?: ArrayLog;
+  /** If code = 0, `flatLog` is a parsed rawLog JSON object where keys are formatted as "msg-number.event-type.log-key", e.g. "0.wasm.contract_address" */
+  readonly flatLog?: FlatLog;
+  readonly data?: MsgData[];
+  readonly gasUsed?: number;
+  readonly gasWanted?: number;
+};
+
 type TxSender = {
   sign: (
     messages: Msg[],
@@ -161,7 +201,7 @@ type TxSender = {
   signAndBroadcast: (
     messages: Msg[],
     params: SignAndBroadcastParams,
-  ) => Promise<DeliverTxResponse>;
+  ) => Promise<TxResponse>;
 };
 
 interface SecretRpcClient {
@@ -181,7 +221,7 @@ export class SecretNetworkClient {
   private chainId: string;
   private encryptionUtils: EncryptionUtils;
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass only the `rpcUrl` param. */
+  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
   public static async create(
     rpcUrl: string,
     signingParams: SigningParams = {
@@ -296,16 +336,16 @@ export class SecretNetworkClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a `DeliverTxResponse` is returned. The caller then
+   * If the transaction is included in a block, a {@link TxResponse} is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   private async broadcastTx(
     tx: Uint8Array,
     timeoutMs: number,
-    pollIntervalMs: number,
+    checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<TxResponse> {
     const start = Date.now();
 
     let txhash: string;
@@ -323,13 +363,7 @@ export class SecretNetworkClient {
     }
 
     if (!waitForCommit) {
-      return {
-        code: -1,
-        height: -1,
-        transactionHash: txhash,
-        gasUsed: -1,
-        gasWanted: -1,
-      };
+      return { transactionHash: txhash };
     }
 
     while (true) {
@@ -341,17 +375,45 @@ export class SecretNetworkClient {
 
       const result = await this.getTx(txhash);
       if (result) {
+        let jsonLog: JsonLog | undefined;
+        let arrayLog: ArrayLog | undefined;
+        let flatLog: FlatLog | undefined;
+        if (result.code == 0) {
+          jsonLog = JSON.parse(result.rawLog) as JsonLog;
+
+          arrayLog = [];
+          flatLog = {};
+          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            const log = jsonLog[msgIndex];
+            for (const event of log.events) {
+              for (const attr of event.attributes) {
+                arrayLog.push({
+                  msg: msgIndex,
+                  type: event.type,
+                  key: attr.key,
+                  value: attr.value,
+                });
+
+                flatLog[`${msgIndex}.${event.type}.${attr.key}`] = attr.value;
+              }
+            }
+          }
+        }
+
         return {
           code: result.code,
           height: result.height,
           rawLog: result.rawLog,
+          jsonLog,
+          arrayLog,
+          flatLog,
           transactionHash: txhash,
           gasUsed: result.gasUsed,
           gasWanted: result.gasWanted,
         };
       }
 
-      await sleep(pollIntervalMs);
+      await sleep(checkIntervalMs);
     }
   }
 
@@ -364,11 +426,11 @@ export class SecretNetworkClient {
       memo = "",
       waitForCommit = true,
       broadcastTimeoutMs = 60_000,
-      broadcastPollIntervalMs = 6_000,
+      broadcastCheckIntervalMs = 6_000,
       broadcastMode = BroadcastMode.Sync,
       explicitSignerData,
     }: SignAndBroadcastParams,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<TxResponse> {
     const txRaw = await this.sign(
       messages,
       {
@@ -388,7 +450,7 @@ export class SecretNetworkClient {
     return this.broadcastTx(
       txBytes,
       broadcastTimeoutMs,
-      broadcastPollIntervalMs,
+      broadcastCheckIntervalMs,
       broadcastMode,
       waitForCommit,
     );
