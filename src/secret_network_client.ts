@@ -147,11 +147,6 @@ type Querier = {
   txsQuery: (query: string) => Promise<IndexedTx[]>;
 };
 
-/**
- * `key` is formatted as "msg-number.event-type.log-key", e.g. "0.wasm.contract_address"
- */
-export type FlatLog = { [key: string]: string };
-
 export type ArrayLog = Array<{
   msg: number;
   type: string;
@@ -177,15 +172,13 @@ export type TxResponse = {
   /**
    * If code != 0, rawLog contains the error.
    *
-   * If code = 0 you'll probably want to use `jsonLog`, `flatLog` or `arrayLog`.
+   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`.
    */
   readonly rawLog?: string;
   /** If code = 0, `jsonLog = JSON.parse(rawLow)` */
   readonly jsonLog?: JsonLog;
   /** If code = 0, `arrayLog` is a flattened `jsonLog` */
   readonly arrayLog?: ArrayLog;
-  /** If code = 0, `flatLog` is a parsed rawLog JSON object where keys are formatted as "msg-number.event-type.log-key", e.g. "0.wasm.contract_address" */
-  readonly flatLog?: FlatLog;
   readonly data?: MsgData[];
   readonly gasUsed?: number;
   readonly gasWanted?: number;
@@ -377,12 +370,10 @@ export class SecretNetworkClient {
       if (result) {
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
-        let flatLog: FlatLog | undefined;
         if (result.code == 0) {
           jsonLog = JSON.parse(result.rawLog) as JsonLog;
 
           arrayLog = [];
-          flatLog = {};
           for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
             const log = jsonLog[msgIndex];
             for (const event of log.events) {
@@ -393,8 +384,6 @@ export class SecretNetworkClient {
                   key: attr.key,
                   value: attr.value,
                 });
-
-                flatLog[`${msgIndex}.${event.type}.${attr.key}`] = attr.value;
               }
             }
           }
@@ -406,7 +395,6 @@ export class SecretNetworkClient {
           rawLog: result.rawLog,
           jsonLog,
           arrayLog,
-          flatLog,
           transactionHash: txhash,
           gasUsed: result.gasUsed,
           gasWanted: result.gasWanted,
