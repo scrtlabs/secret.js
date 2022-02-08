@@ -124,11 +124,11 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟥 MsgTransfer
   - 🟥 slashing
     - 🟥 MsgUnjail
-  - 🟥 staking
+  - 🟩 staking
     - 🟩 MsgCreateValidator
     - 🟩 MsgEditValidator
     - 🟩 MsgDelegate
-    - 🟥 MsgBeginRedelegate
+    - 🟩 MsgBeginRedelegate
     - 🟩 MsgUndelegate
 
 ## Installation
