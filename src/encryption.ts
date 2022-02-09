@@ -1,6 +1,7 @@
 import { fromBase64, fromHex, fromUtf8, toHex, toUtf8 } from "@cosmjs/encoding";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
-import hkdf from "js-crypto-hkdf";
+//@ts-ignore
+import hkdf from "js-crypto-hkdf/dist/jschkdf.bundle.js";
 import * as miscreant from "miscreant";
 import secureRandom from "secure-random";
 import { RegistrationQuerier } from "./query/compute";
