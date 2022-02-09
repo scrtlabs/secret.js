@@ -26,10 +26,12 @@
     "is-gzip": "2.0.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
+    "protobufjs": "6.11.2",
     "secure-random": "1.1.2"
   },
   "devDependencies": {
     "@types/is-gzip": "2.0.0",
+    "@types/protobufjs": "6.0.0",
     "@types/jest": "27.4.0",
     "@types/pako": "1.0.3",
     "@types/secure-random": "1.1.0",
