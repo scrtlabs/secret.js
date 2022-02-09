@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal";
 import { CapabilityOwners } from "../../../cosmos/capability/v1beta1/capability";
 
 export const protobufPackage = "cosmos.capability.v1beta1";
