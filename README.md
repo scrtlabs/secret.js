@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="logo.svg" type="image/svg+xml" width="75%" />
+  <img src="logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
+  <img src="logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
 </p>
 <p align="center">
   The JavaScript SDK for Secret Network.
@@ -37,7 +38,9 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - 🟥 Local HD wallet with Secret Network key derivation path
   - 🟨 Amino signer
   - 🟥 Protobuf signer
-- 🟥 Test Keplr integration
+- 🟥 Test Keplr
+- 🟥 Test Keplr+Ledger
+- 🟥 Test subscribe/ws
 - 🟨 Queries
   - 🟨 getTx(txhash)
   - 🟨 txsQuery(queryString)
