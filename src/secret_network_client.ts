@@ -172,12 +172,12 @@ export type DeliverTxResponse = {
   /**
    * If code != 0, rawLog contains the error.
    *
-   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`.
+   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`. Values are not decrypted.
    */
   readonly rawLog?: string;
-  /** If code = 0, `jsonLog = JSON.parse(rawLow)` */
+  /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
   readonly jsonLog?: JsonLog;
-  /** If code = 0, `arrayLog` is a flattened `jsonLog` */
+  /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
   readonly arrayLog?: ArrayLog;
   readonly data?: MsgData[];
   readonly gasUsed?: number;
