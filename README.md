@@ -10,8 +10,6 @@
 - [Key Features](#key-features)
 - [Beta Version Notice](#beta-version-notice)
 - [Installation](#installation)
-  - [NPM](#npm)
-  - [Yarn](#yarn)
 - [Usage](#usage)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
@@ -132,13 +130,11 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 
 ## Installation
 
-### NPM
-
 ```bash
 npm install secretjs@beta
 ```
 
-### Yarn
+or
 
 ```bash
 yarn add secretjs@beta
