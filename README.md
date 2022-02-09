@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.svg" type="image/svg+xml" />
+  <img src="logo.svg" type="image/svg+xml" width="75%" />
 </p>
 <p align="center">
   The JavaScript SDK for Secret Network.
