@@ -19,6 +19,7 @@ import {
   MsgUnjail,
   MsgVote,
   MsgVoteWeighted,
+  MsgWithdrawDelegatorReward,
   Proposal,
   ProposalStatus,
   ProposalType,
@@ -1363,6 +1364,41 @@ describe("tx.distribution", () => {
     const msg = new MsgFundCommunityPool({
       depositor,
       amount: [{ amount: "1", denom: "uscrt" }],
+    });
+
+    const tx = await secretjs.tx.broadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+  });
+
+  test("MsgWithdrawDelegatorReward", async () => {
+    const { secretjs, address: delegatorAddress } = accounts[0];
+
+    const {
+      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
+    } = await secretjs.query.staking.validators({ status: "" });
+
+    const msgDelegate = new MsgDelegate({
+      delegatorAddress,
+      validatorAddress,
+      amount: { amount: "1", denom: "uscrt" },
+    });
+
+    const txDelegate = await secretjs.tx.broadcast([msgDelegate], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(txDelegate.code).toBe(0);
+
+    const msg = new MsgWithdrawDelegatorReward({
+      delegatorAddress,
+      validatorAddress,
     });
 
     const tx = await secretjs.tx.broadcast([msg], {

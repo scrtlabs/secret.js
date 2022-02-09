@@ -25,16 +25,43 @@ export class MsgSetWithdrawAddress implements Msg {
 export type MsgWithdrawDelegatorRewardParams = MsgWithdrawDelegatorRewardProto;
 
 export class MsgWithdrawDelegatorReward implements Msg {
-  constructor(msg: MsgWithdrawDelegatorRewardParams) {}
+  public delegatorAddress: string;
+  public validatorAddress: string;
+
+  constructor({
+    delegatorAddress,
+    validatorAddress,
+  }: MsgWithdrawDelegatorRewardParams) {
+    this.delegatorAddress = delegatorAddress;
+    this.validatorAddress = validatorAddress;
+  }
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgWithdrawDelegatorReward not implemented.");
+    const msgContent: MsgWithdrawDelegatorRewardProto = {
+      delegatorAddress: this.delegatorAddress,
+      validatorAddress: this.validatorAddress,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgWithdrawDelegatorReward`,
+      value: msgContent,
+      encode: () => MsgWithdrawDelegatorRewardProto.encode(msgContent).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgWithdrawDelegatorReward not implemented.");
+    return {
+      type: "cosmos-sdk/MsgWithdrawDelegationReward", // wtf
+      value: {
+        delegator_address: this.delegatorAddress,
+        validator_address: this.validatorAddress,
+      },
+    };
   }
 }
+
+// proto and amino names are different, export both names
+export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
 
 export type MsgWithdrawValidatorCommissionParams =
   MsgWithdrawValidatorCommissionProto;
