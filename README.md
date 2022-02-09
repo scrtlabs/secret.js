@@ -75,7 +75,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
   - 🟥 crisis
     - 🟥 MsgVerifyInvariant
   - 🟥 distribution
-    - 🟥 MsgWithdrawDelegatorReward
+    - 🟩 MsgWithdrawDelegatorReward
     - 🟩 MsgWithdrawValidatorCommission
     - 🟩 MsgFundCommunityPool
     - 🟥 MsgSetWithdrawAddress
