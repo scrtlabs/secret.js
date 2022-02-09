@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
-  <img src="logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
+  <img src="./images/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
+  <img src="./images/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
 </p>
 <p align="center">
   The JavaScript SDK for Secret Network.
