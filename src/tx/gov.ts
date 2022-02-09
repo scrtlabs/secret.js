@@ -205,9 +205,7 @@ export class MsgSubmitProposal implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgSubmitProposal`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgSubmitProposalProto.encode(msgContent).finish();
-      },
+      encode: () => MsgSubmitProposalProto.encode(msgContent).finish(),
     };
   }
 
@@ -271,9 +269,7 @@ export class MsgVote implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgVote`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgVoteProto.encode(msgContent).finish();
-      },
+      encode: () => MsgVoteProto.encode(msgContent).finish(),
     };
   }
 
@@ -330,9 +326,7 @@ export class MsgVoteWeighted implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgVoteWeighted`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgVoteWeightedProto.encode(msgContent).finish();
-      },
+      encode: () => MsgVoteWeightedProto.encode(msgContent).finish(),
     };
   }
 
@@ -376,9 +370,7 @@ export class MsgDeposit implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgDeposit`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgDepositProto.encode(msgContent).finish();
-      },
+      encode: () => MsgDepositProto.encode(msgContent).finish(),
     };
   }
 

@@ -104,9 +104,7 @@ export class MsgCreateValidator implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgCreateValidator`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgCreateValidatorProto.encode(msgContent).finish();
-      },
+      encode: () => MsgCreateValidatorProto.encode(msgContent).finish(),
     };
   }
 
@@ -180,9 +178,7 @@ export class MsgEditValidator implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgEditValidator`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgEditValidatorProto.encode(msgContent).finish();
-      },
+      encode: () => MsgEditValidatorProto.encode(msgContent).finish(),
     };
   }
 
@@ -246,9 +242,7 @@ export class MsgDelegate implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgDelegate`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgDelegateProto.encode(msgContent).finish();
-      },
+      encode: () => MsgDelegateProto.encode(msgContent).finish(),
     };
   }
 
@@ -300,9 +294,7 @@ export class MsgBeginRedelegate implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgBeginRedelegate`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgBeginRedelegateProto.encode(msgContent).finish();
-      },
+      encode: () => MsgBeginRedelegateProto.encode(msgContent).finish(),
     };
   }
 
@@ -350,9 +342,7 @@ export class MsgUndelegate implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgUndelegate`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgUndelegateProto.encode(msgContent).finish();
-      },
+      encode: () => MsgUndelegateProto.encode(msgContent).finish(),
     };
   }
 

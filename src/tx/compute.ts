@@ -76,9 +76,7 @@ export class MsgInstantiateContract implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgInstantiateContract`,
       value: msgContent,
-      encode: (): Uint8Array => {
-        return MsgInstantiateContractProto.encode(msgContent).finish();
-      },
+      encode: () => MsgInstantiateContractProto.encode(msgContent).finish(),
     };
   }
 
@@ -163,9 +161,7 @@ export class MsgExecuteContract implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgExecuteContract`,
       value: msgContent,
-      encode: (): Uint8Array => {
-        return MsgExecuteContractProto.encode(msgContent).finish();
-      },
+      encode: () => MsgExecuteContractProto.encode(msgContent).finish(),
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
@@ -227,9 +223,7 @@ export class MsgStoreCode implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgStoreCode`,
       value: msgContent,
-      encode: (): Uint8Array => {
-        return MsgStoreCodeProto.encode(msgContent).finish();
-      },
+      encode: () => MsgStoreCodeProto.encode(msgContent).finish(),
     };
   }
   async toAmino(): Promise<AminoMsg> {

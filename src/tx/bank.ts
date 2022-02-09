@@ -31,9 +31,7 @@ export class MsgSend implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgSend`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgSendProto.encode(msgContent).finish();
-      },
+      encode: () => MsgSendProto.encode(msgContent).finish(),
     };
   }
 
@@ -69,9 +67,7 @@ export class MsgMultiSend implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgMultiSend`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgMultiSendProto.encode(msgContent).finish();
-      },
+      encode: () => MsgMultiSendProto.encode(msgContent).finish(),
     };
   }
 

@@ -21,9 +21,7 @@ export class MsgUnjail implements Msg {
     return {
       typeUrl: `/${protobufPackage}.MsgUnjail`,
       value: msgContent,
-      encode: function (): Uint8Array {
-        return MsgUnjailProto.encode(msgContent).finish();
-      },
+      encode: () => MsgUnjailProto.encode(msgContent).finish(),
     };
   }
 
