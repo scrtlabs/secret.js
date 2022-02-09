@@ -9,6 +9,7 @@ import {
   MsgDeposit,
   MsgEditValidator,
   MsgExecuteContract,
+  MsgFundCommunityPool,
   MsgInstantiateContract,
   MsgMultiSend,
   MsgSend,
@@ -1352,5 +1353,24 @@ describe("tx.slashing", () => {
     // is far enough for to make sure that MsgUnjail goes through.
     expect(txUnjail.code).toBe(5);
     expect(txUnjail.rawLog).toContain("validator not jailed");
+  });
+});
+
+describe("tx.distribution", () => {
+  test("MsgFundCommunityPool", async () => {
+    const { secretjs, address: depositor } = accounts[0];
+
+    const msg = new MsgFundCommunityPool({
+      depositor,
+      amount: [{ amount: "1", denom: "uscrt" }],
+    });
+
+    const tx = await secretjs.tx.broadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
   });
 });
