@@ -298,7 +298,7 @@ describe("query.auth", () => {
     // 20 accounts with a balance and 7 module accounts
     expect(result.length).toBe(27);
     expect(result.filter((x) => x?.type === "ModuleAccount").length).toBe(7);
-    expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(2);
+    expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(20);
     expect(
       result.filter((x) => {
         if (x?.type !== "BaseAccount") {
