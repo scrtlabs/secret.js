@@ -13,5 +13,10 @@
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true
   },
+  "paths": {
+    "crypto": ["node_modules/crypto-browserify"],
+    "path": ["node_modules/path-browserify"],
+    "stream": ["node_modules/stream"]
+  },
   "exclude": ["node_modules", "dist", "scripts", "test"]
 }
