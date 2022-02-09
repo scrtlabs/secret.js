@@ -4,17 +4,8 @@ import {
   encodeSecp256k1Pubkey,
   makeSignDoc as makeSignDocAmino,
   OfflineAminoSigner,
-  StdSignDoc,
 } from "@cosmjs/amino";
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
-import {
-  encodePubkey,
-  isOfflineDirectSigner,
-  makeAuthInfoBytes,
-  makeSignDoc as makeSignDocProto,
-  OfflineSigner,
-} from "@cosmjs/proto-signing";
-import { IndexedTx, SignerData, StdFee } from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { MsgData } from "./protobuf_stuff/cosmos/base/abci/v1beta1/abci";
@@ -41,6 +32,16 @@ import {
   TendermintQuerier,
   UpgradeQuerier,
 } from "./query/cosmos";
+import {
+  encodePubkey,
+  isOfflineDirectSigner,
+  makeAuthInfoBytes,
+  makeSignDoc as makeSignDocProto,
+  OfflineSigner,
+  SignerData,
+  StdFee,
+  StdSignDoc,
+} from "./signing";
 import { Msg, ProtoMsg } from "./tx/types";
 
 export { MsgData, OfflineSigner, isOfflineDirectSigner };
@@ -183,6 +184,37 @@ export type DeliverTxResponse = {
   readonly gasUsed?: number;
   readonly gasWanted?: number;
 };
+
+/** A transaction that is indexed as part of the transaction history */
+export interface IndexedTx {
+  readonly height: number;
+  /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
+  readonly hash: string;
+  /** Transaction execution error code. 0 on success. */
+  readonly code: number;
+  readonly rawLog: string;
+  /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
+  readonly jsonLog?: JsonLog;
+  /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
+  readonly arrayLog?: ArrayLog;
+  /**
+   * Raw transaction bytes stored in Tendermint.
+   *
+   * If you hash this, you get the transaction hash (= transaction ID):
+   *
+   * ```js
+   * import { sha256 } from "@cosmjs/crypto";
+   * import { toHex } from "@cosmjs/encoding";
+   *
+   * const transactionId = toHex(sha256(indexTx.tx)).toUpperCase();
+   * ```
+   *
+   * Use `decodeTxRaw` from @cosmjs/proto-signing to decode this.
+   */
+  readonly tx: Uint8Array;
+  readonly gasUsed: number;
+  readonly gasWanted: number;
+}
 
 type TxSender = {
   broadcast: (

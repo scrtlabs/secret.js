@@ -1,7 +1,7 @@
 import { fromBase64, fromHex, fromUtf8, toHex, toUtf8 } from "@cosmjs/encoding";
+import { hkdf } from "@noble/hashes/hkdf";
+import { sha256 } from "@noble/hashes/sha256";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
-//@ts-ignore
-import hkdf from "js-crypto-hkdf/dist/jschkdf.bundle.js";
 import * as miscreant from "miscreant";
 import secureRandom from "secure-random";
 import { RegistrationQuerier } from "./query/compute";
@@ -92,12 +92,12 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     const consensusIoPubKey = await this.getConsensusIoPubKey();
 
     const txEncryptionIkm = x25519(this.privkey, consensusIoPubKey);
-    const { key: txEncryptionKey } = await hkdf.compute(
+    const txEncryptionKey = hkdf(
+      sha256,
       Uint8Array.from([...txEncryptionIkm, ...nonce]),
-      "SHA-256",
-      32,
-      "",
       hkdfSalt,
+      "",
+      32,
     );
     return txEncryptionKey;
   }

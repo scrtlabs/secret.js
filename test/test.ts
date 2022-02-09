@@ -1475,3 +1475,7 @@ describe("tx.distribution", () => {
     expect(tx.code).toBe(0);
   });
 });
+
+test.skip("Webpack 5 compiles out of the box", async () => {});
+test.skip("All Msgs are implemented", async () => {});
+test.skip("All queries are implemented", async () => {});
