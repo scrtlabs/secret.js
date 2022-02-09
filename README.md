@@ -5,9 +5,8 @@
   The JavaScript SDK for Secret Network.
 </p>
 
-## Table of Contents
+<h2 id="table-of-contents">Table of Contents</h2>
 
-- [Table of Contents](#table-of-contents)
 - [Key Features](#key-features)
 - [Beta Version Notice](#beta-version-notice)
 - [Installation](#installation)
