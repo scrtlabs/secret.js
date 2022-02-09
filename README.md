@@ -1,26 +1,26 @@
-# Secret.js
-
-The JavaScript SDK for Secret Network.
-
-Secret.js a JavaScript SDK for writing applications that interact with the Secret Network blockchain. It aims to be a complete library for interacting with the Secret Network blockchain and its ecosystem.
+<div style="display: flex; flex-direction: column; place-content: center; place-items: center; text-align: center;">
+  <img src="logo.png" type="image/png" />
+  <p>The JavaScript SDK for Secret Network.</p>
+</div>
 
 ## Table of Contents
 
-- [Secret.js](#secretjs)
-  - [Table of Contents](#table-of-contents)
-  - [Key Features](#key-features)
-  - [Beta Version Notice](#beta-version-notice)
-  - [Installation](#installation)
-    - [NPM](#npm)
-    - [Yarn](#yarn)
-  - [Usage](#usage)
-    - [Sending Queries](#sending-queries)
-    - [Broadcasting Transactions](#broadcasting-transactions)
-  - [Migration from secretjs v0.17.x](#migration-from-secretjs-v017x)
-  - [Full API](#full-api)
-  - [Types](#types)
+- [Table of Contents](#table-of-contents)
+- [Key Features](#key-features)
+- [Beta Version Notice](#beta-version-notice)
+- [Installation](#installation)
+  - [NPM](#npm)
+  - [Yarn](#yarn)
+- [Usage](#usage)
+  - [Sending Queries](#sending-queries)
+  - [Broadcasting Transactions](#broadcasting-transactions)
+- [Migration from secretjs v0.17.x](#migration-from-secretjs-v017x)
+- [Full API](#full-api)
+- [Types](#types)
 
 ## Key Features
+
+Secret.js a JavaScript SDK for writing applications that interact with the Secret Network blockchain.
 
 - Written in TypeScript and provided with type definitions.
 - Provides simple abstractions over core data structures.
