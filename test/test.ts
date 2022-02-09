@@ -1,8 +1,10 @@
 import { toBase64 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
 import fs from "fs";
 import util from "util";
 import {
   BaseAccount,
+  BondStatus,
   MsgBeginRedelegate,
   MsgCreateValidator,
   MsgDelegate,
@@ -20,6 +22,7 @@ import {
   MsgVote,
   MsgVoteWeighted,
   MsgWithdrawDelegatorReward,
+  MsgWithdrawValidatorCommission,
   Proposal,
   ProposalStatus,
   ProposalType,
@@ -28,6 +31,7 @@ import {
   VoteOption,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
+
 const exec = util.promisify(require("child_process").exec);
 
 type Account = {
@@ -1379,7 +1383,7 @@ describe("tx.distribution", () => {
     const { secretjs, address: delegatorAddress } = accounts[0];
 
     const {
-      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
+      validators: [{ operatorAddress: validatorAddress }],
     } = await secretjs.query.staking.validators({ status: "" });
 
     const msgDelegate = new MsgDelegate({
@@ -1402,6 +1406,34 @@ describe("tx.distribution", () => {
     });
 
     const tx = await secretjs.tx.broadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+  });
+
+  test("MsgWithdrawValidatorCommission", async () => {
+    const { validators } = await accounts[0].secretjs.query.staking.validators({
+      status: "",
+    });
+    const onlineValidator = validators.find(
+      (v) => v.status === BondStatus.BOND_STATUS_BONDED,
+    )!;
+    const selfDelegator = bech32.encode(
+      "secret",
+      bech32.decode(onlineValidator.operatorAddress).words,
+    );
+    const selfDelegatorAccount = accounts.find(
+      (a) => a.address === selfDelegator,
+    )!;
+
+    const msg = new MsgWithdrawValidatorCommission({
+      validatorAddress: onlineValidator.operatorAddress,
+    });
+
+    const tx = await selfDelegatorAccount.secretjs.tx.broadcast([msg], {
       gasLimit: 5_000_000,
       gasPriceInFeeDenom: 0.25,
       feeDenom: "uscrt",

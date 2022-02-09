@@ -67,14 +67,32 @@ export type MsgWithdrawValidatorCommissionParams =
   MsgWithdrawValidatorCommissionProto;
 
 export class MsgWithdrawValidatorCommission implements Msg {
-  constructor(msg: MsgWithdrawValidatorCommissionParams) {}
+  public validatorAddress: string;
+
+  constructor({ validatorAddress }: MsgWithdrawValidatorCommissionParams) {
+    this.validatorAddress = validatorAddress;
+  }
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgWithdrawValidatorCommission not implemented.");
+    const msgContent: MsgWithdrawValidatorCommissionProto = {
+      validatorAddress: this.validatorAddress,
+    };
+
+    return {
+      typeUrl: `/${protobufPackage}.MsgWithdrawValidatorCommission`,
+      value: msgContent,
+      encode: () =>
+        MsgWithdrawValidatorCommissionProto.encode(msgContent).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgWithdrawValidatorCommission not implemented.");
+    return {
+      type: "cosmos-sdk/MsgWithdrawValidatorCommission",
+      value: {
+        validator_address: this.validatorAddress,
+      },
+    };
   }
 }
 
