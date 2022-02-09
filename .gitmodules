@@ -1,3 +1,0 @@
-[submodule "scripts/SecretNetwork"]
-	path = scripts/SecretNetwork
-	url = https://github.com/scrtlabs/SecretNetwork
