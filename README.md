@@ -1,7 +1,9 @@
-<div style="display: flex; flex-direction: column; place-content: center; place-items: center; text-align: center;">
-  <img src="logo.png" type="image/png" />
-  <p>The JavaScript SDK for Secret Network.</p>
-</div>
+<p align="center">
+  <img src="logo.svg" type="image/svg+xml" />
+</p>
+<p align="center">
+  The JavaScript SDK for Secret Network.
+</p>
 
 ## Table of Contents
 
