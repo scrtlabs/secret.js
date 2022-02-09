@@ -15,6 +15,7 @@ import {
   MsgInstantiateContract,
   MsgMultiSend,
   MsgSend,
+  MsgSetWithdrawAddress,
   MsgStoreCode,
   MsgSubmitProposal,
   MsgUndelegate,
@@ -1431,6 +1432,38 @@ describe("tx.distribution", () => {
 
     const msg = new MsgWithdrawValidatorCommission({
       validatorAddress: onlineValidator.operatorAddress,
+    });
+
+    const tx = await selfDelegatorAccount.secretjs.tx.broadcast([msg], {
+      gasLimit: 5_000_000,
+      gasPriceInFeeDenom: 0.25,
+      feeDenom: "uscrt",
+    });
+
+    expect(tx.code).toBe(0);
+  });
+
+  test("MsgSetWithdrawAddress", async () => {
+    const { validators } = await accounts[0].secretjs.query.staking.validators({
+      status: "",
+    });
+    const onlineValidator = validators.find(
+      (v) => v.status === BondStatus.BOND_STATUS_BONDED,
+    )!;
+    const selfDelegator = bech32.encode(
+      "secret",
+      bech32.decode(onlineValidator.operatorAddress).words,
+    );
+    const selfDelegatorAccount = accounts.find(
+      (a) => a.address === selfDelegator,
+    )!;
+    const notSelfDelegatorAccount = accounts.find(
+      (a) => a.address !== selfDelegator,
+    )!;
+
+    const msg = new MsgSetWithdrawAddress({
+      delegatorAddress: selfDelegatorAccount.address,
+      withdrawAddress: notSelfDelegatorAccount.address,
     });
 
     const tx = await selfDelegatorAccount.secretjs.tx.broadcast([msg], {

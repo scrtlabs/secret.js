@@ -74,11 +74,11 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
     - 🟩 MsgExecuteContract
   - 🟥 crisis
     - 🟥 MsgVerifyInvariant
-  - 🟥 distribution
+  - 🟩 distribution
     - 🟩 MsgWithdrawDelegatorReward
     - 🟩 MsgWithdrawValidatorCommission
     - 🟩 MsgFundCommunityPool
-    - 🟥 MsgSetWithdrawAddress
+    - 🟩 MsgSetWithdrawAddress
   - 🟥 evidence
     - 🟥 MsgSubmitEvidence
   - 🟥 feegrant
