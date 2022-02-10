@@ -2,16 +2,16 @@
 // Because it doesn't make sure that its dependencies are valid typescript
 
 import { fromBase64 } from "@cosmjs/encoding";
-import { AminoMsg, Coin } from ".";
-import { LegacyAminoPubKey } from "./protobuf_stuff/cosmos/crypto/multisig/keys";
-import { PubKey } from "./protobuf_stuff/cosmos/crypto/secp256k1/keys";
-import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
+import { AminoMsg, Coin } from "..";
+import { LegacyAminoPubKey } from "../protobuf_stuff/cosmos/crypto/multisig/keys";
+import { PubKey } from "../protobuf_stuff/cosmos/crypto/secp256k1/keys";
+import { SignMode } from "../protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
 import {
   AuthInfo,
   SignDoc,
   SignerInfo,
-} from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
-import { Any } from "./protobuf_stuff/google/protobuf/any";
+} from "../protobuf_stuff/cosmos/tx/v1beta1/tx";
+import { Any } from "../protobuf_stuff/google/protobuf/any";
 
 /**
  * Signing information for a single signer that is not included in the transaction.

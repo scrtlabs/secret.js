@@ -7,6 +7,16 @@ import {
 } from "@cosmjs/amino";
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import {
+  encodePubkey,
+  isOfflineDirectSigner,
+  makeAuthInfoBytes,
+  makeSignDoc as makeSignDocProto,
+  OfflineSigner,
+  SignerData,
+  StdFee,
+  StdSignDoc,
+} from "./cosmjs_shim";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { MsgData } from "./protobuf_stuff/cosmos/base/abci/v1beta1/abci";
 import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
@@ -32,16 +42,6 @@ import {
   TendermintQuerier,
   UpgradeQuerier,
 } from "./query/cosmos";
-import {
-  encodePubkey,
-  isOfflineDirectSigner,
-  makeAuthInfoBytes,
-  makeSignDoc as makeSignDocProto,
-  OfflineSigner,
-  SignerData,
-  StdFee,
-  StdSignDoc,
-} from "./signing";
 import { Msg, ProtoMsg } from "./tx/types";
 
 export { MsgData, OfflineSigner, isOfflineDirectSigner };
@@ -203,7 +203,7 @@ export interface IndexedTx {
    * If you hash this, you get the transaction hash (= transaction ID):
    *
    * ```js
-   * import { sha256 } from "@cosmjs/crypto";
+   * import { sha256 } from "@noble/hashes/sha256";
    * import { toHex } from "@cosmjs/encoding";
    *
    * const transactionId = toHex(sha256(indexTx.tx)).toUpperCase();

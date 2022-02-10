@@ -1,7 +1,7 @@
 {
   /* Visit https://aka.ms/tsconfig.json to read more about this file */
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ES2016",
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
@@ -12,11 +12,6 @@
     "strict": true,
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true
-  },
-  "paths": {
-    "crypto": ["node_modules/crypto-browserify"],
-    "path": ["node_modules/path-browserify"],
-    "stream": ["node_modules/stream"]
   },
   "exclude": ["node_modules", "dist", "scripts", "test"]
 }
