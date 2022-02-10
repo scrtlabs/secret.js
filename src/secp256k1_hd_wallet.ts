@@ -1,11 +1,6 @@
 import { Secp256k1HdWallet, Secp256k1HdWalletOptions } from "@cosmjs/amino";
-import {
-  HdPath,
-  EnglishMnemonic,
-  Slip10RawIndex,
-  Bip39,
-  Random,
-} from "@cosmjs/crypto";
+import { Bip39, EnglishMnemonic, HdPath, Slip10RawIndex } from "@cosmjs/crypto";
+import secureRandom from "secure-random";
 
 export function makeSecretNetworkPath(a: number): HdPath {
   return [
@@ -77,7 +72,7 @@ export class SecretSecp256k1HdWallet extends Secp256k1HdWallet {
     options: Partial<Secp256k1HdWalletOptions> = {},
   ): Promise<SecretSecp256k1HdWallet> {
     const entropyLength = 4 * Math.floor((11 * length) / 33);
-    const entropy = Random.getBytes(entropyLength);
+    const entropy = secureRandom(entropyLength, { type: "Uint8Array" });
     const mnemonic = Bip39.encode(entropy);
 
     const hdPaths = options.hdPaths ?? defaultOptions.hdPaths;
