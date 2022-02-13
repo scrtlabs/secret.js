@@ -180,14 +180,9 @@ console.log(`sSCRT has a total supply of ${token_info.total_supply} sSCRT!`);
 ### Broadcasting Transactions
 
 ```typescript
-import {
-  SecretSecp256k1HdWallet,
-  SecretNetworkClient,
-  MsgSend,
-  MsgMultiSend,
-} from "secretjs";
+import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 
-const wallet = await SecretSecp256k1HdWallet.fromMnemonic(
+const wallet = new Wallet(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
 );
 const [{ address: me }] = await wallet.getAccounts();
