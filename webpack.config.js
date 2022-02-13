@@ -22,7 +22,7 @@ module.exports = {
     library: "secretjs",
     libraryTarget: "umd",
     globalObject: "this",
-    filename: "index.js",
+    filename: "browser.js",
     path: path.resolve(__dirname, "dist"),
   },
 };
