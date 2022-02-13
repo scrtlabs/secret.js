@@ -10,10 +10,17 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
+  "main": "./dist/secretjs.umd.js",
+  "module": "./dist/secretjs.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/secretjs.es.js",
+      "require": "./dist/secretjs.umd.js"
+    }
+  },
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "webpack",
+    "build": "vite build && tsc",
     "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest"
   },
   "dependencies": {
@@ -40,6 +47,7 @@
     "@types/pako": "1.0.3",
     "@types/protobufjs": "6.0.0",
     "@types/secure-random": "1.1.0",
+    "babel-loader": "8.2.3",
     "crypto-browserify": "3.12.0",
     "jest": "27.4.7",
     "node-polyfill-webpack-plugin": "1.1.4",
@@ -49,6 +57,7 @@
     "ts-loader": "9.2.6",
     "ts-proto": "1.104.0",
     "typescript": "4.5.2",
+    "vite": "2.8.1",
     "webpack": "5.68.0",
     "webpack-cli": "4.9.2"
   }
