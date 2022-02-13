@@ -22,7 +22,7 @@ build({
   ],
 });
 
-new Generator({
-  entry: "src/index.ts",
-  output: "dist/index.d.ts",
-}).generate();
+// new Generator({
+//   entry: "src/index.ts",
+//   output: "dist/index.d.ts",
+// }).generate();

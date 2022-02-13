@@ -10,7 +10,7 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "rm -rf ./dist/ && ./build.js",
+    "build": "./build.js && tsc",
     "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest"
   },
   "dependencies": {
