@@ -5,6 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: docker pull enigmampc/secret-network-sw-dev:v1.2.2-1
-      - run: yarn
-      - run: yarn test
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "17"
+      - name: "Pull docker testnet image"
+        run: docker pull enigmampc/secret-network-sw-dev:v1.2.2-1
+      - name: Install npm dependencies
+        run: yarn
+      - name: Run tests
+        run: yarn test
