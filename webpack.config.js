@@ -20,6 +20,7 @@ module.exports = {
   output: {
     library: "secretjs",
     libraryTarget: "umd",
+    globalObject: "this",
     filename: "index.js",
     path: path.resolve(__dirname, "dist"),
   },
