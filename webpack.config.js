@@ -3,7 +3,7 @@ const webpack = require("webpack");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
-  entry: "./src/index.ts",
+  entry: path.resolve(__dirname, "src", "index.ts"),
   module: {
     rules: [
       {
@@ -36,11 +36,12 @@ module.exports = {
     // },
   },
   mode: "production",
+  devtool: "source-map",
   output: {
     library: "secretjs",
     libraryTarget: "umd",
     globalObject: "this",
-    filename: "index.js",
+    filename: "browser.js",
     path: path.resolve(__dirname, "dist"),
   },
 };
