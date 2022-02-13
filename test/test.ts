@@ -28,7 +28,7 @@ import {
   ProposalStatus,
   ProposalType,
   SecretNetworkClient,
-  SecretSecp256k1HdWallet,
+  Wallet,
   VoteOption,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
@@ -41,7 +41,7 @@ type Account = {
   address: string;
   pubkey: string;
   mnemonic: string;
-  wallet: SecretSecp256k1HdWallet;
+  wallet: Wallet;
   secretjs: SecretNetworkClient;
 };
 
@@ -200,7 +200,7 @@ beforeAll(async () => {
         );
         if (match) {
           const parsedAccount = JSON.parse(match[0]);
-          parsedAccount.wallet = await SecretSecp256k1HdWallet.fromMnemonic(
+          parsedAccount.wallet = new Wallet(
             parsedAccount.mnemonic,
           );
           parsedAccount.secretjs = await SecretNetworkClient.create(
@@ -218,7 +218,7 @@ beforeAll(async () => {
 
     // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
     for (let i = 4; i <= 19; i++) {
-      const wallet = await SecretSecp256k1HdWallet.generate();
+      const wallet = new Wallet();
       const [{ address, pubkey }] = await wallet.getAccounts();
 
       accounts[i] = {

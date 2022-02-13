@@ -11,20 +11,20 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest"
   },
   "dependencies": {
-    "@cosmjs/amino": "0.27.1",
     "@cosmjs/encoding": "0.27.1",
     "@cosmjs/math": "0.27.1",
     "@cosmjs/tendermint-rpc": "0.27.1",
     "@noble/hashes": "1.0.0",
+    "@noble/secp256k1": "1.5.2",
     "bech32": "2.0.0",
     "bignumber.js": "9.0.2",
-    "bn.js": "5.2.0",
-    "cosmjs-types": "0.2.0",
+    "bip32": "2.0.6",
+    "bip39": "3.0.4",
     "curve25519-js": "0.0.4",
-    "elliptic": "6.5.4",
+    "ethers": "5.5.4",
     "is-gzip": "2.0.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
@@ -32,8 +32,6 @@
     "secure-random": "1.1.2"
   },
   "devDependencies": {
-    "@types/bn.js": "5.1.0",
-    "@types/elliptic": "6.4.14",
     "@types/is-gzip": "2.0.0",
     "@types/jest": "27.4.0",
     "@types/pako": "1.0.3",

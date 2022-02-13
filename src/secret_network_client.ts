@@ -1,26 +1,18 @@
-import {
-  AccountData,
-  AminoSignResponse,
-  encodeSecp256k1Pubkey,
-  makeSignDoc as makeSignDocAmino,
-  OfflineAminoSigner,
-} from "@cosmjs/amino";
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import {
-  encodePubkey,
-  isOfflineDirectSigner,
-  makeAuthInfoBytes,
-  makeSignDoc as makeSignDocProto,
-  OfflineSigner,
-  SignerData,
-  StdFee,
-  StdSignDoc,
-} from "./cosmjs_shim";
+import { Coin, OfflineSigner } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { MsgData } from "./protobuf_stuff/cosmos/base/abci/v1beta1/abci";
+import { LegacyAminoPubKey } from "./protobuf_stuff/cosmos/crypto/multisig/keys";
+import { PubKey } from "./protobuf_stuff/cosmos/crypto/secp256k1/keys";
 import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
-import { TxBody, TxRaw } from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
+import {
+  AuthInfo,
+  SignDoc,
+  SignerInfo,
+  TxBody,
+  TxRaw,
+} from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
 import { Any } from "./protobuf_stuff/google/protobuf/any";
 import { AuthQuerier, BaseAccount } from "./query/auth";
 import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
@@ -42,9 +34,19 @@ import {
   TendermintQuerier,
   UpgradeQuerier,
 } from "./query/cosmos";
-import { Msg, ProtoMsg } from "./tx/types";
+import { AminoMsg, Msg, ProtoMsg } from "./tx/types";
+import {
+  AccountData,
+  AminoSignResponse,
+  encodeSecp256k1Pubkey,
+  isOfflineDirectSigner,
+  OfflineAminoSigner,
+  Pubkey,
+  StdFee,
+  StdSignDoc,
+} from "./wallet";
 
-export { MsgData, OfflineSigner, isOfflineDirectSigner };
+export { MsgData };
 
 export type SigningParams = {
   signerAddress: string;
@@ -111,6 +113,17 @@ export type SignAndBroadcastParams = {
    */
   explicitSignerData?: SignerData;
 };
+
+/**
+ * Signing information for a single signer that is not included in the transaction.
+ *
+ * @see https://github.com/cosmos/cosmos-sdk/blob/v0.42.2/x/auth/signing/sign_mode_handler.go#L23-L37
+ */
+export interface SignerData {
+  readonly accountNumber: number;
+  readonly sequence: number;
+  readonly chainId: string;
+}
 
 export class ReadonlySigner implements OfflineAminoSigner {
   getAccounts(): Promise<readonly AccountData[]> {
@@ -581,7 +594,7 @@ export class SecretNetworkClient {
       signerAddress,
       signDoc,
     );
-    const nonces: ComputeMsgToNonce = {};
+    const encryptionNonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -592,12 +605,12 @@ export class SecretNetworkClient {
               asProto.typeUrl ===
               "/secret.compute.v1beta1.MsgInstantiateContract"
             ) {
-              nonces[index] = asProto.value.initMsg.slice(0, 32);
+              encryptionNonces[index] = asProto.value.initMsg.slice(0, 32);
             }
             if (
               asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
             ) {
-              nonces[index] = asProto.value.msg.slice(0, 32);
+              encryptionNonces[index] = asProto.value.msg.slice(0, 32);
             }
 
             return asProto;
@@ -621,7 +634,7 @@ export class SecretNetworkClient {
         authInfoBytes: signedAuthInfoBytes,
         signatures: [fromBase64(signature.signature)],
       }),
-      nonces,
+      encryptionNonces,
     ];
   }
 
@@ -665,7 +678,7 @@ export class SecretNetworkClient {
       throw new Error("Failed to retrieve account from signer");
     }
 
-    const nonces: ComputeMsgToNonce = {};
+    const encryptionNonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -676,12 +689,12 @@ export class SecretNetworkClient {
               asProto.typeUrl ===
               "/secret.compute.v1beta1.MsgInstantiateContract"
             ) {
-              nonces[index] = asProto.value.initMsg.slice(0, 32);
+              encryptionNonces[index] = asProto.value.initMsg.slice(0, 32);
             }
             if (
               asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
             ) {
-              nonces[index] = asProto.value.msg.slice(0, 32);
+              encryptionNonces[index] = asProto.value.msg.slice(0, 32);
             }
 
             return asProto;
@@ -716,7 +729,7 @@ export class SecretNetworkClient {
         authInfoBytes: signed.authInfoBytes,
         signatures: [fromBase64(signature.signature)],
       }),
-      nonces,
+      encryptionNonces,
     ];
   }
 }
@@ -727,4 +740,108 @@ function sleep(ms: number) {
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
   return Math.floor(gasLimit * gasPrice) + 1;
+}
+
+/**
+ * Creates and serializes an AuthInfo document.
+ *
+ * This implementation does not support different signing modes for the different signers.
+ */
+function makeAuthInfoBytes(
+  signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
+  feeAmount: readonly Coin[],
+  gasLimit: number,
+  signMode = SignMode.SIGN_MODE_DIRECT,
+): Uint8Array {
+  const authInfo = {
+    signerInfos: makeSignerInfos(signers, signMode),
+    fee: {
+      amount: [...feeAmount],
+      gasLimit: String(gasLimit),
+    },
+  };
+  return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
+}
+
+/**
+ * Create signer infos from the provided signers.
+ *
+ * This implementation does not support different signing modes for the different signers.
+ */
+function makeSignerInfos(
+  signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
+  signMode: SignMode,
+): SignerInfo[] {
+  return signers.map(
+    ({ pubkey, sequence }): SignerInfo => ({
+      publicKey: pubkey,
+      modeInfo: {
+        single: { mode: signMode },
+      },
+      sequence: String(sequence),
+    }),
+  );
+}
+
+function makeSignDocProto(
+  bodyBytes: Uint8Array,
+  authInfoBytes: Uint8Array,
+  chainId: string,
+  accountNumber: number,
+): SignDoc {
+  return {
+    bodyBytes: bodyBytes,
+    authInfoBytes: authInfoBytes,
+    chainId: chainId,
+    accountNumber: String(accountNumber),
+  };
+}
+
+function encodePubkey(pubkey: Pubkey): Any {
+  if (isSecp256k1Pubkey(pubkey)) {
+    const pubkeyProto = PubKey.fromPartial({
+      key: fromBase64(pubkey.value),
+    });
+    return Any.fromPartial({
+      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+      value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
+    });
+  } else if (isMultisigThresholdPubkey(pubkey)) {
+    const pubkeyProto = LegacyAminoPubKey.fromPartial({
+      threshold: Number(pubkey.value.threshold),
+      publicKeys: pubkey.value.pubkeys.map(encodePubkey),
+    });
+    return Any.fromPartial({
+      typeUrl: "/cosmos.crypto.multisig.LegacyAminoPubKey",
+      value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
+    });
+  } else {
+    throw new Error(`Pubkey type ${pubkey.type} not recognized`);
+  }
+}
+
+function isSecp256k1Pubkey(pubkey: Pubkey): boolean {
+  return pubkey.type === "tendermint/PubKeySecp256k1";
+}
+
+function isMultisigThresholdPubkey(pubkey: Pubkey): boolean {
+  return pubkey.type === "tendermint/PubKeyMultisigThreshold";
+}
+
+function makeSignDocAmino(
+  msgs: readonly AminoMsg[],
+  fee: StdFee,
+  chainId: string,
+  memo: string | undefined,
+  accountNumber: number | string,
+  sequence: number | string,
+): StdSignDoc {
+  return {
+    chain_id: chainId,
+    account_number: String(accountNumber),
+    sequence: String(sequence),
+    fee: fee,
+    msgs: msgs,
+    memo: memo || "",
+  };
 }
