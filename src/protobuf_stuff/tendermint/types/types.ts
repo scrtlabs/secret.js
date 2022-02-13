@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal";
 import { Proof } from "../../tendermint/crypto/proof";
 import { Consensus } from "../../tendermint/version/types";
 import { Timestamp } from "../../google/protobuf/timestamp";

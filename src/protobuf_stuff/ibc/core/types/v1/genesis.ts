@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal";
 import { GenesisState as GenesisState1 } from "../../../../ibc/core/client/v1/genesis";
 import { GenesisState as GenesisState2 } from "../../../../ibc/core/connection/v1/genesis";
 import { GenesisState as GenesisState3 } from "../../../../ibc/core/channel/v1/genesis";
