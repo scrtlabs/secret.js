@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 import { Any } from "../../../../google/protobuf/any";
 import { ConnectionEnd } from "../../../../ibc/core/connection/v1/connection";
 import { Channel } from "../../../../ibc/core/channel/v1/channel";

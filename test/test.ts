@@ -28,8 +28,8 @@ import {
   ProposalStatus,
   ProposalType,
   SecretNetworkClient,
-  Wallet,
   VoteOption,
+  Wallet,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
 
@@ -157,7 +157,7 @@ beforeAll(async () => {
     console.log("Setting up a local testnet...");
     await exec("docker rm -f secretjs-testnet || true");
     const { /* stdout, */ stderr } = await exec(
-      "docker run -it -d -p 26657:26657 -p 26656:26656 -p 1317:1317 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
+      "docker run -it -d -p 26657:26657 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
     );
     // console.log("stdout (testnet container id?):", stdout);
     if (stderr) {
@@ -200,9 +200,7 @@ beforeAll(async () => {
         );
         if (match) {
           const parsedAccount = JSON.parse(match[0]);
-          parsedAccount.wallet = new Wallet(
-            parsedAccount.mnemonic,
-          );
+          parsedAccount.wallet = new Wallet(parsedAccount.mnemonic);
           parsedAccount.secretjs = await SecretNetworkClient.create(
             "http://localhost:26657",
             {

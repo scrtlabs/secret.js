@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 import { Duration } from "../../google/protobuf/duration";
 
 export const protobufPackage = "tendermint.types";

@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 import { BaseAccount } from "../../../cosmos/auth/v1beta1/auth";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 

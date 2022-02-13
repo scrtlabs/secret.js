@@ -1,6 +1,6 @@
 /* eslint-disable */
 import Long from "long";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
 import { Duration } from "../../../../google/protobuf/duration";
 import { Height } from "../../../../ibc/core/client/v1/client";
 import { Timestamp } from "../../../../google/protobuf/timestamp";
