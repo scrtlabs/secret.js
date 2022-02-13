@@ -18,6 +18,8 @@ module.exports = {
   plugins: [new NodePolyfillPlugin()],
   mode: "production",
   output: {
+    library: "secretjs",
+    libraryTarget: "umd",
     filename: "index.js",
     path: path.resolve(__dirname, "dist"),
   },
