@@ -73,7 +73,9 @@ export class MsgGrant implements Msg {
       {
         authorization: {
           typeUrl: "/cosmos.authz.v1beta1.GenericAuthorization",
-          value: GenericAuthorization.encode({ msg: this.params.msg }).finish(),
+          value: GenericAuthorization.encode({
+            msg: String(this.params.msg),
+          }).finish(),
         },
         expiration: { seconds: String(this.params.expiration), nanos: 0 },
       };
@@ -113,15 +115,38 @@ export class MsgExec implements Msg {
   }
 }
 
-export type MsgRevokeParams = {};
+export type MsgRevokeParams = {
+  granter: string;
+  grantee: string;
+  /** revokes any authorization with the provided sdk.Msg type on the
+   * granter's account with that has been granted to the grantee. */
+  msg: MsgGrantAuthorization;
+};
+
 export class MsgRevoke implements Msg {
-  constructor(
-    msg: import("../protobuf_stuff/cosmos/authz/v1beta1/tx").MsgRevoke,
-  ) {}
+  public params: MsgRevokeParams;
+
+  constructor(params: MsgRevokeParams) {
+    this.params = params;
+  }
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgRevoke not implemented.");
+    const msgContent = {
+      granter: this.params.granter,
+      grantee: this.params.grantee,
+      msgTypeUrl: String(this.params.msg),
+    };
+
+    return {
+      typeUrl: "/cosmos.authz.v1beta1.MsgRevoke",
+      value: msgContent,
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")
+        ).MsgRevoke.encode(msgContent).finish(),
+    };
   }
+
   async toAmino(): Promise<AminoMsg> {
     throw new Error("MsgRevoke not implemented.");
   }
