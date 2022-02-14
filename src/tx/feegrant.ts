@@ -1,11 +1,9 @@
-import {
-  MsgGrantAllowance as MsgGrantAllowanceProto,
-  MsgRevokeAllowance as MsgRevokeAllowanceProto,
-} from "../protobuf_stuff/cosmos/feegrant/v1beta1/tx";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export class MsgGrantAllowance implements Msg {
-  constructor(msg: MsgGrantAllowanceProto) {}
+  constructor(
+    msg: import("../protobuf_stuff/cosmos/feegrant/v1beta1/tx").MsgGrantAllowance,
+  ) {}
   async toProto(): Promise<ProtoMsg> {
     throw new Error("MsgGrantAllowance not implemented.");
   }
@@ -15,7 +13,9 @@ export class MsgGrantAllowance implements Msg {
 }
 
 export class MsgRevokeAllowance implements Msg {
-  constructor(msg: MsgRevokeAllowanceProto) {}
+  constructor(
+    msg: import("../protobuf_stuff/cosmos/feegrant/v1beta1/tx").MsgRevokeAllowance,
+  ) {}
   async toProto(): Promise<ProtoMsg> {
     throw new Error("MsgRevokeAllowance not implemented.");
   }

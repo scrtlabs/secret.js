@@ -1,15 +1,9 @@
 import { toBase64 } from "@cosmjs/encoding";
 import is_gzip from "is-gzip";
 import pako from "pako";
-import { Coin, EncryptionUtils } from "..";
-import {
-  MsgExecuteContract as MsgExecuteContractProto,
-  MsgInstantiateContract as MsgInstantiateContractProto,
-  MsgStoreCode as MsgStoreCodeProto,
-  protobufPackage,
-} from "../protobuf_stuff/secret/compute/v1beta1/msg";
+import { EncryptionUtils } from "..";
 import { addressToBytes } from "../query/compute";
-import { AminoMsg, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams {
   sender: string;
@@ -62,7 +56,7 @@ export class MsgInstantiateContract implements Msg {
       this.initMsgEncrypted = await utils.encrypt(this.codeHash, this.initMsg);
     }
 
-    const msgContent: MsgInstantiateContractProto = {
+    const msgContent = {
       sender: addressToBytes(this.sender),
       codeId: this.codeId,
       label: this.label,
@@ -74,9 +68,12 @@ export class MsgInstantiateContract implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgInstantiateContract`,
+      typeUrl: "/secret.compute.v1beta1.MsgInstantiateContract",
       value: msgContent,
-      encode: () => MsgInstantiateContractProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+        ).MsgInstantiateContract.encode(msgContent).finish(),
     };
   }
 
@@ -148,7 +145,7 @@ export class MsgExecuteContract implements Msg {
       this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
     }
 
-    const msgContent: MsgExecuteContractProto = {
+    const msgContent = {
       sender: addressToBytes(this.sender),
       contract: addressToBytes(this.contract),
       msg: this.msgEncrypted,
@@ -159,9 +156,12 @@ export class MsgExecuteContract implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgExecuteContract`,
+      typeUrl: "/secret.compute.v1beta1.MsgExecuteContract",
       value: msgContent,
-      encode: () => MsgExecuteContractProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+        ).MsgExecuteContract.encode(msgContent).finish(),
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
@@ -213,7 +213,7 @@ export class MsgStoreCode implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgStoreCodeProto = {
+    const msgContent = {
       sender: addressToBytes(this.sender),
       wasmByteCode: this.wasmByteCode,
       source: this.source,
@@ -221,9 +221,12 @@ export class MsgStoreCode implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgStoreCode`,
+      typeUrl: "/secret.compute.v1beta1.MsgStoreCode",
       value: msgContent,
-      encode: () => MsgStoreCodeProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+        ).MsgStoreCode.encode(msgContent).finish(),
     };
   }
   async toAmino(): Promise<AminoMsg> {

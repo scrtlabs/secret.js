@@ -1,10 +1,8 @@
-import {
-  MsgUnjail as MsgUnjailProto,
-  protobufPackage,
-} from "../protobuf_stuff/cosmos/slashing/v1beta1/tx";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export type MsgUnjailParams = MsgUnjailProto;
+export type MsgUnjailParams = {
+  validatorAddr: string;
+};
 
 export class MsgUnjail implements Msg {
   public validatorAddr: string;
@@ -14,14 +12,21 @@ export class MsgUnjail implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgUnjailProto = {
+    const msgContent = {
       validatorAddr: this.validatorAddr,
     };
 
+    const { MsgUnjail } = await import(
+      "../protobuf_stuff/cosmos/slashing/v1beta1/tx"
+    );
+
     return {
-      typeUrl: `/${protobufPackage}.MsgUnjail`,
+      typeUrl: "/cosmos.slashing.v1beta1.MsgUnjail",
       value: msgContent,
-      encode: () => MsgUnjailProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/slashing/v1beta1/tx")
+        ).MsgUnjail.encode(msgContent).finish(),
     };
   }
 

@@ -2,38 +2,8 @@ import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { Coin, OfflineSigner } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
-import { MsgData } from "./protobuf_stuff/cosmos/base/abci/v1beta1/abci";
-import { LegacyAminoPubKey } from "./protobuf_stuff/cosmos/crypto/multisig/keys";
-import { PubKey } from "./protobuf_stuff/cosmos/crypto/secp256k1/keys";
-import { SignMode } from "./protobuf_stuff/cosmos/tx/signing/v1beta1/signing";
-import {
-  AuthInfo,
-  SignDoc,
-  SignerInfo,
-  TxBody,
-  TxRaw,
-} from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
-import { Any } from "./protobuf_stuff/google/protobuf/any";
-import { AuthQuerier, BaseAccount } from "./query/auth";
-import { ComputeQuerier, RegistrationQuerier } from "./query/compute";
-import {
-  AuthzQuerier,
-  BankQuerier,
-  DistributionQuerier,
-  EvidenceQuerier,
-  FeegrantQuerier,
-  GovQuerier,
-  IbcChannelQuerier,
-  IbcClientQuerier,
-  IbcConnectionQuerier,
-  IbcTransferQuerier,
-  MintQuerier,
-  ParamsQuerier,
-  SlashingQuerier,
-  StakingQuerier,
-  TendermintQuerier,
-  UpgradeQuerier,
-} from "./query/cosmos";
+import { AuthQuerier } from "./query/auth";
+import { ComputeQuerier } from "./query/compute";
 import { AminoMsg, Msg, ProtoMsg } from "./tx/types";
 import {
   AccountData,
@@ -45,8 +15,6 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet";
-
-export { MsgData };
 
 export type SigningParams = {
   signerAddress: string;
@@ -139,24 +107,24 @@ export class ReadonlySigner implements OfflineAminoSigner {
 
 type Querier = {
   auth: AuthQuerier;
-  authz: AuthzQuerier;
-  bank: BankQuerier;
+  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").QueryClientImpl;
+  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").QueryClientImpl;
   compute: ComputeQuerier;
-  distribution: DistributionQuerier;
-  evidence: EvidenceQuerier;
-  feegrant: FeegrantQuerier;
-  gov: GovQuerier;
-  ibc_channel: IbcChannelQuerier;
-  ibc_client: IbcClientQuerier;
-  ibc_connection: IbcConnectionQuerier;
-  ibc_transfer: IbcTransferQuerier;
-  mint: MintQuerier;
-  params: ParamsQuerier;
-  registration: RegistrationQuerier;
-  slashing: SlashingQuerier;
-  staking: StakingQuerier;
-  tendermint: TendermintQuerier;
-  upgrade: UpgradeQuerier;
+  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").QueryClientImpl;
+  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").QueryClientImpl;
+  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").QueryClientImpl;
+  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").QueryClientImpl;
+  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").QueryClientImpl;
+  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").QueryClientImpl;
+  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").QueryClientImpl;
+  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").QueryClientImpl;
+  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").QueryClientImpl;
+  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").QueryClientImpl;
+  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").QueryClientImpl;
+  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").QueryClientImpl;
+  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").QueryClientImpl;
+  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").ServiceClientImpl;
+  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").QueryClientImpl;
   getTx: (id: string) => Promise<IndexedTx | null>;
   txsQuery: (query: string) => Promise<IndexedTx[]>;
 };
@@ -174,6 +142,15 @@ export type JsonLog = Array<{
     attributes: Array<{ key: string; value: string }>;
   }>;
 }>;
+
+/**
+ * MsgData defines the data returned in a Result object during message
+ * execution.
+ */
+export type MsgData = {
+  msgType: string;
+  data: Uint8Array;
+};
 
 /**
  * The response after successfully broadcasting a transaction.
@@ -265,14 +242,103 @@ export class SecretNetworkClient {
     },
   ): Promise<SecretNetworkClient> {
     const tendermint = await Tendermint34Client.connect(rpcUrl);
-    return new SecretNetworkClient(tendermint, signingParams);
+
+    // Init this.query in here because we need async/await for dynamic imports
+    const rpc: SecretRpcClient = {
+      request: async (
+        service: string,
+        method: string,
+        data: Uint8Array,
+      ): Promise<Uint8Array> => {
+        const path = `/${service}/${method}`;
+
+        const response = await tendermint.abciQuery({
+          path,
+          data,
+          prove: false,
+        });
+
+        if (response.code) {
+          throw new Error(
+            `Query failed with (${response.code}): ${response.log}`,
+          );
+        }
+
+        return response.value;
+      },
+    };
+
+    const query: Querier = {
+      auth: new AuthQuerier(rpc),
+      authz: new (
+        await import("./protobuf_stuff/cosmos/authz/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      bank: new (
+        await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      compute: new ComputeQuerier(rpc),
+      distribution: new (
+        await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      evidence: new (
+        await import("./protobuf_stuff/cosmos/evidence/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      feegrant: new (
+        await import("./protobuf_stuff/cosmos/feegrant/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      gov: new (
+        await import("./protobuf_stuff/cosmos/gov/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      ibc_channel: new (
+        await import("./protobuf_stuff/ibc/core/channel/v1/query")
+      ).QueryClientImpl(rpc),
+      ibc_client: new (
+        await import("./protobuf_stuff/ibc/core/client/v1/query")
+      ).QueryClientImpl(rpc),
+      ibc_connection: new (
+        await import("./protobuf_stuff/ibc/core/connection/v1/query")
+      ).QueryClientImpl(rpc),
+      ibc_transfer: new (
+        await import("./protobuf_stuff/ibc/applications/transfer/v1/query")
+      ).QueryClientImpl(rpc),
+      mint: new (
+        await import("./protobuf_stuff/cosmos/mint/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      params: new (
+        await import("./protobuf_stuff/cosmos/params/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      registration: new (
+        await import("./protobuf_stuff/secret/registration/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      slashing: new (
+        await import("./protobuf_stuff/cosmos/slashing/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      staking: new (
+        await import("./protobuf_stuff/cosmos/staking/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      tendermint: new (
+        await import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query")
+      ).ServiceClientImpl(rpc),
+      upgrade: new (
+        await import("./protobuf_stuff/cosmos/upgrade/v1beta1/query")
+      ).QueryClientImpl(rpc),
+      getTx: async () => null, // stub until we can set this in the constructor
+      txsQuery: async () => [], // stub until we can set this in the constructor
+    };
+
+    return new SecretNetworkClient(tendermint, query, signingParams);
   }
 
   private constructor(
     tendermint: Tendermint34Client,
+    query: Querier,
     signingParams: SigningParams,
   ) {
     this.tendermint = tendermint;
+
+    this.query = query;
+    this.query.getTx = this.getTx.bind(this);
+    this.query.txsQuery = this.txsQuery.bind(this);
 
     this.signer = signingParams.signer;
     this.chainId = signingParams.chainId;
@@ -300,30 +366,6 @@ export class SecretNetworkClient {
 
         return response.value;
       },
-    };
-
-    this.query = {
-      auth: new AuthQuerier(rpc),
-      authz: new AuthzQuerier(rpc),
-      bank: new BankQuerier(rpc),
-      compute: new ComputeQuerier(rpc),
-      distribution: new DistributionQuerier(rpc),
-      evidence: new EvidenceQuerier(rpc),
-      feegrant: new FeegrantQuerier(rpc),
-      gov: new GovQuerier(rpc),
-      ibc_channel: new IbcChannelQuerier(rpc),
-      ibc_client: new IbcClientQuerier(rpc),
-      ibc_connection: new IbcConnectionQuerier(rpc),
-      ibc_transfer: new IbcTransferQuerier(rpc),
-      mint: new MintQuerier(rpc),
-      params: new ParamsQuerier(rpc),
-      registration: new RegistrationQuerier(rpc),
-      slashing: new SlashingQuerier(rpc),
-      staking: new StakingQuerier(rpc),
-      tendermint: new TendermintQuerier(rpc),
-      upgrade: new UpgradeQuerier(rpc),
-      getTx: this.getTx.bind(this),
-      txsQuery: this.txsQuery.bind(this),
     };
 
     this.tx = {
@@ -497,7 +539,9 @@ export class SecretNetworkClient {
       memo,
       explicitSignerData,
     );
-    const txBytes = TxRaw.encode(txRaw).finish();
+    const txBytes = (
+      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+    ).TxRaw.encode(txRaw).finish();
 
     return this.broadcastTx(
       txBytes,
@@ -524,7 +568,9 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
-  ): Promise<[TxRaw, ComputeMsgToNonce]> {
+  ): Promise<
+    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
+  > {
     let signerData: SignerData;
     if (explicitSignerData) {
       signerData = explicitSignerData;
@@ -547,8 +593,16 @@ export class SecretNetworkClient {
 
       const chainId = this.chainId;
       signerData = {
-        accountNumber: Number((account.account as BaseAccount).accountNumber),
-        sequence: Number((account.account as BaseAccount).sequence),
+        accountNumber: Number(
+          (
+            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
+          ).accountNumber,
+        ),
+        sequence: Number(
+          (
+            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
+          ).sequence,
+        ),
         chainId: chainId,
       };
     }
@@ -564,7 +618,9 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<[TxRaw, ComputeMsgToNonce]> {
+  ): Promise<
+    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
+  > {
     if (isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
     }
@@ -575,10 +631,10 @@ export class SecretNetworkClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
-    const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
+
+    const signMode = (
+      await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
+    ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = await Promise.all(
       messages.map((msg) => msg.toAmino(this.encryptionUtils)),
     );
@@ -619,39 +675,50 @@ export class SecretNetworkClient {
         memo: memo,
       },
     };
-    const txBodyBytes = this.encodeTx(txBody);
+    const txBodyBytes = await this.encodeTx(txBody);
     const signedGasLimit = Number(signed.fee.gas);
     const signedSequence = Number(signed.sequence);
-    const signedAuthInfoBytes = makeAuthInfoBytes(
+    const pubkey = await encodePubkey(
+      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
+    );
+    const signedAuthInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
       signMode,
     );
     return [
-      TxRaw.fromPartial({
-        bodyBytes: txBodyBytes,
-        authInfoBytes: signedAuthInfoBytes,
-        signatures: [fromBase64(signature.signature)],
-      }),
+      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
+        {
+          bodyBytes: txBodyBytes,
+          authInfoBytes: signedAuthInfoBytes,
+          signatures: [fromBase64(signature.signature)],
+        },
+      ),
       encryptionNonces,
     ];
   }
 
-  private encodeTx(txBody: {
+  private async encodeTx(txBody: {
     typeUrl: string;
     value: {
       messages: ProtoMsg[];
       memo: string;
     };
-  }): Uint8Array {
-    const wrappedMessages = txBody.value.messages.map((message) => {
-      const binaryValue = message.encode();
-      return Any.fromPartial({
-        typeUrl: message.typeUrl,
-        value: binaryValue,
-      });
-    });
+  }): Promise<Uint8Array> {
+    const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+
+    const wrappedMessages = await Promise.all(
+      txBody.value.messages.map(async (message) => {
+        const binaryValue = await message.encode();
+        return Any.fromPartial({
+          typeUrl: message.typeUrl,
+          value: binaryValue,
+        });
+      }),
+    );
+
+    const { TxBody } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
 
     const txBodyEncoded = TxBody.fromPartial({
       ...txBody.value,
@@ -666,7 +733,9 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<[TxRaw, ComputeMsgToNonce]> {
+  ): Promise<
+    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
+  > {
     if (!isOfflineDirectSigner(this.signer)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
@@ -703,12 +772,12 @@ export class SecretNetworkClient {
         memo: memo,
       },
     };
-    const txBodyBytes = this.encodeTx(txBody);
-    const pubkey = encodePubkey(
+    const txBodyBytes = await this.encodeTx(txBody);
+    const pubkey = await encodePubkey(
       encodeSecp256k1Pubkey(accountFromSigner.pubkey),
     );
     const gasLimit = Number(fee.gas);
-    const authInfoBytes = makeAuthInfoBytes(
+    const authInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence }],
       fee.amount,
       gasLimit,
@@ -724,11 +793,13 @@ export class SecretNetworkClient {
       signDoc,
     );
     return [
-      TxRaw.fromPartial({
-        bodyBytes: signed.bodyBytes,
-        authInfoBytes: signed.authInfoBytes,
-        signatures: [fromBase64(signature.signature)],
-      }),
+      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
+        {
+          bodyBytes: signed.bodyBytes,
+          authInfoBytes: signed.authInfoBytes,
+          signatures: [fromBase64(signature.signature)],
+        },
+      ),
       encryptionNonces,
     ];
   }
@@ -747,12 +818,21 @@ export function gasToFee(gasLimit: number, gasPrice: number): number {
  *
  * This implementation does not support different signing modes for the different signers.
  */
-function makeAuthInfoBytes(
-  signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
+async function makeAuthInfoBytes(
+  signers: ReadonlyArray<{
+    readonly pubkey: import("./protobuf_stuff/google/protobuf/any").Any;
+    readonly sequence: number;
+  }>,
   feeAmount: readonly Coin[],
   gasLimit: number,
-  signMode = SignMode.SIGN_MODE_DIRECT,
-): Uint8Array {
+  signMode?: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
+): Promise<Uint8Array> {
+  if (!signMode) {
+    signMode = (
+      await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
+    ).SignMode.SIGN_MODE_DIRECT;
+  }
+
   const authInfo = {
     signerInfos: makeSignerInfos(signers, signMode),
     fee: {
@@ -760,6 +840,8 @@ function makeAuthInfoBytes(
       gasLimit: String(gasLimit),
     },
   };
+
+  const { AuthInfo } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
   return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
 }
 
@@ -769,11 +851,17 @@ function makeAuthInfoBytes(
  * This implementation does not support different signing modes for the different signers.
  */
 function makeSignerInfos(
-  signers: ReadonlyArray<{ readonly pubkey: Any; readonly sequence: number }>,
-  signMode: SignMode,
-): SignerInfo[] {
+  signers: ReadonlyArray<{
+    readonly pubkey: import("./protobuf_stuff/google/protobuf/any").Any;
+    readonly sequence: number;
+  }>,
+  signMode: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
+): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignerInfo[] {
   return signers.map(
-    ({ pubkey, sequence }): SignerInfo => ({
+    ({
+      pubkey,
+      sequence,
+    }): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignerInfo => ({
       publicKey: pubkey,
       modeInfo: {
         single: { mode: signMode },
@@ -788,7 +876,7 @@ function makeSignDocProto(
   authInfoBytes: Uint8Array,
   chainId: string,
   accountNumber: number,
-): SignDoc {
+): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc {
   return {
     bodyBytes: bodyBytes,
     authInfoBytes: authInfoBytes,
@@ -797,8 +885,16 @@ function makeSignDocProto(
   };
 }
 
-function encodePubkey(pubkey: Pubkey): Any {
+async function encodePubkey(
+  pubkey: Pubkey,
+): Promise<import("./protobuf_stuff/google/protobuf/any").Any> {
+  const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+
   if (isSecp256k1Pubkey(pubkey)) {
+    const { PubKey } = await import(
+      "./protobuf_stuff/cosmos/crypto/secp256k1/keys"
+    );
+
     const pubkeyProto = PubKey.fromPartial({
       key: fromBase64(pubkey.value),
     });
@@ -807,6 +903,10 @@ function encodePubkey(pubkey: Pubkey): Any {
       value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
     });
   } else if (isMultisigThresholdPubkey(pubkey)) {
+    const { LegacyAminoPubKey } = await import(
+      "./protobuf_stuff/cosmos/crypto/multisig/keys"
+    );
+
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Number(pubkey.value.threshold),
       publicKeys: pubkey.value.pubkeys.map(encodePubkey),

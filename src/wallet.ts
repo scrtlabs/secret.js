@@ -6,7 +6,6 @@ import { bech32 } from "bech32";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
 import { AminoMsg, Coin } from ".";
-import { SignDoc } from "./protobuf_stuff/cosmos/tx/v1beta1/tx";
 
 export const SECRET_COIN_TYPE = 529;
 
@@ -191,7 +190,7 @@ export interface OfflineDirectSigner {
   readonly getAccounts: () => Promise<readonly AccountData[]>;
   readonly signDirect: (
     signerAddress: string,
-    signDoc: SignDoc,
+    signDoc: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc,
   ) => Promise<DirectSignResponse>;
 }
 
@@ -200,7 +199,7 @@ export interface DirectSignResponse {
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
-  readonly signed: SignDoc;
+  readonly signed: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc;
   readonly signature: StdSignature;
 }
 

@@ -1,14 +1,10 @@
-import { AminoMsg, Msg, ProtoMsg } from "./types";
-import { Input, Output } from "../protobuf_stuff/cosmos/bank/v1beta1/bank";
-import {
-  MsgMultiSend as MsgMultiSendProto,
-  MsgSend as MsgSendProto,
-  protobufPackage,
-} from "../protobuf_stuff/cosmos/bank/v1beta1/tx";
-import { Coin } from "../protobuf_stuff/cosmos/base/v1beta1/coin";
-export { Coin, Input, Output };
+import { AminoMsg, Coin, Input, Msg, Output, ProtoMsg } from "./types";
 
-export type MsgSendParams = MsgSendProto;
+export type MsgSendParams = {
+  fromAddress: string;
+  toAddress: string;
+  amount: Coin[];
+};
 
 export class MsgSend implements Msg {
   public fromAddress: string;
@@ -29,9 +25,12 @@ export class MsgSend implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgSend`,
+      typeUrl: "/cosmos.bank.v1beta1.MsgSend",
       value: msgContent,
-      encode: () => MsgSendProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")
+        ).MsgSend.encode(msgContent).finish(),
     };
   }
 
@@ -47,7 +46,10 @@ export class MsgSend implements Msg {
   }
 }
 
-export type MsgMultiSendParams = MsgMultiSendProto;
+export type MsgMultiSendParams = {
+  inputs: Input[];
+  outputs: Output[];
+};
 
 export class MsgMultiSend implements Msg {
   public inputs: Input[];
@@ -59,15 +61,18 @@ export class MsgMultiSend implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgMultiSendProto = {
+    const msgContent = {
       inputs: this.inputs,
       outputs: this.outputs,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgMultiSend`,
+      typeUrl: "/cosmos.bank.v1beta1.MsgMultiSend",
       value: msgContent,
-      encode: () => MsgMultiSendProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")
+        ).MsgMultiSend.encode(msgContent).finish(),
     };
   }
 

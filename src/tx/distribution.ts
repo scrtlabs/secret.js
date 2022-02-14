@@ -1,14 +1,10 @@
 import { Coin } from ".";
-import {
-  MsgFundCommunityPool as MsgFundCommunityPoolProto,
-  MsgSetWithdrawAddress as MsgSetWithdrawAddressProto,
-  MsgWithdrawDelegatorReward as MsgWithdrawDelegatorRewardProto,
-  MsgWithdrawValidatorCommission as MsgWithdrawValidatorCommissionProto,
-  protobufPackage,
-} from "../protobuf_stuff/cosmos/distribution/v1beta1/tx";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export type MsgSetWithdrawAddressParams = MsgSetWithdrawAddressProto;
+export type MsgSetWithdrawAddressParams = {
+  delegatorAddress: string;
+  withdrawAddress: string;
+};
 
 export class MsgSetWithdrawAddress implements Msg {
   public delegatorAddress: string;
@@ -23,15 +19,18 @@ export class MsgSetWithdrawAddress implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgSetWithdrawAddressProto = {
+    const msgContent = {
       delegatorAddress: this.delegatorAddress,
       withdrawAddress: this.withdrawAddress,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgSetWithdrawAddress`,
+      typeUrl: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
       value: msgContent,
-      encode: () => MsgSetWithdrawAddressProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+        ).MsgSetWithdrawAddress.encode(msgContent).finish(),
     };
   }
 
@@ -48,8 +47,13 @@ export class MsgSetWithdrawAddress implements Msg {
 
 // proto and amino names are different, so export both names
 export { MsgSetWithdrawAddress as MsgModifyWithdrawAddress };
+// proto and amino names are different, so export both names
+export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
 
-export type MsgWithdrawDelegatorRewardParams = MsgWithdrawDelegatorRewardProto;
+export type MsgWithdrawDelegatorRewardParams = {
+  delegatorAddress: string;
+  validatorAddress: string;
+};
 
 export class MsgWithdrawDelegatorReward implements Msg {
   public delegatorAddress: string;
@@ -64,15 +68,18 @@ export class MsgWithdrawDelegatorReward implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgWithdrawDelegatorRewardProto = {
+    const msgContent = {
       delegatorAddress: this.delegatorAddress,
       validatorAddress: this.validatorAddress,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgWithdrawDelegatorReward`,
+      typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
       value: msgContent,
-      encode: () => MsgWithdrawDelegatorRewardProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+        ).MsgWithdrawDelegatorReward.encode(msgContent).finish(),
     };
   }
 
@@ -87,11 +94,9 @@ export class MsgWithdrawDelegatorReward implements Msg {
   }
 }
 
-// proto and amino names are different, so export both names
-export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
-
-export type MsgWithdrawValidatorCommissionParams =
-  MsgWithdrawValidatorCommissionProto;
+export type MsgWithdrawValidatorCommissionParams = {
+  validatorAddress: string;
+};
 
 export class MsgWithdrawValidatorCommission implements Msg {
   public validatorAddress: string;
@@ -101,15 +106,17 @@ export class MsgWithdrawValidatorCommission implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgWithdrawValidatorCommissionProto = {
+    const msgContent = {
       validatorAddress: this.validatorAddress,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgWithdrawValidatorCommission`,
+      typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
       value: msgContent,
-      encode: () =>
-        MsgWithdrawValidatorCommissionProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+        ).MsgWithdrawValidatorCommission.encode(msgContent).finish(),
     };
   }
 
@@ -123,7 +130,10 @@ export class MsgWithdrawValidatorCommission implements Msg {
   }
 }
 
-export type MsgFundCommunityPoolParams = MsgFundCommunityPoolProto;
+export type MsgFundCommunityPoolParams = {
+  amount: Coin[];
+  depositor: string;
+};
 
 export class MsgFundCommunityPool implements Msg {
   public depositor: string;
@@ -135,15 +145,18 @@ export class MsgFundCommunityPool implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgFundCommunityPoolProto = {
+    const msgContent = {
       depositor: this.depositor,
       amount: this.amount,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgFundCommunityPool`,
+      typeUrl: "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
       value: msgContent,
-      encode: () => MsgFundCommunityPoolProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+        ).MsgFundCommunityPool.encode(msgContent).finish(),
     };
   }
 

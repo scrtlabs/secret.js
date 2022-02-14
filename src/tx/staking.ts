@@ -2,20 +2,7 @@ import { fromBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import BigNumber from "bignumber.js";
 import { Coin } from ".";
-import { PubKey } from "../protobuf_stuff/cosmos/crypto/ed25519/keys";
-import { Description } from "../protobuf_stuff/cosmos/staking/v1beta1/staking";
-import {
-  MsgBeginRedelegate as MsgBeginRedelegateProto,
-  MsgCreateValidator as MsgCreateValidatorProto,
-  MsgDelegate as MsgDelegateProto,
-  MsgEditValidator as MsgEditValidatorProto,
-  MsgUndelegate as MsgUndelegateProto,
-  protobufPackage,
-} from "../protobuf_stuff/cosmos/staking/v1beta1/tx";
-import { Any } from "../protobuf_stuff/google/protobuf/any";
-import { AminoMsg, Msg, ProtoMsg } from "./types";
-
-export { Description };
+import { AminoMsg, Description, Msg, ProtoMsg } from "./types";
 
 /**
  * CommissionRates defines the initial commission rates to be used for creating
@@ -74,7 +61,12 @@ export class MsgCreateValidator implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgCreateValidatorProto = {
+    const { PubKey } = await import(
+      "../protobuf_stuff/cosmos/crypto/ed25519/keys"
+    );
+    const { Any } = await import("../protobuf_stuff/google/protobuf/any");
+
+    const msgContent = {
       description: this.description,
       commission: {
         rate: new BigNumber(this.commission.rate)
@@ -102,9 +94,12 @@ export class MsgCreateValidator implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgCreateValidator`,
+      typeUrl: `/cosmos.staking.v1beta1.MsgCreateValidator`,
       value: msgContent,
-      encode: () => MsgCreateValidatorProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+        ).MsgCreateValidator.encode(msgContent).finish(),
     };
   }
 
@@ -166,7 +161,11 @@ export class MsgEditValidator implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgEditValidatorProto = {
+    const { Description } = await import(
+      "../protobuf_stuff/cosmos/staking/v1beta1/staking"
+    );
+
+    const msgContent = {
       validatorAddress: this.validatorAddress,
       description: Description.fromPartial(this.description || {}),
       commissionRate: this.commissionRate
@@ -176,9 +175,12 @@ export class MsgEditValidator implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgEditValidator`,
+      typeUrl: `/cosmos.staking.v1beta1.MsgEditValidator`,
       value: msgContent,
-      encode: () => MsgEditValidatorProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+        ).MsgEditValidator.encode(msgContent).finish(),
     };
   }
 
@@ -240,9 +242,12 @@ export class MsgDelegate implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgDelegate`,
+      typeUrl: `/cosmos.staking.v1beta1.MsgDelegate`,
       value: msgContent,
-      encode: () => MsgDelegateProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+        ).MsgDelegate.encode(msgContent).finish(),
     };
   }
 
@@ -284,7 +289,7 @@ export class MsgBeginRedelegate implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgBeginRedelegateProto = {
+    const msgContent = {
       delegatorAddress: this.delegatorAddress,
       validatorSrcAddress: this.validatorSrcAddress,
       validatorDstAddress: this.validatorDstAddress,
@@ -292,9 +297,12 @@ export class MsgBeginRedelegate implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgBeginRedelegate`,
+      typeUrl: `/cosmos.staking.v1beta1.MsgBeginRedelegate`,
       value: msgContent,
-      encode: () => MsgBeginRedelegateProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+        ).MsgBeginRedelegate.encode(msgContent).finish(),
     };
   }
 
@@ -333,16 +341,19 @@ export class MsgUndelegate implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent: MsgUndelegateProto = {
+    const msgContent = {
       delegatorAddress: this.delegatorAddress,
       validatorAddress: this.validatorAddress,
       amount: this.amount,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgUndelegate`,
+      typeUrl: `/cosmos.staking.v1beta1.MsgUndelegate`,
       value: msgContent,
-      encode: () => MsgUndelegateProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+        ).MsgUndelegate.encode(msgContent).finish(),
     };
   }
 

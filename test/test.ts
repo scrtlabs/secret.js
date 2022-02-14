@@ -1474,5 +1474,10 @@ describe("tx.distribution", () => {
   });
 });
 
-test.skip("All Msgs are implemented", async () => {});
+test.skip("All Msgs are implemented", async () => {
+  const { stdout } = await exec(
+    `grep -rPo 'export interface Msg[A-Za-z]+' ${__dirname}/../src/protobuf_stuff/**/{tx,msg}.ts | grep -Po 'Msg.+' | grep -v Response | sort -u`,
+  );
+  console.log(stdout);
+});
 test.skip("All queries are implemented", async () => {});

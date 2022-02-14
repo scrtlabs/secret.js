@@ -7,13 +7,6 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import { EncryptionUtilsImpl } from "../encryption";
-import {
-  CodeInfoResponse as ProtobufCodeInfoResponse,
-  QueryClientImpl,
-} from "../protobuf_stuff/secret/compute/v1beta1/query";
-import { ContractInfo as ProtobufContractInfo } from "../protobuf_stuff/secret/compute/v1beta1/types";
-import { QueryClientImpl as RegistrationQuerier } from "../protobuf_stuff/secret/registration/v1beta1/query";
-export { RegistrationQuerier };
 
 interface Rpc {
   request(
@@ -96,19 +89,37 @@ export type QueryCodeResponse = {
 };
 
 export class ComputeQuerier {
-  private readonly client: QueryClientImpl;
-  private readonly encryption: EncryptionUtilsImpl;
+  private readonly rpc: Rpc;
+  private encryption?: EncryptionUtilsImpl;
+  private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
 
   constructor(rpc: Rpc) {
-    this.client = new QueryClientImpl(rpc);
-    this.encryption = new EncryptionUtilsImpl(new RegistrationQuerier(rpc));
+    this.rpc = rpc;
+  }
+
+  private async init() {
+    if (!this.client) {
+      this.client = new (
+        await import("../protobuf_stuff/secret/compute/v1beta1/query")
+      ).QueryClientImpl(this.rpc);
+    }
+
+    if (!this.encryption) {
+      this.encryption = new EncryptionUtilsImpl(
+        new (
+          await import("../protobuf_stuff/secret/registration/v1beta1/query")
+        ).QueryClientImpl(this.rpc),
+      );
+    }
   }
 
   /** Get metadata of a Secret Contract */
   async contractInfo({
     address,
   }: QueryContractInfoRequest): Promise<QueryContractInfoResponse> {
-    const response = await this.client.contractInfo({
+    await this.init();
+
+    const response = await this.client!.contractInfo({
       address: addressToBytes(address),
     });
 
@@ -124,7 +135,9 @@ export class ComputeQuerier {
   async contractsByCode(
     request: QueryContractsByCodeRequest,
   ): Promise<QueryContractsByCodeResponse> {
-    const response = await this.client.contractsByCode(request);
+    await this.init();
+
+    const response = await this.client!.contractsByCode(request);
 
     return {
       contractInfos: response.contractInfos.map((x) => ({
@@ -142,15 +155,17 @@ export class ComputeQuerier {
     codeHash,
     query,
   }: QueryContractRequest): Promise<object> {
-    const encryptedQuery = await this.encryption.encrypt(codeHash, query);
+    await this.init();
+
+    const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
     const nonce = encryptedQuery.slice(0, 32);
 
-    const { data: encryptedResult } = await this.client.smartContractState({
+    const { data: encryptedResult } = await this.client!.smartContractState({
       address: addressToBytes(address),
       queryData: encryptedQuery,
     });
 
-    const decryptedBase64Result = await this.encryption.decrypt(
+    const decryptedBase64Result = await this.encryption!.decrypt(
       encryptedResult,
       nonce,
     );
@@ -160,7 +175,9 @@ export class ComputeQuerier {
 
   /** Get WASM bytecode and metadata for a code id */
   async code(codeId: number): Promise<QueryCodeResponse> {
-    const response = await this.client.code({ codeId: String(codeId) });
+    await this.init();
+
+    const response = await this.client!.code({ codeId: String(codeId) });
 
     return {
       codeInfo: codeInfoResponseFromProtobuf(response.codeInfo),
@@ -169,7 +186,9 @@ export class ComputeQuerier {
   }
 
   async codes(): Promise<CodeInfoResponse[]> {
-    const response = await this.client.codes({});
+    await this.init();
+
+    const response = await this.client!.codes({});
 
     return response.codeInfos.map((codeInfo) =>
       codeInfoResponseFromProtobuf(codeInfo),
@@ -186,7 +205,7 @@ export function bytesToAddress(bytes: Uint8Array): string {
 }
 
 function contractInfoFromProtobuf(
-  contractInfo: ProtobufContractInfo,
+  contractInfo: import("../protobuf_stuff/secret/compute/v1beta1/types").ContractInfo,
 ): ContractInfo {
   return {
     codeId: contractInfo.codeId,
@@ -197,7 +216,7 @@ function contractInfoFromProtobuf(
 }
 
 function codeInfoResponseFromProtobuf(
-  codeInfo?: ProtobufCodeInfoResponse,
+  codeInfo?: import("../protobuf_stuff/secret/compute/v1beta1/query").CodeInfoResponse,
 ): CodeInfoResponse {
   return codeInfo
     ? {

@@ -1,17 +1,16 @@
+import BigNumber from "bignumber.js";
 import { Coin } from "..";
 import { CommunityPoolSpendProposal as CommunityPoolSpendProposalContent } from "../protobuf_stuff/cosmos/distribution/v1beta1/distribution";
 import {
   ProposalStatus,
   TextProposal as TextProposalContent,
   VoteOption,
-  WeightedVoteOption as WeightedVoteOptionProto,
 } from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
 import {
   MsgDeposit as MsgDepositProto,
   MsgSubmitProposal as MsgSubmitProposalProto,
   MsgVote as MsgVoteProto,
   MsgVoteWeighted as MsgVoteWeightedProto,
-  protobufPackage,
 } from "../protobuf_stuff/cosmos/gov/v1beta1/tx";
 import {
   ParamChange,
@@ -27,7 +26,6 @@ import {
   UpgradeProposal as UpgradeProposalContent,
 } from "../protobuf_stuff/ibc/core/client/v1/client";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
-import BigNumber from "bignumber.js";
 
 export type ProposalContent =
   | TextProposalContent
@@ -49,6 +47,7 @@ export {
   ProposalStatus,
   ParamChange,
 };
+export { VoteOption };
 
 export enum ProposalType {
   /** @see {@link TextProposalContent} for input type */
@@ -196,16 +195,16 @@ export class MsgSubmitProposal implements Msg {
         );
     }
 
-    const msgContent: MsgSubmitProposalProto = {
+    const msgContent = {
       content: content,
       initialDeposit: this.initialDeposit,
       proposer: this.proposer,
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgSubmitProposal`,
+      typeUrl: `/cosmos.gov.v1beta1.MsgSubmitProposal`,
       value: msgContent,
-      encode: () => MsgSubmitProposalProto.encode(msgContent).finish(),
+      encode: async () => MsgSubmitProposalProto.encode(msgContent).finish(),
     };
   }
 
@@ -247,7 +246,6 @@ export class MsgSubmitProposal implements Msg {
 }
 
 export type MsgVoteProtoParams = MsgVoteProto;
-export { VoteOption };
 export class MsgVote implements Msg {
   public voter: string;
   public proposalId: string;
@@ -267,9 +265,9 @@ export class MsgVote implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgVote`,
+      typeUrl: `/cosmos.gov.v1beta1.MsgVote`,
       value: msgContent,
-      encode: () => MsgVoteProto.encode(msgContent).finish(),
+      encode: async () => MsgVoteProto.encode(msgContent).finish(),
     };
   }
 
@@ -324,9 +322,9 @@ export class MsgVoteWeighted implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgVoteWeighted`,
+      typeUrl: `/cosmos.gov.v1beta1.MsgVoteWeighted`,
       value: msgContent,
-      encode: () => MsgVoteWeightedProto.encode(msgContent).finish(),
+      encode: async () => MsgVoteWeightedProto.encode(msgContent).finish(),
     };
   }
 
@@ -368,9 +366,9 @@ export class MsgDeposit implements Msg {
     };
 
     return {
-      typeUrl: `/${protobufPackage}.MsgDeposit`,
+      typeUrl: `/cosmos.gov.v1beta1.MsgDeposit`,
       value: msgContent,
-      encode: () => MsgDepositProto.encode(msgContent).finish(),
+      encode: async () => MsgDepositProto.encode(msgContent).finish(),
     };
   }
 
