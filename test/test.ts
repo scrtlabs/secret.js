@@ -1474,10 +1474,30 @@ describe("tx.distribution", () => {
   });
 });
 
-test.skip("All Msgs are implemented", async () => {
-  const { stdout } = await exec(
-    `grep -rPo 'export interface Msg[A-Za-z]+' ${__dirname}/../src/protobuf_stuff/**/{tx,msg}.ts | grep -Po 'Msg.+' | grep -v Response | sort -u`,
-  );
-  console.log(stdout);
+describe("sanity", () => {
+  test.skip("Every msg has a Msg class", async () => {
+    // TODO fix this test
+
+    let { stdout } = await exec(
+      `find "${__dirname}/../src/protobuf_stuff" -name msg.ts -or -name tx.ts -print0 | xargs -0 -n 1 grep -Po 'export interface Msg[A-Za-z]+' | grep -Po 'Msg.+' | grep -v Response | sort -u`,
+    );
+
+    const msgs = String(stdout)
+      .split("\n")
+      .map((msg) => msg.trim())
+      .filter((msg) => msg.length > 0);
+
+    ({ stdout } = await exec(
+      `find "${__dirname}/../src/tx" -name "*.ts" -print0 | xargs -0 -n 1 grep -P 'export class Msg.+? implements Msg' | grep -Po 'Msg[A-Za-z]+\s' | sort -u`,
+    ));
+
+    const classes = String(stdout)
+      .split("\n")
+      .map((msg) => msg.trim())
+      .filter((msg) => msg.length > 0);
+
+    expect(msgs).toEqual(classes);
+  });
+
+  test.skip("All queries are implemented", async () => {});
 });
-test.skip("All queries are implemented", async () => {});

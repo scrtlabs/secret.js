@@ -16,10 +16,6 @@ export class MsgUnjail implements Msg {
       validatorAddr: this.validatorAddr,
     };
 
-    const { MsgUnjail } = await import(
-      "../protobuf_stuff/cosmos/slashing/v1beta1/tx"
-    );
-
     return {
       typeUrl: "/cosmos.slashing.v1beta1.MsgUnjail",
       value: msgContent,
