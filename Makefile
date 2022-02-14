@@ -2,12 +2,16 @@ build:
 	yarn build
 
 publish-alpha: build
-	npm version --commit-hooks false prerelease --preid=alpha
+	npm version prerelease --preid=alpha
 	npm publish --tag alpha
 
 publish-beta: build
-	npm version --commit-hooks false prerelease --preid=beta
+	npm version prerelease --preid=beta
 	npm publish --tag beta
+
+publish-minor: build
+	npm version minor
+	npm publish
 
 start-testnet: # CTRL+C to stop
 	docker run -it --rm \
