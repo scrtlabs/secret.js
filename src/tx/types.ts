@@ -26,37 +26,19 @@ export interface Msg {
  * NOTE: The amount field is an Int which implements the custom method
  * signatures required by gogoproto.
  */
-export interface Coin {
+export type Coin = {
   denom: string;
   amount: string;
-}
+};
 
 /** Input models transaction input for MsgMultiSend. */
-export interface Input {
+export type Input = {
   address: string;
   coins: Coin[];
-}
+};
 
 /** Output models transaction outputs for MsgMultiSend. */
-export interface Output {
+export type Output = {
   address: string;
   coins: Coin[];
-}
-
-/////////////////////////////////////////////////////
-// staking
-/////////////////////////////////////////////////////
-
-/** Description defines a validator description. */
-export interface Description {
-  /** moniker defines a human-readable name for the validator. */
-  moniker: string;
-  /** identity defines an optional identity signature (ex. UPort or Keybase). */
-  identity: string;
-  /** website defines an optional website link. */
-  website: string;
-  /** security_contact defines an optional email for security contact. */
-  securityContact: string;
-  /** details define other optional details. */
-  details: string;
-}
+};

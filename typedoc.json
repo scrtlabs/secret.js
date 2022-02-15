@@ -7,5 +7,6 @@
   "excludePrivate": true,
   "excludeProtected": true,
   "media": "./media",
-  "hideGenerator": true
+  "hideGenerator": true,
+  "customCss": "./typedoc.css"
 }

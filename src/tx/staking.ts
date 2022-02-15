@@ -2,7 +2,7 @@ import { fromBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import BigNumber from "bignumber.js";
 import { Coin } from ".";
-import { AminoMsg, Description, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 /**
  * CommissionRates defines the initial commission rates to be used for creating
@@ -17,8 +17,22 @@ export type CommissionRates = {
   maxChangeRate: number;
 };
 
+/** Description defines a validator description. */
+export type ValidatorDescription = {
+  /** moniker defines a human-readable name for the validator. */
+  moniker: string;
+  /** identity defines an optional identity signature (ex. UPort or Keybase). */
+  identity: string;
+  /** website defines an optional website link. */
+  website: string;
+  /** security_contact defines an optional email for security contact. */
+  securityContact: string;
+  /** details define other optional details. */
+  details: string;
+};
+
 export type MsgCreateValidatorParams = {
-  description: Description;
+  description: ValidatorDescription;
   commission: CommissionRates;
   /** minSelfDelegation is the minimum uscrt amount that
    * the self delegator must delegate to its validator. */
@@ -33,7 +47,7 @@ export type MsgCreateValidatorParams = {
 
 /** MsgCreateValidator defines an SDK message for creating a new validator. */
 export class MsgCreateValidator implements Msg {
-  public description: Description;
+  public description: ValidatorDescription;
   public commission: CommissionRates;
   public minSelfDelegation: string;
   public delegatorAddress: string;
@@ -138,7 +152,7 @@ export class MsgCreateValidator implements Msg {
 export type MsgEditValidatorParams = {
   validatorAddress: string;
   /** if description is provided it updates all values */
-  description?: Description;
+  description?: ValidatorDescription;
   commissionRate?: number;
   minSelfDelegation?: string;
 };
@@ -146,7 +160,7 @@ export type MsgEditValidatorParams = {
 /** MsgEditValidator defines an SDK message for editing an existing validator. */
 export class MsgEditValidator implements Msg {
   public validatorAddress: string;
-  public description?: Description;
+  public description?: ValidatorDescription;
   public commissionRate?: number;
   public minSelfDelegation?: string;
 
