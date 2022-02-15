@@ -10,25 +10,32 @@ import { AminoMsg, Coin } from ".";
 export const SECRET_COIN_TYPE = 529;
 
 export class Wallet {
+  /** The mnemonic phrase used to derive this account */
   public mnemonic: string;
-  public publicKey: Uint8Array;
+  /** The account index in the HD derivation path */
+  public hdAccountIndex: number;
+  /** The secp256k1 private key that was derived from `mnemonic` + `hdAccountIndex` */
   public privateKey: Uint8Array;
+  /** The secp256k1 public key that was derived from `privateKey` */
+  public publicKey: Uint8Array;
+  /** The account's secret address, derived from `publicKey` */
   public address: string;
 
   /**
    * @param mnemonic Import mnemonic or generate random if empty
-   * @param account The account index in the HD derivation path
+   * @param hdAccountIndex The account index in the HD derivation path
    */
-  constructor(mnemonic: string = "", account: number = 0) {
+  constructor(mnemonic: string = "", hdAccountIndex: number = 0) {
     if (mnemonic === "") {
-      mnemonic = bip39.generateMnemonic(256);
+      mnemonic = bip39.generateMnemonic(256 /* 24 words */);
     }
     this.mnemonic = mnemonic;
+    this.hdAccountIndex = hdAccountIndex;
 
     const seed = bip39.mnemonicToSeedSync(this.mnemonic);
     const node = bip32.fromSeed(seed);
     const secretHD = node.derivePath(
-      `m/44'/${SECRET_COIN_TYPE}'/0'/0/${account}`,
+      `m/44'/${SECRET_COIN_TYPE}'/0'/0/${hdAccountIndex}`,
     );
     const privateKey = secretHD.privateKey;
 

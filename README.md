@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" media="(prefers-color-scheme: light)"/>
-  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" media="(prefers-color-scheme: dark)"/>
+  <img src="./media/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
+  <img src="./media/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
 </p>
 
 <p align="center">
@@ -25,6 +25,8 @@
   - [Broadcasting Transactions](#broadcasting-transactions)
 - [API](#api)
   - [Wallet](#wallet)
+    - [Importing account from mnemonic phrase](#importing-account-from-mnemonic-phrase)
+    - [Generating a random account](#generating-a-random-account)
   - [SecretNetworkClient](#secretnetworkclient)
 - [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
@@ -99,14 +101,14 @@ import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 const wallet = new Wallet(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
 );
-const [{ address: me }] = await wallet.getAccounts();
+const myAddress = wallet.address;
 
 // To create a signer secretjs client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create(
   "https://rpc.pulsar.griptapejs.com/",
   {
-    signer: wallet,
-    signerAddress: me,
+    wallet: wallet,
+    walletAddress: myAddress,
     chainId: "pulsar-2",
   },
 );
@@ -114,14 +116,14 @@ const secretjs = await SecretNetworkClient.create(
 // Sending multiple messages in the same transaction is easy:
 const alice = "secret1vnd90m6p64hmz4g5fngeqfusa6shnxhyfmrp59";
 const msgSendToAlice = new MsgSend({
-  fromAddress: me,
+  fromAddress: myAddress,
   toAddress: alice,
   amount: [{ denom: "uscrt", amount: "1" }],
 });
 
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msgSendToBob = new MsgSend({
-  fromAddress: me,
+  fromAddress: myAddress,
   toAddress: bob,
   amount: [{ denom: "uscrt", amount: "1" }],
 });
@@ -136,7 +138,7 @@ const tx1 = await secretjs.tx.broadcast([msgSendToAlice, msgSendToBob], {
 const msgSendToAliceAndBob = new MsgMultiSend({
   inputs: [
     {
-      address: me,
+      address: myAddress,
       coins: [{ denom: "uscrt", amount: "2" }],
     },
   ],
@@ -163,7 +165,28 @@ const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
 
 ### Wallet
 
-TODO
+An offline wallet implementation, used to sign transactions. Usually we'd just want to pass it to `SecretNetworkClient`.
+
+#### Importing account from mnemonic phrase
+
+```typescript
+import { Wallet } from "secretjs";
+
+const wallet = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+);
+const myAddress = wallet.address;
+```
+
+#### Generating a random account
+
+```typescript
+import { Wallet } from "secretjs";
+
+const wallet = new Wallet();
+const myAddress = wallet.address;
+const myMnemonicPhrase = wallet.mnemonic;
+```
 
 ### SecretNetworkClient
 

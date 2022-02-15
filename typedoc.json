@@ -6,6 +6,6 @@
   "name": "Secret.js",
   "excludePrivate": true,
   "excludeProtected": true,
-  "media": "./images",
+  "media": "./media",
   "hideGenerator": true
 }

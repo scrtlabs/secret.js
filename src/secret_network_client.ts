@@ -1,6 +1,6 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { Coin, OfflineSigner } from ".";
+import { Coin } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { AuthQuerier } from "./query/auth";
 import { ComputeQuerier } from "./query/compute";
@@ -11,14 +11,15 @@ import {
   encodeSecp256k1Pubkey,
   isOfflineDirectSigner,
   OfflineAminoSigner,
+  OfflineSigner,
   Pubkey,
   StdFee,
   StdSignDoc,
 } from "./wallet";
 
 export type SigningParams = {
-  signerAddress: string;
-  signer: OfflineSigner;
+  walletAddress: string;
+  wallet: OfflineSigner;
   chainId: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
   encryptionSeed?: Uint8Array;
@@ -229,8 +230,8 @@ export class SecretNetworkClient {
   public query: Querier;
   public tx: TxSender;
   public tendermint: Tendermint34Client;
-  private signerAddress: string;
-  private signer: OfflineSigner;
+  private walletAddress: string;
+  private wallet: OfflineSigner;
   private chainId: string;
   private encryptionUtils: EncryptionUtils;
 
@@ -238,9 +239,9 @@ export class SecretNetworkClient {
   public static async create(
     rpcUrl: string,
     signingParams: SigningParams = {
-      signer: new ReadonlySigner(),
+      wallet: new ReadonlySigner(),
       chainId: "",
-      signerAddress: "",
+      walletAddress: "",
     },
   ): Promise<SecretNetworkClient> {
     const tendermint = await Tendermint34Client.connect(rpcUrl);
@@ -342,9 +343,9 @@ export class SecretNetworkClient {
     this.query.getTx = this.getTx.bind(this);
     this.query.txsQuery = this.txsQuery.bind(this);
 
-    this.signer = signingParams.signer;
+    this.wallet = signingParams.wallet;
+    this.walletAddress = signingParams.walletAddress;
     this.chainId = signingParams.chainId;
-    this.signerAddress = signingParams.signerAddress;
 
     const rpc: SecretRpcClient = {
       request: async (
@@ -578,12 +579,12 @@ export class SecretNetworkClient {
       signerData = explicitSignerData;
     } else {
       const account = await this.query.auth.account({
-        address: this.signerAddress,
+        address: this.walletAddress,
       });
 
       if (!account) {
         throw new Error(
-          `Cannot find account "${this.signerAddress}", make sure it has a balance.`,
+          `Cannot find account "${this.walletAddress}", make sure it has a balance.`,
         );
       }
 
@@ -609,9 +610,9 @@ export class SecretNetworkClient {
       };
     }
 
-    return isOfflineDirectSigner(this.signer)
-      ? this.signDirect(this.signerAddress, messages, fee, memo, signerData)
-      : this.signAmino(this.signerAddress, messages, fee, memo, signerData);
+    return isOfflineDirectSigner(this.wallet)
+      ? this.signDirect(this.walletAddress, messages, fee, memo, signerData)
+      : this.signAmino(this.walletAddress, messages, fee, memo, signerData);
   }
 
   private async signAmino(
@@ -623,11 +624,11 @@ export class SecretNetworkClient {
   ): Promise<
     [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
   > {
-    if (isOfflineDirectSigner(this.signer)) {
+    if (isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
     }
 
-    const accountFromSigner = (await this.signer.getAccounts()).find(
+    const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
@@ -648,7 +649,7 @@ export class SecretNetworkClient {
       accountNumber,
       sequence,
     );
-    const { signature, signed } = await this.signer.signAmino(
+    const { signature, signed } = await this.wallet.signAmino(
       signerAddress,
       signDoc,
     );
@@ -738,11 +739,11 @@ export class SecretNetworkClient {
   ): Promise<
     [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
   > {
-    if (!isOfflineDirectSigner(this.signer)) {
+    if (!isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 
-    const accountFromSigner = (await this.signer.getAccounts()).find(
+    const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
@@ -790,7 +791,7 @@ export class SecretNetworkClient {
       chainId,
       accountNumber,
     );
-    const { signature, signed } = await this.signer.signDirect(
+    const { signature, signed } = await this.wallet.signDirect(
       signerAddress,
       signDoc,
     );
