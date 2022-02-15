@@ -1,5 +1,6 @@
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
+/** MsgRecvPacket receives incoming IBC packet */
 export class MsgRecvPacket implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgRecvPacket,
@@ -14,6 +15,7 @@ export class MsgRecvPacket implements Msg {
   }
 }
 
+/** MsgTimeout receives timed-out packet */
 export class MsgTimeout implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgTimeout,
@@ -28,6 +30,7 @@ export class MsgTimeout implements Msg {
   }
 }
 
+/** MsgTimeoutOnClose timed-out packet upon counterparty channel closure. */
 export class MsgTimeoutOnClose implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
@@ -42,6 +45,10 @@ export class MsgTimeoutOnClose implements Msg {
   }
 }
 
+/**
+ * MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
+ * is called by a relayer on Chain A.
+ */
 export class MsgChannelOpenInit implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenInit,
@@ -56,6 +63,7 @@ export class MsgChannelOpenInit implements Msg {
   }
 }
 
+/** MsgAcknowledgement receives incoming IBC acknowledgement */
 export class MsgAcknowledgement implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgAcknowledgement,
@@ -70,6 +78,10 @@ export class MsgAcknowledgement implements Msg {
   }
 }
 
+/**
+ * MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
+ * on Chain B.
+ */
 export class MsgChannelOpenTry implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenTry,
@@ -84,6 +96,10 @@ export class MsgChannelOpenTry implements Msg {
   }
 }
 
+/**
+ * MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
+ * the change of channel state to TRYOPEN on Chain B.
+ */
 export class MsgChannelOpenAck implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenAck,
@@ -98,6 +114,10 @@ export class MsgChannelOpenAck implements Msg {
   }
 }
 
+/**
+ * MsgChannelOpenConfirm defines a msg sent by a Relayer to Chain B to
+ * acknowledge the change of channel state to OPEN on Chain A.
+ */
 export class MsgChannelOpenConfirm implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
@@ -112,6 +132,10 @@ export class MsgChannelOpenConfirm implements Msg {
   }
 }
 
+/**
+ * MsgChannelCloseInit defines a msg sent by a Relayer to Chain A
+ * to close a channel with Chain B.
+ */
 export class MsgChannelCloseInit implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelCloseInit,
@@ -126,6 +150,7 @@ export class MsgChannelCloseInit implements Msg {
   }
 }
 
+/** MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B to acknowledge the change of channel state to CLOSED on Chain A. */
 export class MsgChannelCloseConfirm implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,

@@ -115,6 +115,10 @@ export type MsgGrantParams = {
   expiration: number;
 };
 
+/**
+ * MsgGrant is a request type for Grant method. It declares authorization to the grantee
+ * on behalf of the granter with the provided expiration time.
+ */
 export class MsgGrant implements Msg {
   constructor(public params: MsgGrantParams) {}
 
@@ -201,6 +205,11 @@ export type MsgExecParams = {
   msgs: Msg[];
 };
 
+/**
+ * MsgExec attempts to execute the provided messages using
+ * authorizations granted to the grantee. Each message should have only
+ * one signer corresponding to the granter of the authorization.
+ */
 export class MsgExec implements Msg {
   constructor(public params: MsgExecParams) {}
 
@@ -233,6 +242,10 @@ export type MsgRevokeParams = {
   msg: MsgGrantAuthorization;
 };
 
+/**
+ * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
+ * granter's account with that has been granted to the grantee.
+ */
 export class MsgRevoke implements Msg {
   constructor(public params: MsgRevokeParams) {}
 

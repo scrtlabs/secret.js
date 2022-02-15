@@ -22,6 +22,7 @@ export interface MsgInstantiateContractParams {
   codeHash: string;
 }
 
+/** Instantiate a contract from code id */
 export class MsgInstantiateContract implements Msg {
   public sender: string;
   public codeId: string;
@@ -114,6 +115,7 @@ export interface MsgExecuteContractParams {
   codeHash: string;
 }
 
+/** Execute a function on a contract */
 export class MsgExecuteContract implements Msg {
   public sender: string;
   public contract: string;
@@ -194,6 +196,7 @@ export interface MsgStoreCodeParams {
   builder: string;
 }
 
+/** Upload a compiled contract to Secret Network */
 export class MsgStoreCode implements Msg {
   public sender: string;
   public wasmByteCode: Uint8Array;

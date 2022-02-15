@@ -125,7 +125,7 @@ const msg = new MsgSend({
 });
 
 const tx = await secretjs.tx.broadcast([msg], {
-  gasLimit: 40_000,
+  gasLimit: 20_000,
   gasPriceInFeeDenom: 0.25,
   feeDenom: "uscrt",
 });

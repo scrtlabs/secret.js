@@ -6,6 +6,10 @@ export type MsgSetWithdrawAddressParams = {
   withdrawAddress: string;
 };
 
+/**
+ * MsgSetWithdrawAddress sets the withdraw address for
+ * a delegator (or validator self-delegation).
+ */
 export class MsgSetWithdrawAddress implements Msg {
   public delegatorAddress: string;
   public withdrawAddress: string;
@@ -55,6 +59,10 @@ export type MsgWithdrawDelegatorRewardParams = {
   validatorAddress: string;
 };
 
+/**
+ * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
+ * from a single validator.
+ */
 export class MsgWithdrawDelegatorReward implements Msg {
   public delegatorAddress: string;
   public validatorAddress: string;
@@ -98,6 +106,10 @@ export type MsgWithdrawValidatorCommissionParams = {
   validatorAddress: string;
 };
 
+/**
+ * MsgWithdrawValidatorCommission withdraws the full commission to the validator
+ * address.
+ */
 export class MsgWithdrawValidatorCommission implements Msg {
   public validatorAddress: string;
 
@@ -135,6 +147,10 @@ export type MsgFundCommunityPoolParams = {
   depositor: string;
 };
 
+/**
+ * MsgFundCommunityPool allows an account to directly
+ * fund the community pool.
+ */
 export class MsgFundCommunityPool implements Msg {
   public depositor: string;
   public amount: Coin[];

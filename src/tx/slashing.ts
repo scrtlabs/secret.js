@@ -4,6 +4,7 @@ export type MsgUnjailParams = {
   validatorAddr: string;
 };
 
+/** MsgUnjail defines a message to release a validator from jail. */
 export class MsgUnjail implements Msg {
   public validatorAddr: string;
 

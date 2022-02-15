@@ -31,6 +31,7 @@ export type MsgCreateValidatorParams = {
   initialDelegation: Coin;
 };
 
+/** MsgCreateValidator defines an SDK message for creating a new validator. */
 export class MsgCreateValidator implements Msg {
   public description: Description;
   public commission: CommissionRates;
@@ -142,6 +143,7 @@ export type MsgEditValidatorParams = {
   minSelfDelegation?: string;
 };
 
+/** MsgEditValidator defines an SDK message for editing an existing validator. */
 export class MsgEditValidator implements Msg {
   public validatorAddress: string;
   public description?: Description;
@@ -219,6 +221,7 @@ export type MsgDelegateParams = {
   amount: Coin;
 };
 
+/** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
 export class MsgDelegate implements Msg {
   public delegatorAddress: string;
   public validatorAddress: string;
@@ -270,6 +273,7 @@ export type MsgBeginRedelegateParams = {
   amount: Coin;
 };
 
+/** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
 export class MsgBeginRedelegate implements Msg {
   public delegatorAddress: string;
   public validatorSrcAddress: string;
@@ -325,6 +329,7 @@ export interface MsgUndelegateParams {
   amount: Coin;
 }
 
+/** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
 export class MsgUndelegate implements Msg {
   public delegatorAddress: string;
   public validatorAddress: string;

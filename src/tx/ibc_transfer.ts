@@ -42,6 +42,11 @@ export type Height = {
   revisionHeight: string;
 };
 
+/**
+ * MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
+ * ICS20 enabled chains. See ICS Spec here:
+ * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+ */
 export class MsgTransfer implements Msg {
   constructor(public params: MsgTransferParams) {}
 

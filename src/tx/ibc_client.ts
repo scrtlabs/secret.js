@@ -1,5 +1,6 @@
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
+/** MsgUpdateClient defines an sdk.Msg to update a IBC client state using the given header. */
 export class MsgUpdateClient implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/client/v1/tx").MsgUpdateClient,
@@ -14,6 +15,7 @@ export class MsgUpdateClient implements Msg {
   }
 }
 
+/** MsgUpdateClient defines an sdk.Msg to update a IBC client state using the given header. */
 export class MsgUpgradeClient implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/client/v1/tx").MsgUpgradeClient,
@@ -28,6 +30,7 @@ export class MsgUpgradeClient implements Msg {
   }
 }
 
+/** MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for light client misbehaviour. */
 export class MsgSubmitMisbehaviour implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/client/v1/tx").MsgSubmitMisbehaviour,
@@ -42,6 +45,7 @@ export class MsgSubmitMisbehaviour implements Msg {
   }
 }
 
+/** MsgCreateClient defines a message to create an IBC client */
 export class MsgCreateClient implements Msg {
   constructor(
     msg: import("../protobuf_stuff/ibc/core/client/v1/tx").MsgCreateClient,

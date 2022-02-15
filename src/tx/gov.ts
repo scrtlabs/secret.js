@@ -102,6 +102,10 @@ export interface MsgSubmitProposalParams {
   proposer: string;
 }
 
+/**
+ * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
+ * proposal Content.
+ */
 export class MsgSubmitProposal implements Msg {
   public type: ProposalType;
   public content: ProposalContent;
@@ -245,6 +249,8 @@ export class MsgSubmitProposal implements Msg {
   }
 }
 
+/** MsgVote defines a message to cast a vote. */
+
 export type MsgVoteProtoParams = MsgVoteProto;
 export class MsgVote implements Msg {
   public voter: string;
@@ -283,10 +289,7 @@ export class MsgVote implements Msg {
   }
 }
 
-/**
- * WeightedVoteOption defines a unit of vote for vote split.
- *
- * */
+/** WeightedVoteOption defines a unit of vote for vote split. */
 export interface WeightedVoteOption {
   /** option is a {@link VoteOption}. */
   option: VoteOption;
@@ -300,6 +303,7 @@ export type MsgVoteWeightedParams = {
   options: WeightedVoteOption[];
 };
 
+/** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
 export class MsgVoteWeighted implements Msg {
   public voter: string;
   public proposalId: string;
@@ -347,6 +351,7 @@ export class MsgVoteWeighted implements Msg {
 
 export type MsgDepositParams = MsgDepositProto;
 
+/** MsgDeposit defines a message to submit a deposit to an existing proposal. */
 export class MsgDeposit implements Msg {
   public depositor: string;
   public proposalId: string;

@@ -6,6 +6,7 @@ export type MsgSendParams = {
   amount: Coin[];
 };
 
+/** MsgSend represents a message to send coins from one account to another. */
 export class MsgSend implements Msg {
   public fromAddress: string;
   public toAddress: string;
@@ -51,6 +52,7 @@ export type MsgMultiSendParams = {
   outputs: Output[];
 };
 
+/** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
 export class MsgMultiSend implements Msg {
   public inputs: Input[];
   public outputs: Output[];
