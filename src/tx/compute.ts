@@ -46,7 +46,7 @@ export class MsgInstantiateContract implements Msg {
     this.initMsg = initMsg;
     this.initMsgEncrypted = null;
     this.initFunds = initFunds;
-    this.codeHash = codeHash.replace("0x", "");
+    this.codeHash = codeHash.replace("0x", "").toLowerCase();
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
@@ -136,7 +136,7 @@ export class MsgExecuteContract implements Msg {
     this.msg = msg;
     this.msgEncrypted = null;
     this.sentFunds = sentFunds;
-    this.codeHash = codeHash.replace("0x", "");
+    this.codeHash = codeHash.replace("0x", "").toLowerCase();
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
