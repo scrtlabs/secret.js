@@ -1,4 +1,5 @@
 import { AminoMsg, Coin, Msg, ProtoMsg } from ".";
+import { EncryptionUtils } from "..";
 
 export enum MsgGrantAuthorization {
   MsgAcknowledgement = "/ibc.core.channel.v1.MsgAcknowledgement",
@@ -201,13 +202,22 @@ export type MsgExecParams = {
 };
 
 export class MsgExec implements Msg {
-  constructor(
-    // msg: import("../protobuf_stuff/cosmos/authz/v1beta1/tx").MsgExec,
-    public params: MsgExecParams,
-  ) {}
+  constructor(public params: MsgExecParams) {}
 
-  async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgExec not implemented.");
+  async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
+    const msgContent = {
+      grantee: this.params.grantee,
+      msgs: await Promise.all(this.params.msgs.map((m) => m.toProto(utils))),
+    };
+
+    return {
+      typeUrl: "/cosmos.authz.v1beta1.MsgExec",
+      value: msgContent,
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")
+        ).MsgExec.encode(msgContent).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
@@ -224,11 +234,7 @@ export type MsgRevokeParams = {
 };
 
 export class MsgRevoke implements Msg {
-  public params: MsgRevokeParams;
-
-  constructor(params: MsgRevokeParams) {
-    this.params = params;
-  }
+  constructor(public params: MsgRevokeParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     const msgContent = {
