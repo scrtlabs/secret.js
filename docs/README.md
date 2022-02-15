@@ -1,3 +1,5 @@
+Secret.js / [Exports](modules.md)
+
 <p align="center">
   <img src="./images/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
   <img src="./images/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
@@ -15,9 +17,7 @@
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
 - [Migration from secretjs v0.17.x](#migration-from-secretjs-v017x)
-- [API](#api)
-  - [Wallet](#wallet)
-  - [SecretNetworkClient](#secretnetworkclient)
+- [Full API](#full-api)
 - [Types](#types)
 
 ## Key Features
@@ -155,16 +155,10 @@ const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
 
 TODO
 
-## API
-
-### Wallet
-
-TODO
-
-### SecretNetworkClient
+## Full API
 
 TODO
 
 ## Types
 
-To browse all types go [here](./docs/modules.md).
+TODO generate from jsdocs

@@ -16,7 +16,7 @@
   "scripts": {
     "build": "webpack && tsc",
     "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest",
-    "doc": "typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts"
+    "gen-docs": "typedoc --plugin typedoc-plugin-markdown"
   },
   "dependencies": {
     "@cosmjs/encoding": "0.27.1",
