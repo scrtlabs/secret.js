@@ -1,4 +1,4 @@
-import { AminoMsg, Msg, ProtoMsg } from ".";
+import { AminoMsg, Coin, Msg, ProtoMsg } from ".";
 
 export enum MsgGrantAuthorization {
   MsgAcknowledgement = "/ibc.core.channel.v1.MsgAcknowledgement",
@@ -48,37 +48,126 @@ export enum MsgGrantAuthorization {
   MsgWithdrawValidatorCommission = "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
 }
 
+/**
+ * GenericAuthorization gives the grantee unrestricted permissions to execute
+ * the provided Msg on behalf of the granter's account.
+ * The provided Msg must implement the Authorization interface: https://github.com/cosmos/cosmos-sdk/blob/c44309bc694ea8b6069ae147743f0b25dc8b52c0/x/authz/authorizations.go#L9-L25
+ */
+export type GenericAuthorization = {
+  msg: MsgGrantAuthorization;
+};
+
+function isGenericAuthorization(object: any): object is GenericAuthorization {
+  return "msg" in object;
+}
+
+/**
+ * SendAuthorization allows the grantee to spend up to spend_limit coins from the granter's account.
+ */
+export interface SendAuthorization {
+  spendLimit: Coin[];
+}
+
+function isSendAuthorization(object: any): object is SendAuthorization {
+  return "spendLimit" in object;
+}
+
+/** StakeAuthorization defines authorization for delegate/undelegate/redelegate. */
+export type StakeAuthorization = {
+  /**
+   * max_tokens specifies the maximum amount of tokens can be delegate to a validator.
+   * If it is empty, there is no spend limit and any amount of coins can be delegated.
+   */
+  maxTokens: Coin;
+  /** allow_list specifies list of validator addresses to whom grantee can delegate tokens on behalf of granter's account. */
+  allowList: string[];
+  /** deny_list specifies list of validator addresses to whom grantee can not delegate tokens. */
+  denyList: string[];
+  /** authorization_type defines one of AuthorizationType. */
+  authorizationType: StakeAuthorizationType;
+};
+
+function isStakeAuthorization(object: any): object is StakeAuthorization {
+  return (
+    "maxTokens" in object &&
+    "allowList" in object &&
+    "denyList" in object &&
+    "authorizationType" in object
+  );
+}
+
+/** AuthorizationType defines the type of staking module authorization type */
+export enum StakeAuthorizationType {
+  /** defines an authorization type for Msg/Delegate */
+  Delegate = 1,
+  /** defines an authorization type for Msg/Undelegate */
+  Undelegate = 2,
+  /** defines an authorization type for Msg/BeginRedelegate */
+  Redelegate = 3,
+}
+
 export type MsgGrantParams = {
   granter: string;
   grantee: string;
-  /** Msg, identified by it's type URL, to grant unrestricted permissions to execute */
-  msg: MsgGrantAuthorization;
+  authorization: GenericAuthorization | SendAuthorization | StakeAuthorization;
   /** Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. */
   expiration: number;
 };
 
 export class MsgGrant implements Msg {
-  public params: MsgGrantParams;
-
-  constructor(params: MsgGrantParams) {
-    this.params = params;
-  }
+  constructor(public params: MsgGrantParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const { GenericAuthorization } = await import(
-      "../protobuf_stuff/cosmos/authz/v1beta1/authz"
-    );
+    let grant: import("../protobuf_stuff/cosmos/authz/v1beta1/authz").Grant;
+    if (isSendAuthorization(this.params.authorization)) {
+      const { SendAuthorization } = await import(
+        "../protobuf_stuff/cosmos/bank/v1beta1/authz"
+      );
 
-    const grant: import("../protobuf_stuff/cosmos/authz/v1beta1/authz").Grant =
-      {
+      grant = {
         authorization: {
-          typeUrl: "/cosmos.authz.v1beta1.GenericAuthorization",
-          value: GenericAuthorization.encode({
-            msg: String(this.params.msg),
+          typeUrl: "/cosmos.bank.v1beta1.SendAuthorization",
+          value: SendAuthorization.encode(this.params.authorization).finish(),
+        },
+        expiration: { seconds: String(this.params.expiration), nanos: 0 },
+      };
+    } else if (isStakeAuthorization(this.params.authorization)) {
+      const { StakeAuthorization } = await import(
+        "../protobuf_stuff/cosmos/staking/v1beta1/authz"
+      );
+
+      grant = {
+        authorization: {
+          typeUrl: "/cosmos.staking.v1beta1.StakeAuthorization",
+          value: StakeAuthorization.encode({
+            maxTokens: this.params.authorization.maxTokens,
+
+            allowList: { address: this.params.authorization.allowList },
+            denyList: { address: this.params.authorization.denyList },
+            authorizationType: Number(
+              this.params.authorization.authorizationType,
+            ),
           }).finish(),
         },
         expiration: { seconds: String(this.params.expiration), nanos: 0 },
       };
+    } else if (isGenericAuthorization(this.params.authorization)) {
+      const { GenericAuthorization } = await import(
+        "../protobuf_stuff/cosmos/authz/v1beta1/authz"
+      );
+
+      grant = {
+        authorization: {
+          typeUrl: "/cosmos.authz.v1beta1.GenericAuthorization",
+          value: GenericAuthorization.encode({
+            msg: String(this.params.authorization.msg),
+          }).finish(),
+        },
+        expiration: { seconds: String(this.params.expiration), nanos: 0 },
+      };
+    } else {
+      throw new Error("Unknown authorization type.");
+    }
 
     const msgContent = {
       granter: this.params.granter,
@@ -101,15 +190,26 @@ export class MsgGrant implements Msg {
   }
 }
 
-export type MsgExecParams = {};
+export type MsgExecParams = {
+  grantee: string;
+  /**
+   * Authorization Msg requests to execute. Each msg must implement Authorization interface
+   * The x/authz will try to find a grant matching (msg.signers[0], grantee, MsgTypeURL(msg))
+   * triple and validate it.
+   */
+  msgs: Msg[];
+};
+
 export class MsgExec implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/cosmos/authz/v1beta1/tx").MsgExec,
+    // msg: import("../protobuf_stuff/cosmos/authz/v1beta1/tx").MsgExec,
+    public params: MsgExecParams,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
     throw new Error("MsgExec not implemented.");
   }
+
   async toAmino(): Promise<AminoMsg> {
     throw new Error("MsgExec not implemented.");
   }
