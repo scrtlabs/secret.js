@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" />
-  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" />
+  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-light.svg#gh-light-mode-only" type="image/svg+xml" width="75%" media="(prefers-color-scheme: light)"/>
+  <img src="https://raw.githubusercontent.com/scrtlabs/secret.js/master/images/logo-dark.svg#gh-dark-mode-only" type="image/svg+xml" width="75%" media="(prefers-color-scheme: dark)"/>
 </p>
 
 <p align="center">
