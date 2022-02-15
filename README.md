@@ -31,7 +31,7 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 
 ## Beta Version Notice
 
-This library is still is beta. Beta testers are welcome!
+This library is still in beta, **APIs may break**. Beta testers are welcome!
 
 See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list of existing/missing features.
 
