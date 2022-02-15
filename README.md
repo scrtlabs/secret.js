@@ -20,7 +20,7 @@
 - [Key Features](#key-features)
 - [Beta Version Notice](#beta-version-notice)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Usage Examples](#usage-examples)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
 - [API](#api)
@@ -28,6 +28,8 @@
     - [Importing account from mnemonic phrase](#importing-account-from-mnemonic-phrase)
     - [Generating a random account](#generating-a-random-account)
   - [SecretNetworkClient](#secretnetworkclient)
+    - [Readonly](#readonly)
+    - [Signer](#signer)
 - [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
 ## Key Features
@@ -59,7 +61,7 @@ or
 yarn add secretjs@beta
 ```
 
-## Usage
+## Usage Examples
 
 ### Sending Queries
 
@@ -113,49 +115,15 @@ const secretjs = await SecretNetworkClient.create(
   },
 );
 
-// Sending multiple messages in the same transaction is easy:
-const alice = "secret1vnd90m6p64hmz4g5fngeqfusa6shnxhyfmrp59";
-const msgSendToAlice = new MsgSend({
-  fromAddress: myAddress,
-  toAddress: alice,
-  amount: [{ denom: "uscrt", amount: "1" }],
-});
-
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
-const msgSendToBob = new MsgSend({
+const msg = new MsgSend({
   fromAddress: myAddress,
   toAddress: bob,
   amount: [{ denom: "uscrt", amount: "1" }],
 });
 
-const tx1 = await secretjs.tx.broadcast([msgSendToAlice, msgSendToBob], {
+const tx = await secretjs.tx.broadcast([msg], {
   gasLimit: 40_000,
-  gasPriceInFeeDenom: 0.25,
-  feeDenom: "uscrt",
-});
-
-// But in this case we can do it more efficiently:
-const msgSendToAliceAndBob = new MsgMultiSend({
-  inputs: [
-    {
-      address: myAddress,
-      coins: [{ denom: "uscrt", amount: "2" }],
-    },
-  ],
-  outputs: [
-    {
-      address: alice,
-      coins: [{ denom: "uscrt", amount: "1" }],
-    },
-    {
-      address: bob,
-      coins: [{ denom: "uscrt", amount: "1" }],
-    },
-  ],
-});
-
-const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
-  gasLimit: 20_000,
   gasPriceInFeeDenom: 0.25,
   feeDenom: "uscrt",
 });
@@ -166,6 +134,8 @@ const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
 ### Wallet
 
 An offline wallet implementation, used to sign transactions. Usually we'd just want to pass it to `SecretNetworkClient`.
+
+[**Full API »**](https://secretjs.scrt.network/classes/Wallet.html)
 
 #### Importing account from mnemonic phrase
 
@@ -189,6 +159,14 @@ const myMnemonicPhrase = wallet.mnemonic;
 ```
 
 ### SecretNetworkClient
+
+[**Full API »**](https://secretjs.scrt.network/classes/SecretNetworkClient.html)
+
+#### Readonly
+
+TODO
+
+#### Signer
 
 TODO
 
