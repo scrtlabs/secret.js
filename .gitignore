@@ -2,3 +2,4 @@ node_modules
 dist
 scripts/SecretNetwok
 yarn-error.log
+docs

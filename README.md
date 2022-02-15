@@ -23,11 +23,10 @@
 - [Usage](#usage)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
-- [Migration from secretjs v0.17.x](#migration-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
   - [SecretNetworkClient](#secretnetworkclient)
-- [Types](#types)
+- [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
 ## Key Features
 
@@ -160,10 +159,6 @@ const tx2 = await secretjs.tx.broadcast([msgSendToAliceAndBob], {
 });
 ```
 
-## Migration from secretjs v0.17.x
-
-TODO
-
 ## API
 
 ### Wallet
@@ -174,6 +169,6 @@ TODO
 
 TODO
 
-## Types
+## Migrating from Secret.js v0.17.x
 
-To browse all types go [here](./docs/modules.md).
+TODO

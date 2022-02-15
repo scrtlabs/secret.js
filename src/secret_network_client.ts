@@ -105,7 +105,7 @@ export class ReadonlySigner implements OfflineAminoSigner {
   }
 }
 
-type Querier = {
+export type Querier = {
   auth: AuthQuerier;
   authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").QueryClientImpl;
   bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").QueryClientImpl;
@@ -206,7 +206,7 @@ export interface IndexedTx {
   readonly gasWanted: number;
 }
 
-type TxSender = {
+export type TxSender = {
   broadcast: (
     messages: Msg[],
     params: SignAndBroadcastParams,
@@ -222,6 +222,8 @@ interface SecretRpcClient {
 }
 
 type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
+
+export { Tendermint34Client };
 
 export class SecretNetworkClient {
   public query: Querier;
