@@ -204,8 +204,8 @@ beforeAll(async () => {
           parsedAccount.secretjs = await SecretNetworkClient.create(
             "http://localhost:26657",
             {
-              signer: parsedAccount.wallet,
-              signerAddress: parsedAccount.address,
+              wallet: parsedAccount.wallet,
+              walletAddress: parsedAccount.address,
               chainId: "secretdev-1",
             },
           );
@@ -230,8 +230,8 @@ beforeAll(async () => {
         mnemonic: wallet.mnemonic,
         wallet: wallet,
         secretjs: await SecretNetworkClient.create("http://localhost:26657", {
-          signer: wallet,
-          signerAddress: address,
+          wallet: wallet,
+          walletAddress: address,
           chainId: "secretdev-1",
         }),
       };
