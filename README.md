@@ -63,6 +63,8 @@ yarn add secretjs@beta
 
 ## Usage Examples
 
+For a lot more usage examples [refer to the tests](./test/test.ts).
+
 ### Sending Queries
 
 ```typescript
