@@ -166,9 +166,13 @@ const myMnemonicPhrase = wallet.mnemonic;
 
 #### Readonly
 
+A readonly client can only send queries and get chain information.
+
 TODO
 
 #### Signer
+
+A signer client can broadcast transactions, send queries and get chain information.
 
 TODO
 
