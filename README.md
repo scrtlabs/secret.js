@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://secretjs.scrt.network"><strong>Explore the Docs »</strong></a>
+  <a href="https://secretjs.scrt.network" target="_blank"><strong>Explore the Docs »</strong></a>
 </p>
 
 <h2 id="table-of-contents">Table of Contents</h2>
