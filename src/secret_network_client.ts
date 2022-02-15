@@ -7,19 +7,19 @@ import { ComputeQuerier } from "./query/compute";
 import { AminoMsg, Msg, ProtoMsg } from "./tx/types";
 import {
   AccountData,
+  AminoSigner,
   AminoSignResponse,
   encodeSecp256k1Pubkey,
   isOfflineDirectSigner,
-  OfflineAminoSigner,
-  OfflineSigner,
   Pubkey,
+  Signer,
   StdFee,
   StdSignDoc,
-} from "./wallet";
+} from "./wallet_amino";
 
 export type SigningParams = {
   walletAddress: string;
-  wallet: OfflineSigner;
+  wallet: Signer;
   chainId: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
   encryptionSeed?: Uint8Array;
@@ -94,7 +94,7 @@ export interface SignerData {
   readonly chainId: string;
 }
 
-export class ReadonlySigner implements OfflineAminoSigner {
+export class ReadonlySigner implements AminoSigner {
   getAccounts(): Promise<readonly AccountData[]> {
     throw new Error("getAccounts() is not supported in readonly mode.");
   }
@@ -231,7 +231,7 @@ export class SecretNetworkClient {
   public tx: TxSender;
   public tendermint: Tendermint34Client;
   private walletAddress: string;
-  private wallet: OfflineSigner;
+  private wallet: Signer;
   private chainId: string;
   private encryptionUtils: EncryptionUtils;
 

@@ -9,7 +9,23 @@ import { AminoMsg, Coin } from ".";
 
 export const SECRET_COIN_TYPE = 529;
 
-export class Wallet {
+/**
+ * AminoWallet is a wallet capable of signing on the legacy Amino encoding.
+ * Amino encoding is still a must-use when signing with Ledger and thus still
+ * supported in the chain, but is phased out slowly.
+ *
+ * In secret.js AminoWallet is mainly used for testing and should not be used
+ * for anyhting else. The reason is that some Msg types don't support Amino
+ * encoding anymore and thus won't work with this wallet (and Ledger).
+ * Msgs that do support Amino encoding also must encode with Protobuf,
+ * so if a Msg is working as intended with AminoWallet, it'll also work with
+ * ${@link ../ Wallet}.
+ *
+ * For reference, even txs that are signed using Amino, are sent to the chain
+ * using Protobuf encoding, so inside the chain the tx is converted to Amino
+ * in order to verify the signature.
+ * */
+export class AminoWallet {
   /** The mnemonic phrase used to derive this account */
   public mnemonic: string;
   /** The account index in the HD derivation path */
@@ -70,7 +86,7 @@ export class Wallet {
       throw new Error(`Address ${signerAddress} not found in wallet`);
     }
 
-    const messageHash = sha256(serializeSignDoc(signDoc));
+    const messageHash = sha256(serializeStdSignDoc(signDoc));
 
     const signature = await secp256k1.sign(messageHash, this.privateKey, {
       extraEntropy: true,
@@ -118,55 +134,55 @@ export function encodeSecp256k1Pubkey(pubkey: Uint8Array): Pubkey {
   };
 }
 
-export interface AminoSignResponse {
+export type AminoSignResponse = {
   /**
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
   readonly signed: StdSignDoc;
   readonly signature: StdSignature;
-}
+};
 
 /**
  * The document to be signed
  *
  * @see https://docs.cosmos.network/master/modules/auth/03_types.html#stdsigndoc
  */
-export interface StdSignDoc {
+export type StdSignDoc = {
   readonly chain_id: string;
   readonly account_number: string;
   readonly sequence: string;
   readonly fee: StdFee;
   readonly msgs: readonly AminoMsg[];
   readonly memo: string;
-}
+};
 
-export interface StdFee {
+export type StdFee = {
   readonly amount: readonly Coin[];
   readonly gas: string;
-}
+};
 
-export interface StdSignature {
+export type StdSignature = {
   readonly pub_key: Pubkey;
   readonly signature: string;
-}
+};
 
-export interface Pubkey {
+export type Pubkey = {
   // type is one of the strings defined in pubkeyType
   // I don't use a string literal union here as that makes trouble with json test data:
   // https://github.com/cosmos/cosmjs/pull/44#pullrequestreview-353280504
   readonly type: string;
   readonly value: any;
-}
+};
 
 export type Algo = "secp256k1" | "ed25519" | "sr25519";
 
-export interface AccountData {
+export type AccountData = {
   /** A printable address (typically bech32 encoded) */
   readonly address: string;
   readonly algo: Algo;
   readonly pubkey: Uint8Array;
-}
+};
 
 function sortedObject(obj: any): any {
   if (typeof obj !== "object" || obj === null) {
@@ -185,40 +201,38 @@ function sortedObject(obj: any): any {
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-export function sortedJsonStringify(obj: any): string {
+export function JsonSortedStringify(obj: any): string {
   return JSON.stringify(sortedObject(obj));
 }
 
-export function serializeSignDoc(signDoc: StdSignDoc): Uint8Array {
-  return toUtf8(sortedJsonStringify(signDoc));
+export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
+  return toUtf8(JsonSortedStringify(signDoc));
 }
 
-export interface OfflineDirectSigner {
+export type DirectSigner = {
   readonly getAccounts: () => Promise<readonly AccountData[]>;
   readonly signDirect: (
     signerAddress: string,
     signDoc: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc,
   ) => Promise<DirectSignResponse>;
-}
+};
 
-export interface DirectSignResponse {
+export type DirectSignResponse = {
   /**
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
   readonly signed: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc;
   readonly signature: StdSignature;
+};
+
+export type Signer = AminoSigner | DirectSigner;
+
+export function isOfflineDirectSigner(signer: Signer): signer is DirectSigner {
+  return (signer as DirectSigner).signDirect !== undefined;
 }
 
-export type OfflineSigner = OfflineAminoSigner | OfflineDirectSigner;
-
-export function isOfflineDirectSigner(
-  signer: OfflineSigner,
-): signer is OfflineDirectSigner {
-  return (signer as OfflineDirectSigner).signDirect !== undefined;
-}
-
-export interface OfflineAminoSigner {
+export interface AminoSigner {
   /**
    * Get AccountData array from wallet. Rejects if not enabled.
    */

@@ -32,6 +32,7 @@ import {
   Wallet,
 } from "../src";
 import { gasToFee } from "../src/secret_network_client";
+import { AminoWallet } from "../src/wallet_amino";
 
 const exec = util.promisify(require("child_process").exec);
 
@@ -41,7 +42,8 @@ type Account = {
   address: string;
   pubkey: string;
   mnemonic: string;
-  wallet: Wallet;
+  walletAmino: AminoWallet;
+  walletProto: Wallet;
   secretjs: SecretNetworkClient;
 };
 
@@ -199,12 +201,13 @@ beforeAll(async () => {
           getMnemonicRegexForAccountName(accountIdToName[accountId]),
         );
         if (match) {
-          const parsedAccount = JSON.parse(match[0]);
-          parsedAccount.wallet = new Wallet(parsedAccount.mnemonic);
+          const parsedAccount = JSON.parse(match[0]) as Account;
+          parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
+          parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
           parsedAccount.secretjs = await SecretNetworkClient.create(
             "http://localhost:26657",
             {
-              wallet: parsedAccount.wallet,
+              wallet: parsedAccount.walletAmino,
               walletAddress: parsedAccount.address,
               chainId: "secretdev-1",
             },
@@ -216,8 +219,9 @@ beforeAll(async () => {
 
     // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
     for (let i = 4; i <= 19; i++) {
-      const wallet = new Wallet();
+      const wallet = new AminoWallet();
       const [{ address, pubkey }] = await wallet.getAccounts();
+      const walletProto = new Wallet(wallet.mnemonic);
 
       accounts[i] = {
         name: String(i),
@@ -228,7 +232,8 @@ beforeAll(async () => {
           key: toBase64(pubkey),
         }),
         mnemonic: wallet.mnemonic,
-        wallet: wallet,
+        walletAmino: wallet,
+        walletProto: walletProto,
         secretjs: await SecretNetworkClient.create("http://localhost:26657", {
           wallet: wallet,
           walletAddress: address,
