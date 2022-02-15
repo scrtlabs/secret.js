@@ -2061,18 +2061,6 @@ graceful-fs@^4.1.2, graceful-fs@^4.2.4, graceful-fs@^4.2.9:
   resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.9.tgz"
   integrity sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==
 
-handlebars@^4.7.7:
-  version "4.7.7"
-  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.7.7.tgz#9ce33416aad02dbd6c8fafa8240d5d98004945a1"
-  integrity sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA==
-  dependencies:
-    minimist "^1.2.5"
-    neo-async "^2.6.0"
-    source-map "^0.6.1"
-    wordwrap "^1.0.0"
-  optionalDependencies:
-    uglify-js "^3.1.4"
-
 has-bigints@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/has-bigints/-/has-bigints-1.0.1.tgz#64fe6acb020673e3b78db035a5af69aa9d07b113"
@@ -3115,7 +3103,7 @@ natural-compare@^1.4.0:
   resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
-neo-async@^2.6.0, neo-async@^2.6.2:
+neo-async@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
@@ -3972,13 +3960,6 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc-plugin-markdown@3.11.14:
-  version "3.11.14"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-markdown/-/typedoc-plugin-markdown-3.11.14.tgz#2a7a04abd50b8f1e5d46793061d70229d504d2cd"
-  integrity sha512-lh47OQvl0079nB18YL9wuTRRhMpjo300SZKfx/xpQY8qG+GINeSxTod95QBELeI0NP81sNtUbemRDrn5nyef4Q==
-  dependencies:
-    handlebars "^4.7.7"
-
 typedoc@0.22.11:
   version "0.22.11"
   resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.22.11.tgz#a3d7f4577eef9fc82dd2e8f4e2915e69f884c250"
@@ -3999,11 +3980,6 @@ typescript@4.5.2:
   version "4.5.2"
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.5.2.tgz"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
-
-uglify-js@^3.1.4:
-  version "3.15.1"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.15.1.tgz#9403dc6fa5695a6172a91bc983ea39f0f7c9086d"
-  integrity sha512-FAGKF12fWdkpvNJZENacOH0e/83eG6JyVQyanIJaBXCN1J11TUQv1T1/z8S+Z0CG0ZPk1nPcreF/c7lrTd0TEQ==
 
 unbox-primitive@^1.0.1:
   version "1.0.1"
@@ -4243,11 +4219,6 @@ word-wrap@~1.2.3:
   version "1.2.3"
   resolved "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.3.tgz"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
-
-wordwrap@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
-  integrity sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus=
 
 wrap-ansi@^7.0.0:
   version "7.0.0"

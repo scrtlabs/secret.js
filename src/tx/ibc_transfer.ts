@@ -17,10 +17,10 @@ export type MsgTransferParams = {
    */
   timeoutHeight?: Height;
   /**
-   * Timeout timestamp (in secons) since Unix epoch.
+   * Timeout timestamp (in seconds) since Unix epoch.
    * The timeout is disabled when undefined or set to 0.
    */
-  timeoutTimestamp?: string;
+  timeoutTimestampSec?: string;
 };
 
 /**
@@ -53,8 +53,8 @@ export class MsgTransfer implements Msg {
       sender: this.params.sender,
       receiver: this.params.receiver,
       timeoutHeight: this.params.timeoutHeight,
-      timeoutTimestamp: this.params.timeoutTimestamp
-        ? `${this.params.timeoutTimestamp}000000000` // sec -> ns
+      timeoutTimestamp: this.params.timeoutTimestampSec
+        ? `${this.params.timeoutTimestampSec}000000000` // sec -> ns
         : "0",
     };
 
@@ -83,8 +83,8 @@ export class MsgTransfer implements Msg {
               revision_height: this.params.timeoutHeight.revisionHeight,
             }
           : undefined,
-        timeout_timestamp: this.params.timeoutTimestamp
-          ? `${this.params.timeoutTimestamp}000000000` // sec -> ns
+        timeout_timestamp: this.params.timeoutTimestampSec
+          ? `${this.params.timeoutTimestampSec}000000000` // sec -> ns
           : "0",
       },
     };
