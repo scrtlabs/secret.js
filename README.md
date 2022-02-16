@@ -30,10 +30,10 @@
   - [SecretNetworkClient](#secretnetworkclient)
     - [Readonly](#readonly)
     - [Signer](#signer)
-      - [Using Keplr](#using-keplr)
-        - [`keplr.getOfflineSignerOnlyAmino()`](#keplrgetofflinesigneronlyamino)
-        - [`keplr.getOfflineSigner()`](#keplrgetofflinesigner)
-        - [`keplr.getOfflineSignerAuto()`](#keplrgetofflinesignerauto)
+    - [Using Keplr](#using-keplr)
+      - [`keplr.getOfflineSignerOnlyAmino()`](#keplrgetofflinesigneronlyamino)
+      - [`keplr.getOfflineSigner()`](#keplrgetofflinesigner)
+      - [`keplr.getOfflineSignerAuto()`](#keplrgetofflinesignerauto)
 - [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
 # Key Features
@@ -88,13 +88,13 @@ const {
 
 console.log(`I have ${amount / 1e6} SCRT!`);
 
-const {
-  codeInfo: { codeHash },
-} = await secretjs.query.compute.code(5);
+const sSCRT = "secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek";
+const sScrtCodeHash =
+  "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"; // secretcli q compute contract-hash secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek
 
 const { token_info } = await secretjs.query.compute.queryContract({
   address: sSCRT,
-  codeHash,
+  codeHash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 });
 
@@ -178,13 +178,13 @@ TODO
 
 A signer client can broadcast transactions, send queries and get chain information.
 
-#### Using Keplr
+### Using Keplr
 
 The recommended way is using `keplr.getOfflineSignerOnlyAmino()`.
 
 TODO
 
-##### `keplr.getOfflineSignerOnlyAmino()`
+#### `keplr.getOfflineSignerOnlyAmino()`
 
 Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended due to Ledger support & better UI on Keplr.
 
@@ -222,7 +222,7 @@ Please note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classe
 
 <img src="./media/keplr-amino.png" width="45%" />
 
-##### `keplr.getOfflineSigner()`
+#### `keplr.getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
 
@@ -232,7 +232,7 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 
 <img src="./media/keplr-proto.png" width="45%" />
 
-##### `keplr.getOfflineSignerAuto()`
+#### `keplr.getOfflineSignerAuto()`
 
 Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
 
