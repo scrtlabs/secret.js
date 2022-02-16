@@ -89,8 +89,9 @@ const {
 console.log(`I have ${amount / 1e6} SCRT!`);
 
 const sSCRT = "secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek";
+// Get codeHash using `secretcli q compute contract-hash secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek`
 const sScrtCodeHash =
-  "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"; // secretcli q compute contract-hash secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek
+  "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e";
 
 const { token_info } = await secretjs.query.compute.queryContract({
   address: sSCRT,
