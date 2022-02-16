@@ -1,5 +1,3 @@
-export { Proposal } from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
-
 /** BondStatus is the status of a validator. */
 export enum BondStatus {
   /** BOND_STATUS_UNSPECIFIED - UNSPECIFIED defines an invalid validator status. */
