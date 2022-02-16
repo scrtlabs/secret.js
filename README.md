@@ -218,7 +218,10 @@ Although this is the legacy way of signing transactions on cosmos-sdk, it's stil
     - ibc_connection/MsgConnectionOpenInit
     - ibc_connection/MsgConnectionOpenTry
 
+Please note that ibc_transfer/MsgTransfer for sending funds across IBC is supported.
+
 <img src="./media/keplr-amino.png" width="45%" />
+
 ##### `keplr.getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
