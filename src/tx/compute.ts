@@ -25,8 +25,9 @@ export interface MsgInstantiateContractParams {
   codeHash?: string;
 }
 
-const CODE_HASH_WARNING =
-  "was used without the codeHash parameter. This is discouraged and will definitely result in slower execution times for your app.";
+export function getMissingCodeHashWarning(method: string): string {
+  return `⚠⚠⚠ ${method} was used without the codeHash parameter. This is discouraged and will definitely result in slower execution times for your app. ⚠⚠⚠`;
+}
 
 /** Instantiate a contract from code id */
 export class MsgInstantiateContract implements Msg {
@@ -60,13 +61,13 @@ export class MsgInstantiateContract implements Msg {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
       this.warnCodeHash = true;
-      console.warn(`MsgInstantiateContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
     }
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
     if (this.warnCodeHash) {
-      console.warn(`MsgInstantiateContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
     }
 
     if (!this.initMsgEncrypted) {
@@ -99,7 +100,7 @@ export class MsgInstantiateContract implements Msg {
 
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
     if (this.warnCodeHash) {
-      console.warn(`MsgInstantiateContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
     }
 
     if (!this.initMsgEncrypted) {
@@ -171,13 +172,13 @@ export class MsgExecuteContract implements Msg {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
       this.warnCodeHash = true;
-      console.warn(`MsgExecuteContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
     }
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
     if (this.warnCodeHash) {
-      console.warn(`MsgExecuteContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
     }
 
     if (!this.msgEncrypted) {
@@ -208,7 +209,7 @@ export class MsgExecuteContract implements Msg {
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
     if (this.warnCodeHash) {
-      console.warn(`MsgExecuteContract ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
     }
 
     if (!this.msgEncrypted) {

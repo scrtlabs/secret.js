@@ -6,6 +6,7 @@
 
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
+import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtilsImpl } from "../encryption";
 
 interface Rpc {
@@ -91,9 +92,6 @@ export type QueryCodeResponse = {
   codeInfo: CodeInfoResponse;
   data: Uint8Array;
 };
-
-const CODE_HASH_WARNING =
-  "was used without the codeHash parameter. This is discouraged and will definitely result in slower execution times for your app.";
 
 export class ComputeQuerier {
   private readonly rpc: Rpc;
@@ -190,7 +188,7 @@ export class ComputeQuerier {
     await this.init();
 
     if (!codeHash) {
-      console.warn(`queryContract() ${CODE_HASH_WARNING}`);
+      console.warn(getMissingCodeHashWarning("queryContract()"));
       codeHash = await this.contractCodeHash(address);
     }
 
