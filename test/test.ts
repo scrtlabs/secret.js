@@ -273,7 +273,8 @@ beforeAll(async () => {
         `account[${accountId}]:\n${JSON.stringify(
           {
             ...accounts[accountId],
-            wallet: undefined, // don't flood the screen with wallet object internals
+            walletAmino: undefined, // don't flood the screen with wallet object internals
+            walletProto: undefined, // don't flood the screen with wallet object internals
             secretjs: undefined, // don't flood the screen with secretjs object internals
           },
           null,
