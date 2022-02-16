@@ -114,9 +114,7 @@ export class ComputeQuerier {
   }
 
   /** Get metadata of a Secret Contract */
-  async contractInfo({
-    address,
-  }: QueryContractInfoRequest): Promise<QueryContractInfoResponse> {
+  async contractInfo(address: string): Promise<QueryContractInfoResponse> {
     await this.init();
 
     const response = await this.client!.contractInfo({
@@ -132,12 +130,12 @@ export class ComputeQuerier {
   }
 
   /** Get all contracts that were instantiated from a code id */
-  async contractsByCode(
-    request: QueryContractsByCodeRequest,
-  ): Promise<QueryContractsByCodeResponse> {
+  async contractsByCode(codeId: number): Promise<QueryContractsByCodeResponse> {
     await this.init();
 
-    const response = await this.client!.contractsByCode(request);
+    const response = await this.client!.contractsByCode({
+      codeId: String(codeId),
+    });
 
     return {
       contractInfos: response.contractInfos.map((x) => ({
