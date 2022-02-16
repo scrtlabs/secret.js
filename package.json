@@ -12,7 +12,7 @@
   ],
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
-  "browser": "dist/browser.js",
+  "browser": "dist/browser.main.js",
   "scripts": {
     "build": "webpack && tsc",
     "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest",

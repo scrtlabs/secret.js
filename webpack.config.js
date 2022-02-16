@@ -16,13 +16,19 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
+  optimization: {
+    splitChunks: {
+      chunks: "all",
+    },
+  },
   mode: "production",
   devtool: "source-map",
   output: {
     library: "secretjs",
     libraryTarget: "umd",
     globalObject: "this",
-    filename: "browser.js",
     path: path.resolve(__dirname, "dist"),
+    filename: "browser.[name].js",
+    chunkFilename: "browser.chunk.[contenthash].js",
   },
 };
