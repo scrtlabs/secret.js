@@ -39,6 +39,7 @@ export enum ProposalStatus {
   PROPOSAL_STATUS_REJECTED = 4,
   /** PROPOSAL_STATUS_FAILED defines a proposal status of a proposal that has failed. */
   PROPOSAL_STATUS_FAILED = 5,
+  UNRECOGNIZED = -1,
 }
 
 /** ParamChange defines an individual parameter change, for use in ParameterChangeProposal. */
