@@ -1,9 +1,11 @@
+/* Don't display the dark logo if in light mode */
 @media (prefers-color-scheme: light) {
   .dark-logo {
     display: none;
   }
 }
 
+/* Don't display the light logo if in dark mode */
 @media (prefers-color-scheme: dark) {
   .light-logo {
     display: none;
