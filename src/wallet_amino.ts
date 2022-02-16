@@ -18,8 +18,7 @@ export const SECRET_COIN_TYPE = 529;
  * for anyhting else. The reason is that some Msg types don't support Amino
  * encoding anymore and thus won't work with this wallet (and Ledger).
  * Msgs that do support Amino encoding also must encode with Protobuf,
- * so if a Msg is working as intended with AminoWallet, it'll also work with
- * ${@link ../ Wallet}.
+ * so if a Msg is working as intended with AminoWallet, it'll also work with {@link Wallet}.
  *
  * For reference, even txs that are signed using Amino, are sent to the chain
  * using Protobuf encoding, so inside the chain the tx is converted to Amino

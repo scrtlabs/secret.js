@@ -1,6 +1,5 @@
 import { toBase64 } from "@cosmjs/encoding";
 import is_gzip from "is-gzip";
-import pako from "pako";
 import { EncryptionUtils } from "..";
 import { addressToBytes } from "../query/compute";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
@@ -207,15 +206,19 @@ export class MsgStoreCode implements Msg {
     this.sender = sender;
     this.source = source;
     this.builder = builder;
+    this.wasmByteCode = wasmByteCode;
+  }
 
-    if (is_gzip(wasmByteCode)) {
-      this.wasmByteCode = wasmByteCode;
-    } else {
-      this.wasmByteCode = pako.gzip(wasmByteCode, { level: 9 });
+  async gzipWasm() {
+    if (!is_gzip(this.wasmByteCode)) {
+      const pako = await import("pako");
+      this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });
     }
   }
 
   async toProto(): Promise<ProtoMsg> {
+    await this.gzipWasm();
+
     const msgContent = {
       sender: addressToBytes(this.sender),
       wasmByteCode: this.wasmByteCode,
@@ -232,7 +235,10 @@ export class MsgStoreCode implements Msg {
         ).MsgStoreCode.encode(msgContent).finish(),
     };
   }
+
   async toAmino(): Promise<AminoMsg> {
+    await this.gzipWasm();
+
     return {
       type: "wasm/MsgStoreCode",
       value: {
