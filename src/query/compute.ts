@@ -72,7 +72,7 @@ export type QueryContractRequest = {
    */
   codeHash: string;
   /** A JSON object that will be passed to the contract as a query */
-  query: object;
+  query: any;
 };
 
 export type CodeInfoResponse = {
@@ -154,7 +154,7 @@ export class ComputeQuerier {
     address,
     codeHash,
     query,
-  }: QueryContractRequest): Promise<object> {
+  }: QueryContractRequest): Promise<any> {
     await this.init();
 
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
