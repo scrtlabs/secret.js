@@ -14,7 +14,7 @@
   "main": "dist/index.js",
   "browser": "dist/browser.main.js",
   "scripts": {
-    "build": "webpack && tsc",
+    "build": "rm -rf ./dist && webpack && tsc",
     "test": "export NODE_OPTIONS=--openssl-legacy-provider && jest",
     "gen-docs": "typedoc"
   },

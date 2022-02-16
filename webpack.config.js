@@ -16,11 +16,6 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
-  optimization: {
-    splitChunks: {
-      chunks: "all",
-    },
-  },
   mode: "production",
   devtool: "source-map",
   output: {
