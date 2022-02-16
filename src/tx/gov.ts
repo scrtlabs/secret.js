@@ -1,83 +1,65 @@
 import BigNumber from "bignumber.js";
 import { Coin } from "..";
-import { CommunityPoolSpendProposal as CommunityPoolSpendProposalContent } from "../protobuf_stuff/cosmos/distribution/v1beta1/distribution";
-import {
-  ProposalStatus,
-  TextProposal as TextProposalContent,
-  VoteOption,
-} from "../protobuf_stuff/cosmos/gov/v1beta1/gov";
-import {
-  MsgDeposit as MsgDepositProto,
-  MsgSubmitProposal as MsgSubmitProposalProto,
-  MsgVote as MsgVoteProto,
-  MsgVoteWeighted as MsgVoteWeightedProto,
-} from "../protobuf_stuff/cosmos/gov/v1beta1/tx";
-import {
-  ParamChange,
-  ParameterChangeProposal as ParameterChangeProposalContent,
-} from "../protobuf_stuff/cosmos/params/v1beta1/params";
-import {
-  CancelSoftwareUpgradeProposal as CancelSoftwareUpgradeProposalContent,
-  SoftwareUpgradeProposal as SoftwareUpgradeProposalContent,
-} from "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade";
-import { Any } from "../protobuf_stuff/google/protobuf/any";
-import {
-  ClientUpdateProposal as ClientUpdateProposalContent,
-  UpgradeProposal as UpgradeProposalContent,
-} from "../protobuf_stuff/ibc/core/client/v1/client";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type ProposalContent =
-  | TextProposalContent
-  | CommunityPoolSpendProposalContent
-  | ParameterChangeProposalContent
-  | ClientUpdateProposalContent
-  | UpgradeProposalContent
-  | SoftwareUpgradeProposalContent
-  | CancelSoftwareUpgradeProposalContent;
+  | import("../protobuf_stuff/cosmos/gov/v1beta1/gov").TextProposal
+  | import("../protobuf_stuff/cosmos/distribution/v1beta1/distribution").CommunityPoolSpendProposal
+  | import("../protobuf_stuff/cosmos/params/v1beta1/params").ParameterChangeProposal
+  | import("../protobuf_stuff/ibc/core/client/v1/client").ClientUpdateProposal
+  | import("../protobuf_stuff/ibc/core/client/v1/client").UpgradeProposal
+  | import("../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade").SoftwareUpgradeProposal
+  | import("../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade").CancelSoftwareUpgradeProposal;
 
-export {
-  TextProposalContent,
-  CommunityPoolSpendProposalContent,
-  ParameterChangeProposalContent,
-  ClientUpdateProposalContent,
-  UpgradeProposalContent,
-  SoftwareUpgradeProposalContent,
-  CancelSoftwareUpgradeProposalContent,
-  ProposalStatus,
-  ParamChange,
+/** VoteOption enumerates the valid vote options for a given governance proposal. */
+export enum VoteOption {
+  /** VOTE_OPTION_UNSPECIFIED defines a no-op vote option. */
+  VOTE_OPTION_UNSPECIFIED = 0,
+  /** VOTE_OPTION_YES defines a yes vote option. */
+  VOTE_OPTION_YES = 1,
+  /** VOTE_OPTION_ABSTAIN defines an abstain vote option. */
+  VOTE_OPTION_ABSTAIN = 2,
+  /** VOTE_OPTION_NO defines a no vote option. */
+  VOTE_OPTION_NO = 3,
+  /** VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option. */
+  VOTE_OPTION_NO_WITH_VETO = 4,
+}
+
+/** ProposalStatus enumerates the valid statuses of a proposal. */
+export enum ProposalStatus {
+  /** PROPOSAL_STATUS_UNSPECIFIED defines the default propopsal status. */
+  PROPOSAL_STATUS_UNSPECIFIED = 0,
+  /** PROPOSAL_STATUS_DEPOSIT_PERIOD defines a proposal status during the deposit period. */
+  PROPOSAL_STATUS_DEPOSIT_PERIOD = 1,
+  /** PROPOSAL_STATUS_VOTING_PERIOD defines a proposal status during the voting period. */
+  PROPOSAL_STATUS_VOTING_PERIOD = 2,
+  /** PROPOSAL_STATUS_PASSED defines a proposal status of a proposal that has passed. */
+  PROPOSAL_STATUS_PASSED = 3,
+  /** PROPOSAL_STATUS_REJECTED defines a proposal status of a proposal that has been rejected. */
+  PROPOSAL_STATUS_REJECTED = 4,
+  /** PROPOSAL_STATUS_FAILED defines a proposal status of a proposal that has failed. */
+  PROPOSAL_STATUS_FAILED = 5,
+}
+
+/** ParamChange defines an individual parameter change, for use in ParameterChangeProposal. */
+export type ParamChange = {
+  subspace: string;
+  key: string;
+  value: string;
 };
-export { VoteOption };
 
 export enum ProposalType {
-  /** @see {@link TextProposalContent} for input type */
   TextProposal = "TextProposal",
-
-  /** @see {@link CommunityPoolSpendProposalContent} for input type */
   CommunityPoolSpendProposal = "CommunityPoolSpendProposal",
-
   /**
-   * @see {@link ParameterChangeProposalContent} for input type
    * @see {@link https://docs.scrt.network/guides/governance} for possible subspaces, keys and values.
    */
   ParameterChangeProposal = "ParameterChangeProposal",
-
-  /**
-   * @see {@link ClientUpdateProposalContent} for input type
-   * Not supported with Amino signer.
-   */
+  /** Not supported with Amino signer. */
   ClientUpdateProposal = "ClientUpdateProposal",
-
-  /**
-   * @see {@link UpgradeProposalContent} for input type
-   * Not supported with Amino signer.
-   */
+  /** Not supported with Amino signer. */
   UpgradeProposal = "UpgradeProposal",
-
-  /** @see {@link SoftwareUpgradeProposalContent} for input type */
   SoftwareUpgradeProposal = "SoftwareUpgradeProposal",
-
-  /** @see {@link CancelSoftwareUpgradeProposalContent} for input type */
   CancelSoftwareUpgradeProposal = "CancelSoftwareUpgradeProposal",
 }
 
@@ -125,68 +107,90 @@ export class MsgSubmitProposal implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    let content: Any;
+    const { Any } = await import("../protobuf_stuff/google/protobuf/any");
+    let content: import("../protobuf_stuff/google/protobuf/any").Any;
 
     switch (this.type) {
       case ProposalType.TextProposal:
+        const { TextProposal } = await import(
+          "../protobuf_stuff/cosmos/gov/v1beta1/gov"
+        );
         content = Any.fromPartial({
           typeUrl: "/cosmos.gov.v1beta1.TextProposal",
-          value: TextProposalContent.encode(
-            TextProposalContent.fromPartial(this.content),
+          value: TextProposal.encode(
+            TextProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.CommunityPoolSpendProposal:
+        const { CommunityPoolSpendProposal } = await import(
+          "../protobuf_stuff/cosmos/distribution/v1beta1/distribution"
+        );
         content = Any.fromPartial({
           typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
-          value: CommunityPoolSpendProposalContent.encode(
-            CommunityPoolSpendProposalContent.fromPartial(this.content),
+          value: CommunityPoolSpendProposal.encode(
+            CommunityPoolSpendProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.ParameterChangeProposal:
+        const { ParameterChangeProposal } = await import(
+          "../protobuf_stuff/cosmos/params/v1beta1/params"
+        );
         content = Any.fromPartial({
           typeUrl: "/cosmos.params.v1beta1.ParameterChangeProposal",
-          value: ParameterChangeProposalContent.encode(
-            ParameterChangeProposalContent.fromPartial(this.content),
+          value: ParameterChangeProposal.encode(
+            ParameterChangeProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.ClientUpdateProposal:
+        const { ClientUpdateProposal } = await import(
+          "../protobuf_stuff/ibc/core/client/v1/client"
+        );
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.ClientUpdateProposal",
-          value: ClientUpdateProposalContent.encode(
-            ClientUpdateProposalContent.fromPartial(this.content),
+          value: ClientUpdateProposal.encode(
+            ClientUpdateProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.UpgradeProposal:
+        const { UpgradeProposal } = await import(
+          "../protobuf_stuff/ibc/core/client/v1/client"
+        );
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.UpgradeProposal",
-          value: UpgradeProposalContent.encode(
-            UpgradeProposalContent.fromPartial(this.content),
+          value: UpgradeProposal.encode(
+            UpgradeProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.SoftwareUpgradeProposal:
+        const { SoftwareUpgradeProposal } = await import(
+          "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade"
+        );
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
-          value: SoftwareUpgradeProposalContent.encode(
-            SoftwareUpgradeProposalContent.fromPartial(this.content),
+          value: SoftwareUpgradeProposal.encode(
+            SoftwareUpgradeProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
 
       case ProposalType.CancelSoftwareUpgradeProposal:
+        const { CancelSoftwareUpgradeProposal } = await import(
+          "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade"
+        );
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
-          value: CancelSoftwareUpgradeProposalContent.encode(
-            CancelSoftwareUpgradeProposalContent.fromPartial(this.content),
+          value: CancelSoftwareUpgradeProposal.encode(
+            CancelSoftwareUpgradeProposal.fromPartial(this.content),
           ).finish(),
         });
         break;
@@ -208,7 +212,10 @@ export class MsgSubmitProposal implements Msg {
     return {
       typeUrl: `/cosmos.gov.v1beta1.MsgSubmitProposal`,
       value: msgContent,
-      encode: async () => MsgSubmitProposalProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+        ).MsgSubmitProposal.encode(msgContent).finish(),
     };
   }
 
@@ -251,7 +258,11 @@ export class MsgSubmitProposal implements Msg {
 
 /** MsgVote defines a message to cast a vote. */
 
-export type MsgVoteProtoParams = MsgVoteProto;
+export type MsgVoteProtoParams = {
+  proposalId: string;
+  voter: string;
+  option: VoteOption;
+};
 export class MsgVote implements Msg {
   public voter: string;
   public proposalId: string;
@@ -273,7 +284,10 @@ export class MsgVote implements Msg {
     return {
       typeUrl: `/cosmos.gov.v1beta1.MsgVote`,
       value: msgContent,
-      encode: async () => MsgVoteProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+        ).MsgVote.encode(msgContent).finish(),
     };
   }
 
@@ -328,7 +342,10 @@ export class MsgVoteWeighted implements Msg {
     return {
       typeUrl: `/cosmos.gov.v1beta1.MsgVoteWeighted`,
       value: msgContent,
-      encode: async () => MsgVoteWeightedProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+        ).MsgVoteWeighted.encode(msgContent).finish(),
     };
   }
 
@@ -349,7 +366,11 @@ export class MsgVoteWeighted implements Msg {
   }
 }
 
-export type MsgDepositParams = MsgDepositProto;
+export type MsgDepositParams = {
+  proposalId: string;
+  depositor: string;
+  amount: Coin[];
+};
 
 /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
 export class MsgDeposit implements Msg {
@@ -373,7 +394,10 @@ export class MsgDeposit implements Msg {
     return {
       typeUrl: `/cosmos.gov.v1beta1.MsgDeposit`,
       value: msgContent,
-      encode: async () => MsgDepositProto.encode(msgContent).finish(),
+      encode: async () =>
+        (
+          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+        ).MsgDeposit.encode(msgContent).finish(),
     };
   }
 
