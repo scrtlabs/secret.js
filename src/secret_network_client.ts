@@ -1,6 +1,6 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { Coin } from ".";
+import { Coin, MsgExecuteContract, MsgInstantiateContract } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { AuthQuerier } from "./query/auth";
 import { ComputeQuerier } from "./query/compute";
@@ -467,7 +467,7 @@ export class SecretNetworkClient {
                 // Try to decrypt
                 if (event.type === "wasm") {
                   const nonce = nonces[msgIndex];
-                  if (nonce) {
+                  if (nonce && nonce.length === 32) {
                     try {
                       attr.key = fromUtf8(
                         await this.encryptionUtils.decrypt(
@@ -639,7 +639,10 @@ export class SecretNetworkClient {
       await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = await Promise.all(
-      messages.map((msg) => msg.toAmino(this.encryptionUtils)),
+      messages.map(async (msg) => {
+        this.populateCodeHash(msg);
+        return msg.toAmino(this.encryptionUtils);
+      }),
     );
     const signDoc = makeSignDocAmino(
       msgs,
@@ -659,18 +662,9 @@ export class SecretNetworkClient {
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
+            this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            if (
-              asProto.typeUrl ===
-              "/secret.compute.v1beta1.MsgInstantiateContract"
-            ) {
-              encryptionNonces[index] = asProto.value.initMsg.slice(0, 32);
-            }
-            if (
-              asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
-            ) {
-              encryptionNonces[index] = asProto.value.msg.slice(0, 32);
-            }
+            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -700,6 +694,18 @@ export class SecretNetworkClient {
       ),
       encryptionNonces,
     ];
+  }
+
+  private async populateCodeHash(msg: Msg) {
+    if (msg instanceof MsgExecuteContract) {
+      if (!msg.codeHash) {
+        msg.codeHash = await this.query.compute.contractCodeHash(msg.contract);
+      }
+    } else if (msg instanceof MsgInstantiateContract) {
+      if (!msg.codeHash) {
+        msg.codeHash = await this.query.compute.codeHash(Number(msg.codeId));
+      }
+    }
   }
 
   private async encodeTx(txBody: {
@@ -756,18 +762,9 @@ export class SecretNetworkClient {
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
+            this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            if (
-              asProto.typeUrl ===
-              "/secret.compute.v1beta1.MsgInstantiateContract"
-            ) {
-              encryptionNonces[index] = asProto.value.initMsg.slice(0, 32);
-            }
-            if (
-              asProto.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
-            ) {
-              encryptionNonces[index] = asProto.value.msg.slice(0, 32);
-            }
+            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -814,6 +811,16 @@ function sleep(ms: number) {
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
   return Math.floor(gasLimit * gasPrice) + 1;
+}
+
+function extractNonce(msg: ProtoMsg): Uint8Array {
+  if (msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract") {
+    return msg.value.initMsg.slice(0, 32);
+  }
+  if (msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract") {
+    return msg.value.msg.slice(0, 32);
+  }
+  return new Uint8Array();
 }
 
 /**
