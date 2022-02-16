@@ -2,7 +2,6 @@
   "entryPoints": ["./src/index.ts"],
   "out": "./docs",
   "githubPages": false,
-  "excludeExternals": true,
   "name": "Secret.js Docs",
   "excludePrivate": true,
   "excludeProtected": true,
