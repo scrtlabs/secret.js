@@ -3,10 +3,11 @@
   "out": "./docs",
   "githubPages": false,
   "excludeExternals": true,
-  "name": "Secret.js",
+  "name": "Secret.js Docs",
   "excludePrivate": true,
   "excludeProtected": true,
   "media": "./media",
   "hideGenerator": true,
-  "customCss": "./typedoc.css"
+  "customCss": "./typedoc.css",
+  "favicon": "/media/docs_favicon.svg"
 }
