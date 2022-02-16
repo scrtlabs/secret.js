@@ -191,34 +191,34 @@ Although this is the legacy way of signing transactions on cosmos-sdk, it's stil
 - 🟩 Looks good on Keplr
 - 🟩 Supports users signing with Ledger
 - 🟥 Doesn't support signing transactions with these Msgs:
-  - authz/MsgExec
-  - authz/MsgGrant
-  - authz/MsgRevoke
-  - feegrant/MsgGrantAllowance
-  - feegrant/MsgRevokeAllowance
+  - [authz/MsgExec](https://secretjs.scrt.network/classes/MsgExec)
+  - [authz/MsgGrant](https://secretjs.scrt.network/classes/MsgGrant)
+  - [authz/MsgRevoke](https://secretjs.scrt.network/classes/MsgRevoke)
+  - [feegrant/MsgGrantAllowance](https://secretjs.scrt.network/classes/MsgGrantAllowance)
+  - [feegrant/MsgRevokeAllowance](https://secretjs.scrt.network/classes/MsgRevokeAllowance)
   - All IBC relayer Msgs:
-    - gov/MsgSubmitProposal/ClientUpdateProposal
-    - gov/MsgSubmitProposal/UpgradeProposal
-    - ibc_channel/MsgAcknowledgement
-    - ibc_channel/MsgChannelCloseConfirm
-    - ibc_channel/MsgChannelCloseInit
-    - ibc_channel/MsgChannelOpenAck
-    - ibc_channel/MsgChannelOpenConfirm
-    - ibc_channel/MsgChannelOpenInit
-    - ibc_channel/MsgChannelOpenTry
-    - ibc_channel/MsgRecvPacket
-    - ibc_channel/MsgTimeout
-    - ibc_channel/MsgTimeoutOnClose
-    - ibc_client/MsgCreateClient
-    - ibc_client/MsgSubmitMisbehaviour
-    - ibc_client/MsgUpdateClient
-    - ibc_client/MsgUpgradeClient
-    - ibc_connection/MsgConnectionOpenAck
-    - ibc_connection/MsgConnectionOpenConfirm
-    - ibc_connection/MsgConnectionOpenInit
-    - ibc_connection/MsgConnectionOpenTry
+    - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
+    - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
+    - [ibc_channel/MsgAcknowledgement](https://secretjs.scrt.network/classes/MsgAcknowledgement)
+    - [ibc_channel/MsgChannelCloseConfirm](https://secretjs.scrt.network/classes/MsgChannelCloseConfirm)
+    - [ibc_channel/MsgChannelCloseInit](https://secretjs.scrt.network/classes/MsgChannelCloseInit)
+    - [ibc_channel/MsgChannelOpenAck](https://secretjs.scrt.network/classes/MsgChannelOpenAck)
+    - [ibc_channel/MsgChannelOpenConfirm](https://secretjs.scrt.network/classes/MsgChannelOpenConfirm)
+    - [ibc_channel/MsgChannelOpenInit](https://secretjs.scrt.network/classes/MsgChannelOpenInit)
+    - [ibc_channel/MsgChannelOpenTry](https://secretjs.scrt.network/classes/MsgChannelOpenTry)
+    - [ibc_channel/MsgRecvPacket](https://secretjs.scrt.network/classes/MsgRecvPacket)
+    - [ibc_channel/MsgTimeout](https://secretjs.scrt.network/classes/MsgTimeout)
+    - [ibc_channel/MsgTimeoutOnClose](https://secretjs.scrt.network/classes/MsgTimeoutOnClose)
+    - [ibc_client/MsgCreateClient](https://secretjs.scrt.network/classes/MsgCreateClient)
+    - [ibc_client/MsgSubmitMisbehaviour](https://secretjs.scrt.network/classes/MsgSubmitMisbehaviour)
+    - [ibc_client/MsgUpdateClient](https://secretjs.scrt.network/classes/MsgUpdateClient)
+    - [ibc_client/MsgUpgradeClient](https://secretjs.scrt.network/classes/MsgUpgradeClient)
+    - [ibc_connection/MsgConnectionOpenAck](https://secretjs.scrt.network/classes/MsgConnectionOpenAck)
+    - [ibc_connection/MsgConnectionOpenConfirm](https://secretjs.scrt.network/classes/MsgConnectionOpenConfirm)
+    - [ibc_connection/MsgConnectionOpenInit](https://secretjs.scrt.network/classes/MsgConnectionOpenInit)
+    - [ibc_connection/MsgConnectionOpenTry](https://secretjs.scrt.network/classes/MsgConnectionOpenTry)
 
-Please note that ibc_transfer/MsgTransfer for sending funds across IBC is supported.
+Please note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC is supported.
 
 <img src="./media/keplr-amino.png" width="45%" />
 
