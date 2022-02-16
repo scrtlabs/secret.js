@@ -15,7 +15,7 @@
   <a href="https://secretjs.scrt.network" target="_blank"><strong>Explore the Docs »</strong></a>
 </p>
 
-<h2 id="table-of-contents">Table of Contents</h2>
+<h1 id="table-of-contents">Table of Contents</h1>
 
 - [Key Features](#key-features)
 - [Beta Version Notice](#beta-version-notice)
@@ -30,9 +30,13 @@
   - [SecretNetworkClient](#secretnetworkclient)
     - [Readonly](#readonly)
     - [Signer](#signer)
+      - [Using Keplr](#using-keplr)
+        - [`keplr.getOfflineSignerOnlyAmino()`](#keplrgetofflinesigneronlyamino)
+        - [`keplr.getOfflineSigner()`](#keplrgetofflinesigner)
+        - [`keplr.getOfflineSignerAuto()`](#keplrgetofflinesignerauto)
 - [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
-## Key Features
+# Key Features
 
 Secret.js a JavaScript SDK for writing applications that interact with the Secret Network blockchain.
 
@@ -43,13 +47,13 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 - Handles input/output encryption/decryption for Secret Contracts.
 - Works in Node.js, modern web browsers and React Native.
 
-## Beta Version Notice
+# Beta Version Notice
 
 This library is still in beta, **APIs may break**. Beta testers are welcome!
 
 See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list of existing/missing features.
 
-## Installation
+# Installation
 
 ```bash
 npm install secretjs@beta
@@ -61,11 +65,11 @@ or
 yarn add secretjs@beta
 ```
 
-## Usage Examples
+# Usage Examples
 
 For a lot more usage examples [refer to the tests](./test/test.ts).
 
-### Sending Queries
+## Sending Queries
 
 ```typescript
 import { SecretNetworkClient } from "secretjs";
@@ -97,7 +101,7 @@ const { token_info } = await secretjs.query.compute.queryContract({
 console.log(`sSCRT has a total supply of ${token_info.total_supply} sSCRT!`);
 ```
 
-### Broadcasting Transactions
+## Broadcasting Transactions
 
 ```typescript
 import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
@@ -131,15 +135,15 @@ const tx = await secretjs.tx.broadcast([msg], {
 });
 ```
 
-## API
+# API
 
-### Wallet
+## Wallet
 
 An offline wallet implementation, used to sign transactions. Usually we'd just want to pass it to `SecretNetworkClient`.
 
 [**Full API »**](https://secretjs.scrt.network/classes/Wallet.html)
 
-#### Importing account from mnemonic phrase
+### Importing account from mnemonic phrase
 
 ```typescript
 import { Wallet } from "secretjs";
@@ -150,7 +154,7 @@ const wallet = new Wallet(
 const myAddress = wallet.address;
 ```
 
-#### Generating a random account
+### Generating a random account
 
 ```typescript
 import { Wallet } from "secretjs";
@@ -160,22 +164,75 @@ const myAddress = wallet.address;
 const myMnemonicPhrase = wallet.mnemonic;
 ```
 
-### SecretNetworkClient
+## SecretNetworkClient
 
 [**Full API »**](https://secretjs.scrt.network/classes/SecretNetworkClient.html)
 
-#### Readonly
+### Readonly
 
 A readonly client can only send queries and get chain information.
 
 TODO
 
-#### Signer
+### Signer
 
 A signer client can broadcast transactions, send queries and get chain information.
 
+#### Using Keplr
+
+The recommended way is using `keplr.getOfflineSignerOnlyAmino()`.
+
 TODO
 
-## Migrating from Secret.js v0.17.x
+##### `keplr.getOfflineSignerOnlyAmino()`
+
+Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended due to Ledger support & better UI on Keplr.
+
+- 🟩 Looks good on Keplr
+- 🟩 Supports users signing with Ledger
+- 🟥 Doesn't support signing transactions with these Msgs:
+  - authz/MsgExec
+  - authz/MsgGrant
+  - authz/MsgRevoke
+  - feegrant/MsgGrantAllowance
+  - feegrant/MsgRevokeAllowance
+  - All IBC relayer Msgs:
+    - gov/MsgSubmitProposal/ClientUpdateProposal
+    - gov/MsgSubmitProposal/UpgradeProposal
+    - ibc_channel/MsgAcknowledgement
+    - ibc_channel/MsgChannelCloseConfirm
+    - ibc_channel/MsgChannelCloseInit
+    - ibc_channel/MsgChannelOpenAck
+    - ibc_channel/MsgChannelOpenConfirm
+    - ibc_channel/MsgChannelOpenInit
+    - ibc_channel/MsgChannelOpenTry
+    - ibc_channel/MsgRecvPacket
+    - ibc_channel/MsgTimeout
+    - ibc_channel/MsgTimeoutOnClose
+    - ibc_client/MsgCreateClient
+    - ibc_client/MsgSubmitMisbehaviour
+    - ibc_client/MsgUpdateClient
+    - ibc_client/MsgUpgradeClient
+    - ibc_connection/MsgConnectionOpenAck
+    - ibc_connection/MsgConnectionOpenConfirm
+    - ibc_connection/MsgConnectionOpenInit
+    - ibc_connection/MsgConnectionOpenTry
+
+<img src="./media/keplr-amino.png" width="45%" />
+##### `keplr.getOfflineSigner()`
+
+The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
+
+- 🟥 Looks bad on Keplr
+- 🟥 Doesn't support users signing with Ledger
+- 🟩 Supports signing transactions with all types of Msgs
+
+<img src="./media/keplr-proto.png" width="45%" />
+
+##### `keplr.getOfflineSignerAuto()`
+
+Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
+
+# Migrating from Secret.js v0.17.x
 
 TODO
