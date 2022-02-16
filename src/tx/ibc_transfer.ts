@@ -87,7 +87,7 @@ export class MsgTransfer implements Msg {
               revision_number: this.params.timeoutHeight.revisionNumber,
               revision_height: this.params.timeoutHeight.revisionHeight,
             }
-          : undefined,
+          : {},
         timeout_timestamp: this.params.timeoutTimestampSec
           ? `${this.params.timeoutTimestampSec}000000000` // sec -> ns
           : "0",
