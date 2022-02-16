@@ -28,7 +28,6 @@ module.exports = {
     libraryTarget: "umd",
     globalObject: "this",
     path: path.resolve(__dirname, "dist"),
-    filename: "browser.[name].js",
-    chunkFilename: "browser.chunk.[contenthash].js",
+    filename: "browser.js",
   },
 };

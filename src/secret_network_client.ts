@@ -640,7 +640,7 @@ export class SecretNetworkClient {
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = await Promise.all(
       messages.map(async (msg) => {
-        this.populateCodeHash(msg);
+        await this.populateCodeHash(msg);
         return msg.toAmino(this.encryptionUtils);
       }),
     );
@@ -662,7 +662,7 @@ export class SecretNetworkClient {
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
-            this.populateCodeHash(msg);
+            await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
             encryptionNonces[index] = extractNonce(asProto);
 
@@ -762,7 +762,7 @@ export class SecretNetworkClient {
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
-            this.populateCodeHash(msg);
+            await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
             encryptionNonces[index] = extractNonce(asProto);
 
