@@ -59,7 +59,7 @@ export type ContractInfoWithAddress = {
   ContractInfo?: ContractInfo;
 };
 
-export type QueryContractRequest = {
+export type QueryContractRequest<T> = {
   /** The address of the contract */
   address: string;
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string. This is used to make sure only the contract that's being invoked can decrypt the query data.
@@ -72,7 +72,7 @@ export type QueryContractRequest = {
    */
   codeHash: string;
   /** A JSON object that will be passed to the contract as a query */
-  query: any;
+  query: T;
 };
 
 export type CodeInfoResponse = {
@@ -148,11 +148,11 @@ export class ComputeQuerier {
   }
 
   /** Query a Secret Contract */
-  async queryContract({
+  async queryContract<T extends object, R extends object>({
     address,
     codeHash,
     query,
-  }: QueryContractRequest): Promise<any> {
+  }: QueryContractRequest<T>): Promise<R> {
     await this.init();
 
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
@@ -198,8 +198,11 @@ export function addressToBytes(address: string): Uint8Array {
   return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
 }
 
-export function bytesToAddress(bytes: Uint8Array): string {
-  return bech32.encode("secret", bech32.toWords(bytes));
+export function bytesToAddress(
+  bytes: Uint8Array,
+  prefix: string = "secret",
+): string {
+  return bech32.encode(prefix, bech32.toWords(bytes));
 }
 
 function contractInfoFromProtobuf(

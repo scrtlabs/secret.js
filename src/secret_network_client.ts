@@ -16,6 +16,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import { Snip20Querier } from "./extensions/snip20";
 
 export type SigningParams = {
   walletAddress: string;
@@ -128,6 +129,7 @@ export type Querier = {
   upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").QueryClientImpl;
   getTx: (id: string) => Promise<IndexedTx | null>;
   txsQuery: (query: string) => Promise<IndexedTx[]>;
+  snip20: Snip20Querier;
 };
 
 export type ArrayLog = Array<{
@@ -280,6 +282,7 @@ export class SecretNetworkClient {
         await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
       ).QueryClientImpl(rpc),
       compute: new ComputeQuerier(rpc),
+      snip20: new Snip20Querier(rpc),
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
       ).QueryClientImpl(rpc),
