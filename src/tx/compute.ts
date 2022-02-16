@@ -26,7 +26,7 @@ export interface MsgInstantiateContractParams {
 }
 
 export function getMissingCodeHashWarning(method: string): string {
-  return `⚠⚠⚠ ${method} was used without the codeHash parameter. This is discouraged and will definitely result in slower execution times for your app. ⚠⚠⚠`;
+  return `${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
 }
 
 /** Instantiate a contract from code id */
