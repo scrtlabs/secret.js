@@ -5,25 +5,7 @@ import util from "util";
 import {
   BaseAccount,
   BondStatus,
-  MsgBeginRedelegate,
-  MsgCreateValidator,
-  MsgDelegate,
-  MsgDeposit,
-  MsgEditValidator,
   MsgExecuteContract,
-  MsgFundCommunityPool,
-  MsgInstantiateContract,
-  MsgMultiSend,
-  MsgSend,
-  MsgSetWithdrawAddress,
-  MsgStoreCode,
-  MsgSubmitProposal,
-  MsgUndelegate,
-  MsgUnjail,
-  MsgVote,
-  MsgVoteWeighted,
-  MsgWithdrawDelegatorReward,
-  MsgWithdrawValidatorCommission,
   Proposal,
   ProposalStatus,
   ProposalType,
@@ -245,26 +227,26 @@ beforeAll(async () => {
     expect(accounts.length).toBe(20);
 
     // Send 100k SCRT from account 0 to each of accounts 1-19
-    const msgMultiSend = new MsgMultiSend({
-      inputs: [
-        {
-          address: accounts[0].address,
-          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
-        },
-      ],
-      outputs: accounts.slice(1).map(({ address }) => ({
-        address,
-        coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
-      })),
-    });
 
     const { secretjs } = accounts[0];
 
-    const tx = await secretjs.tx.broadcast([msgMultiSend], {
-      gasLimit: 200_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.bank.multiSend(
+      {
+        inputs: [
+          {
+            address: accounts[0].address,
+            coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
+          },
+        ],
+        outputs: accounts.slice(1).map(({ address }) => ({
+          address,
+          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
+        })),
+      },
+      {
+        gasLimit: 200_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -425,6 +407,33 @@ describe("query.compute", () => {
       },
     });
   });
+
+  test("queryContract() without codeHash", async () => {
+    const { secretjs } = accounts[0];
+
+    type Result = {
+      token_info: {
+        decimals: number;
+        name: string;
+        symbol: string;
+        total_supply: string;
+      };
+    };
+
+    const result = (await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      query: { token_info: {} },
+    })) as Result;
+
+    expect(result).toEqual({
+      token_info: {
+        decimals: 6,
+        name: "Secret SCRT",
+        symbol: "SSCRT",
+        total_supply: "1",
+      },
+    });
+  });
 });
 
 describe("tx.bank", () => {
@@ -435,17 +444,17 @@ describe("tx.bank", () => {
     const cBefore = await getBalance(secretjs, accounts[2].address);
 
     const gasLimit = 20_000;
-    const msg = new MsgSend({
-      fromAddress: accounts[0].address,
-      toAddress: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
-    });
 
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: gasLimit,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.bank.send(
+      {
+        fromAddress: accounts[0].address,
+        toAddress: accounts[2].address,
+        amount: [{ denom: "uscrt", amount: "1" }],
+      },
+      {
+        gasLimit: gasLimit,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -464,30 +473,30 @@ describe("tx.bank", () => {
     const cBefore = await getBalance(secretjs, accounts[2].address);
 
     const gasLimit = 20_000;
-    const msg = new MsgMultiSend({
-      inputs: [
-        {
-          address: accounts[0].address,
-          coins: [{ denom: "uscrt", amount: "2" }],
-        },
-      ],
-      outputs: [
-        {
-          address: accounts[1].address,
-          coins: [{ denom: "uscrt", amount: "1" }],
-        },
-        {
-          address: accounts[2].address,
-          coins: [{ denom: "uscrt", amount: "1" }],
-        },
-      ],
-    });
 
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: gasLimit,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.bank.multiSend(
+      {
+        inputs: [
+          {
+            address: accounts[0].address,
+            coins: [{ denom: "uscrt", amount: "2" }],
+          },
+        ],
+        outputs: [
+          {
+            address: accounts[1].address,
+            coins: [{ denom: "uscrt", amount: "1" }],
+          },
+          {
+            address: accounts[2].address,
+            coins: [{ denom: "uscrt", amount: "1" }],
+          },
+        ],
+      },
+      {
+        gasLimit: gasLimit,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -505,20 +514,19 @@ describe("tx.compute", () => {
   test("MsgStoreCode", async () => {
     const { secretjs } = accounts[0];
 
-    const msg = new MsgStoreCode({
-      sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
-        `${__dirname}/snip20-ibc.wasm.gz`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
     expect(
@@ -529,20 +537,19 @@ describe("tx.compute", () => {
   test("MsgInstantiateContract", async () => {
     const { secretjs } = accounts[0];
 
-    const msgStore = new MsgStoreCode({
-      sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
-        `${__dirname}/snip20-ibc.wasm.gz`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    });
-
-    const txStore = await secretjs.tx.broadcast([msgStore], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txStore.code).toBe(0);
 
@@ -554,35 +561,34 @@ describe("tx.compute", () => {
       codeInfo: { codeHash },
     } = await secretjs.query.compute.code(codeId);
 
-    const msg = new MsgInstantiateContract({
-      sender: accounts[0].address,
-      codeId,
-      codeHash,
-      initMsg: {
-        name: "Secret SCRT",
-        admin: accounts[0].address,
-        symbol: "SSCRT",
-        decimals: 6,
-        initial_balances: [{ address: accounts[0].address, amount: "1" }],
-        prng_seed: "eW8=",
-        config: {
-          public_total_supply: true,
-          enable_deposit: true,
-          enable_redeem: true,
-          enable_mint: false,
-          enable_burn: false,
+    const tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
         },
-        supported_denoms: ["uscrt"],
+        label: `label-${Date.now()}`,
+        initFunds: [],
       },
-      label: `label-${Date.now()}`,
-      initFunds: [],
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -595,20 +601,19 @@ describe("tx.compute", () => {
   test("MsgExecuteContract", async () => {
     const { secretjs } = accounts[0];
 
-    const msgStore = new MsgStoreCode({
-      sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
-        `${__dirname}/snip721.wasm.gz`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    });
-
-    const txStore = await secretjs.tx.broadcast([msgStore], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txStore.code).toBe(0);
 
@@ -620,30 +625,29 @@ describe("tx.compute", () => {
       codeInfo: { codeHash },
     } = await secretjs.query.compute.code(codeId);
 
-    const msgInit = new MsgInstantiateContract({
-      sender: accounts[0].address,
-      codeId,
-      codeHash,
-      initMsg: {
-        name: "SecretJS NFTs",
-        symbol: "YOLO",
-        admin: accounts[0].address,
-        entropy: "a2FraS1waXBpCg==",
-        royalty_info: {
-          decimal_places_in_rates: 4,
-          royalties: [{ recipient: accounts[0].address, rate: 700 }],
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
         },
-        config: { public_token_supply: true },
+        label: `label-${Date.now()}`,
+        initFunds: [],
       },
-      label: `label-${Date.now()}`,
-      initFunds: [],
-    });
-
-    const txInit = await secretjs.tx.broadcast([msgInit], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txInit.code).toBe(0);
 
@@ -652,7 +656,7 @@ describe("tx.compute", () => {
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
       contract,
-      codeHash,
+      // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
     });
@@ -686,8 +690,6 @@ describe("tx.compute", () => {
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
     });
 
     expect(tx.code).toBe(0);
@@ -722,21 +724,20 @@ describe("tx.gov", () => {
 
       const proposalsBefore = await getAllProposals(secretjs);
 
-      const msg = new MsgSubmitProposal({
-        type: ProposalType.TextProposal,
-        proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-        content: {
-          title: "Hi",
-          description: "Hello",
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.TextProposal,
+          proposer: accounts[0].address,
+          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          content: {
+            title: "Hi",
+            description: "Hello",
+          },
         },
-      });
-
-      const tx = await secretjs.tx.broadcast([msg], {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      });
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
       expect(tx.code).toBe(0);
 
@@ -758,23 +759,22 @@ describe("tx.gov", () => {
 
       const proposalsBefore = await getAllProposals(secretjs);
 
-      const msg = new MsgSubmitProposal({
-        type: ProposalType.CommunityPoolSpendProposal,
-        proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-        content: {
-          title: "Hi",
-          description: "Hello",
-          recipient: accounts[1].address,
-          amount: [{ amount: "1", denom: "uscrt" }],
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.CommunityPoolSpendProposal,
+          proposer: accounts[0].address,
+          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          content: {
+            title: "Hi",
+            description: "Hello",
+            recipient: accounts[1].address,
+            amount: [{ amount: "1", denom: "uscrt" }],
+          },
         },
-      });
-
-      const tx = await secretjs.tx.broadcast([msg], {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      });
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
       expect(tx.code).toBe(0);
 
@@ -795,24 +795,23 @@ describe("tx.gov", () => {
 
       const proposalsBefore = await getAllProposals(secretjs);
 
-      const msg = new MsgSubmitProposal({
-        type: ProposalType.ParameterChangeProposal,
-        proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-        content: {
-          title: "Hi",
-          description: "YOLO",
-          changes: [
-            { subspace: "auth", key: "MaxMemoCharacters", value: '"512"' },
-          ],
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.ParameterChangeProposal,
+          proposer: accounts[0].address,
+          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          content: {
+            title: "Hi",
+            description: "YOLO",
+            changes: [
+              { subspace: "auth", key: "MaxMemoCharacters", value: '"512"' },
+            ],
+          },
         },
-      });
-
-      const tx = await secretjs.tx.broadcast([msg], {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      });
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
       expect(tx.code).toBe(0);
 
@@ -836,26 +835,25 @@ describe("tx.gov", () => {
 
       const proposalsBefore = await getAllProposals(secretjs);
 
-      const msg = new MsgSubmitProposal({
-        type: ProposalType.SoftwareUpgradeProposal,
-        proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-        content: {
-          title: "Hi let's upgrade",
-          description: "PROD NO FEAR",
-          plan: {
-            name: "Shockwave!",
-            height: "1000000",
-            info: "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F",
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.SoftwareUpgradeProposal,
+          proposer: accounts[0].address,
+          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          content: {
+            title: "Hi let's upgrade",
+            description: "PROD NO FEAR",
+            plan: {
+              name: "Shockwave!",
+              height: "1000000",
+              info: "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F",
+            },
           },
         },
-      });
-
-      const tx = await secretjs.tx.broadcast([msg], {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      });
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
       expect(tx.code).toBe(0);
 
@@ -876,21 +874,20 @@ describe("tx.gov", () => {
 
       const proposalsBefore = await getAllProposals(secretjs);
 
-      const msg = new MsgSubmitProposal({
-        type: ProposalType.CancelSoftwareUpgradeProposal,
-        proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-        content: {
-          title: "Hi let's cancel",
-          description: "PROD FEAR",
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.CancelSoftwareUpgradeProposal,
+          proposer: accounts[0].address,
+          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          content: {
+            title: "Hi let's cancel",
+            description: "PROD FEAR",
+          },
         },
-      });
-
-      const tx = await secretjs.tx.broadcast([msg], {
-        gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
-      });
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
       expect(tx.code).toBe(0);
 
@@ -910,21 +907,20 @@ describe("tx.gov", () => {
   test("MsgVote", async () => {
     const { secretjs } = accounts[0];
 
-    const msgSubmit = new MsgSubmitProposal({
-      type: ProposalType.TextProposal,
-      proposer: accounts[0].address,
-      initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-      content: {
-        title: "Please vote yes",
-        description: "Please don't vote no",
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        type: ProposalType.TextProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+        content: {
+          title: "Please vote yes",
+          description: "Please don't vote no",
+        },
       },
-    });
-
-    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txSubmit.code).toBe(0);
     const proposalId = getValueFromRawLog(
@@ -932,17 +928,16 @@ describe("tx.gov", () => {
       "submit_proposal.proposal_id",
     );
 
-    const msg = new MsgVote({
-      voter: accounts[0].address,
-      proposalId,
-      option: VoteOption.VOTE_OPTION_YES,
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.gov.vote(
+      {
+        voter: accounts[0].address,
+        proposalId,
+        option: VoteOption.VOTE_OPTION_YES,
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -957,21 +952,20 @@ describe("tx.gov", () => {
   test("MsgVoteWeighted", async () => {
     const { secretjs } = accounts[0];
 
-    const msgSubmit = new MsgSubmitProposal({
-      type: ProposalType.TextProposal,
-      proposer: accounts[0].address,
-      initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
-      content: {
-        title: "Please vote yes",
-        description: "Please don't vote no",
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        type: ProposalType.TextProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+        content: {
+          title: "Please vote yes",
+          description: "Please don't vote no",
+        },
       },
-    });
-
-    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txSubmit.code).toBe(0);
     const proposalId = getValueFromRawLog(
@@ -980,21 +974,20 @@ describe("tx.gov", () => {
     );
 
     // vote yes with 70% of my power
-    const msg = new MsgVoteWeighted({
-      voter: accounts[0].address,
-      proposalId,
-      options: [
-        // weights must sum to 1.0
-        { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
-        { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
-      ],
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.gov.voteWeighted(
+      {
+        voter: accounts[0].address,
+        proposalId,
+        options: [
+          // weights must sum to 1.0
+          { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
+          { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
+        ],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -1009,21 +1002,20 @@ describe("tx.gov", () => {
   test("MsgDeposit", async () => {
     const { secretjs } = accounts[0];
 
-    const msgSubmit = new MsgSubmitProposal({
-      type: ProposalType.TextProposal,
-      proposer: accounts[0].address,
-      initialDeposit: [],
-      content: {
-        title: "Hi",
-        description: "Hello",
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        type: ProposalType.TextProposal,
+        proposer: accounts[0].address,
+        initialDeposit: [],
+        content: {
+          title: "Hi",
+          description: "Hello",
+        },
       },
-    });
-
-    const txSubmit = await secretjs.tx.broadcast([msgSubmit], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txSubmit.code).toBe(0);
     const proposalId = getValueFromRawLog(
@@ -1031,17 +1023,16 @@ describe("tx.gov", () => {
       "submit_proposal.proposal_id",
     );
 
-    const msg = new MsgDeposit({
-      depositor: accounts[0].address,
-      proposalId,
-      amount: [{ amount: "1", denom: "uscrt" }],
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.gov.deposit(
+      {
+        depositor: accounts[0].address,
+        proposalId,
+        amount: [{ amount: "1", denom: "uscrt" }],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -1062,17 +1053,16 @@ describe("tx.staking", () => {
       validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
     } = await secretjs.query.staking.validators({ status: "" });
 
-    const msg = new MsgDelegate({
-      delegatorAddress: accounts[0].address,
-      validatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.staking.delegate(
+      {
+        delegatorAddress: accounts[0].address,
+        validatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -1090,17 +1080,16 @@ describe("tx.staking", () => {
       validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
     } = await secretjs.query.staking.validators({ status: "" });
 
-    const msgDelegate = new MsgDelegate({
-      delegatorAddress: accounts[0].address,
-      validatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const txDelegate = await secretjs.tx.broadcast([msgDelegate], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txDelegate = await secretjs.tx.staking.delegate(
+      {
+        delegatorAddress: accounts[0].address,
+        validatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txDelegate.code).toBe(0);
     const {
@@ -1108,17 +1097,16 @@ describe("tx.staking", () => {
     } = await secretjs.query.staking.validators({ status: "" });
     expect(BigInt(tokensAfterDelegate) - BigInt(tokensBefore)).toBe(BigInt(1));
 
-    const msg = new MsgUndelegate({
-      delegatorAddress: accounts[0].address,
-      validatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.staking.undelegate(
+      {
+        delegatorAddress: accounts[0].address,
+        validatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
     const {
@@ -1133,30 +1121,29 @@ describe("tx.staking", () => {
     const { validators: validatorsBefore } =
       await secretjs.query.staking.validators({ status: "" });
 
-    const msg = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[1].address,
-      commission: {
-        maxChangeRate: 0.01,
-        maxRate: 0.1,
-        rate: 0.05,
+    const tx = await secretjs.tx.staking.createValidator(
+      {
+        selfDelegatorAddress: accounts[1].address,
+        commission: {
+          maxChangeRate: 0.01,
+          maxRate: 0.1,
+          rate: 0.05,
+        },
+        description: {
+          moniker: "banana",
+          identity: "papaya",
+          website: "watermelon.com",
+          securityContact: "info@watermelon.com",
+          details: "We are the banana papaya validator",
+        },
+        pubkey: toBase64(new Uint8Array(32).fill(1)),
+        minSelfDelegation: "1",
+        initialDelegation: { amount: "1", denom: "uscrt" },
       },
-      description: {
-        moniker: "banana",
-        identity: "papaya",
-        website: "watermelon.com",
-        securityContact: "info@watermelon.com",
-        details: "We are the banana papaya validator",
+      {
+        gasLimit: 5_000_000,
       },
-      pubkey: toBase64(new Uint8Array(32).fill(1)),
-      minSelfDelegation: "1",
-      initialDelegation: { amount: "1", denom: "uscrt" },
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    );
 
     expect(tx.code).toBe(0);
 
@@ -1169,31 +1156,27 @@ describe("tx.staking", () => {
   test("MsgEditValidator", async () => {
     const { secretjs } = accounts[2];
 
-    const msgCreateValidator = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[2].address,
-      commission: {
-        maxChangeRate: 0.01,
-        maxRate: 0.1,
-        rate: 0.05,
+    const txCreateValidator = await secretjs.tx.staking.createValidator(
+      {
+        selfDelegatorAddress: accounts[2].address,
+        commission: {
+          maxChangeRate: 0.01,
+          maxRate: 0.1,
+          rate: 0.05,
+        },
+        description: {
+          moniker: "banana",
+          identity: "papaya",
+          website: "watermelon.com",
+          securityContact: "info@watermelon.com",
+          details: "We are the banana papaya validator",
+        },
+        pubkey: toBase64(new Uint8Array(32).fill(2)),
+        minSelfDelegation: "2",
+        initialDelegation: { amount: "3", denom: "uscrt" },
       },
-      description: {
-        moniker: "banana",
-        identity: "papaya",
-        website: "watermelon.com",
-        securityContact: "info@watermelon.com",
-        details: "We are the banana papaya validator",
-      },
-      pubkey: toBase64(new Uint8Array(32).fill(2)),
-      minSelfDelegation: "2",
-      initialDelegation: { amount: "3", denom: "uscrt" },
-    });
-
-    const txCreateValidator = await secretjs.tx.broadcast(
-      [msgCreateValidator],
       {
         gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
       },
     );
 
@@ -1203,24 +1186,23 @@ describe("tx.staking", () => {
       "create_validator.validator",
     );
 
-    const msg = new MsgEditValidator({
-      validatorAddress,
-      description: {
-        moniker: "papaya",
-        identity: "banana",
-        website: "com.watermelon",
-        securityContact: "as@com.com",
-        details: "We are the banana papaya validator yay!",
+    const tx = await secretjs.tx.staking.editValidator(
+      {
+        validatorAddress,
+        description: {
+          moniker: "papaya",
+          identity: "banana",
+          website: "com.watermelon",
+          securityContact: "as@com.com",
+          details: "We are the banana papaya validator yay!",
+        },
+        minSelfDelegation: "3",
+        // commissionRate: 0.04, // commission cannot be changed more than once in 24h
       },
-      minSelfDelegation: "3",
-      // commissionRate: 0.04, // commission cannot be changed more than once in 24h
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
 
@@ -1244,31 +1226,27 @@ describe("tx.staking", () => {
   });
 
   test("MsgBeginRedelegate", async () => {
-    const msgCreateValidator = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[3].address,
-      commission: {
-        maxChangeRate: 0.01,
-        maxRate: 0.1,
-        rate: 0.05,
+    const txCreate = await accounts[3].secretjs.tx.staking.createValidator(
+      {
+        selfDelegatorAddress: accounts[3].address,
+        commission: {
+          maxChangeRate: 0.01,
+          maxRate: 0.1,
+          rate: 0.05,
+        },
+        description: {
+          moniker: "banana",
+          identity: "papaya",
+          website: "watermelon.com",
+          securityContact: "info@watermelon.com",
+          details: "We are the banana papaya validator",
+        },
+        pubkey: toBase64(new Uint8Array(32).fill(3)),
+        minSelfDelegation: "2",
+        initialDelegation: { amount: "3", denom: "uscrt" },
       },
-      description: {
-        moniker: "banana",
-        identity: "papaya",
-        website: "watermelon.com",
-        securityContact: "info@watermelon.com",
-        details: "We are the banana papaya validator",
-      },
-      pubkey: toBase64(new Uint8Array(32).fill(3)),
-      minSelfDelegation: "2",
-      initialDelegation: { amount: "3", denom: "uscrt" },
-    });
-
-    const txCreate = await accounts[3].secretjs.tx.broadcast(
-      [msgCreateValidator],
       {
         gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
       },
     );
 
@@ -1278,32 +1256,30 @@ describe("tx.staking", () => {
       status: "",
     });
 
-    const msgDelegate = new MsgDelegate({
-      delegatorAddress: accounts[0].address,
-      validatorAddress: validators[0].operatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const txDelegate = await accounts[0].secretjs.tx.broadcast([msgDelegate], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txDelegate = await accounts[0].secretjs.tx.staking.delegate(
+      {
+        delegatorAddress: accounts[0].address,
+        validatorAddress: validators[0].operatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txDelegate.code).toBe(0);
 
-    const msg = new MsgBeginRedelegate({
-      delegatorAddress: accounts[0].address,
-      validatorSrcAddress: validators[0].operatorAddress,
-      validatorDstAddress: validators[1].operatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const tx = await accounts[0].secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await accounts[0].secretjs.tx.staking.redelegate(
+      {
+        delegatorAddress: accounts[0].address,
+        validatorSrcAddress: validators[0].operatorAddress,
+        validatorDstAddress: validators[1].operatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
   });
@@ -1313,31 +1289,27 @@ describe("tx.slashing", () => {
   test("MsgUnjail", async () => {
     const { secretjs } = accounts[4];
 
-    const msgCreateValidator = new MsgCreateValidator({
-      selfDelegatorAddress: accounts[4].address,
-      commission: {
-        maxChangeRate: 0.01,
-        maxRate: 0.1,
-        rate: 0.05,
+    const txCreateValidator = await secretjs.tx.staking.createValidator(
+      {
+        selfDelegatorAddress: accounts[4].address,
+        commission: {
+          maxChangeRate: 0.01,
+          maxRate: 0.1,
+          rate: 0.05,
+        },
+        description: {
+          moniker: "banana",
+          identity: "papaya",
+          website: "watermelon.com",
+          securityContact: "info@watermelon.com",
+          details: "We are the banana papaya validator",
+        },
+        pubkey: toBase64(new Uint8Array(32).fill(4)),
+        minSelfDelegation: "2",
+        initialDelegation: { amount: "3", denom: "uscrt" },
       },
-      description: {
-        moniker: "banana",
-        identity: "papaya",
-        website: "watermelon.com",
-        securityContact: "info@watermelon.com",
-        details: "We are the banana papaya validator",
-      },
-      pubkey: toBase64(new Uint8Array(32).fill(4)),
-      minSelfDelegation: "2",
-      initialDelegation: { amount: "3", denom: "uscrt" },
-    });
-
-    const txCreateValidator = await secretjs.tx.broadcast(
-      [msgCreateValidator],
       {
         gasLimit: 5_000_000,
-        gasPriceInFeeDenom: 0.25,
-        feeDenom: "uscrt",
       },
     );
 
@@ -1348,15 +1320,14 @@ describe("tx.slashing", () => {
       "create_validator.validator",
     );
 
-    const msgUnjail = new MsgUnjail({
-      validatorAddr,
-    });
-
-    const txUnjail = await secretjs.tx.broadcast([msgUnjail], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txUnjail = await secretjs.tx.slashing.unjail(
+      {
+        validatorAddr,
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     // To jail a validator we have to be inactive for 10 minutes.
     // This is too much for a test, so getting to "validator not jailed"
@@ -1370,16 +1341,15 @@ describe("tx.distribution", () => {
   test("MsgFundCommunityPool", async () => {
     const { secretjs, address: depositor } = accounts[0];
 
-    const msg = new MsgFundCommunityPool({
-      depositor,
-      amount: [{ amount: "1", denom: "uscrt" }],
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.distribution.fundCommunityPool(
+      {
+        depositor,
+        amount: [{ amount: "1", denom: "uscrt" }],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
   });
@@ -1391,30 +1361,28 @@ describe("tx.distribution", () => {
       validators: [{ operatorAddress: validatorAddress }],
     } = await secretjs.query.staking.validators({ status: "" });
 
-    const msgDelegate = new MsgDelegate({
-      delegatorAddress,
-      validatorAddress,
-      amount: { amount: "1", denom: "uscrt" },
-    });
-
-    const txDelegate = await secretjs.tx.broadcast([msgDelegate], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const txDelegate = await secretjs.tx.staking.delegate(
+      {
+        delegatorAddress,
+        validatorAddress,
+        amount: { amount: "1", denom: "uscrt" },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(txDelegate.code).toBe(0);
 
-    const msg = new MsgWithdrawDelegatorReward({
-      delegatorAddress,
-      validatorAddress,
-    });
-
-    const tx = await secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
+      {
+        delegatorAddress,
+        validatorAddress,
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     expect(tx.code).toBe(0);
   });
@@ -1434,15 +1402,15 @@ describe("tx.distribution", () => {
       (a) => a.address === selfDelegator,
     )!;
 
-    const msg = new MsgWithdrawValidatorCommission({
-      validatorAddress: onlineValidator.operatorAddress,
-    });
-
-    const tx = await selfDelegatorAccount.secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx =
+      await selfDelegatorAccount.secretjs.tx.distribution.withdrawValidatorCommission(
+        {
+          validatorAddress: onlineValidator.operatorAddress,
+        },
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
     expect(tx.code).toBe(0);
   });
@@ -1465,16 +1433,16 @@ describe("tx.distribution", () => {
       (a) => a.address !== selfDelegator,
     )!;
 
-    const msg = new MsgSetWithdrawAddress({
-      delegatorAddress: selfDelegatorAccount.address,
-      withdrawAddress: notSelfDelegatorAccount.address,
-    });
-
-    const tx = await selfDelegatorAccount.secretjs.tx.broadcast([msg], {
-      gasLimit: 5_000_000,
-      gasPriceInFeeDenom: 0.25,
-      feeDenom: "uscrt",
-    });
+    const tx =
+      await selfDelegatorAccount.secretjs.tx.distribution.setWithdrawAddress(
+        {
+          delegatorAddress: selfDelegatorAccount.address,
+          withdrawAddress: notSelfDelegatorAccount.address,
+        },
+        {
+          gasLimit: 5_000_000,
+        },
+      );
 
     expect(tx.code).toBe(0);
   });

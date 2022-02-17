@@ -1,7 +1,7 @@
 import { fromBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import BigNumber from "bignumber.js";
-import { Coin } from ".";
+import { Coin, MsgParams } from ".";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 /**
@@ -31,7 +31,7 @@ export type ValidatorDescription = {
   details: string;
 };
 
-export type MsgCreateValidatorParams = {
+export interface MsgCreateValidatorParams extends MsgParams {
   description: ValidatorDescription;
   commission: CommissionRates;
   /** minSelfDelegation is the minimum uscrt amount that
@@ -43,7 +43,7 @@ export type MsgCreateValidatorParams = {
   pubkey: string;
   /** initial delegation from the self-delegator to its validator */
   initialDelegation: Coin;
-};
+}
 
 /** MsgCreateValidator defines an SDK message for creating a new validator. */
 export class MsgCreateValidator implements Msg {
@@ -149,13 +149,13 @@ export class MsgCreateValidator implements Msg {
   }
 }
 
-export type MsgEditValidatorParams = {
+export interface MsgEditValidatorParams extends MsgParams {
   validatorAddress: string;
   /** if description is provided it updates all values */
   description?: ValidatorDescription;
   commissionRate?: number;
   minSelfDelegation?: string;
-};
+}
 
 /** MsgEditValidator defines an SDK message for editing an existing validator. */
 export class MsgEditValidator implements Msg {
@@ -229,11 +229,11 @@ export class MsgEditValidator implements Msg {
   }
 }
 
-export type MsgDelegateParams = {
+export interface MsgDelegateParams extends MsgParams {
   delegatorAddress: string;
   validatorAddress: string;
   amount: Coin;
-};
+}
 
 /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
 export class MsgDelegate implements Msg {
@@ -280,15 +280,15 @@ export class MsgDelegate implements Msg {
   }
 }
 
-export type MsgBeginRedelegateParams = {
+export interface MsgRedelegateParams extends MsgParams {
   delegatorAddress: string;
   validatorSrcAddress: string;
   validatorDstAddress: string;
   amount: Coin;
-};
+}
 
-/** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-export class MsgBeginRedelegate implements Msg {
+/** MsgRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
+export class MsgRedelegate implements Msg {
   public delegatorAddress: string;
   public validatorSrcAddress: string;
   public validatorDstAddress: string;
@@ -299,7 +299,7 @@ export class MsgBeginRedelegate implements Msg {
     validatorSrcAddress,
     validatorDstAddress,
     amount,
-  }: MsgBeginRedelegateParams) {
+  }: MsgRedelegateParams) {
     this.delegatorAddress = delegatorAddress;
     this.validatorSrcAddress = validatorSrcAddress;
     this.validatorDstAddress = validatorDstAddress;

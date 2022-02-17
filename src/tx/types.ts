@@ -16,6 +16,11 @@ export interface Msg {
   toAmino(utils: EncryptionUtils): Promise<AminoMsg>;
 }
 
+export interface MsgParams {}
+export interface IMsg {
+  new (params: MsgParams): Msg;
+}
+
 /////////////////////////////////////////////////////
 // bank
 /////////////////////////////////////////////////////

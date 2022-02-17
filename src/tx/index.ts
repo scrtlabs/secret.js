@@ -1,3 +1,5 @@
+import { Msg } from "./types";
+
 export * from "./authz";
 export * from "./bank";
 export * from "./compute";
@@ -13,3 +15,4 @@ export * from "./ibc_transfer";
 export * from "./slashing";
 export * from "./staking";
 export * from "./types";
+

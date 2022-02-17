@@ -16,11 +16,6 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
-  optimization: {
-    splitChunks: {
-      chunks: "all",
-    },
-  },
   mode: "production",
   devtool: "source-map",
   output: {
@@ -28,7 +23,6 @@ module.exports = {
     libraryTarget: "umd",
     globalObject: "this",
     path: path.resolve(__dirname, "dist"),
-    filename: "browser.[name].js",
-    chunkFilename: "browser.chunk.[contenthash].js",
+    filename: "browser.js",
   },
 };

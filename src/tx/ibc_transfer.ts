@@ -1,6 +1,7 @@
+import { MsgParams } from ".";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
-export type MsgTransferParams = {
+export interface MsgTransferParams extends MsgParams {
   /** the port on which the packet will be sent */
   sourcePort: string;
   /** the channel by which the packet will be sent */
@@ -21,7 +22,7 @@ export type MsgTransferParams = {
    * The timeout is disabled when undefined or set to 0.
    */
   timeoutTimestampSec?: string;
-};
+}
 
 /**
  * Height is a monotonically increasing data type
