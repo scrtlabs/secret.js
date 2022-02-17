@@ -630,7 +630,7 @@ Although this is the legacy way of signing transactions on cosmos-sdk, it's stil
 
 Please note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC is supported.
 
-<img src="./media/keplr-amino.png" width="45%" />
+<img src="./media/keplr-amino.png" width="60%" />
 
 #### `getOfflineSigner()`
 
@@ -640,7 +640,7 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 - 🟥 Doesn't support users signing with Ledger
 - 🟩 Supports signing transactions with all types of Msgs
 
-<img src="./media/keplr-proto.png" width="45%" />
+<img src="./media/keplr-proto.png" width="60%" />
 
 #### `getOfflineSignerAuto()`
 
