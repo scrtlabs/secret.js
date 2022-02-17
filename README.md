@@ -35,9 +35,9 @@
       - [`secretjs.address`](#secretjsaddress)
       - [`secretjs.tx`](#secretjstx)
     - [Using Keplr](#using-keplr)
-      - [`keplr.getOfflineSignerOnlyAmino()`](#keplrgetofflinesigneronlyamino)
-      - [`keplr.getOfflineSigner()`](#keplrgetofflinesigner)
-      - [`keplr.getOfflineSignerAuto()`](#keplrgetofflinesignerauto)
+      - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
+      - [`getOfflineSigner()`](#getofflinesigner)
+      - [`getOfflineSignerAuto()`](#getofflinesignerauto)
 - [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 
 # Key Features
@@ -322,7 +322,7 @@ TODO
 
 ### Using Keplr
 
-The recommended way is using `keplr.getOfflineSignerOnlyAmino()`:
+The recommended way is using `window.keplr.getOfflineSignerOnlyAmino()`:
 
 ```typescript
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -357,7 +357,7 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
-#### `keplr.getOfflineSignerOnlyAmino()`
+#### `getOfflineSignerOnlyAmino()`
 
 Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended due to Ledger support & better UI on Keplr.
 
@@ -395,7 +395,7 @@ Please note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classe
 
 <img src="./media/keplr-amino.png" width="45%" />
 
-#### `keplr.getOfflineSigner()`
+#### `getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
 
@@ -405,7 +405,7 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 
 <img src="./media/keplr-proto.png" width="45%" />
 
-#### `keplr.getOfflineSignerAuto()`
+#### `getOfflineSignerAuto()`
 
 Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
 
