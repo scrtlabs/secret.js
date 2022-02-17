@@ -323,9 +323,39 @@ TODO
 
 ### Using Keplr
 
-The recommended way is using `keplr.getOfflineSignerOnlyAmino()`.
+The recommended way is using `keplr.getOfflineSignerOnlyAmino()`:
 
-TODO
+```typescript
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+while (
+  !window.keplr ||
+  !window.getEnigmaUtils ||
+  !window.getOfflineSignerOnlyAmino
+) {
+  await sleep(50);
+}
+
+const CHAIN_ID = "secret-4";
+const SECRET_RPC = "https://rpc-secret.scrtlabs.com/secret-4/rpc/";
+
+await window.keplr.enable(CHAIN_ID);
+
+const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
+
+const secretjs = await SecretNetworkClient.create(SECRET_RPC, {
+  chainId: SECRET_CHAIN_ID,
+  wallet: keplrOfflineSigner,
+  walletAddress: myAddress,
+  encryptionUtils: window.getEnigmaUtils(SECRET_CHAIN_ID),
+});
+
+// Note: Using `window.getEnigmaUtils` is optional, it will allow
+// Keplr to use the same encryption seed across sessions for the account.
+// The benefit of this is that `secretjs.query.getTx()` will be able to decrypt
+// the response across sessions.
+```
 
 #### `keplr.getOfflineSignerOnlyAmino()`
 
