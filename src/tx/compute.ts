@@ -256,7 +256,7 @@ export class MsgStoreCode implements Msg {
     this.wasmByteCode = wasmByteCode;
   }
 
-  async gzipWasm() {
+  private async gzipWasm() {
     if (!is_gzip(this.wasmByteCode)) {
       const pako = await import("pako");
       this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });
