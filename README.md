@@ -99,7 +99,7 @@ const { token_info } = await secretjs.query.compute.queryContract({
   query: { token_info: {} },
 });
 
-console.log(`sSCRT has a total supply of ${token_info.total_supply} sSCRT!`);
+console.log(`sSCRT has ${token_info.decimals} decimals!`);
 ```
 
 ## Broadcasting Transactions
