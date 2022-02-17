@@ -227,12 +227,12 @@ type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
 export { Tendermint34Client };
 
 export class SecretNetworkClient {
-  public query: Querier;
-  public tx: TxSender;
-  public tendermint: Tendermint34Client;
-  private walletAddress: string;
-  private wallet: Signer;
-  private chainId: string;
+  public readonly query: Querier;
+  public readonly tx: TxSender;
+  public readonly tendermint: Tendermint34Client;
+  public readonly address: string;
+  private readonly wallet: Signer;
+  private readonly chainId: string;
   private encryptionUtils: EncryptionUtils;
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
@@ -344,32 +344,8 @@ export class SecretNetworkClient {
     this.query.txsQuery = this.txsQuery.bind(this);
 
     this.wallet = signingParams.wallet;
-    this.walletAddress = signingParams.walletAddress;
+    this.address = signingParams.walletAddress;
     this.chainId = signingParams.chainId;
-
-    const rpc: SecretRpcClient = {
-      request: async (
-        service: string,
-        method: string,
-        data: Uint8Array,
-      ): Promise<Uint8Array> => {
-        const path = `/${service}/${method}`;
-
-        const response = await tendermint.abciQuery({
-          path,
-          data,
-          prove: false,
-        });
-
-        if (response.code) {
-          throw new Error(
-            `Query failed with (${response.code}): ${response.log}`,
-          );
-        }
-
-        return response.value;
-      },
-    };
 
     this.tx = {
       broadcast: this.signAndBroadcast.bind(this),
@@ -579,12 +555,12 @@ export class SecretNetworkClient {
       signerData = explicitSignerData;
     } else {
       const account = await this.query.auth.account({
-        address: this.walletAddress,
+        address: this.address,
       });
 
       if (!account) {
         throw new Error(
-          `Cannot find account "${this.walletAddress}", make sure it has a balance.`,
+          `Cannot find account "${this.address}", make sure it has a balance.`,
         );
       }
 
@@ -611,8 +587,8 @@ export class SecretNetworkClient {
     }
 
     return isOfflineDirectSigner(this.wallet)
-      ? this.signDirect(this.walletAddress, messages, fee, memo, signerData)
-      : this.signAmino(this.walletAddress, messages, fee, memo, signerData);
+      ? this.signDirect(this.address, messages, fee, memo, signerData)
+      : this.signAmino(this.address, messages, fee, memo, signerData);
   }
 
   private async signAmino(
