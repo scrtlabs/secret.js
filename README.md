@@ -29,7 +29,10 @@
     - [Generating a random account](#generating-a-random-account)
   - [SecretNetworkClient](#secretnetworkclient)
     - [Readonly](#readonly)
+      - [`secretjs.query`](#secretjsquery)
     - [Signer](#signer)
+      - [`secretjs.address`](#secretjsaddress)
+      - [`secretjs.tx`](#secretjstx)
     - [Using Keplr](#using-keplr)
       - [`keplr.getOfflineSignerOnlyAmino()`](#keplrgetofflinesigneronlyamino)
       - [`keplr.getOfflineSigner()`](#keplrgetofflinesigner)
@@ -173,11 +176,150 @@ const myMnemonicPhrase = wallet.mnemonic;
 
 A readonly client can only send queries and get chain information.
 
-TODO
+#### `secretjs.query`
+
+You can access all query types using `secretjs.query`:
+
+| Query                                                       | Input             | Output            |
+| ----------------------------------------------------------- | ----------------- | ----------------- |
+| `secretjs.query.auth.account()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.auth.accounts()`                            | TODO link to docs | TODO link to docs |
+| `secretjs.query.auth.params()`                              | TODO link to docs | TODO link to docs |
+| `secretjs.query.authz.grants()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.balance()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.allBalances()`                         | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.totalSupply()`                         | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.supplyOf()`                            | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.params()`                              | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.denomMetadata()`                       | TODO link to docs | TODO link to docs |
+| `secretjs.query.bank.denomsMetadata()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.contractCodeHash()`                 | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.codeHash()`                         | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.contractInfo()`                     | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.contractsByCode()`                  | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.queryContract()`                    | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.code()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.compute.codes()`                            | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.params()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.validatorOutstandingRewards()` | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.validatorCommission()`         | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.validatorSlashes()`            | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.delegationRewards()`           | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.delegationTotalRewards()`      | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.delegatorValidators()`         | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.delegatorWithdrawAddress()`    | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.communityPool()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.distribution.foundationTax()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.evidence.evidence()`                        | TODO link to docs | TODO link to docs |
+| `secretjs.query.evidence.allEvidence()`                     | TODO link to docs | TODO link to docs |
+| `secretjs.query.feegrant.allowance()`                       | TODO link to docs | TODO link to docs |
+| `secretjs.query.feegrant.allowances()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.proposal()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.proposals()`                            | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.vote()`                                 | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.votes()`                                | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.params()`                               | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.deposit()`                              | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.deposits()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.gov.tallyResult()`                          | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.channel()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.channels()`                     | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.connectionChannels()`           | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.channelClientState()`           | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.channelConsensusState()`        | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.packetCommitment()`             | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.packetCommitments()`            | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.packetReceipt()`                | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.packetAcknowledgement()`        | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.packetAcknowledgements()`       | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.unreceivedPackets()`            | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.unreceivedAcks()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_channel.nextSequenceReceive()`          | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.clientState()`                   | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.clientStates()`                  | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.consensusState()`                | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.consensusStates()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.clientStatus()`                  | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.clientParams()`                  | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.upgradedClientState()`           | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_client.upgradedConsensusState()`        | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_connection.connection()`                | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_connection.connections()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_connection.clientConnections()`         | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_connection.connectionClientState()`     | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_connection.connectionConsensusState()`  | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_transfer.denomTrace()`                  | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_transfer.denomTraces()`                 | TODO link to docs | TODO link to docs |
+| `secretjs.query.ibc_transfer.params()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.mint.params()`                              | TODO link to docs | TODO link to docs |
+| `secretjs.query.mint.inflation()`                           | TODO link to docs | TODO link to docs |
+| `secretjs.query.mint.annualProvisions()`                    | TODO link to docs | TODO link to docs |
+| `secretjs.query.params.params()`                            | TODO link to docs | TODO link to docs |
+| `secretjs.query.registration.txKey()`                       | TODO link to docs | TODO link to docs |
+| `secretjs.query.registration.registrationKey()`             | TODO link to docs | TODO link to docs |
+| `secretjs.query.registration.encryptedSeed()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.slashing.params()`                          | TODO link to docs | TODO link to docs |
+| `secretjs.query.slashing.signingInfo()`                     | TODO link to docs | TODO link to docs |
+| `secretjs.query.slashing.signingInfos()`                    | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.validators()`                       | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.validator()`                        | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.validatorDelegations()`             | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.validatorUnbondingDelegations()`    | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.delegation()`                       | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.unbondingDelegation()`              | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.delegatorDelegations()`             | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.delegatorUnbondingDelegations()`    | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.redelegations()`                    | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.delegatorValidators()`              | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.delegatorValidator()`               | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.historicalInfo()`                   | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.pool()`                             | TODO link to docs | TODO link to docs |
+| `secretjs.query.staking.params()`                           | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getNodeInfo()`                   | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getSyncing()`                    | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getLatestBlock()`                | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getBlockByHeight()`              | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getLatestValidatorSet()`         | TODO link to docs | TODO link to docs |
+| `secretjs.query.tendermint.getValidatorSetByHeight()`       | TODO link to docs | TODO link to docs |
+| `secretjs.query.upgrade.currentPlan()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.upgrade.appliedPlan()`                      | TODO link to docs | TODO link to docs |
+| `secretjs.query.upgrade.upgradedConsensusState()`           | TODO link to docs | TODO link to docs |
+| `secretjs.query.upgrade.moduleVersions()`                   | TODO link to docs | TODO link to docs |
 
 ### Signer
 
 A signer client can broadcast transactions, send queries and get chain information.
+
+In addition to using `secretjs.query`, you can also use `secretjs.tx` & `secretjs.address`.
+
+#### `secretjs.address`
+
+`secretjs.address` is the same as `walletAddress`:
+
+```typescript
+import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
+
+const wallet = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+);
+const myAddress = wallet.address;
+
+// To create a signer secretjs client, also pass in a wallet
+const secretjs = await SecretNetworkClient.create(
+  "https://rpc.pulsar.griptapejs.com/",
+  {
+    wallet: wallet,
+    walletAddress: myAddress,
+    chainId: "pulsar-2",
+  },
+);
+
+const alsoMyAddress = secretjs.address;
+```
+
+#### `secretjs.tx`
+
+TODO
 
 ### Using Keplr
 

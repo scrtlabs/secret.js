@@ -2,8 +2,6 @@ import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import {
   Coin,
-  MsgRedelegate,
-  MsgRedelegateParams,
   MsgCreateValidator,
   MsgCreateValidatorParams,
   MsgDelegate,
@@ -26,6 +24,8 @@ import {
   MsgInstantiateContractParams,
   MsgMultiSend,
   MsgMultiSendParams,
+  MsgRedelegate,
+  MsgRedelegateParams,
   MsgRevoke,
   MsgRevokeAllowance,
   MsgRevokeAllowanceParams,
@@ -558,8 +558,8 @@ export { Tendermint34Client };
 export class SecretNetworkClient {
   public readonly query: Querier;
   public readonly tx: TxSender;
-  public readonly tendermint: Tendermint34Client;
   public readonly address: string;
+  private readonly tendermint: Tendermint34Client;
   private readonly wallet: Signer;
   private readonly chainId: string;
   private encryptionUtils: EncryptionUtils;
