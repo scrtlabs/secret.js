@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { Coin } from "..";
+import { Coin, MsgParams } from "..";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type ProposalContent =
@@ -259,17 +259,17 @@ export class MsgSubmitProposal implements Msg {
 
 /** MsgVote defines a message to cast a vote. */
 
-export type MsgVoteProtoParams = {
+export interface MsgVoteParams extends MsgParams {
   proposalId: string;
   voter: string;
   option: VoteOption;
-};
+}
 export class MsgVote implements Msg {
   public voter: string;
   public proposalId: string;
   public option: VoteOption;
 
-  constructor({ voter, proposalId, option }: MsgVoteProtoParams) {
+  constructor({ voter, proposalId, option }: MsgVoteParams) {
     this.voter = voter;
     this.proposalId = proposalId;
     this.option = option;
@@ -312,11 +312,11 @@ export interface WeightedVoteOption {
   weight: number;
 }
 
-export type MsgVoteWeightedParams = {
+export interface MsgVoteWeightedParams extends MsgParams {
   voter: string;
   proposalId: string;
   options: WeightedVoteOption[];
-};
+}
 
 /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
 export class MsgVoteWeighted implements Msg {
@@ -367,11 +367,11 @@ export class MsgVoteWeighted implements Msg {
   }
 }
 
-export type MsgDepositParams = {
+export interface MsgDepositParams extends MsgParams {
   proposalId: string;
   depositor: string;
   amount: Coin[];
-};
+}
 
 /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
 export class MsgDeposit implements Msg {

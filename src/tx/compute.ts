@@ -1,10 +1,11 @@
 import { toBase64 } from "@cosmjs/encoding";
 import is_gzip from "is-gzip";
+import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
 import { addressToBytes } from "../query/compute";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
-export interface MsgInstantiateContractParams {
+export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
   codeId: number;
   label: string;
@@ -123,7 +124,7 @@ export class MsgInstantiateContract implements Msg {
   }
 }
 
-export interface MsgExecuteContractParams {
+export interface MsgExecuteContractParams extends MsgParams {
   sender: string;
   contract: string;
   msg: object;
@@ -231,7 +232,7 @@ export class MsgExecuteContract implements Msg {
   }
 }
 
-export interface MsgStoreCodeParams {
+export interface MsgStoreCodeParams extends MsgParams {
   sender: string;
   /** WASMByteCode can be raw or gzip compressed */
   wasmByteCode: Uint8Array;

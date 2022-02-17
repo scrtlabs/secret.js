@@ -1,10 +1,66 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { Coin, MsgExecuteContract, MsgInstantiateContract } from ".";
+import {
+  Coin,
+  MsgRedelegate,
+  MsgRedelegateParams,
+  MsgCreateValidator,
+  MsgCreateValidatorParams,
+  MsgDelegate,
+  MsgDelegateParams,
+  MsgDeposit,
+  MsgDepositParams,
+  MsgEditValidator,
+  MsgEditValidatorParams,
+  MsgExec,
+  MsgExecParams,
+  MsgExecuteContract,
+  MsgExecuteContractParams,
+  MsgFundCommunityPool,
+  MsgFundCommunityPoolParams,
+  MsgGrant,
+  MsgGrantAllowance,
+  MsgGrantAllowanceParams,
+  MsgGrantParams,
+  MsgInstantiateContract,
+  MsgInstantiateContractParams,
+  MsgMultiSend,
+  MsgMultiSendParams,
+  MsgRevoke,
+  MsgRevokeAllowance,
+  MsgRevokeAllowanceParams,
+  MsgRevokeParams,
+  MsgSend,
+  MsgSendParams,
+  MsgSetWithdrawAddress,
+  MsgSetWithdrawAddressParams,
+  MsgStoreCode,
+  MsgStoreCodeParams,
+  MsgSubmitEvidence,
+  MsgSubmitEvidenceParams,
+  MsgSubmitProposal,
+  MsgSubmitProposalParams,
+  MsgTransfer,
+  MsgTransferParams,
+  MsgUndelegate,
+  MsgUndelegateParams,
+  MsgUnjail,
+  MsgUnjailParams,
+  MsgVerifyInvariant,
+  MsgVerifyInvariantParams,
+  MsgVote,
+  MsgVoteParams,
+  MsgVoteWeighted,
+  MsgVoteWeightedParams,
+  MsgWithdrawDelegatorReward,
+  MsgWithdrawDelegatorRewardParams,
+  MsgWithdrawValidatorCommission,
+  MsgWithdrawValidatorCommissionParams,
+} from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { AuthQuerier } from "./query/auth";
 import { ComputeQuerier } from "./query/compute";
-import { AminoMsg, Msg, ProtoMsg } from "./tx/types";
+import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx/types";
 import {
   AccountData,
   AminoSigner,
@@ -42,7 +98,7 @@ export enum BroadcastMode {
   Async,
 }
 
-export type SignAndBroadcastParams = {
+export type SignAndBroadcastOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
   /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
@@ -262,7 +318,7 @@ export type TxSender = {
    *   - staking         {@link MsgEditValidator}
    *   - staking         {@link MsgUndelegate}
    *
-   * @param {SignAndBroadcastParams} [options] Options for signing and broadcasting
+   * @param {SignAndBroadcastOptions} [options] Options for signing and broadcasting
    *
    * @param {Number} [options.gasLimit=25_000]
    *
@@ -290,8 +346,201 @@ export type TxSender = {
    */
   broadcast: (
     messages: Msg[],
-    options?: SignAndBroadcastParams,
+    txOptions?: SignAndBroadcastOptions,
   ) => Promise<DeliverTxResponse>;
+
+  authz: {
+    /**
+     * MsgExec attempts to execute the provided messages using
+     * authorizations granted to the grantee. Each message should have only
+     * one signer corresponding to the granter of the authorization.
+     */
+    exec: (
+      params: MsgExecParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgGrant is a request type for Grant method. It declares authorization to the grantee
+     * on behalf of the granter with the provided expiration time.
+     */
+    grant: (
+      params: MsgGrantParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
+     * granter's account with that has been granted to the grantee.
+     */
+    revoke: (
+      params: MsgRevokeParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  bank: {
+    /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
+    multiSend: (
+      params: MsgMultiSendParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgSend represents a message to send coins from one account to another. */
+    send: (
+      params: MsgSendParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  compute: {
+    /** Execute a function on a contract */
+    executeContract: (
+      params: MsgExecuteContractParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** Instantiate a contract from code id */
+    instantiateContract: (
+      params: MsgInstantiateContractParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** Upload a compiled contract to Secret Network */
+    storeCode: (
+      params: MsgStoreCodeParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  crisis: {
+    /** MsgVerifyInvariant represents a message to verify a particular invariance. */
+    verifyInvariant: (
+      params: MsgVerifyInvariantParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  distribution: {
+    /**
+     * MsgFundCommunityPool allows an account to directly
+     * fund the community pool.
+     */
+    fundCommunityPool: (
+      params: MsgFundCommunityPoolParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgSetWithdrawAddress sets the withdraw address for
+     * a delegator (or validator self-delegation).
+     */
+    setWithdrawAddress: (
+      params: MsgSetWithdrawAddressParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
+     * from a single validator.
+     */
+    withdrawDelegatorReward: (
+      params: MsgWithdrawDelegatorRewardParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgWithdrawValidatorCommission withdraws the full commission to the validator
+     * address.
+     */
+    withdrawValidatorCommission: (
+      params: MsgWithdrawValidatorCommissionParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  evidence: {
+    /**
+     * MsgSubmitEvidence represents a message that supports submitting arbitrary
+     * Evidence of misbehavior such as equivocation or counterfactual signing.
+     */
+    submitEvidence: (
+      params: MsgSubmitEvidenceParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  feegrant: {
+    /**
+     * MsgGrantAllowance adds permission for Grantee to spend up to Allowance
+     * of fees from the account of Granter.
+     */
+    grantAllowance: (
+      params: MsgGrantAllowanceParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
+    revokeAllowance: (
+      params: MsgRevokeAllowanceParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  gov: {
+    /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
+    deposit: (
+      params: MsgDepositParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /**
+     * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
+     * proposal Content.
+     */
+    submitProposal: (
+      params: MsgSubmitProposalParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgVote defines a message to cast a vote. */
+    vote: (
+      params: MsgVoteParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
+    voteWeighted: (
+      params: MsgVoteWeightedParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  ibc: {
+    /**
+     * MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
+     * ICS20 enabled chains. See ICS Spec here:
+     * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+     */
+    transfer: (
+      params: MsgTransferParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  slashing: {
+    /** MsgUnjail defines a message to release a validator from jail. */
+    unjail: (
+      params: MsgUnjailParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+  staking: {
+    /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
+    redelegate: (
+      params: MsgRedelegateParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgCreateValidator defines an SDK message for creating a new validator. */
+    createValidator: (
+      params: MsgCreateValidatorParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
+    delegate: (
+      params: MsgDelegateParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgEditValidator defines an SDK message for editing an existing validator. */
+    editValidator: (
+      params: MsgEditValidatorParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
+    undelegate: (
+      params: MsgUndelegateParams,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
 };
 
 interface SecretRpcClient {
@@ -427,8 +676,64 @@ export class SecretNetworkClient {
     this.address = signingParams.walletAddress;
     this.chainId = signingParams.chainId;
 
+    const doMsg = (msgClass: any) => {
+      return (params: MsgParams, options?: SignAndBroadcastOptions) => {
+        return this.tx.broadcast([new msgClass(params)], options);
+      };
+    };
+
     this.tx = {
       broadcast: this.signAndBroadcast.bind(this),
+
+      authz: {
+        exec: doMsg(MsgExec),
+        grant: doMsg(MsgGrant),
+        revoke: doMsg(MsgRevoke),
+      },
+      bank: {
+        multiSend: doMsg(MsgMultiSend),
+        send: doMsg(MsgSend),
+      },
+      compute: {
+        executeContract: doMsg(MsgExecuteContract),
+        instantiateContract: doMsg(MsgInstantiateContract),
+        storeCode: doMsg(MsgStoreCode),
+      },
+      crisis: {
+        verifyInvariant: doMsg(MsgVerifyInvariant),
+      },
+      distribution: {
+        fundCommunityPool: doMsg(MsgFundCommunityPool),
+        setWithdrawAddress: doMsg(MsgSetWithdrawAddress),
+        withdrawDelegatorReward: doMsg(MsgWithdrawDelegatorReward),
+        withdrawValidatorCommission: doMsg(MsgWithdrawValidatorCommission),
+      },
+      evidence: {
+        submitEvidence: doMsg(MsgSubmitEvidence),
+      },
+      feegrant: {
+        grantAllowance: doMsg(MsgGrantAllowance),
+        revokeAllowance: doMsg(MsgRevokeAllowance),
+      },
+      gov: {
+        deposit: doMsg(MsgDeposit),
+        submitProposal: doMsg(MsgSubmitProposal),
+        vote: doMsg(MsgVote),
+        voteWeighted: doMsg(MsgVoteWeighted),
+      },
+      ibc: {
+        transfer: doMsg(MsgTransfer),
+      },
+      slashing: {
+        unjail: doMsg(MsgUnjail),
+      },
+      staking: {
+        redelegate: doMsg(MsgRedelegate),
+        createValidator: doMsg(MsgCreateValidator),
+        delegate: doMsg(MsgDelegate),
+        editValidator: doMsg(MsgEditValidator),
+        undelegate: doMsg(MsgUndelegate),
+      },
     };
 
     if (signingParams.encryptionUtils) {
@@ -572,17 +877,18 @@ export class SecretNetworkClient {
 
   private async signAndBroadcast(
     messages: Msg[],
-    params?: SignAndBroadcastParams,
+    txOptions?: SignAndBroadcastOptions,
   ): Promise<DeliverTxResponse> {
-    const gasLimit = params?.gasLimit ?? 25_000;
-    const gasPriceInFeeDenom = params?.gasPriceInFeeDenom ?? 0.25;
-    const feeDenom = params?.feeDenom ?? "uscrt";
-    const memo = params?.memo ?? "";
-    const waitForCommit = params?.waitForCommit ?? true;
-    const broadcastTimeoutMs = params?.broadcastTimeoutMs ?? 60_000;
-    const broadcastCheckIntervalMs = params?.broadcastCheckIntervalMs ?? 6_000;
-    const broadcastMode = params?.broadcastMode ?? BroadcastMode.Sync;
-    const explicitSignerData = params?.explicitSignerData;
+    const gasLimit = txOptions?.gasLimit ?? 25_000;
+    const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
+    const feeDenom = txOptions?.feeDenom ?? "uscrt";
+    const memo = txOptions?.memo ?? "";
+    const waitForCommit = txOptions?.waitForCommit ?? true;
+    const broadcastTimeoutMs = txOptions?.broadcastTimeoutMs ?? 60_000;
+    const broadcastCheckIntervalMs =
+      txOptions?.broadcastCheckIntervalMs ?? 6_000;
+    const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
+    const explicitSignerData = txOptions?.explicitSignerData;
 
     const [txRaw, nonces] = await this.sign(
       messages,

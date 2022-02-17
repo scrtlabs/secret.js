@@ -1,4 +1,4 @@
-import { AminoMsg, Coin, Msg, ProtoMsg } from ".";
+import { AminoMsg, Coin, Msg, MsgParams, ProtoMsg } from ".";
 import { EncryptionUtils } from "..";
 
 export enum MsgGrantAuthorization {
@@ -107,13 +107,13 @@ export enum StakeAuthorizationType {
   Redelegate = 3,
 }
 
-export type MsgGrantParams = {
+export interface MsgGrantParams extends MsgParams {
   granter: string;
   grantee: string;
   authorization: GenericAuthorization | SendAuthorization | StakeAuthorization;
   /** Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. */
   expiration: number;
-};
+}
 
 /**
  * MsgGrant is a request type for Grant method. It declares authorization to the grantee
@@ -195,7 +195,7 @@ export class MsgGrant implements Msg {
   }
 }
 
-export type MsgExecParams = {
+export interface MsgExecParams extends MsgParams {
   grantee: string;
   /**
    * Authorization Msg requests to execute. Each msg must implement Authorization interface
@@ -203,7 +203,7 @@ export type MsgExecParams = {
    * triple and validate it.
    */
   msgs: Msg[];
-};
+}
 
 /**
  * MsgExec attempts to execute the provided messages using
@@ -234,13 +234,13 @@ export class MsgExec implements Msg {
   }
 }
 
-export type MsgRevokeParams = {
+export interface MsgRevokeParams extends MsgParams {
   granter: string;
   grantee: string;
   /** revokes any authorization with the provided sdk.Msg type on the
    * granter's account with that has been granted to the grantee. */
   msg: MsgGrantAuthorization;
-};
+}
 
 /**
  * MsgRevoke revokes any authorization with the provided sdk.Msg type on the

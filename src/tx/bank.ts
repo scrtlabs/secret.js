@@ -1,10 +1,11 @@
+import { MsgParams } from ".";
 import { AminoMsg, Coin, Input, Msg, Output, ProtoMsg } from "./types";
 
-export type MsgSendParams = {
+export interface MsgSendParams extends MsgParams {
   fromAddress: string;
   toAddress: string;
   amount: Coin[];
-};
+}
 
 /** MsgSend represents a message to send coins from one account to another. */
 export class MsgSend implements Msg {
@@ -47,10 +48,10 @@ export class MsgSend implements Msg {
   }
 }
 
-export type MsgMultiSendParams = {
+export interface MsgMultiSendParams extends MsgParams {
   inputs: Input[];
   outputs: Output[];
-};
+}
 
 /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
 export class MsgMultiSend implements Msg {

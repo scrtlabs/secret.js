@@ -1,10 +1,10 @@
-import { Coin } from ".";
+import { Coin, MsgParams } from ".";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export type MsgSetWithdrawAddressParams = {
+export interface MsgSetWithdrawAddressParams extends MsgParams {
   delegatorAddress: string;
   withdrawAddress: string;
-};
+}
 
 /**
  * MsgSetWithdrawAddress sets the withdraw address for
@@ -54,10 +54,10 @@ export { MsgSetWithdrawAddress as MsgModifyWithdrawAddress };
 // proto and amino names are different, so export both names
 export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
 
-export type MsgWithdrawDelegatorRewardParams = {
+export interface MsgWithdrawDelegatorRewardParams extends MsgParams {
   delegatorAddress: string;
   validatorAddress: string;
-};
+}
 
 /**
  * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
@@ -102,9 +102,9 @@ export class MsgWithdrawDelegatorReward implements Msg {
   }
 }
 
-export type MsgWithdrawValidatorCommissionParams = {
+export interface MsgWithdrawValidatorCommissionParams extends MsgParams {
   validatorAddress: string;
-};
+}
 
 /**
  * MsgWithdrawValidatorCommission withdraws the full commission to the validator
@@ -142,10 +142,10 @@ export class MsgWithdrawValidatorCommission implements Msg {
   }
 }
 
-export type MsgFundCommunityPoolParams = {
+export interface MsgFundCommunityPoolParams extends MsgParams {
   amount: Coin[];
   depositor: string;
-};
+}
 
 /**
  * MsgFundCommunityPool allows an account to directly
