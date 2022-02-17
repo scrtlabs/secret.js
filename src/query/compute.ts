@@ -6,6 +6,7 @@
 
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
+import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtilsImpl } from "../encryption";
 
 interface Rpc {
@@ -26,7 +27,7 @@ export type QueryContractInfoRequest = {
 export type QueryContractInfoResponse = {
   /** address is the address of the contract */
   address: string;
-  ContractInfo?: ContractInfo;
+  ContractInfo: ContractInfo;
 };
 
 /** ContractInfo stores a WASM contract instance */
@@ -62,7 +63,11 @@ export type ContractInfoWithAddress = {
 export type QueryContractRequest<T> = {
   /** The address of the contract */
   address: string;
-  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string. This is used to make sure only the contract that's being invoked can decrypt the query data.
+  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
+   * character hex string.
+   * This is used to make sure only the contract that's being invoked can decrypt the query data.
+   *
+   * codeHash is an optional parameter but using it will result in way faster execution time.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -70,7 +75,7 @@ export type QueryContractRequest<T> = {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash: string;
+  codeHash?: string;
   /** A JSON object that will be passed to the contract as a query */
   query: T;
 };
@@ -92,6 +97,7 @@ export class ComputeQuerier {
   private readonly rpc: Rpc;
   private encryption?: EncryptionUtilsImpl;
   private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
+  private codeHashCache = new Map<string | number, string>();
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
@@ -113,6 +119,34 @@ export class ComputeQuerier {
     }
   }
 
+  /** Get codeHash of a Secret Contract */
+  async contractCodeHash(address: string): Promise<string> {
+    await this.init();
+
+    let codeHash = this.codeHashCache.get(address);
+    if (!codeHash) {
+      const { ContractInfo } = await this.contractInfo(address);
+      codeHash = await this.codeHash(Number(ContractInfo.codeId));
+      this.codeHashCache.set(address, codeHash);
+    }
+
+    return codeHash;
+  }
+
+  /** Get codeHash from a code id */
+  async codeHash(codeId: number): Promise<string> {
+    await this.init();
+
+    let codeHash = this.codeHashCache.get(codeId);
+    if (!codeHash) {
+      const { codeInfo } = await this.code(codeId);
+      codeHash = codeInfo.codeHash;
+      this.codeHashCache.set(codeId, codeHash);
+    }
+
+    return codeHash;
+  }
+
   /** Get metadata of a Secret Contract */
   async contractInfo(address: string): Promise<QueryContractInfoResponse> {
     await this.init();
@@ -123,9 +157,7 @@ export class ComputeQuerier {
 
     return {
       address: bytesToAddress(response.address),
-      ContractInfo: response.ContractInfo
-        ? contractInfoFromProtobuf(response.ContractInfo)
-        : undefined,
+      ContractInfo: contractInfoFromProtobuf(response.ContractInfo!),
     };
   }
 
@@ -155,6 +187,11 @@ export class ComputeQuerier {
   }: QueryContractRequest<T>): Promise<R> {
     await this.init();
 
+    if (!codeHash) {
+      console.warn(getMissingCodeHashWarning("queryContract()"));
+      codeHash = await this.contractCodeHash(address);
+    }
+
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
     const nonce = encryptedQuery.slice(0, 32);
 
@@ -176,9 +213,12 @@ export class ComputeQuerier {
     await this.init();
 
     const response = await this.client!.code({ codeId: String(codeId) });
+    const codeInfo = codeInfoResponseFromProtobuf(response.codeInfo);
+
+    this.codeHashCache.set(codeId, codeInfo.codeHash);
 
     return {
-      codeInfo: codeInfoResponseFromProtobuf(response.codeInfo),
+      codeInfo,
       data: response.data,
     };
   }

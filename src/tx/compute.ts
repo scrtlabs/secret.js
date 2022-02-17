@@ -9,8 +9,12 @@ export interface MsgInstantiateContractParams {
   codeId: number;
   label: string;
   initMsg: object;
-  initFunds: Coin[];
-  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string. This is used to make sure only the contract that's being invoked can decrypt the query data.
+  initFunds?: Coin[];
+  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
+   * character hex string.
+   * This is used to make sure only the contract that's being invoked can decrypt the query data.
+   *
+   * codeHash is an optional parameter but using it will result in way faster execution time.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -18,7 +22,11 @@ export interface MsgInstantiateContractParams {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash: string;
+  codeHash?: string;
+}
+
+export function getMissingCodeHashWarning(method: string): string {
+  return `${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
 }
 
 /** Instantiate a contract from code id */
@@ -30,6 +38,7 @@ export class MsgInstantiateContract implements Msg {
   private initMsgEncrypted: Uint8Array | null;
   public initFunds: Coin[];
   public codeHash: string;
+  private warnCodeHash: boolean = false;
 
   constructor({
     sender,
@@ -44,11 +53,23 @@ export class MsgInstantiateContract implements Msg {
     this.label = label;
     this.initMsg = initMsg;
     this.initMsgEncrypted = null;
-    this.initFunds = initFunds;
-    this.codeHash = codeHash.replace("0x", "").toLowerCase();
+    this.initFunds = initFunds ?? [];
+
+    if (codeHash) {
+      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+    } else {
+      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      this.codeHash = "";
+      this.warnCodeHash = true;
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
+    }
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
+    }
+
     if (!this.initMsgEncrypted) {
       // The encryption uses a random nonce
       // toProto() & toAmino() are called multiple times during signing
@@ -78,6 +99,10 @@ export class MsgInstantiateContract implements Msg {
   }
 
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
+    }
+
     if (!this.initMsgEncrypted) {
       // The encryption uses a random nonce
       // toProto() & toAmino() are called multiple times during signing
@@ -102,8 +127,12 @@ export interface MsgExecuteContractParams {
   sender: string;
   contract: string;
   msg: object;
-  sentFunds: Coin[];
-  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64 character hex string. This is used to make sure only the contract that's being invoked can decrypt the query data.
+  sentFunds?: Coin[];
+  /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
+   * character hex string.
+   * This is used to make sure only the contract that's being invoked can decrypt the query data.
+   *
+   * codeHash is an optional parameter but using it will result in way faster execution time.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -111,7 +140,7 @@ export interface MsgExecuteContractParams {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash: string;
+  codeHash?: string;
 }
 
 /** Execute a function on a contract */
@@ -122,6 +151,7 @@ export class MsgExecuteContract implements Msg {
   private msgEncrypted: Uint8Array | null;
   public sentFunds: Coin[];
   public codeHash: string;
+  private warnCodeHash: boolean = false;
 
   constructor({
     sender,
@@ -134,11 +164,23 @@ export class MsgExecuteContract implements Msg {
     this.contract = contract;
     this.msg = msg;
     this.msgEncrypted = null;
-    this.sentFunds = sentFunds;
-    this.codeHash = codeHash.replace("0x", "").toLowerCase();
+    this.sentFunds = sentFunds ?? [];
+
+    if (codeHash) {
+      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+    } else {
+      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      this.codeHash = "";
+      this.warnCodeHash = true;
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
+    }
   }
 
   async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
+    }
+
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
       // toProto() & toAmino() are called multiple times during signing
@@ -166,6 +208,10 @@ export class MsgExecuteContract implements Msg {
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
+    }
+
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
       // toProto() & toAmino() are called multiple times during signing

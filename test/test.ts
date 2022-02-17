@@ -425,6 +425,33 @@ describe("query.compute", () => {
       },
     });
   });
+
+  test("queryContract() without codeHash", async () => {
+    const { secretjs } = accounts[0];
+
+    type Result = {
+      token_info: {
+        decimals: number;
+        name: string;
+        symbol: string;
+        total_supply: string;
+      };
+    };
+
+    const result = (await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      query: { token_info: {} },
+    })) as Result;
+
+    expect(result).toEqual({
+      token_info: {
+        decimals: 6,
+        name: "Secret SCRT",
+        symbol: "SSCRT",
+        total_supply: "1",
+      },
+    });
+  });
 });
 
 describe("tx.bank", () => {
@@ -623,7 +650,7 @@ describe("tx.compute", () => {
     const msgInit = new MsgInstantiateContract({
       sender: accounts[0].address,
       codeId,
-      codeHash,
+      // codeHash, // Test MsgInstantiateContract without codeHash
       initMsg: {
         name: "SecretJS NFTs",
         symbol: "YOLO",
@@ -652,7 +679,7 @@ describe("tx.compute", () => {
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
       contract,
-      codeHash,
+      // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
     });

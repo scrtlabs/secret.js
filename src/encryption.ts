@@ -105,9 +105,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     contractCodeHash: string,
     msg: object,
   ): Promise<Uint8Array> {
-    const nonce = secureRandom(32, {
-      type: "Uint8Array",
-    });
+    const nonce = secureRandom(32, { type: "Uint8Array" });
 
     const txEncryptionKey = await this.getTxEncryptionKey(nonce);
 
