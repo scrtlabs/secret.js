@@ -9,6 +9,7 @@
 
 <p align="center">
   <img alt="npm" src="https://img.shields.io/npm/v/secretjs/beta">
+  <img alt="ci" style="margin-left: 0.3em" src="https://github.com/scrtlabs/secret.js/actions/workflows/test.yml/badge.svg?branch=master">
 </p>
 
 <p align="center">
