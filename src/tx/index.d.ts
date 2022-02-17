@@ -13,3 +13,5 @@ export * from "./ibc_transfer";
 export * from "./slashing";
 export * from "./staking";
 export * from "./types";
+
+export as namespace tx;

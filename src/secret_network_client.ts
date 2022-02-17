@@ -213,6 +213,53 @@ export type TxSender = {
    *
    * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succed then the transaction succeds, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
    *
+   * List of possible Msgs:
+   *   - authz           {@link tx.MsgExec}
+   *   - authz           {@link tx.MsgGrant}
+   *   - authz           {@link tx.MsgRevoke}
+   *   - bank            {@link tx.MsgMultiSend}
+   *   - bank            {@link tx.MsgSend}
+   *   - compute         {@link tx.MsgExecuteContract}
+   *   - compute         {@link tx.MsgInstantiateContract}
+   *   - compute         {@link tx.MsgStoreCode}
+   *   - crisis          {@link tx.MsgVerifyInvariant}
+   *   - distribution    {@link tx.MsgFundCommunityPool}
+   *   - distribution    {@link tx.MsgSetWithdrawAddress}
+   *   - distribution    {@link tx.MsgWithdrawDelegatorReward}
+   *   - distribution    {@link tx.MsgWithdrawValidatorCommission}
+   *   - evidence        {@link tx.MsgSubmitEvidence}
+   *   - feegrant        {@link tx.MsgGrantAllowance}
+   *   - feegrant        {@link tx.MsgRevokeAllowance}
+   *   - gov             {@link tx.MsgDeposit}
+   *   - gov             {@link tx.MsgSubmitProposal}
+   *   - gov             {@link tx.MsgVote}
+   *   - gov             {@link tx.MsgVoteWeighted}
+   *   - ibc_channel     {@link tx.MsgAcknowledgement}
+   *   - ibc_channel     {@link tx.MsgChannelCloseConfirm}
+   *   - ibc_channel     {@link tx.MsgChannelCloseInit}
+   *   - ibc_channel     {@link tx.MsgChannelOpenAck}
+   *   - ibc_channel     {@link tx.MsgChannelOpenConfirm}
+   *   - ibc_channel     {@link tx.MsgChannelOpenInit}
+   *   - ibc_channel     {@link tx.MsgChannelOpenTry}
+   *   - ibc_channel     {@link tx.MsgRecvPacket}
+   *   - ibc_channel     {@link tx.MsgTimeout}
+   *   - ibc_channel     {@link tx.MsgTimeoutOnClose}
+   *   - ibc_client      {@link tx.MsgCreateClient}
+   *   - ibc_client      {@link tx.MsgSubmitMisbehaviour}
+   *   - ibc_client      {@link tx.MsgUpdateClient}
+   *   - ibc_client      {@link tx.MsgUpgradeClient}
+   *   - ibc_connection  {@link tx.MsgConnectionOpenAck}
+   *   - ibc_connection  {@link tx.MsgConnectionOpenConfirm}
+   *   - ibc_connection  {@link tx.MsgConnectionOpenInit}
+   *   - ibc_connection  {@link tx.MsgConnectionOpenTry}
+   *   - ibc_transfer    {@link tx.MsgTransfer}
+   *   - slashing        {@link tx.MsgUnjail}
+   *   - staking         {@link tx.MsgBeginRedelegate}
+   *   - staking         {@link tx.MsgCreateValidator}
+   *   - staking         {@link tx.MsgDelegate}
+   *   - staking         {@link tx.MsgEditValidator}
+   *   - staking         {@link tx.MsgUndelegate}
+   *
    * @param {SignAndBroadcastParams} [options] Options for signing and broadcasting
    *
    * @param {Number} [options.gasLimit=25_000]
