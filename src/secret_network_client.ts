@@ -43,11 +43,13 @@ export enum BroadcastMode {
 }
 
 export type SignAndBroadcastParams = {
-  gasLimit: number;
-  /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt  */
-  gasPriceInFeeDenom: number;
-  /** E.g. "uscrt" */
-  feeDenom: string;
+  /** Defaults to `25_000`. */
+  gasLimit?: number;
+  /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
+  gasPriceInFeeDenom?: number;
+  /** Defaults to `"uscrt"`. */
+  feeDenom?: string;
+  /** Defaults to `""`. */
   memo?: string;
   /** If false returns immediately with `transactionHash`. Defaults to `true`. */
   waitForCommit?: boolean;
@@ -214,51 +216,51 @@ export type TxSender = {
    * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succed then the transaction succeds, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
    *
    * List of possible Msgs:
-   *   - authz           {@link tx.MsgExec}
-   *   - authz           {@link tx.MsgGrant}
-   *   - authz           {@link tx.MsgRevoke}
-   *   - bank            {@link tx.MsgMultiSend}
-   *   - bank            {@link tx.MsgSend}
-   *   - compute         {@link tx.MsgExecuteContract}
-   *   - compute         {@link tx.MsgInstantiateContract}
-   *   - compute         {@link tx.MsgStoreCode}
-   *   - crisis          {@link tx.MsgVerifyInvariant}
-   *   - distribution    {@link tx.MsgFundCommunityPool}
-   *   - distribution    {@link tx.MsgSetWithdrawAddress}
-   *   - distribution    {@link tx.MsgWithdrawDelegatorReward}
-   *   - distribution    {@link tx.MsgWithdrawValidatorCommission}
-   *   - evidence        {@link tx.MsgSubmitEvidence}
-   *   - feegrant        {@link tx.MsgGrantAllowance}
-   *   - feegrant        {@link tx.MsgRevokeAllowance}
-   *   - gov             {@link tx.MsgDeposit}
-   *   - gov             {@link tx.MsgSubmitProposal}
-   *   - gov             {@link tx.MsgVote}
-   *   - gov             {@link tx.MsgVoteWeighted}
-   *   - ibc_channel     {@link tx.MsgAcknowledgement}
-   *   - ibc_channel     {@link tx.MsgChannelCloseConfirm}
-   *   - ibc_channel     {@link tx.MsgChannelCloseInit}
-   *   - ibc_channel     {@link tx.MsgChannelOpenAck}
-   *   - ibc_channel     {@link tx.MsgChannelOpenConfirm}
-   *   - ibc_channel     {@link tx.MsgChannelOpenInit}
-   *   - ibc_channel     {@link tx.MsgChannelOpenTry}
-   *   - ibc_channel     {@link tx.MsgRecvPacket}
-   *   - ibc_channel     {@link tx.MsgTimeout}
-   *   - ibc_channel     {@link tx.MsgTimeoutOnClose}
-   *   - ibc_client      {@link tx.MsgCreateClient}
-   *   - ibc_client      {@link tx.MsgSubmitMisbehaviour}
-   *   - ibc_client      {@link tx.MsgUpdateClient}
-   *   - ibc_client      {@link tx.MsgUpgradeClient}
-   *   - ibc_connection  {@link tx.MsgConnectionOpenAck}
-   *   - ibc_connection  {@link tx.MsgConnectionOpenConfirm}
-   *   - ibc_connection  {@link tx.MsgConnectionOpenInit}
-   *   - ibc_connection  {@link tx.MsgConnectionOpenTry}
-   *   - ibc_transfer    {@link tx.MsgTransfer}
-   *   - slashing        {@link tx.MsgUnjail}
-   *   - staking         {@link tx.MsgBeginRedelegate}
-   *   - staking         {@link tx.MsgCreateValidator}
-   *   - staking         {@link tx.MsgDelegate}
-   *   - staking         {@link tx.MsgEditValidator}
-   *   - staking         {@link tx.MsgUndelegate}
+   *   - authz           {@link MsgExec}
+   *   - authz           {@link MsgGrant}
+   *   - authz           {@link MsgRevoke}
+   *   - bank            {@link MsgMultiSend}
+   *   - bank            {@link MsgSend}
+   *   - compute         {@link MsgExecuteContract}
+   *   - compute         {@link MsgInstantiateContract}
+   *   - compute         {@link MsgStoreCode}
+   *   - crisis          {@link MsgVerifyInvariant}
+   *   - distribution    {@link MsgFundCommunityPool}
+   *   - distribution    {@link MsgSetWithdrawAddress}
+   *   - distribution    {@link MsgWithdrawDelegatorReward}
+   *   - distribution    {@link MsgWithdrawValidatorCommission}
+   *   - evidence        {@link MsgSubmitEvidence}
+   *   - feegrant        {@link MsgGrantAllowance}
+   *   - feegrant        {@link MsgRevokeAllowance}
+   *   - gov             {@link MsgDeposit}
+   *   - gov             {@link MsgSubmitProposal}
+   *   - gov             {@link MsgVote}
+   *   - gov             {@link MsgVoteWeighted}
+   *   - ibc_channel     {@link MsgAcknowledgement}
+   *   - ibc_channel     {@link MsgChannelCloseConfirm}
+   *   - ibc_channel     {@link MsgChannelCloseInit}
+   *   - ibc_channel     {@link MsgChannelOpenAck}
+   *   - ibc_channel     {@link MsgChannelOpenConfirm}
+   *   - ibc_channel     {@link MsgChannelOpenInit}
+   *   - ibc_channel     {@link MsgChannelOpenTry}
+   *   - ibc_channel     {@link MsgRecvPacket}
+   *   - ibc_channel     {@link MsgTimeout}
+   *   - ibc_channel     {@link MsgTimeoutOnClose}
+   *   - ibc_client      {@link MsgCreateClient}
+   *   - ibc_client      {@link MsgSubmitMisbehaviour}
+   *   - ibc_client      {@link MsgUpdateClient}
+   *   - ibc_client      {@link MsgUpgradeClient}
+   *   - ibc_connection  {@link MsgConnectionOpenAck}
+   *   - ibc_connection  {@link MsgConnectionOpenConfirm}
+   *   - ibc_connection  {@link MsgConnectionOpenInit}
+   *   - ibc_connection  {@link MsgConnectionOpenTry}
+   *   - ibc_transfer    {@link MsgTransfer}
+   *   - slashing        {@link MsgUnjail}
+   *   - staking         {@link MsgBeginRedelegate}
+   *   - staking         {@link MsgCreateValidator}
+   *   - staking         {@link MsgDelegate}
+   *   - staking         {@link MsgEditValidator}
+   *   - staking         {@link MsgUndelegate}
    *
    * @param {SignAndBroadcastParams} [options] Options for signing and broadcasting
    *
