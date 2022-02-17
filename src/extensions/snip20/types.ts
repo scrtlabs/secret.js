@@ -109,6 +109,33 @@ export interface TransactionHistoryResponse {
   total?: number;
 }
 
+export interface Snip20SendOptions {
+  recipient: string;
+  amount: string;
+  msg?: string;
+  padding?: string;
+}
+
+export interface Snip20TransferOptions {
+  recipient: string;
+  amount: string;
+  padding?: string;
+}
+
+export interface Snip20IncreaseAllowanceOptions {
+  spender: string;
+  amount: string;
+  expiration?: number;
+  padding?: string;
+}
+
+export interface Snip20DecreaseAllowanceOptions {
+  spender: string;
+  amount: string;
+  expiration?: number;
+  padding?: string;
+}
+
 //transaction_history: {
 //             page?: number;
 //             page_size: number;
@@ -158,45 +185,7 @@ export interface TransactionHistoryResponse {
 //     },
 //
 //     messages: {
-//         transfer({ padding }: Context, recipient: string, amount: string) {
-//             const handleMsg = {
-//                 transfer: { recipient, amount, padding },
-//             };
-//             return { handleMsg };
-//         },
-//
-//         send(
-//             { padding }: Context,
-//             recipient: string,
-//             amount: string,
-//             msg?: string
-//         ) {
-//             const handleMsg = {
-//                 send: { recipient, amount, msg, padding },
-//             };
-//             return { handleMsg };
-//         },
-//
-//         registerReceive({ padding }: Context, code_hash: string) {
-//             const handleMsg = {
-//                 register_receive: { code_hash, padding },
-//             };
-//             return { handleMsg };
-//         },
-//
-//         createViewingKey({ padding, entropy }: Context) {
-//             const handleMsg = {
-//                 create_viewing_key: { entropy, padding },
-//             };
-//             return { handleMsg };
-//         },
-//
-//         setViewingKey({ padding }: Context, key: string) {
-//             const handleMsg = {
-//                 set_viewing_key: { key, padding },
-//             };
-//             return { handleMsg };
-//         },
+
 //
 //         increaseAllowances(
 //             { padding }: Context,

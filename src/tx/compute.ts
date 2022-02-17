@@ -124,10 +124,10 @@ export class MsgInstantiateContract implements Msg {
   }
 }
 
-export interface MsgExecuteContractParams extends MsgParams {
+export interface MsgExecuteContractParams<T> extends MsgParams {
   sender: string;
   contract: string;
-  msg: object;
+  msg: T;
   sentFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -145,10 +145,10 @@ export interface MsgExecuteContractParams extends MsgParams {
 }
 
 /** Execute a function on a contract */
-export class MsgExecuteContract implements Msg {
+export class MsgExecuteContract<T extends object> implements Msg {
   public sender: string;
   public contract: string;
-  public msg: object;
+  public msg: T;
   private msgEncrypted: Uint8Array | null;
   public sentFunds: Coin[];
   public codeHash: string;
@@ -160,7 +160,7 @@ export class MsgExecuteContract implements Msg {
     msg,
     sentFunds,
     codeHash,
-  }: MsgExecuteContractParams) {
+  }: MsgExecuteContractParams<T>) {
     this.sender = sender;
     this.contract = contract;
     this.msg = msg;

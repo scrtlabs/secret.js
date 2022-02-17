@@ -72,7 +72,19 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-import { Snip20Querier } from "./extensions/snip20";
+import {
+  MsgSnip20DecreaseAllowance,
+  MsgSnip20IncreaseAllowance,
+  MsgSnip20Send,
+  MsgSnip20Transfer,
+  Snip20Querier,
+} from "./extensions/snip20";
+import {
+  Snip20DecreaseAllowanceOptions,
+  Snip20IncreaseAllowanceOptions,
+  Snip20SendOptions,
+  Snip20TransferOptions,
+} from "./extensions/snip20/types";
 
 export type SigningParams = {
   walletAddress: string;
@@ -351,6 +363,32 @@ export type TxSender = {
     txOptions?: SignAndBroadcastOptions,
   ) => Promise<DeliverTxResponse>;
 
+  snip20: {
+    //Send
+    //Transfer
+    //getTransferHistory
+    //getAllowance
+    //getMinters
+    send: (
+      params: Snip20SendOptions,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+
+    transfer: (
+      params: Snip20TransferOptions,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+    increaseAllowance: (
+      params: Snip20IncreaseAllowanceOptions,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+
+    decreaseAllowance: (
+      params: Snip20DecreaseAllowanceOptions,
+      txOptions?: SignAndBroadcastOptions,
+    ) => Promise<DeliverTxResponse>;
+  };
+
   authz: {
     /**
      * MsgExec attempts to execute the provided messages using
@@ -393,7 +431,7 @@ export type TxSender = {
   compute: {
     /** Execute a function on a contract */
     executeContract: (
-      params: MsgExecuteContractParams,
+      params: MsgExecuteContractParams<object>,
       txOptions?: SignAndBroadcastOptions,
     ) => Promise<DeliverTxResponse>;
     /** Instantiate a contract from code id */
@@ -687,6 +725,13 @@ export class SecretNetworkClient {
 
     this.tx = {
       broadcast: this.signAndBroadcast.bind(this),
+
+      snip20: {
+        send: doMsg(MsgSnip20Send),
+        transfer: doMsg(MsgSnip20Transfer),
+        increaseAllowance: doMsg(MsgSnip20IncreaseAllowance),
+        decreaseAllowance: doMsg(MsgSnip20DecreaseAllowance),
+      },
 
       authz: {
         exec: doMsg(MsgExec),
