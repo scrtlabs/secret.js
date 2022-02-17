@@ -208,9 +208,40 @@ export interface IndexedTx {
 }
 
 export type TxSender = {
+  /**
+   * Sign and broadcast a transaction to Secret Network.
+   *
+   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succed then the transaction succeds, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
+   *
+   * @param {SignAndBroadcastParams} [options] Options for signing and broadcasting
+   *
+   * @param {Number} [options.gasLimit=25_000]
+   *
+   * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
+   *
+   * @param {String} [options.feeDenom="uscrt"]
+   *
+   * @param {String} [options.memo=""]
+   *
+   * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
+   *
+   * @param {Number} [options.broadcastTimeoutMs=60_000] How much time (in milliseconds) to wait for tx to commit on-chain. Ignored if `waitForCommit = false`.
+   *
+   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for tx to commit on-chain, this how much time (in milliseconds) to wait between checking if the tx is committed on-chain. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to commit. Ignored if `waitForCommit = false`.
+   *
+   * @param {BroadcastMode} [options.broadcastMode=BroadcastMode.Sync] If {@link BroadcastMode.Sync} - Broadcast transaction to mempool and wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
+   *
+   * If {@link BroadcastMode.Async} Broadcast transaction to mempool and do not wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
+   *
+   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
+   *
+   * @param {Number} [options.explicitSignerData.accountNumber]
+   * @param {Number} [options.explicitSignerData.sequence]
+   * @param {String} [options.explicitSignerData.chainId]
+   */
   broadcast: (
     messages: Msg[],
-    params: SignAndBroadcastParams,
+    options?: SignAndBroadcastParams,
   ) => Promise<DeliverTxResponse>;
 };
 
@@ -492,18 +523,18 @@ export class SecretNetworkClient {
 
   private async signAndBroadcast(
     messages: Msg[],
-    {
-      gasLimit,
-      gasPriceInFeeDenom,
-      feeDenom,
-      memo = "",
-      waitForCommit = true,
-      broadcastTimeoutMs = 60_000,
-      broadcastCheckIntervalMs = 6_000,
-      broadcastMode = BroadcastMode.Sync,
-      explicitSignerData,
-    }: SignAndBroadcastParams,
+    params?: SignAndBroadcastParams,
   ): Promise<DeliverTxResponse> {
+    const gasLimit = params?.gasLimit ?? 25_000;
+    const gasPriceInFeeDenom = params?.gasPriceInFeeDenom ?? 0.25;
+    const feeDenom = params?.feeDenom ?? "uscrt";
+    const memo = params?.memo ?? "";
+    const waitForCommit = params?.waitForCommit ?? true;
+    const broadcastTimeoutMs = params?.broadcastTimeoutMs ?? 60_000;
+    const broadcastCheckIntervalMs = params?.broadcastCheckIntervalMs ?? 6_000;
+    const broadcastMode = params?.broadcastMode ?? BroadcastMode.Sync;
+    const explicitSignerData = params?.explicitSignerData;
+
     const [txRaw, nonces] = await this.sign(
       messages,
       {
