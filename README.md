@@ -181,8 +181,8 @@ You can access all query types using `secretjs.query`:
 
 | Query                                                       | Docs              |
 | ----------------------------------------------------------- | ----------------- |
-| `secretjs.query.getTx()`                                    | TODO link to docs |
-| `secretjs.query.txsQuery()`                                 | TODO link to docs |
+| `secretjs.query.getTx(hash)`                                | TODO link to docs |
+| `secretjs.query.txsQuery(query)`                            | TODO link to docs |
 | `secretjs.query.auth.account()`                             | TODO link to docs |
 | `secretjs.query.auth.accounts()`                            | TODO link to docs |
 | `secretjs.query.auth.params()`                              | TODO link to docs |
