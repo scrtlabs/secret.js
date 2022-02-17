@@ -186,14 +186,12 @@ beforeAll(async () => {
           const parsedAccount = JSON.parse(match[0]) as Account;
           parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
           parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
-          parsedAccount.secretjs = await SecretNetworkClient.create(
-            "http://localhost:26657",
-            {
-              wallet: parsedAccount.walletAmino,
-              walletAddress: parsedAccount.address,
-              chainId: "secretdev-1",
-            },
-          );
+          parsedAccount.secretjs = await SecretNetworkClient.create({
+            rpcUrl: "http://localhost:26657",
+            wallet: parsedAccount.walletAmino,
+            walletAddress: parsedAccount.address,
+            chainId: "secretdev-1",
+          });
           accounts[accountId] = parsedAccount as Account;
         }
       }
@@ -216,7 +214,8 @@ beforeAll(async () => {
         mnemonic: wallet.mnemonic,
         walletAmino: wallet,
         walletProto: walletProto,
-        secretjs: await SecretNetworkClient.create("http://localhost:26657", {
+        secretjs: await SecretNetworkClient.create({
+          rpcUrl: "http://localhost:26657",
           wallet: wallet,
           walletAddress: address,
           chainId: "secretdev-1",

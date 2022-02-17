@@ -73,10 +73,14 @@ import {
   StdSignDoc,
 } from "./wallet_amino";
 
-export type SigningParams = {
-  walletAddress: string;
-  wallet: Signer;
-  chainId: string;
+export type ClientOptions = {
+  rpcUrl: string;
+  /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
+  wallet?: Signer;
+  /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
+  walletAddress?: string;
+  /** The chain-id on which the wallet is allowed to sign transactions & permits. */
+  chainId?: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
@@ -165,6 +169,8 @@ export class ReadonlySigner implements AminoSigner {
 }
 
 export type Querier = {
+  getTx: (hash: string) => Promise<Tx | null>;
+  txsQuery: (query: string) => Promise<Tx[]>;
   auth: AuthQuerier;
   authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").QueryClientImpl;
   bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").QueryClientImpl;
@@ -184,8 +190,6 @@ export type Querier = {
   staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").QueryClientImpl;
   tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").ServiceClientImpl;
   upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").QueryClientImpl;
-  getTx: (id: string) => Promise<IndexedTx | null>;
-  txsQuery: (query: string) => Promise<IndexedTx[]>;
 };
 
 export type ArrayLog = Array<{
@@ -235,12 +239,17 @@ export type DeliverTxResponse = {
 };
 
 /** A transaction that is indexed as part of the transaction history */
-export interface IndexedTx {
+export interface Tx {
   readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly hash: string;
   /** Transaction execution error code. 0 on success. */
   readonly code: number;
+  /**
+   * If code != 0, rawLog contains the error.
+   *
+   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`. Values are not decrypted.
+   */
   readonly rawLog: string;
   /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
   readonly jsonLog?: JsonLog;
@@ -566,14 +575,9 @@ export class SecretNetworkClient {
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
   public static async create(
-    rpcUrl: string,
-    signingParams: SigningParams = {
-      wallet: new ReadonlySigner(),
-      chainId: "",
-      walletAddress: "",
-    },
+    options: ClientOptions,
   ): Promise<SecretNetworkClient> {
-    const tendermint = await Tendermint34Client.connect(rpcUrl);
+    const tendermint = await Tendermint34Client.connect(options.rpcUrl);
 
     // Init this.query in here because we need async/await for dynamic imports
     const rpc: SecretRpcClient = {
@@ -658,23 +662,23 @@ export class SecretNetworkClient {
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(tendermint, query, signingParams);
+    return new SecretNetworkClient(tendermint, query, options);
   }
 
   private constructor(
     tendermint: Tendermint34Client,
     query: Querier,
-    signingParams: SigningParams,
+    signingParams: ClientOptions,
   ) {
     this.tendermint = tendermint;
 
     this.query = query;
-    this.query.getTx = this.getTx.bind(this);
-    this.query.txsQuery = this.txsQuery.bind(this);
+    this.query.getTx = (hash) => this.getTx(hash);
+    this.query.txsQuery = (query) => this.txsQuery(query);
 
-    this.wallet = signingParams.wallet;
-    this.address = signingParams.walletAddress;
-    this.chainId = signingParams.chainId;
+    this.wallet = signingParams.wallet ?? new ReadonlySigner();
+    this.address = signingParams.walletAddress ?? "";
+    this.chainId = signingParams.chainId ?? "";
 
     const doMsg = (msgClass: any) => {
       return (params: MsgParams, options?: SignAndBroadcastOptions) => {
@@ -747,24 +751,79 @@ export class SecretNetworkClient {
     }
   }
 
-  private async getTx(id: string): Promise<IndexedTx | null> {
-    const results = await this.txsQuery(`tx.hash='${id}'`);
+  private async getTx(
+    hash: string,
+    nonces: ComputeMsgToNonce = {},
+  ): Promise<Tx | null> {
+    const results = await this.txsQuery(`tx.hash='${hash}'`, nonces);
     return results[0] ?? null;
   }
 
-  private async txsQuery(query: string): Promise<IndexedTx[]> {
+  private async txsQuery(
+    query: string,
+    nonces: ComputeMsgToNonce = {},
+  ): Promise<Tx[]> {
     const results = await this.tendermint.txSearchAll({ query: query });
-    return results.txs.map((tx) => {
-      return {
-        height: tx.height,
-        hash: toHex(tx.hash).toUpperCase(),
-        code: tx.result.code,
-        rawLog: tx.result.log || "",
-        tx: tx.tx,
-        gasUsed: tx.result.gasUsed,
-        gasWanted: tx.result.gasWanted,
-      };
-    });
+
+    return await Promise.all(
+      results.txs.map(async (tx) => {
+        let jsonLog: JsonLog | undefined;
+        let arrayLog: ArrayLog | undefined;
+        if (tx.result.code === 0 && tx.result.log) {
+          jsonLog = JSON.parse(tx.result.log) as JsonLog;
+
+          arrayLog = [];
+          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            const log = jsonLog[msgIndex];
+            for (const event of log.events) {
+              for (const attr of event.attributes) {
+                // Try to decrypt
+                if (event.type === "wasm") {
+                  const nonce = nonces[msgIndex];
+                  if (nonce && nonce.length === 32) {
+                    try {
+                      attr.key = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.key),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                    try {
+                      attr.value = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.value),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                  }
+                }
+
+                arrayLog.push({
+                  msg: msgIndex,
+                  type: event.type,
+                  key: attr.key,
+                  value: attr.value,
+                });
+              }
+            }
+          }
+        }
+
+        return {
+          height: tx.height,
+          hash: toHex(tx.hash).toUpperCase(),
+          code: tx.result.code,
+          rawLog: tx.result.log || "",
+          jsonLog: jsonLog,
+          arrayLog: arrayLog,
+          tx: tx.tx,
+          gasUsed: tx.result.gasUsed,
+          gasWanted: tx.result.gasWanted,
+        };
+      }),
+    );
   }
 
   /**
@@ -813,58 +872,15 @@ export class SecretNetworkClient {
         );
       }
 
-      const result = await this.getTx(txhash);
+      const result = await this.getTx(txhash, nonces);
+
       if (result) {
-        let jsonLog: JsonLog | undefined;
-        let arrayLog: ArrayLog | undefined;
-        if (result.code == 0) {
-          jsonLog = JSON.parse(result.rawLog) as JsonLog;
-
-          arrayLog = [];
-          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
-            const log = jsonLog[msgIndex];
-            for (const event of log.events) {
-              for (const attr of event.attributes) {
-                // Try to decrypt
-                if (event.type === "wasm") {
-                  const nonce = nonces[msgIndex];
-                  if (nonce && nonce.length === 32) {
-                    try {
-                      attr.key = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.key),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                    try {
-                      attr.value = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.value),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                  }
-                }
-
-                arrayLog.push({
-                  msg: msgIndex,
-                  type: event.type,
-                  key: attr.key,
-                  value: attr.value,
-                });
-              }
-            }
-          }
-        }
-
         return {
           code: result.code,
           height: result.height,
           rawLog: result.rawLog,
-          jsonLog,
-          arrayLog,
+          jsonLog: result.jsonLog,
+          arrayLog: result.arrayLog,
           transactionHash: txhash,
           gasUsed: result.gasUsed,
           gasWanted: result.gasWanted,
@@ -936,6 +952,13 @@ export class SecretNetworkClient {
   ): Promise<
     [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
   > {
+    const accountFromSigner = (await this.wallet.getAccounts()).find(
+      (account) => account.address === this.address,
+    );
+    if (!accountFromSigner) {
+      throw new Error("Failed to retrieve account from signer");
+    }
+
     let signerData: SignerData;
     if (explicitSignerData) {
       signerData = explicitSignerData;
@@ -957,28 +980,22 @@ export class SecretNetworkClient {
       }
 
       const chainId = this.chainId;
+      const baseAccount =
+        account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount;
       signerData = {
-        accountNumber: Number(
-          (
-            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
-          ).accountNumber,
-        ),
-        sequence: Number(
-          (
-            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
-          ).sequence,
-        ),
+        accountNumber: Number(baseAccount.accountNumber),
+        sequence: Number(baseAccount.sequence),
         chainId: chainId,
       };
     }
 
     return isOfflineDirectSigner(this.wallet)
-      ? this.signDirect(this.address, messages, fee, memo, signerData)
-      : this.signAmino(this.address, messages, fee, memo, signerData);
+      ? this.signDirect(accountFromSigner, messages, fee, memo, signerData)
+      : this.signAmino(accountFromSigner, messages, fee, memo, signerData);
   }
 
   private async signAmino(
-    signerAddress: string,
+    account: AccountData,
     messages: Msg[],
     fee: StdFee,
     memo: string,
@@ -988,13 +1005,6 @@ export class SecretNetworkClient {
   > {
     if (isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
-    }
-
-    const accountFromSigner = (await this.wallet.getAccounts()).find(
-      (account) => account.address === signerAddress,
-    );
-    if (!accountFromSigner) {
-      throw new Error("Failed to retrieve account from signer");
     }
 
     const signMode = (
@@ -1015,7 +1025,7 @@ export class SecretNetworkClient {
       sequence,
     );
     const { signature, signed } = await this.wallet.signAmino(
-      signerAddress,
+      account.address,
       signDoc,
     );
     const encryptionNonces: ComputeMsgToNonce = {};
@@ -1037,9 +1047,7 @@ export class SecretNetworkClient {
     const txBodyBytes = await this.encodeTx(txBody);
     const signedGasLimit = Number(signed.fee.gas);
     const signedSequence = Number(signed.sequence);
-    const pubkey = await encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
+    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const signedAuthInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
@@ -1099,7 +1107,7 @@ export class SecretNetworkClient {
   }
 
   private async signDirect(
-    signerAddress: string,
+    account: AccountData,
     messages: Msg[],
     fee: StdFee,
     memo: string,
@@ -1109,13 +1117,6 @@ export class SecretNetworkClient {
   > {
     if (!isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
-    }
-
-    const accountFromSigner = (await this.wallet.getAccounts()).find(
-      (account) => account.address === signerAddress,
-    );
-    if (!accountFromSigner) {
-      throw new Error("Failed to retrieve account from signer");
     }
 
     const encryptionNonces: ComputeMsgToNonce = {};
@@ -1135,9 +1136,7 @@ export class SecretNetworkClient {
       },
     };
     const txBodyBytes = await this.encodeTx(txBody);
-    const pubkey = await encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
+    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const gasLimit = Number(fee.gas);
     const authInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence }],
@@ -1151,7 +1150,7 @@ export class SecretNetworkClient {
       accountNumber,
     );
     const { signature, signed } = await this.wallet.signDirect(
-      signerAddress,
+      account.address,
       signDoc,
     );
     return [
@@ -1168,7 +1167,7 @@ export class SecretNetworkClient {
 }
 
 function sleep(ms: number) {
-  return new Promise((accept, reject) => setTimeout(accept, ms));
+  return new Promise((accept) => setTimeout(accept, ms));
 }
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {

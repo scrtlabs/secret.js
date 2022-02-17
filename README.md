@@ -78,9 +78,9 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 import { SecretNetworkClient } from "secretjs";
 
 // To create a readonly secretjs client, just pass in an RPC endpoint
-const secretjs = await SecretNetworkClient.create(
-  "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
-);
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
+});
 
 const {
   balance: { amount },
@@ -116,14 +116,12 @@ const wallet = new Wallet(
 const myAddress = wallet.address;
 
 // To create a signer secretjs client, also pass in a wallet
-const secretjs = await SecretNetworkClient.create(
-  "https://rpc.pulsar.griptapejs.com/",
-  {
-    wallet: wallet,
-    walletAddress: myAddress,
-    chainId: "pulsar-2",
-  },
-);
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  wallet: wallet,
+  walletAddress: myAddress,
+  chainId: "pulsar-2",
+});
 
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
@@ -182,6 +180,8 @@ You can access all query types using `secretjs.query`:
 
 | Query                                                       | Docs              |
 | ----------------------------------------------------------- | ----------------- |
+| `secretjs.query.getTx()`                                    | TODO link to docs |
+| `secretjs.query.txsQuery()`                                 | TODO link to docs |
 | `secretjs.query.auth.account()`                             | TODO link to docs |
 | `secretjs.query.auth.accounts()`                            | TODO link to docs |
 | `secretjs.query.auth.params()`                              | TODO link to docs |
@@ -305,14 +305,12 @@ const wallet = new Wallet(
 const myAddress = wallet.address;
 
 // To create a signer secretjs client, also pass in a wallet
-const secretjs = await SecretNetworkClient.create(
-  "https://rpc.pulsar.griptapejs.com/",
-  {
-    wallet: wallet,
-    walletAddress: myAddress,
-    chainId: "pulsar-2",
-  },
-);
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  wallet: wallet,
+  walletAddress: myAddress,
+  chainId: "pulsar-2",
+});
 
 const alsoMyAddress = secretjs.address;
 ```
@@ -344,7 +342,8 @@ await window.keplr.enable(CHAIN_ID);
 const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
-const secretjs = await SecretNetworkClient.create(SECRET_RPC, {
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: SECRET_RPC,
   chainId: SECRET_CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
