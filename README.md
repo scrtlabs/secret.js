@@ -34,6 +34,34 @@
     - [Signer](#signer)
       - [`secretjs.address`](#secretjsaddress)
       - [`secretjs.tx`](#secretjstx)
+        - [`secretjs.tx.broadcast()`](#secretjstxbroadcast)
+        - [`secretjs.tx.authz.exec()`](#secretjstxauthzexec)
+        - [`secretjs.tx.authz.grant()`](#secretjstxauthzgrant)
+        - [`secretjs.tx.authz.revoke()`](#secretjstxauthzrevoke)
+        - [`secretjs.tx.bank.multiSend()`](#secretjstxbankmultisend)
+        - [`secretjs.tx.bank.send()`](#secretjstxbanksend)
+        - [`secretjs.tx.compute.executeContract()`](#secretjstxcomputeexecutecontract)
+        - [`secretjs.tx.compute.instantiateContract()`](#secretjstxcomputeinstantiatecontract)
+        - [`secretjs.tx.compute.storeCode()`](#secretjstxcomputestorecode)
+        - [`secretjs.tx.crisis.verifyInvariant()`](#secretjstxcrisisverifyinvariant)
+        - [`secretjs.tx.distribution.fundCommunityPool()`](#secretjstxdistributionfundcommunitypool)
+        - [`secretjs.tx.distribution.setWithdrawAddress()`](#secretjstxdistributionsetwithdrawaddress)
+        - [`secretjs.tx.distribution.withdrawDelegatorReward()`](#secretjstxdistributionwithdrawdelegatorreward)
+        - [`secretjs.tx.distribution.withdrawValidatorCommission()`](#secretjstxdistributionwithdrawvalidatorcommission)
+        - [`secretjs.tx.evidence.submitEvidence()`](#secretjstxevidencesubmitevidence)
+        - [`secretjs.tx.feegrant.grantAllowance()`](#secretjstxfeegrantgrantallowance)
+        - [`secretjs.tx.feegrant.revokeAllowance()`](#secretjstxfeegrantrevokeallowance)
+        - [`secretjs.tx.gov.deposit()`](#secretjstxgovdeposit)
+        - [`secretjs.tx.gov.submitProposal()`](#secretjstxgovsubmitproposal)
+        - [`secretjs.tx.gov.vote()`](#secretjstxgovvote)
+        - [`secretjs.tx.gov.voteWeighted()`](#secretjstxgovvoteweighted)
+        - [`secretjs.tx.ibc.transfer()`](#secretjstxibctransfer)
+        - [`secretjs.tx.slashing.unjail()`](#secretjstxslashingunjail)
+        - [`secretjs.tx.staking.redelegate()`](#secretjstxstakingredelegate)
+        - [`secretjs.tx.staking.createValidator()`](#secretjstxstakingcreatevalidator)
+        - [`secretjs.tx.staking.delegate()`](#secretjstxstakingdelegate)
+        - [`secretjs.tx.staking.editValidator()`](#secretjstxstakingeditvalidator)
+        - [`secretjs.tx.staking.undelegate()`](#secretjstxstakingundelegate)
     - [Using Keplr](#using-keplr)
       - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
       - [`getOfflineSigner()`](#getofflinesigner)
@@ -318,7 +346,216 @@ const alsoMyAddress = secretjs.address;
 
 #### `secretjs.tx`
 
-TODO
+`secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [SignAndBroadcastOptions](https://secretjs.scrt.network/modules#SignAndBroadcastOptions).
+
+[Full API »](https://secretjs.scrt.network/modules#TxSender)
+
+##### `secretjs.tx.broadcast()`
+
+Used to send a complex transactions, which contains a list of messages. The messages are executed in sequence, and the transaction succeeds if all messages succeed.
+
+For a list of all messages see: https://secretjs.scrt.network/interfaces/Msg
+
+```typescript
+const addMinterMsg = new MsgExecuteContract({
+  sender: MY_ADDRESS,
+  contract: MY_NFT_CONTRACT,
+  codeHash: MY_NFT_CONTRACT_CODE_HASH,
+  msg: { add_minters: { minters: [MY_ADDRESS] } },
+  sentFunds: [],
+});
+
+const mintMsg = new MsgExecuteContract({
+  sender: MY_ADDRESS,
+  contract: MY_NFT_CONTRACT,
+  codeHash: MY_NFT_CONTRACT_CODE_HASH,
+  msg: {
+    mint_nft: {
+      token_id: "1",
+      owner: MY_ADDRESS,
+      public_metadata: {
+        extension: {
+          image: "https://scrt.network/secretnetwork-logo-secondary-black.png",
+          name: "secretnetwork-logo-secondary-black",
+        },
+      },
+      private_metadata: {
+        extension: {
+          image: "https://scrt.network/secretnetwork-logo-primary-white.png",
+          name: "secretnetwork-logo-primary-white",
+        },
+      },
+    },
+  },
+  sentFunds: [],
+});
+
+const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+  gasLimit: 200_000,
+});
+```
+
+##### `secretjs.tx.authz.exec()`
+
+MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
+
+See: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
+
+##### `secretjs.tx.authz.grant()`
+
+MsgGrant is a request type for Grant method. It declares authorization to the grantee on behalf of the granter with the provided expiration time.
+
+See: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
+
+##### `secretjs.tx.authz.revoke()`
+
+MsgRevoke revokes any authorization with the provided sdk.Msg type on the granter's account with that has been granted to the grantee.
+
+See: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
+
+##### `secretjs.tx.bank.multiSend()`
+
+MsgMultiSend represents an arbitrary multi-in, multi-out send message.
+
+See: [MsgMultiSendParams](https://secretjs.scrt.network/interfaces/MsgMultiSendParams)
+
+##### `secretjs.tx.bank.send()`
+
+MsgSend represents a message to send coins from one account to another.
+
+See: [MsgSendParams](https://secretjs.scrt.network/interfaces/MsgSendParams)
+
+##### `secretjs.tx.compute.executeContract()`
+
+Execute a function on a contract
+
+See: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgExecuteContractParams)
+
+##### `secretjs.tx.compute.instantiateContract()`
+
+Instantiate a contract from code id
+
+See: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstantiateContractParams)
+
+##### `secretjs.tx.compute.storeCode()`
+
+Upload a compiled contract to Secret Network
+
+See: [MsgStoreCodeParams](https://secretjs.scrt.network/interfaces/MsgStoreCodeParams)
+
+##### `secretjs.tx.crisis.verifyInvariant()`
+
+MsgVerifyInvariant represents a message to verify a particular invariance.
+
+See: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
+
+##### `secretjs.tx.distribution.fundCommunityPool()`
+
+MsgFundCommunityPool allows an account to directly fund the community pool.
+
+See: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/MsgFundCommunityPoolParams)
+
+##### `secretjs.tx.distribution.setWithdrawAddress()`
+
+MsgSetWithdrawAddress sets the withdraw address for a delegator (or validator self-delegation).
+
+See: [MsgSetWithdrawAddressParams](https://secretjs.scrt.network/interfaces/MsgSetWithdrawAddressParams)
+
+##### `secretjs.tx.distribution.withdrawDelegatorReward()`
+
+MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
+
+See: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
+
+##### `secretjs.tx.distribution.withdrawValidatorCommission()`
+
+MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
+
+See: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
+
+##### `secretjs.tx.evidence.submitEvidence()`
+
+MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
+
+See: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
+
+##### `secretjs.tx.feegrant.grantAllowance()`
+
+MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees from the account of Granter.
+
+See: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
+
+##### `secretjs.tx.feegrant.revokeAllowance()`
+
+MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
+
+See: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+
+##### `secretjs.tx.gov.deposit()`
+
+MsgDeposit defines a message to submit a deposit to an existing proposal.
+
+See: [MsgDepositParams](https://secretjs.scrt.network/interfaces/MsgDepositParams)
+
+##### `secretjs.tx.gov.submitProposal()`
+
+MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary proposal Content.
+
+See: [MsgSubmitProposalParams](https://secretjs.scrt.network/interfaces/MsgSubmitProposalParams)
+
+##### `secretjs.tx.gov.vote()`
+
+MsgVote defines a message to cast a vote.
+
+See: [MsgVoteParams](https://secretjs.scrt.network/interfaces/MsgVoteParams)
+
+##### `secretjs.tx.gov.voteWeighted()`
+
+MsgVoteWeighted defines a message to cast a vote, with an option to split the vote.
+
+See: [MsgVoteWeightedParams](https://secretjs.scrt.network/interfaces/MsgVoteWeightedParams)
+
+##### `secretjs.tx.ibc.transfer()`
+
+MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
+
+See: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
+
+##### `secretjs.tx.slashing.unjail()`
+
+MsgUnjail defines a message to release a validator from jail.
+
+See: [MsgUnjailParams](https://secretjs.scrt.network/interfaces/MsgUnjailParams)
+
+##### `secretjs.tx.staking.redelegate()`
+
+MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator.
+
+See: [MsgRedelegateParams](https://secretjs.scrt.network/interfaces/MsgRedelegateParams)
+
+##### `secretjs.tx.staking.createValidator()`
+
+MsgCreateValidator defines an SDK message for creating a new validator.
+
+See: [MsgCreateValidatorParams](https://secretjs.scrt.network/interfaces/MsgCreateValidatorParams)
+
+##### `secretjs.tx.staking.delegate()`
+
+MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator.
+
+See: [MsgDelegateParams](https://secretjs.scrt.network/interfaces/MsgDelegateParams)
+
+##### `secretjs.tx.staking.editValidator()`
+
+MsgEditValidator defines an SDK message for editing an existing validator.
+
+See: [MsgEditValidatorParams](https://secretjs.scrt.network/interfaces/MsgEditValidatorParams)
+
+##### `secretjs.tx.staking.undelegate()`
+
+MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator
+
+See: [MsgUndelegateParams](https://secretjs.scrt.network/interfaces/MsgUndelegateParams)
 
 ### Using Keplr
 
