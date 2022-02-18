@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  The JavaScript SDK for Secret Network.
+  The JavaScript SDK for Secret Network
 </p>
 
 <p align="center">
