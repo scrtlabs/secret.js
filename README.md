@@ -208,7 +208,7 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 
 ## Sending Queries
 
-```typescript
+```ts
 import { SecretNetworkClient } from "secretjs";
 
 // To create a readonly secretjs client, just pass in an RPC endpoint
@@ -241,7 +241,7 @@ console.log(`sSCRT has ${token_info.decimals} decimals!`);
 
 ## Broadcasting Transactions
 
-```typescript
+```ts
 import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 
 const wallet = new Wallet(
@@ -275,7 +275,7 @@ const tx = await secretjs.tx.broadcast([msg], {
 
 The recommended way to integrate Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
 
-```typescript
+```ts
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 while (
@@ -378,7 +378,7 @@ An offline wallet implementation, used to sign transactions. Usually we'd just w
 
 ### Importing account from mnemonic
 
-```typescript
+```ts
 import { Wallet } from "secretjs";
 
 const wallet = new Wallet(
@@ -389,7 +389,7 @@ const myAddress = wallet.address;
 
 ### Generating a random account
 
-```typescript
+```ts
 import { Wallet } from "secretjs";
 
 const wallet = new Wallet();
@@ -405,7 +405,7 @@ const myMnemonicPhrase = wallet.mnemonic;
 
 A readonly client can only send queries and get chain information. Access to all query types can be done via `secretjs.query`.
 
-```typescript
+```ts
 import { SecretNetworkClient } from "secretjs";
 
 // To create a readonly secretjs client, just pass in an RPC endpoint
@@ -420,7 +420,7 @@ A signer client can broadcast transactions, send queries and get chain informati
 
 Here in addition to `secretjs.query`, there are also `secretjs.tx` & `secretjs.address`.
 
-```typescript
+```ts
 import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 
 const wallet = new Wallet(
@@ -463,15 +463,38 @@ See `txsQuery` under https://secretjs.scrt.network/modules#Querier.
 
 #### `.auth.account()`
 
-Returns all the existing accounts.
+Returns account details based on address.
+
+```ts
+const { address, accountNumber, sequence } = await secretjs.query.auth.account({
+  address: accounts[1].address,
+});
+```
 
 #### `.auth.accounts()`
 
-Returns account details based on address.
+Returns all the existing accounts.
+
+```ts
+/// Get all accounts
+const result = await secretjs.query.auth.accounts({});
+```
 
 #### `.auth.params()`
 
 Queries all x/auth parameters.
+
+```ts
+const {
+  params: {
+    maxMemoCharacters,
+    sigVerifyCostEd25519,
+    sigVerifyCostSecp256k1,
+    txSigLimit,
+    txSizeCostPerByte,
+  },
+} = await secretjs.query.auth.params();
+```
 
 #### `.authz.grants()`
 
@@ -480,6 +503,13 @@ Returns list of authorizations, granted to the grantee by the granter.
 #### `.bank.balance()`
 
 Balance queries the balance of a single coin for a single account.
+
+```ts
+const { balance } = await secretjs.query.bank.balance({
+  address: myAddress,
+  denom: "uscrt",
+});
+```
 
 #### `.bank.allBalances()`
 
@@ -525,9 +555,30 @@ Get all contracts that were instantiated from a code id.
 
 Query a Secret Contract.
 
+```ts
+type Result = {
+  token_info: {
+    decimals: number;
+    name: string;
+    symbol: string;
+    total_supply: string;
+  };
+};
+
+const result = (await secretjs.query.compute.queryContract({
+  address: sScrtAddress,
+  codeHash: sScrtCodeHash,
+  query: { token_info: {} },
+})) as Result;
+```
+
 #### `.compute.code()`
 
 Get WASM bytecode and metadata for a code id.
+
+```ts
+const { codeInfo } = await secretjs.query.compute.code(codeId);
+```
 
 #### `.compute.codes()`
 
@@ -597,7 +648,7 @@ Proposal queries proposal details based on ProposalID.
 
 Proposals queries all proposals based on given status.
 
-```typescript
+```ts
 // Get all proposals
 const { proposals } = await secretjs.query.gov.proposals({
   proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
@@ -621,6 +672,15 @@ Params queries all parameters of the gov module.
 #### `.gov.deposit()`
 
 Deposit queries single deposit information based proposalID, depositAddr.
+
+```ts
+const {
+  deposit: { amount },
+} = await secretjs.query.gov.deposit({
+  depositor: myAddress,
+  proposalId: propId,
+});
+```
 
 #### `.gov.deposits()`
 
@@ -790,6 +850,11 @@ SigningInfos queries signing info of all validators.
 
 Validators queries all validators that match the given status.
 
+```ts
+// Get all validators
+const { validators } = await secretjs.query.staking.validators({ status: "" });
+```
+
 #### `.staking.validator()`
 
 Validator queries validator info for given validator address.
@@ -886,7 +951,7 @@ ModuleVersions queries the list of module versions from state.
 
 On a signer secret.js, `secretjs.address` is the same as `walletAddress`:
 
-```typescript
+```ts
 import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 
 const wallet = new Wallet(
@@ -917,7 +982,7 @@ Used to send a complex transactions, which contains a list of messages. The mess
 
 For a list of all messages see: https://secretjs.scrt.network/interfaces/Msg
 
-```typescript
+```ts
 const addMinterMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
   contract: MY_NFT_CONTRACT,
