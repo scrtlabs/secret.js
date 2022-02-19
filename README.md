@@ -309,11 +309,11 @@ const secretjs = await SecretNetworkClient.create({
 
 ### `secretjs.query`
 
-#### `.getTx(hash)`
+#### `secretjs.query.getTx(hash)`
 
 Returns a transaction with a txhash. `hash` is a 64 character upper-case hex string.
 
-#### `.txsQuery(query)`
+#### `secretjs.query.txsQuery(query)`
 
 Returns all transactions that match a query.
 
@@ -331,7 +331,7 @@ To create a query for txs where AddrA transferred funds: `transfer.sender = 'Add
 
 See `txsQuery` under https://secretjs.scrt.network/modules#Querier.
 
-#### `.auth.account()`
+#### `secretjs.query.auth.account()`
 
 Returns account details based on address.
 
@@ -341,7 +341,7 @@ const { address, accountNumber, sequence } = await secretjs.query.auth.account({
 });
 ```
 
-#### `.auth.accounts()`
+#### `secretjs.query.auth.accounts()`
 
 Returns all the existing accounts.
 
@@ -350,7 +350,7 @@ Returns all the existing accounts.
 const result = await secretjs.query.auth.accounts({});
 ```
 
-#### `.auth.params()`
+#### `secretjs.query.auth.params()`
 
 Queries all x/auth parameters.
 
@@ -366,11 +366,11 @@ const {
 } = await secretjs.query.auth.params();
 ```
 
-#### `.authz.grants()`
+#### `secretjs.query.authz.grants()`
 
 Returns list of authorizations, granted to the grantee by the granter.
 
-#### `.bank.balance()`
+#### `secretjs.query.bank.balance()`
 
 Balance queries the balance of a single coin for a single account.
 
@@ -381,47 +381,47 @@ const { balance } = await secretjs.query.bank.balance({
 });
 ```
 
-#### `.bank.allBalances()`
+#### `secretjs.query.bank.allBalances()`
 
 AllBalances queries the balance of all coins for a single account.
 
-#### `.bank.totalSupply()`
+#### `secretjs.query.bank.totalSupply()`
 
 TotalSupply queries the total supply of all coins.
 
-#### `.bank.supplyOf()`
+#### `secretjs.query.bank.supplyOf()`
 
 SupplyOf queries the supply of a single coin.
 
-#### `.bank.params()`
+#### `secretjs.query.bank.params()`
 
 Params queries the parameters of x/bank module.
 
-#### `.bank.denomMetadata()`
+#### `secretjs.query.bank.denomMetadata()`
 
 DenomsMetadata queries the client metadata of a given coin denomination.
 
-#### `.bank.denomsMetadata()`
+#### `secretjs.query.bank.denomsMetadata()`
 
 DenomsMetadata queries the client metadata for all registered coin denominations.
 
-#### `.compute.contractCodeHash()`
+#### `secretjs.query.compute.contractCodeHash()`
 
 Get codeHash of a Secret Contract.
 
-#### `.compute.codeHash()`
+#### `secretjs.query.compute.codeHash()`
 
 Get codeHash from a code id.
 
-#### `.compute.contractInfo()`
+#### `secretjs.query.compute.contractInfo()`
 
 Get metadata of a Secret Contract.
 
-#### `.compute.contractsByCode()`
+#### `secretjs.query.compute.contractsByCode()`
 
 Get all contracts that were instantiated from a code id.
 
-#### `.compute.queryContract()`
+#### `secretjs.query.compute.queryContract()`
 
 Query a Secret Contract.
 
@@ -442,7 +442,7 @@ const result = (await secretjs.query.compute.queryContract({
 })) as Result;
 ```
 
-#### `.compute.code()`
+#### `secretjs.query.compute.code()`
 
 Get WASM bytecode and metadata for a code id.
 
@@ -450,71 +450,71 @@ Get WASM bytecode and metadata for a code id.
 const { codeInfo } = await secretjs.query.compute.code(codeId);
 ```
 
-#### `.compute.codes()`
+#### `secretjs.query.compute.codes()`
 
 Query all contract codes on-chain.
 
-#### `.distribution.params()`
+#### `secretjs.query.distribution.params()`
 
 Params queries params of the distribution module.
 
-#### `.distribution.validatorOutstandingRewards()`
+#### `secretjs.query.distribution.validatorOutstandingRewards()`
 
 ValidatorOutstandingRewards queries rewards of a validator address. \*/
 
-#### `.distribution.validatorCommission()`
+#### `secretjs.query.distribution.validatorCommission()`
 
 ValidatorCommission queries accumulated commission for a validator. \*/
 
-#### `.distribution.validatorSlashes()`
+#### `secretjs.query.distribution.validatorSlashes()`
 
 ValidatorSlashes queries slash events of a validator. \*/
 
-#### `.distribution.delegationRewards()`
+#### `secretjs.query.distribution.delegationRewards()`
 
 DelegationRewards queries the total rewards accrued by a delegation. \*/
 
-#### `.distribution.delegationTotalRewards()`
+#### `secretjs.query.distribution.delegationTotalRewards()`
 
 DelegationTotalRewards queries the total rewards accrued by a each validator.
 
-#### `.distribution.delegatorValidators()`
+#### `secretjs.query.distribution.delegatorValidators()`
 
 DelegatorValidators queries the validators of a delegator. \*/
 
-#### `.distribution.delegatorWithdrawAddress()`
+#### `secretjs.query.distribution.delegatorWithdrawAddress()`
 
 DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
 
-#### `.distribution.communityPool()`
+#### `secretjs.query.distribution.communityPool()`
 
 CommunityPool queries the community pool coins. \*/
 
-#### `.distribution.foundationTax()`
+#### `secretjs.query.distribution.foundationTax()`
 
 DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
 
-#### `.evidence.evidence()`
+#### `secretjs.query.evidence.evidence()`
 
 Evidence queries evidence based on evidence hash.
 
-#### `.evidence.allEvidence()`
+#### `secretjs.query.evidence.allEvidence()`
 
 AllEvidence queries all evidence.
 
-#### `.feegrant.allowance()`
+#### `secretjs.query.feegrant.allowance()`
 
 Allowance returns fee granted to the grantee by the granter.
 
-#### `.feegrant.allowances()`
+#### `secretjs.query.feegrant.allowances()`
 
 Allowances returns all the grants for address.
 
-#### `.gov.proposal()`
+#### `secretjs.query.gov.proposal()`
 
 Proposal queries proposal details based on ProposalID.
 
-#### `.gov.proposals()`
+#### `secretjs.query.gov.proposals()`
 
 Proposals queries all proposals based on given status.
 
@@ -527,19 +527,19 @@ const { proposals } = await secretjs.query.gov.proposals({
 });
 ```
 
-#### `.gov.vote()`
+#### `secretjs.query.gov.vote()`
 
 Vote queries voted information based on proposalID, voterAddr.
 
-#### `.gov.votes()`
+#### `secretjs.query.gov.votes()`
 
 Votes queries votes of a given proposal.
 
-#### `.gov.params()`
+#### `secretjs.query.gov.params()`
 
 Params queries all parameters of the gov module.
 
-#### `.gov.deposit()`
+#### `secretjs.query.gov.deposit()`
 
 Deposit queries single deposit information based proposalID, depositAddr.
 
@@ -552,171 +552,171 @@ const {
 });
 ```
 
-#### `.gov.deposits()`
+#### `secretjs.query.gov.deposits()`
 
 Deposits queries all deposits of a single proposal.
 
-#### `.gov.tallyResult()`
+#### `secretjs.query.gov.tallyResult()`
 
 TallyResult queries the tally of a proposal vote.
 
-#### `.ibc_channel.channel()`
+#### `secretjs.query.ibc_channel.channel()`
 
 Channel queries an IBC Channel.
 
-#### `.ibc_channel.channels()`
+#### `secretjs.query.ibc_channel.channels()`
 
 Channels queries all the IBC channels of a chain.
 
-#### `.ibc_channel.connectionChannels()`
+#### `secretjs.query.ibc_channel.connectionChannels()`
 
 ConnectionChannels queries all the channels associated with a connection end.
 
-#### `.ibc_channel.channelClientState()`
+#### `secretjs.query.ibc_channel.channelClientState()`
 
 ChannelClientState queries for the client state for the channel associated with the provided channel identifiers.
 
-#### `.ibc_channel.channelConsensusState()`
+#### `secretjs.query.ibc_channel.channelConsensusState()`
 
 ChannelConsensusState queries for the consensus state for the channel associated with the provided channel identifiers.
 
-#### `.ibc_channel.packetCommitment()`
+#### `secretjs.query.ibc_channel.packetCommitment()`
 
 PacketCommitment queries a stored packet commitment hash.
 
-#### `.ibc_channel.packetCommitments()`
+#### `secretjs.query.ibc_channel.packetCommitments()`
 
 PacketCommitments returns all the packet commitments hashes associated with a channel.
 
-#### `.ibc_channel.packetReceipt()`
+#### `secretjs.query.ibc_channel.packetReceipt()`
 
 PacketReceipt queries if a given packet sequence has been received on the queried chain
 
-#### `.ibc_channel.packetAcknowledgement()`
+#### `secretjs.query.ibc_channel.packetAcknowledgement()`
 
 PacketAcknowledgement queries a stored packet acknowledgement hash.
 
-#### `.ibc_channel.packetAcknowledgements()`
+#### `secretjs.query.ibc_channel.packetAcknowledgements()`
 
 PacketAcknowledgements returns all the packet acknowledgements associated with a channel.
 
-#### `.ibc_channel.unreceivedPackets()`
+#### `secretjs.query.ibc_channel.unreceivedPackets()`
 
 UnreceivedPackets returns all the unreceived IBC packets associated with a channel and sequences.
 
-#### `.ibc_channel.unreceivedAcks()`
+#### `secretjs.query.ibc_channel.unreceivedAcks()`
 
 UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
 
-#### `.ibc_channel.nextSequenceReceive()`
+#### `secretjs.query.ibc_channel.nextSequenceReceive()`
 
 NextSequenceReceive returns the next receive sequence for a given channel.
 
-#### `.ibc_client.clientState()`
+#### `secretjs.query.ibc_client.clientState()`
 
 ClientState queries an IBC light client.
 
-#### `.ibc_client.clientStates()`
+#### `secretjs.query.ibc_client.clientStates()`
 
 ClientStates queries all the IBC light clients of a chain.
 
-#### `.ibc_client.consensusState()`
+#### `secretjs.query.ibc_client.consensusState()`
 
 ConsensusState queries a consensus state associated with a client state at a given height.
 
-#### `.ibc_client.consensusStates()`
+#### `secretjs.query.ibc_client.consensusStates()`
 
 ConsensusStates queries all the consensus state associated with a given client.
 
-#### `.ibc_client.clientStatus()`
+#### `secretjs.query.ibc_client.clientStatus()`
 
 Status queries the status of an IBC client.
 
-#### `.ibc_client.clientParams()`
+#### `secretjs.query.ibc_client.clientParams()`
 
 ClientParams queries all parameters of the ibc client.
 
-#### `.ibc_client.upgradedClientState()`
+#### `secretjs.query.ibc_client.upgradedClientState()`
 
 UpgradedClientState queries an Upgraded IBC light client.
 
-#### `.ibc_client.upgradedConsensusState()`
+#### `secretjs.query.ibc_client.upgradedConsensusState()`
 
 UpgradedConsensusState queries an Upgraded IBC consensus state.
 
-#### `.ibc_connection.connection()`
+#### `secretjs.query.ibc_connection.connection()`
 
 Connection queries an IBC connection end.
 
-#### `.ibc_connection.connections()`
+#### `secretjs.query.ibc_connection.connections()`
 
 Connections queries all the IBC connections of a chain.
 
-#### `.ibc_connection.clientConnections()`
+#### `secretjs.query.ibc_connection.clientConnections()`
 
 ClientConnections queries the connection paths associated with a client state.
 
-#### `.ibc_connection.connectionClientState()`
+#### `secretjs.query.ibc_connection.connectionClientState()`
 
 ConnectionClientState queries the client state associated with the connection.
 
-#### `.ibc_connection.connectionConsensusState()`
+#### `secretjs.query.ibc_connection.connectionConsensusState()`
 
 ConnectionConsensusState queries the consensus state associated with the connection.
 
-#### `.ibc_transfer.denomTrace()`
+#### `secretjs.query.ibc_transfer.denomTrace()`
 
 DenomTrace queries a denomination trace information.
 
-#### `.ibc_transfer.denomTraces()`
+#### `secretjs.query.ibc_transfer.denomTraces()`
 
 DenomTraces queries all denomination traces.
 
-#### `.ibc_transfer.params()`
+#### `secretjs.query.ibc_transfer.params()`
 
 Params queries all parameters of the ibc-transfer module.
 
-#### `.mint.params()`
+#### `secretjs.query.mint.params()`
 
 Params returns the total set of minting parameters.
 
-#### `.mint.inflation()`
+#### `secretjs.query.mint.inflation()`
 
 Inflation returns the current minting inflation value.
 
-#### `.mint.annualProvisions()`
+#### `secretjs.query.mint.annualProvisions()`
 
 AnnualProvisions current minting annual provisions value.
 
-#### `.params.params()`
+#### `secretjs.query.params.params()`
 
 Params queries a specific parameter of a module, given its subspace and key.
 
-#### `.registration.txKey()`
+#### `secretjs.query.registration.txKey()`
 
 Returns the key used for transactions.
 
-#### `.registration.registrationKey()`
+#### `secretjs.query.registration.registrationKey()`
 
 Returns the key used for registration.
 
-#### `.registration.encryptedSeed()`
+#### `secretjs.query.registration.encryptedSeed()`
 
 Returns the encrypted seed for a registered node by public key.
 
-#### `.slashing.params()`
+#### `secretjs.query.slashing.params()`
 
 Params queries the parameters of slashing module.
 
-#### `.slashing.signingInfo()`
+#### `secretjs.query.slashing.signingInfo()`
 
 SigningInfo queries the signing info of given cons address.
 
-#### `.slashing.signingInfos()`
+#### `secretjs.query.slashing.signingInfos()`
 
 SigningInfos queries signing info of all validators.
 
-#### `.staking.validators()`
+#### `secretjs.query.staking.validators()`
 
 Validators queries all validators that match the given status.
 
@@ -725,95 +725,95 @@ Validators queries all validators that match the given status.
 const { validators } = await secretjs.query.staking.validators({ status: "" });
 ```
 
-#### `.staking.validator()`
+#### `secretjs.query.staking.validator()`
 
 Validator queries validator info for given validator address.
 
-#### `.staking.validatorDelegations()`
+#### `secretjs.query.staking.validatorDelegations()`
 
 ValidatorDelegations queries delegate info for given validator.
 
-#### `.staking.validatorUnbondingDelegations()`
+#### `secretjs.query.staking.validatorUnbondingDelegations()`
 
 ValidatorUnbondingDelegations queries unbonding delegations of a validator.
 
-#### `.staking.delegation()`
+#### `secretjs.query.staking.delegation()`
 
 Delegation queries delegate info for given validator delegator pair.
 
-#### `.staking.unbondingDelegation()`
+#### `secretjs.query.staking.unbondingDelegation()`
 
 UnbondingDelegation queries unbonding info for given validator delegator pair.
 
-#### `.staking.delegatorDelegations()`
+#### `secretjs.query.staking.delegatorDelegations()`
 
 DelegatorDelegations queries all delegations of a given delegator address.
 
-#### `.staking.delegatorUnbondingDelegations()`
+#### `secretjs.query.staking.delegatorUnbondingDelegations()`
 
 DelegatorUnbondingDelegations queries all unbonding delegations of a given delegator address.
 
-#### `.staking.redelegations()`
+#### `secretjs.query.staking.redelegations()`
 
 Redelegations queries redelegations of given address.
 
-#### `.staking.delegatorValidators()`
+#### `secretjs.query.staking.delegatorValidators()`
 
 DelegatorValidators queries all validators info for given delegator address.
 
-#### `.staking.delegatorValidator()`
+#### `secretjs.query.staking.delegatorValidator()`
 
 DelegatorValidator queries validator info for given delegator validator pair.
 
-#### `.staking.historicalInfo()`
+#### `secretjs.query.staking.historicalInfo()`
 
 HistoricalInfo queries the historical info for given height.
 
-#### `.staking.pool()`
+#### `secretjs.query.staking.pool()`
 
 Pool queries the pool info.
 
-#### `.staking.params()`
+#### `secretjs.query.staking.params()`
 
 Parameters queries the staking parameters.
 
-#### `.tendermint.getNodeInfo()`
+#### `secretjs.query.tendermint.getNodeInfo()`
 
 GetNodeInfo queries the current node info.
 
-#### `.tendermint.getSyncing()`
+#### `secretjs.query.tendermint.getSyncing()`
 
 GetSyncing queries node syncing.
 
-#### `.tendermint.getLatestBlock()`
+#### `secretjs.query.tendermint.getLatestBlock()`
 
 GetLatestBlock returns the latest block.
 
-#### `.tendermint.getBlockByHeight()`
+#### `secretjs.query.tendermint.getBlockByHeight()`
 
 GetBlockByHeight queries block for given height.
 
-#### `.tendermint.getLatestValidatorSet()`
+#### `secretjs.query.tendermint.getLatestValidatorSet()`
 
 GetLatestValidatorSet queries latest validator-set.
 
-#### `.tendermint.getValidatorSetByHeight()`
+#### `secretjs.query.tendermint.getValidatorSetByHeight()`
 
 GetValidatorSetByHeight queries validator-set at a given height.
 
-#### `.upgrade.currentPlan()`
+#### `secretjs.query.upgrade.currentPlan()`
 
 CurrentPlan queries the current upgrade plan.
 
-#### `.upgrade.appliedPlan()`
+#### `secretjs.query.upgrade.appliedPlan()`
 
 AppliedPlan queries a previously applied upgrade plan by its name.
 
-#### `.upgrade.upgradedConsensusState()`
+#### `secretjs.query.upgrade.upgradedConsensusState()`
 
 UpgradedConsensusState queries the consensus state that will serve as a trusted kernel for the next version of this chain. It will only be stored at the last height of this chain.
 
-#### `.upgrade.moduleVersions()`
+#### `secretjs.query.upgrade.moduleVersions()`
 
 ModuleVersions queries the list of module versions from state.
 
@@ -846,7 +846,7 @@ On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every fu
 
 [Full API »](https://secretjs.scrt.network/modules#TxSender)
 
-#### `.broadcast()`
+#### `secretjs.tx.broadcast()`
 
 Used to send a complex transactions, which contains a list of messages. The messages are executed in sequence, and the transaction succeeds if all messages succeed.
 
@@ -891,25 +891,25 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 });
 ```
 
-#### `.authz.exec()`
+#### `secretjs.tx.authz.exec()`
 
 MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
 
 Input: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
 
-#### `.authz.grant()`
+#### `secretjs.tx.authz.grant()`
 
 MsgGrant is a request type for Grant method. It declares authorization to the grantee on behalf of the granter with the provided expiration time.
 
 Input: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
 
-#### `.authz.revoke()`
+#### `secretjs.tx.authz.revoke()`
 
 MsgRevoke revokes any authorization with the provided sdk.Msg type on the granter's account with that has been granted to the grantee.
 
 Input: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
 
-#### `.bank.multiSend()`
+#### `secretjs.tx.bank.multiSend()`
 
 MsgMultiSend represents an arbitrary multi-in, multi-out send message.
 
@@ -941,7 +941,7 @@ const tx = await secretjs.tx.bank.multiSend(
 );
 ```
 
-#### `.bank.send()`
+#### `secretjs.tx.bank.send()`
 
 MsgSend represents a message to send coins from one account to another.
 
@@ -960,7 +960,7 @@ const tx = await secretjs.tx.bank.send(
 );
 ```
 
-#### `.compute.storeCode()`
+#### `secretjs.tx.compute.storeCode()`
 
 Upload a compiled contract to Secret Network
 
@@ -987,7 +987,7 @@ const codeId = Number(
 );
 ```
 
-#### `.compute.instantiateContract()`
+#### `secretjs.tx.compute.instantiateContract()`
 
 Instantiate a contract from code id
 
@@ -1028,7 +1028,7 @@ const contractAddress = tx.arrayLog.find(
 ).value;
 ```
 
-#### `.compute.executeContract()`
+#### `secretjs.tx.compute.executeContract()`
 
 Execute a function on a contract
 
@@ -1054,13 +1054,13 @@ const tx = await secretjs.tx.compute.executeContract(
 );
 ```
 
-#### `.crisis.verifyInvariant()`
+#### `secretjs.tx.crisis.verifyInvariant()`
 
 MsgVerifyInvariant represents a message to verify a particular invariance.
 
 Input: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
 
-#### `.distribution.fundCommunityPool()`
+#### `secretjs.tx.distribution.fundCommunityPool()`
 
 MsgFundCommunityPool allows an account to directly fund the community pool.
 
@@ -1078,7 +1078,7 @@ const tx = await secretjs.tx.distribution.fundCommunityPool(
 );
 ```
 
-#### `.distribution.setWithdrawAddress()`
+#### `secretjs.tx.distribution.setWithdrawAddress()`
 
 MsgSetWithdrawAddress sets the withdraw address for a delegator (or validator self-delegation).
 
@@ -1096,7 +1096,7 @@ const tx = await secretjs.tx.distribution.setWithdrawAddress(
 );
 ```
 
-#### `.distribution.withdrawDelegatorReward()`
+#### `secretjs.tx.distribution.withdrawDelegatorReward()`
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
@@ -1114,7 +1114,7 @@ const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
 );
 ```
 
-#### `.distribution.withdrawValidatorCommission()`
+#### `secretjs.tx.distribution.withdrawValidatorCommission()`
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
@@ -1150,25 +1150,25 @@ const tx = await secretjs.tx.broadcast(
 );
 ```
 
-#### `.evidence.submitEvidence()`
+#### `secretjs.tx.evidence.submitEvidence()`
 
 MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
 
 Input: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
 
-#### `.feegrant.grantAllowance()`
+#### `secretjs.tx.feegrant.grantAllowance()`
 
 MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees from the account of Granter.
 
 Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
-#### `.feegrant.revokeAllowance()`
+#### `secretjs.tx.feegrant.revokeAllowance()`
 
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
 
-#### `.gov.deposit()`
+#### `secretjs.tx.gov.deposit()`
 
 MsgDeposit defines a message to submit a deposit to an existing proposal.
 
@@ -1187,7 +1187,7 @@ const tx = await secretjs.tx.gov.deposit(
 );
 ```
 
-#### `.gov.submitProposal()`
+#### `secretjs.tx.gov.submitProposal()`
 
 MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary proposal Content.
 
@@ -1216,7 +1216,7 @@ const proposalId = Number(
 );
 ```
 
-#### `.gov.vote()`
+#### `secretjs.tx.gov.vote()`
 
 MsgVote defines a message to cast a vote.
 
@@ -1235,7 +1235,7 @@ const tx = await secretjs.tx.gov.vote(
 );
 ```
 
-#### `.gov.voteWeighted()`
+#### `secretjs.tx.gov.voteWeighted()`
 
 MsgVoteWeighted defines a message to cast a vote, with an option to split the vote.
 
@@ -1259,13 +1259,13 @@ const tx = await secretjs.tx.gov.voteWeighted(
 );
 ```
 
-#### `.ibc.transfer()`
+#### `secretjs.tx.ibc.transfer()`
 
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
 
 Input: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
 
-#### `.slashing.unjail()`
+#### `secretjs.tx.slashing.unjail()`
 
 MsgUnjail defines a message to release a validator from jail.
 
@@ -1282,7 +1282,7 @@ const tx = await secretjs.tx.slashing.unjail(
 );
 ```
 
-#### `.staking.beginRedelegate()`
+#### `secretjs.tx.staking.beginRedelegate()`
 
 MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator.
 
@@ -1302,7 +1302,7 @@ const tx = await secretjs.tx.staking.beginRedelegate(
 );
 ```
 
-#### `.staking.createValidator()`
+#### `secretjs.tx.staking.createValidator()`
 
 MsgCreateValidator defines an SDK message for creating a new validator.
 
@@ -1334,7 +1334,7 @@ const tx = await secretjs.tx.staking.createValidator(
 );
 ```
 
-#### `.staking.delegate()`
+#### `secretjs.tx.staking.delegate()`
 
 MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator.
 
@@ -1353,7 +1353,7 @@ const tx = await secretjs.tx.staking.delegate(
 );
 ```
 
-#### `.staking.editValidator()`
+#### `secretjs.tx.staking.editValidator()`
 
 MsgEditValidator defines an SDK message for editing an existing validator.
 
@@ -1380,7 +1380,7 @@ const tx = await secretjs.tx.staking.editValidator(
 );
 ```
 
-#### `.staking.undelegate()`
+#### `secretjs.tx.staking.undelegate()`
 
 MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator
 
