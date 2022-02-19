@@ -24,8 +24,8 @@ import {
   MsgInstantiateContractParams,
   MsgMultiSend,
   MsgMultiSendParams,
-  MsgRedelegate,
-  MsgRedelegateParams,
+  MsgBeginRedelegate,
+  MsgBeginRedelegateParams,
   MsgRevoke,
   MsgRevokeAllowance,
   MsgRevokeAllowanceParams,
@@ -169,7 +169,7 @@ export class ReadonlySigner implements AminoSigner {
 }
 
 export type Querier = {
-  /** Fetch a transaction with a txhash. Must be 64 character upper-case hex string */
+  /** Returns a transaction with a txhash. Must be 64 character upper-case hex string */
   getTx: (hash: string) => Promise<Tx | null>;
   /**
    * To tell which events you want, you need to provide a query. query is a string, which has a form: "condition AND condition ..." (no OR at the moment).
@@ -179,17 +179,17 @@ export type Querier = {
    * operation can be "=", "<", "<=", ">", ">=", "CONTAINS" AND "EXISTS". operand can be a string (escaped with single quotes), number, date or time.
    *
    * Examples:
-   * - tx.hash = 'XYZ' # single transaction
-   * - tx.height = 5 # all txs of the fifth block
-   * - create_validator.validator = 'ABC' # tx where validator ABC was created
+   * - `tx.hash = 'XYZ'` # single transaction
+   * - `tx.height = 5` # all txs of the fifth block
+   * - `create_validator.validator = 'ABC'` # tx where validator ABC was created
    *
-   * Tendermint provides a few predefined keys: tm.event, tx.hash and tx.height. Dor transactions, you can provide additional event keys that were emitted during the transaction.
+   * Tendermint provides a few predefined keys: tm.event, tx.hash and tx.height. You can provide additional event keys that were emitted during the transaction.
    *
-   * All events are indexed by a composite key of the form {eventType}.{evenAttrKey}.
+   * All events are indexed by a composite key of the form `{eventType}.{evenAttrKey}`.
    *
    * Multiple event types with duplicate keys are allowed and are meant to categorize unique and distinct events.
    *
-   * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'
+   * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
    *
    */
   txsQuery: (query: string) => Promise<Tx[]>;
@@ -537,7 +537,7 @@ export type TxSender = {
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
     redelegate: (
-      params: MsgRedelegateParams,
+      params: MsgBeginRedelegateParams,
       txOptions?: SignAndBroadcastOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
@@ -743,7 +743,7 @@ export class SecretNetworkClient {
         unjail: doMsg(MsgUnjail),
       },
       staking: {
-        redelegate: doMsg(MsgRedelegate),
+        redelegate: doMsg(MsgBeginRedelegate),
         createValidator: doMsg(MsgCreateValidator),
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),

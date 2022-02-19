@@ -280,15 +280,15 @@ export class MsgDelegate implements Msg {
   }
 }
 
-export interface MsgRedelegateParams extends MsgParams {
+export interface MsgBeginRedelegateParams extends MsgParams {
   delegatorAddress: string;
   validatorSrcAddress: string;
   validatorDstAddress: string;
   amount: Coin;
 }
 
-/** MsgRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-export class MsgRedelegate implements Msg {
+/** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
+export class MsgBeginRedelegate implements Msg {
   public delegatorAddress: string;
   public validatorSrcAddress: string;
   public validatorDstAddress: string;
@@ -299,7 +299,7 @@ export class MsgRedelegate implements Msg {
     validatorSrcAddress,
     validatorDstAddress,
     amount,
-  }: MsgRedelegateParams) {
+  }: MsgBeginRedelegateParams) {
     this.delegatorAddress = delegatorAddress;
     this.validatorSrcAddress = validatorSrcAddress;
     this.validatorDstAddress = validatorDstAddress;

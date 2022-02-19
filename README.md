@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  The JavaScript SDK for Secret Network.
+  The JavaScript SDK for Secret Network
 </p>
 
 <p align="center">
@@ -24,49 +24,154 @@
 - [Usage Examples](#usage-examples)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
+  - [Keplr Wallet](#keplr-wallet)
+    - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
+    - [`getOfflineSigner()`](#getofflinesigner)
+    - [`getOfflineSignerAuto()`](#getofflinesignerauto)
+- [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
-    - [Importing account from mnemonic phrase](#importing-account-from-mnemonic-phrase)
+    - [Importing account from mnemonic](#importing-account-from-mnemonic)
     - [Generating a random account](#generating-a-random-account)
   - [SecretNetworkClient](#secretnetworkclient)
-    - [Readonly](#readonly)
-      - [`secretjs.query`](#secretjsquery)
-    - [Signer](#signer)
-      - [`secretjs.address`](#secretjsaddress)
-      - [`secretjs.tx`](#secretjstx)
-        - [`secretjs.tx.broadcast()`](#secretjstxbroadcast)
-        - [`secretjs.tx.authz.exec()`](#secretjstxauthzexec)
-        - [`secretjs.tx.authz.grant()`](#secretjstxauthzgrant)
-        - [`secretjs.tx.authz.revoke()`](#secretjstxauthzrevoke)
-        - [`secretjs.tx.bank.multiSend()`](#secretjstxbankmultisend)
-        - [`secretjs.tx.bank.send()`](#secretjstxbanksend)
-        - [`secretjs.tx.compute.executeContract()`](#secretjstxcomputeexecutecontract)
-        - [`secretjs.tx.compute.instantiateContract()`](#secretjstxcomputeinstantiatecontract)
-        - [`secretjs.tx.compute.storeCode()`](#secretjstxcomputestorecode)
-        - [`secretjs.tx.crisis.verifyInvariant()`](#secretjstxcrisisverifyinvariant)
-        - [`secretjs.tx.distribution.fundCommunityPool()`](#secretjstxdistributionfundcommunitypool)
-        - [`secretjs.tx.distribution.setWithdrawAddress()`](#secretjstxdistributionsetwithdrawaddress)
-        - [`secretjs.tx.distribution.withdrawDelegatorReward()`](#secretjstxdistributionwithdrawdelegatorreward)
-        - [`secretjs.tx.distribution.withdrawValidatorCommission()`](#secretjstxdistributionwithdrawvalidatorcommission)
-        - [`secretjs.tx.evidence.submitEvidence()`](#secretjstxevidencesubmitevidence)
-        - [`secretjs.tx.feegrant.grantAllowance()`](#secretjstxfeegrantgrantallowance)
-        - [`secretjs.tx.feegrant.revokeAllowance()`](#secretjstxfeegrantrevokeallowance)
-        - [`secretjs.tx.gov.deposit()`](#secretjstxgovdeposit)
-        - [`secretjs.tx.gov.submitProposal()`](#secretjstxgovsubmitproposal)
-        - [`secretjs.tx.gov.vote()`](#secretjstxgovvote)
-        - [`secretjs.tx.gov.voteWeighted()`](#secretjstxgovvoteweighted)
-        - [`secretjs.tx.ibc.transfer()`](#secretjstxibctransfer)
-        - [`secretjs.tx.slashing.unjail()`](#secretjstxslashingunjail)
-        - [`secretjs.tx.staking.redelegate()`](#secretjstxstakingredelegate)
-        - [`secretjs.tx.staking.createValidator()`](#secretjstxstakingcreatevalidator)
-        - [`secretjs.tx.staking.delegate()`](#secretjstxstakingdelegate)
-        - [`secretjs.tx.staking.editValidator()`](#secretjstxstakingeditvalidator)
-        - [`secretjs.tx.staking.undelegate()`](#secretjstxstakingundelegate)
-    - [Using Keplr](#using-keplr)
-      - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
-      - [`getOfflineSigner()`](#getofflinesigner)
-      - [`getOfflineSignerAuto()`](#getofflinesignerauto)
-- [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
+    - [Readonly secret.js](#readonly-secretjs)
+    - [Signer secret.js](#signer-secretjs)
+    - [`secretjs.query`](#secretjsquery)
+      - [`.getTx(hash)`](#gettxhash)
+      - [`.txsQuery(query)`](#txsqueryquery)
+      - [`.auth.account()`](#authaccount)
+      - [`.auth.accounts()`](#authaccounts)
+      - [`.auth.params()`](#authparams)
+      - [`.authz.grants()`](#authzgrants)
+      - [`.bank.balance()`](#bankbalance)
+      - [`.bank.allBalances()`](#bankallbalances)
+      - [`.bank.totalSupply()`](#banktotalsupply)
+      - [`.bank.supplyOf()`](#banksupplyof)
+      - [`.bank.params()`](#bankparams)
+      - [`.bank.denomMetadata()`](#bankdenommetadata)
+      - [`.bank.denomsMetadata()`](#bankdenomsmetadata)
+      - [`.compute.contractCodeHash()`](#computecontractcodehash)
+      - [`.compute.codeHash()`](#computecodehash)
+      - [`.compute.contractInfo()`](#computecontractinfo)
+      - [`.compute.contractsByCode()`](#computecontractsbycode)
+      - [`.compute.queryContract()`](#computequerycontract)
+      - [`.compute.code()`](#computecode)
+      - [`.compute.codes()`](#computecodes)
+      - [`.distribution.params()`](#distributionparams)
+      - [`.distribution.validatorOutstandingRewards()`](#distributionvalidatoroutstandingrewards)
+      - [`.distribution.validatorCommission()`](#distributionvalidatorcommission)
+      - [`.distribution.validatorSlashes()`](#distributionvalidatorslashes)
+      - [`.distribution.delegationRewards()`](#distributiondelegationrewards)
+      - [`.distribution.delegationTotalRewards()`](#distributiondelegationtotalrewards)
+      - [`.distribution.delegatorValidators()`](#distributiondelegatorvalidators)
+      - [`.distribution.delegatorWithdrawAddress()`](#distributiondelegatorwithdrawaddress)
+      - [`.distribution.communityPool()`](#distributioncommunitypool)
+      - [`.distribution.foundationTax()`](#distributionfoundationtax)
+      - [`.evidence.evidence()`](#evidenceevidence)
+      - [`.evidence.allEvidence()`](#evidenceallevidence)
+      - [`.feegrant.allowance()`](#feegrantallowance)
+      - [`.feegrant.allowances()`](#feegrantallowances)
+      - [`.gov.proposal()`](#govproposal)
+      - [`.gov.proposals()`](#govproposals)
+      - [`.gov.vote()`](#govvote)
+      - [`.gov.votes()`](#govvotes)
+      - [`.gov.params()`](#govparams)
+      - [`.gov.deposit()`](#govdeposit)
+      - [`.gov.deposits()`](#govdeposits)
+      - [`.gov.tallyResult()`](#govtallyresult)
+      - [`.ibc_channel.channel()`](#ibc_channelchannel)
+      - [`.ibc_channel.channels()`](#ibc_channelchannels)
+      - [`.ibc_channel.connectionChannels()`](#ibc_channelconnectionchannels)
+      - [`.ibc_channel.channelClientState()`](#ibc_channelchannelclientstate)
+      - [`.ibc_channel.channelConsensusState()`](#ibc_channelchannelconsensusstate)
+      - [`.ibc_channel.packetCommitment()`](#ibc_channelpacketcommitment)
+      - [`.ibc_channel.packetCommitments()`](#ibc_channelpacketcommitments)
+      - [`.ibc_channel.packetReceipt()`](#ibc_channelpacketreceipt)
+      - [`.ibc_channel.packetAcknowledgement()`](#ibc_channelpacketacknowledgement)
+      - [`.ibc_channel.packetAcknowledgements()`](#ibc_channelpacketacknowledgements)
+      - [`.ibc_channel.unreceivedPackets()`](#ibc_channelunreceivedpackets)
+      - [`.ibc_channel.unreceivedAcks()`](#ibc_channelunreceivedacks)
+      - [`.ibc_channel.nextSequenceReceive()`](#ibc_channelnextsequencereceive)
+      - [`.ibc_client.clientState()`](#ibc_clientclientstate)
+      - [`.ibc_client.clientStates()`](#ibc_clientclientstates)
+      - [`.ibc_client.consensusState()`](#ibc_clientconsensusstate)
+      - [`.ibc_client.consensusStates()`](#ibc_clientconsensusstates)
+      - [`.ibc_client.clientStatus()`](#ibc_clientclientstatus)
+      - [`.ibc_client.clientParams()`](#ibc_clientclientparams)
+      - [`.ibc_client.upgradedClientState()`](#ibc_clientupgradedclientstate)
+      - [`.ibc_client.upgradedConsensusState()`](#ibc_clientupgradedconsensusstate)
+      - [`.ibc_connection.connection()`](#ibc_connectionconnection)
+      - [`.ibc_connection.connections()`](#ibc_connectionconnections)
+      - [`.ibc_connection.clientConnections()`](#ibc_connectionclientconnections)
+      - [`.ibc_connection.connectionClientState()`](#ibc_connectionconnectionclientstate)
+      - [`.ibc_connection.connectionConsensusState()`](#ibc_connectionconnectionconsensusstate)
+      - [`.ibc_transfer.denomTrace()`](#ibc_transferdenomtrace)
+      - [`.ibc_transfer.denomTraces()`](#ibc_transferdenomtraces)
+      - [`.ibc_transfer.params()`](#ibc_transferparams)
+      - [`.mint.params()`](#mintparams)
+      - [`.mint.inflation()`](#mintinflation)
+      - [`.mint.annualProvisions()`](#mintannualprovisions)
+      - [`.params.params()`](#paramsparams)
+      - [`.registration.txKey()`](#registrationtxkey)
+      - [`.registration.registrationKey()`](#registrationregistrationkey)
+      - [`.registration.encryptedSeed()`](#registrationencryptedseed)
+      - [`.slashing.params()`](#slashingparams)
+      - [`.slashing.signingInfo()`](#slashingsigninginfo)
+      - [`.slashing.signingInfos()`](#slashingsigninginfos)
+      - [`.staking.validators()`](#stakingvalidators)
+      - [`.staking.validator()`](#stakingvalidator)
+      - [`.staking.validatorDelegations()`](#stakingvalidatordelegations)
+      - [`.staking.validatorUnbondingDelegations()`](#stakingvalidatorunbondingdelegations)
+      - [`.staking.delegation()`](#stakingdelegation)
+      - [`.staking.unbondingDelegation()`](#stakingunbondingdelegation)
+      - [`.staking.delegatorDelegations()`](#stakingdelegatordelegations)
+      - [`.staking.delegatorUnbondingDelegations()`](#stakingdelegatorunbondingdelegations)
+      - [`.staking.redelegations()`](#stakingredelegations)
+      - [`.staking.delegatorValidators()`](#stakingdelegatorvalidators)
+      - [`.staking.delegatorValidator()`](#stakingdelegatorvalidator)
+      - [`.staking.historicalInfo()`](#stakinghistoricalinfo)
+      - [`.staking.pool()`](#stakingpool)
+      - [`.staking.params()`](#stakingparams)
+      - [`.tendermint.getNodeInfo()`](#tendermintgetnodeinfo)
+      - [`.tendermint.getSyncing()`](#tendermintgetsyncing)
+      - [`.tendermint.getLatestBlock()`](#tendermintgetlatestblock)
+      - [`.tendermint.getBlockByHeight()`](#tendermintgetblockbyheight)
+      - [`.tendermint.getLatestValidatorSet()`](#tendermintgetlatestvalidatorset)
+      - [`.tendermint.getValidatorSetByHeight()`](#tendermintgetvalidatorsetbyheight)
+      - [`.upgrade.currentPlan()`](#upgradecurrentplan)
+      - [`.upgrade.appliedPlan()`](#upgradeappliedplan)
+      - [`.upgrade.upgradedConsensusState()`](#upgradeupgradedconsensusstate)
+      - [`.upgrade.moduleVersions()`](#upgrademoduleversions)
+    - [`secretjs.address`](#secretjsaddress)
+    - [`secretjs.tx`](#secretjstx)
+      - [`.broadcast()`](#broadcast)
+      - [`.authz.exec()`](#authzexec)
+      - [`.authz.grant()`](#authzgrant)
+      - [`.authz.revoke()`](#authzrevoke)
+      - [`.bank.multiSend()`](#bankmultisend)
+      - [`.bank.send()`](#banksend)
+      - [`.compute.executeContract()`](#computeexecutecontract)
+      - [`.compute.instantiateContract()`](#computeinstantiatecontract)
+      - [`.compute.storeCode()`](#computestorecode)
+      - [`.crisis.verifyInvariant()`](#crisisverifyinvariant)
+      - [`.distribution.fundCommunityPool()`](#distributionfundcommunitypool)
+      - [`.distribution.setWithdrawAddress()`](#distributionsetwithdrawaddress)
+      - [`.distribution.withdrawDelegatorReward()`](#distributionwithdrawdelegatorreward)
+      - [`.distribution.withdrawValidatorCommission()`](#distributionwithdrawvalidatorcommission)
+      - [`.evidence.submitEvidence()`](#evidencesubmitevidence)
+      - [`.feegrant.grantAllowance()`](#feegrantgrantallowance)
+      - [`.feegrant.revokeAllowance()`](#feegrantrevokeallowance)
+      - [`.gov.deposit()`](#govdeposit-1)
+      - [`.gov.submitProposal()`](#govsubmitproposal)
+      - [`.gov.vote()`](#govvote-1)
+      - [`.gov.voteWeighted()`](#govvoteweighted)
+      - [`.ibc.transfer()`](#ibctransfer)
+      - [`.slashing.unjail()`](#slashingunjail)
+      - [`.staking.redelegate()`](#stakingredelegate)
+      - [`.staking.createValidator()`](#stakingcreatevalidator)
+      - [`.staking.delegate()`](#stakingdelegate)
+      - [`.staking.editValidator()`](#stakingeditvalidator)
+      - [`.staking.undelegate()`](#stakingundelegate)
 
 # Key Features
 
@@ -166,6 +271,103 @@ const tx = await secretjs.tx.broadcast([msg], {
 });
 ```
 
+## Keplr Wallet
+
+The recommended way to integrate Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
+
+```typescript
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+while (
+  !window.keplr ||
+  !window.getEnigmaUtils ||
+  !window.getOfflineSignerOnlyAmino
+) {
+  await sleep(100);
+}
+
+const CHAIN_ID = "secret-4";
+const SECRET_RPC = "https://rpc-secret.scrtlabs.com/secret-4/rpc/";
+
+await window.keplr.enable(CHAIN_ID);
+
+const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
+
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: SECRET_RPC,
+  chainId: SECRET_CHAIN_ID,
+  wallet: keplrOfflineSigner,
+  walletAddress: myAddress,
+  encryptionUtils: window.getEnigmaUtils(SECRET_CHAIN_ID),
+});
+
+// Note: Using `window.getEnigmaUtils` is optional, it will allow
+// Keplr to use the same encryption seed across sessions for the account.
+// The benefit of this is that `secretjs.query.getTx()` will be able to decrypt
+// the response across sessions.
+```
+
+### `getOfflineSignerOnlyAmino()`
+
+Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended for connecting to Keplr due to Ledger support & better UI on Keplr.
+
+- 🟩 Looks good on Keplr
+- 🟩 Supports users signing with Ledger
+- 🟥 Doesn't support signing transactions with these Msgs:
+  - [authz/MsgExec](https://secretjs.scrt.network/classes/MsgExec)
+  - [authz/MsgGrant](https://secretjs.scrt.network/classes/MsgGrant)
+  - [authz/MsgRevoke](https://secretjs.scrt.network/classes/MsgRevoke)
+  - [feegrant/MsgGrantAllowance](https://secretjs.scrt.network/classes/MsgGrantAllowance)
+  - [feegrant/MsgRevokeAllowance](https://secretjs.scrt.network/classes/MsgRevokeAllowance)
+  - All IBC relayer Msgs:
+    - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
+    - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
+    - [ibc_channel/MsgAcknowledgement](https://secretjs.scrt.network/classes/MsgAcknowledgement)
+    - [ibc_channel/MsgChannelCloseConfirm](https://secretjs.scrt.network/classes/MsgChannelCloseConfirm)
+    - [ibc_channel/MsgChannelCloseInit](https://secretjs.scrt.network/classes/MsgChannelCloseInit)
+    - [ibc_channel/MsgChannelOpenAck](https://secretjs.scrt.network/classes/MsgChannelOpenAck)
+    - [ibc_channel/MsgChannelOpenConfirm](https://secretjs.scrt.network/classes/MsgChannelOpenConfirm)
+    - [ibc_channel/MsgChannelOpenInit](https://secretjs.scrt.network/classes/MsgChannelOpenInit)
+    - [ibc_channel/MsgChannelOpenTry](https://secretjs.scrt.network/classes/MsgChannelOpenTry)
+    - [ibc_channel/MsgRecvPacket](https://secretjs.scrt.network/classes/MsgRecvPacket)
+    - [ibc_channel/MsgTimeout](https://secretjs.scrt.network/classes/MsgTimeout)
+    - [ibc_channel/MsgTimeoutOnClose](https://secretjs.scrt.network/classes/MsgTimeoutOnClose)
+    - [ibc_client/MsgCreateClient](https://secretjs.scrt.network/classes/MsgCreateClient)
+    - [ibc_client/MsgSubmitMisbehaviour](https://secretjs.scrt.network/classes/MsgSubmitMisbehaviour)
+    - [ibc_client/MsgUpdateClient](https://secretjs.scrt.network/classes/MsgUpdateClient)
+    - [ibc_client/MsgUpgradeClient](https://secretjs.scrt.network/classes/MsgUpgradeClient)
+    - [ibc_connection/MsgConnectionOpenAck](https://secretjs.scrt.network/classes/MsgConnectionOpenAck)
+    - [ibc_connection/MsgConnectionOpenConfirm](https://secretjs.scrt.network/classes/MsgConnectionOpenConfirm)
+    - [ibc_connection/MsgConnectionOpenInit](https://secretjs.scrt.network/classes/MsgConnectionOpenInit)
+    - [ibc_connection/MsgConnectionOpenTry](https://secretjs.scrt.network/classes/MsgConnectionOpenTry)
+
+Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC is supported.
+
+<img src="./media/keplr-amino.png" width="60%" />
+
+### `getOfflineSigner()`
+
+The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
+
+- 🟥 Looks bad on Keplr
+- 🟥 Doesn't support users signing with Ledger
+- 🟩 Supports signing transactions with all types of Msgs
+
+<img src="./media/keplr-proto.png" width="60%" />
+
+### `getOfflineSignerAuto()`
+
+Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
+
+# Migrating from Secret.js v0.17.x
+
+- `v0.9.x` through `v0.16.x` supported `secret-2` & `secret-3`
+- `v0.17.x` supports `secret-4`
+- `v1.2.x` supports `secret-4`, corresponds to [`v1.2.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.2.0)
+
+TODO
+
 # API
 
 ## Wallet
@@ -174,7 +376,7 @@ An offline wallet implementation, used to sign transactions. Usually we'd just w
 
 [**Full API »**](https://secretjs.scrt.network/classes/Wallet.html)
 
-### Importing account from mnemonic phrase
+### Importing account from mnemonic
 
 ```typescript
 import { Wallet } from "secretjs";
@@ -199,131 +401,490 @@ const myMnemonicPhrase = wallet.mnemonic;
 
 [**Full API »**](https://secretjs.scrt.network/classes/SecretNetworkClient.html)
 
-### Readonly
+### Readonly secret.js
 
-A readonly client can only send queries and get chain information.
+A readonly client can only send queries and get chain information. Access to all query types can be done via `secretjs.query`.
 
-#### `secretjs.query`
+```typescript
+import { SecretNetworkClient } from "secretjs";
 
-You can access all query types using `secretjs.query`:
+// To create a readonly secretjs client, just pass in an RPC endpoint
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
+});
+```
 
-| Query                                                       | Docs              |
-| ----------------------------------------------------------- | ----------------- |
-| `secretjs.query.getTx(hash)`                                | TODO link to docs |
-| `secretjs.query.txsQuery(query)`                            | TODO link to docs |
-| `secretjs.query.auth.account()`                             | TODO link to docs |
-| `secretjs.query.auth.accounts()`                            | TODO link to docs |
-| `secretjs.query.auth.params()`                              | TODO link to docs |
-| `secretjs.query.authz.grants()`                             | TODO link to docs |
-| `secretjs.query.bank.balance()`                             | TODO link to docs |
-| `secretjs.query.bank.allBalances()`                         | TODO link to docs |
-| `secretjs.query.bank.totalSupply()`                         | TODO link to docs |
-| `secretjs.query.bank.supplyOf()`                            | TODO link to docs |
-| `secretjs.query.bank.params()`                              | TODO link to docs |
-| `secretjs.query.bank.denomMetadata()`                       | TODO link to docs |
-| `secretjs.query.bank.denomsMetadata()`                      | TODO link to docs |
-| `secretjs.query.compute.contractCodeHash()`                 | TODO link to docs |
-| `secretjs.query.compute.codeHash()`                         | TODO link to docs |
-| `secretjs.query.compute.contractInfo()`                     | TODO link to docs |
-| `secretjs.query.compute.contractsByCode()`                  | TODO link to docs |
-| `secretjs.query.compute.queryContract()`                    | TODO link to docs |
-| `secretjs.query.compute.code()`                             | TODO link to docs |
-| `secretjs.query.compute.codes()`                            | TODO link to docs |
-| `secretjs.query.distribution.params()`                      | TODO link to docs |
-| `secretjs.query.distribution.validatorOutstandingRewards()` | TODO link to docs |
-| `secretjs.query.distribution.validatorCommission()`         | TODO link to docs |
-| `secretjs.query.distribution.validatorSlashes()`            | TODO link to docs |
-| `secretjs.query.distribution.delegationRewards()`           | TODO link to docs |
-| `secretjs.query.distribution.delegationTotalRewards()`      | TODO link to docs |
-| `secretjs.query.distribution.delegatorValidators()`         | TODO link to docs |
-| `secretjs.query.distribution.delegatorWithdrawAddress()`    | TODO link to docs |
-| `secretjs.query.distribution.communityPool()`               | TODO link to docs |
-| `secretjs.query.distribution.foundationTax()`               | TODO link to docs |
-| `secretjs.query.evidence.evidence()`                        | TODO link to docs |
-| `secretjs.query.evidence.allEvidence()`                     | TODO link to docs |
-| `secretjs.query.feegrant.allowance()`                       | TODO link to docs |
-| `secretjs.query.feegrant.allowances()`                      | TODO link to docs |
-| `secretjs.query.gov.proposal()`                             | TODO link to docs |
-| `secretjs.query.gov.proposals()`                            | TODO link to docs |
-| `secretjs.query.gov.vote()`                                 | TODO link to docs |
-| `secretjs.query.gov.votes()`                                | TODO link to docs |
-| `secretjs.query.gov.params()`                               | TODO link to docs |
-| `secretjs.query.gov.deposit()`                              | TODO link to docs |
-| `secretjs.query.gov.deposits()`                             | TODO link to docs |
-| `secretjs.query.gov.tallyResult()`                          | TODO link to docs |
-| `secretjs.query.ibc_channel.channel()`                      | TODO link to docs |
-| `secretjs.query.ibc_channel.channels()`                     | TODO link to docs |
-| `secretjs.query.ibc_channel.connectionChannels()`           | TODO link to docs |
-| `secretjs.query.ibc_channel.channelClientState()`           | TODO link to docs |
-| `secretjs.query.ibc_channel.channelConsensusState()`        | TODO link to docs |
-| `secretjs.query.ibc_channel.packetCommitment()`             | TODO link to docs |
-| `secretjs.query.ibc_channel.packetCommitments()`            | TODO link to docs |
-| `secretjs.query.ibc_channel.packetReceipt()`                | TODO link to docs |
-| `secretjs.query.ibc_channel.packetAcknowledgement()`        | TODO link to docs |
-| `secretjs.query.ibc_channel.packetAcknowledgements()`       | TODO link to docs |
-| `secretjs.query.ibc_channel.unreceivedPackets()`            | TODO link to docs |
-| `secretjs.query.ibc_channel.unreceivedAcks()`               | TODO link to docs |
-| `secretjs.query.ibc_channel.nextSequenceReceive()`          | TODO link to docs |
-| `secretjs.query.ibc_client.clientState()`                   | TODO link to docs |
-| `secretjs.query.ibc_client.clientStates()`                  | TODO link to docs |
-| `secretjs.query.ibc_client.consensusState()`                | TODO link to docs |
-| `secretjs.query.ibc_client.consensusStates()`               | TODO link to docs |
-| `secretjs.query.ibc_client.clientStatus()`                  | TODO link to docs |
-| `secretjs.query.ibc_client.clientParams()`                  | TODO link to docs |
-| `secretjs.query.ibc_client.upgradedClientState()`           | TODO link to docs |
-| `secretjs.query.ibc_client.upgradedConsensusState()`        | TODO link to docs |
-| `secretjs.query.ibc_connection.connection()`                | TODO link to docs |
-| `secretjs.query.ibc_connection.connections()`               | TODO link to docs |
-| `secretjs.query.ibc_connection.clientConnections()`         | TODO link to docs |
-| `secretjs.query.ibc_connection.connectionClientState()`     | TODO link to docs |
-| `secretjs.query.ibc_connection.connectionConsensusState()`  | TODO link to docs |
-| `secretjs.query.ibc_transfer.denomTrace()`                  | TODO link to docs |
-| `secretjs.query.ibc_transfer.denomTraces()`                 | TODO link to docs |
-| `secretjs.query.ibc_transfer.params()`                      | TODO link to docs |
-| `secretjs.query.mint.params()`                              | TODO link to docs |
-| `secretjs.query.mint.inflation()`                           | TODO link to docs |
-| `secretjs.query.mint.annualProvisions()`                    | TODO link to docs |
-| `secretjs.query.params.params()`                            | TODO link to docs |
-| `secretjs.query.registration.txKey()`                       | TODO link to docs |
-| `secretjs.query.registration.registrationKey()`             | TODO link to docs |
-| `secretjs.query.registration.encryptedSeed()`               | TODO link to docs |
-| `secretjs.query.slashing.params()`                          | TODO link to docs |
-| `secretjs.query.slashing.signingInfo()`                     | TODO link to docs |
-| `secretjs.query.slashing.signingInfos()`                    | TODO link to docs |
-| `secretjs.query.staking.validators()`                       | TODO link to docs |
-| `secretjs.query.staking.validator()`                        | TODO link to docs |
-| `secretjs.query.staking.validatorDelegations()`             | TODO link to docs |
-| `secretjs.query.staking.validatorUnbondingDelegations()`    | TODO link to docs |
-| `secretjs.query.staking.delegation()`                       | TODO link to docs |
-| `secretjs.query.staking.unbondingDelegation()`              | TODO link to docs |
-| `secretjs.query.staking.delegatorDelegations()`             | TODO link to docs |
-| `secretjs.query.staking.delegatorUnbondingDelegations()`    | TODO link to docs |
-| `secretjs.query.staking.redelegations()`                    | TODO link to docs |
-| `secretjs.query.staking.delegatorValidators()`              | TODO link to docs |
-| `secretjs.query.staking.delegatorValidator()`               | TODO link to docs |
-| `secretjs.query.staking.historicalInfo()`                   | TODO link to docs |
-| `secretjs.query.staking.pool()`                             | TODO link to docs |
-| `secretjs.query.staking.params()`                           | TODO link to docs |
-| `secretjs.query.tendermint.getNodeInfo()`                   | TODO link to docs |
-| `secretjs.query.tendermint.getSyncing()`                    | TODO link to docs |
-| `secretjs.query.tendermint.getLatestBlock()`                | TODO link to docs |
-| `secretjs.query.tendermint.getBlockByHeight()`              | TODO link to docs |
-| `secretjs.query.tendermint.getLatestValidatorSet()`         | TODO link to docs |
-| `secretjs.query.tendermint.getValidatorSetByHeight()`       | TODO link to docs |
-| `secretjs.query.upgrade.currentPlan()`                      | TODO link to docs |
-| `secretjs.query.upgrade.appliedPlan()`                      | TODO link to docs |
-| `secretjs.query.upgrade.upgradedConsensusState()`           | TODO link to docs |
-| `secretjs.query.upgrade.moduleVersions()`                   | TODO link to docs |
-
-### Signer
+### Signer secret.js
 
 A signer client can broadcast transactions, send queries and get chain information.
 
-In addition to using `secretjs.query`, you can also use `secretjs.tx` & `secretjs.address`.
+Here in addition to `secretjs.query`, there are also `secretjs.tx` & `secretjs.address`.
 
-#### `secretjs.address`
+```typescript
+import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
 
-`secretjs.address` is the same as `walletAddress`:
+const wallet = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+);
+const myAddress = wallet.address;
+
+// To create a signer secretjs client, also pass in a wallet
+const secretjs = await SecretNetworkClient.create({
+  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  wallet: wallet,
+  walletAddress: myAddress,
+  chainId: "pulsar-2",
+});
+```
+
+### `secretjs.query`
+
+#### `.getTx(hash)`
+
+Returns a transaction with a txhash. `hash` is a 64 character upper-case hex string.
+
+#### `.txsQuery(query)`
+
+Returns all transactions that match a query.
+
+To tell which events you want, you need to provide a query. query is a string, which has a form: `condition AND condition ...` (no OR at the moment). Condition has a form: `key operation operand`. key is a string with a restricted set of possible symbols (`\t`, `\n`, `\r`, `\`, `(`, `)`, `"`, `'`, `=`, `>`, `<` are not allowed). Operation can be `=`, `<`, `<=`, `>`, `>=`, `CONTAINS` AND `EXISTS`. Operand can be a string (escaped with single quotes), number, date or time.
+
+Examples:
+
+- `tx.hash = 'XYZ'` # single transaction
+- `tx.height = 5` # all txs of the fifth block
+- `create_validator.validator = 'ABC'` # tx where validator ABC was created
+
+Tendermint provides a few predefined keys: `tx.hash` and `tx.height`. You can provide additional event keys that were emitted during the transaction. All events are indexed by a composite key of the form `{eventType}.{evenAttrKey}`. Multiple event types with duplicate keys are allowed and are meant to categorize unique and distinct events.
+
+To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`
+
+See `txsQuery` under https://secretjs.scrt.network/modules#Querier.
+
+#### `.auth.account()`
+
+Returns all the existing accounts.
+
+#### `.auth.accounts()`
+
+Returns account details based on address.
+
+#### `.auth.params()`
+
+Queries all x/auth parameters.
+
+#### `.authz.grants()`
+
+Returns list of authorizations, granted to the grantee by the granter.
+
+#### `.bank.balance()`
+
+Balance queries the balance of a single coin for a single account.
+
+#### `.bank.allBalances()`
+
+AllBalances queries the balance of all coins for a single account.
+
+#### `.bank.totalSupply()`
+
+TotalSupply queries the total supply of all coins.
+
+#### `.bank.supplyOf()`
+
+SupplyOf queries the supply of a single coin.
+
+#### `.bank.params()`
+
+Params queries the parameters of x/bank module.
+
+#### `.bank.denomMetadata()`
+
+DenomsMetadata queries the client metadata of a given coin denomination.
+
+#### `.bank.denomsMetadata()`
+
+DenomsMetadata queries the client metadata for all registered coin denominations.
+
+#### `.compute.contractCodeHash()`
+
+Get codeHash of a Secret Contract.
+
+#### `.compute.codeHash()`
+
+Get codeHash from a code id.
+
+#### `.compute.contractInfo()`
+
+Get metadata of a Secret Contract.
+
+#### `.compute.contractsByCode()`
+
+Get all contracts that were instantiated from a code id.
+
+#### `.compute.queryContract()`
+
+Query a Secret Contract.
+
+#### `.compute.code()`
+
+Get WASM bytecode and metadata for a code id.
+
+#### `.compute.codes()`
+
+Query all contract codes on-chain.
+
+#### `.distribution.params()`
+
+Params queries params of the distribution module.
+
+#### `.distribution.validatorOutstandingRewards()`
+
+ValidatorOutstandingRewards queries rewards of a validator address. \*/
+
+#### `.distribution.validatorCommission()`
+
+ValidatorCommission queries accumulated commission for a validator. \*/
+
+#### `.distribution.validatorSlashes()`
+
+ValidatorSlashes queries slash events of a validator. \*/
+
+#### `.distribution.delegationRewards()`
+
+DelegationRewards queries the total rewards accrued by a delegation. \*/
+
+#### `.distribution.delegationTotalRewards()`
+
+DelegationTotalRewards queries the total rewards accrued by a each validator.
+
+#### `.distribution.delegatorValidators()`
+
+DelegatorValidators queries the validators of a delegator. \*/
+
+#### `.distribution.delegatorWithdrawAddress()`
+
+DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+
+#### `.distribution.communityPool()`
+
+CommunityPool queries the community pool coins. \*/
+
+#### `.distribution.foundationTax()`
+
+DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+
+#### `.evidence.evidence()`
+
+Evidence queries evidence based on evidence hash.
+
+#### `.evidence.allEvidence()`
+
+AllEvidence queries all evidence.
+
+#### `.feegrant.allowance()`
+
+Allowance returns fee granted to the grantee by the granter.
+
+#### `.feegrant.allowances()`
+
+Allowances returns all the grants for address.
+
+#### `.gov.proposal()`
+
+Proposal queries proposal details based on ProposalID.
+
+#### `.gov.proposals()`
+
+Proposals queries all proposals based on given status.
+
+```typescript
+// Get all proposals
+const { proposals } = await secretjs.query.gov.proposals({
+  proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+  voter: "",
+  depositor: "",
+});
+```
+
+#### `.gov.vote()`
+
+Vote queries voted information based on proposalID, voterAddr.
+
+#### `.gov.votes()`
+
+Votes queries votes of a given proposal.
+
+#### `.gov.params()`
+
+Params queries all parameters of the gov module.
+
+#### `.gov.deposit()`
+
+Deposit queries single deposit information based proposalID, depositAddr.
+
+#### `.gov.deposits()`
+
+Deposits queries all deposits of a single proposal.
+
+#### `.gov.tallyResult()`
+
+TallyResult queries the tally of a proposal vote.
+
+#### `.ibc_channel.channel()`
+
+Channel queries an IBC Channel.
+
+#### `.ibc_channel.channels()`
+
+Channels queries all the IBC channels of a chain.
+
+#### `.ibc_channel.connectionChannels()`
+
+ConnectionChannels queries all the channels associated with a connection end.
+
+#### `.ibc_channel.channelClientState()`
+
+ChannelClientState queries for the client state for the channel associated with the provided channel identifiers.
+
+#### `.ibc_channel.channelConsensusState()`
+
+ChannelConsensusState queries for the consensus state for the channel associated with the provided channel identifiers.
+
+#### `.ibc_channel.packetCommitment()`
+
+PacketCommitment queries a stored packet commitment hash.
+
+#### `.ibc_channel.packetCommitments()`
+
+PacketCommitments returns all the packet commitments hashes associated with a channel.
+
+#### `.ibc_channel.packetReceipt()`
+
+PacketReceipt queries if a given packet sequence has been received on the queried chain
+
+#### `.ibc_channel.packetAcknowledgement()`
+
+PacketAcknowledgement queries a stored packet acknowledgement hash.
+
+#### `.ibc_channel.packetAcknowledgements()`
+
+PacketAcknowledgements returns all the packet acknowledgements associated with a channel.
+
+#### `.ibc_channel.unreceivedPackets()`
+
+UnreceivedPackets returns all the unreceived IBC packets associated with a channel and sequences.
+
+#### `.ibc_channel.unreceivedAcks()`
+
+UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
+
+#### `.ibc_channel.nextSequenceReceive()`
+
+NextSequenceReceive returns the next receive sequence for a given channel.
+
+#### `.ibc_client.clientState()`
+
+ClientState queries an IBC light client.
+
+#### `.ibc_client.clientStates()`
+
+ClientStates queries all the IBC light clients of a chain.
+
+#### `.ibc_client.consensusState()`
+
+ConsensusState queries a consensus state associated with a client state at a given height.
+
+#### `.ibc_client.consensusStates()`
+
+ConsensusStates queries all the consensus state associated with a given client.
+
+#### `.ibc_client.clientStatus()`
+
+Status queries the status of an IBC client.
+
+#### `.ibc_client.clientParams()`
+
+ClientParams queries all parameters of the ibc client.
+
+#### `.ibc_client.upgradedClientState()`
+
+UpgradedClientState queries an Upgraded IBC light client.
+
+#### `.ibc_client.upgradedConsensusState()`
+
+UpgradedConsensusState queries an Upgraded IBC consensus state.
+
+#### `.ibc_connection.connection()`
+
+Connection queries an IBC connection end.
+
+#### `.ibc_connection.connections()`
+
+Connections queries all the IBC connections of a chain.
+
+#### `.ibc_connection.clientConnections()`
+
+ClientConnections queries the connection paths associated with a client state.
+
+#### `.ibc_connection.connectionClientState()`
+
+ConnectionClientState queries the client state associated with the connection.
+
+#### `.ibc_connection.connectionConsensusState()`
+
+ConnectionConsensusState queries the consensus state associated with the connection.
+
+#### `.ibc_transfer.denomTrace()`
+
+DenomTrace queries a denomination trace information.
+
+#### `.ibc_transfer.denomTraces()`
+
+DenomTraces queries all denomination traces.
+
+#### `.ibc_transfer.params()`
+
+Params queries all parameters of the ibc-transfer module.
+
+#### `.mint.params()`
+
+Params returns the total set of minting parameters.
+
+#### `.mint.inflation()`
+
+Inflation returns the current minting inflation value.
+
+#### `.mint.annualProvisions()`
+
+AnnualProvisions current minting annual provisions value.
+
+#### `.params.params()`
+
+Params queries a specific parameter of a module, given its subspace and key.
+
+#### `.registration.txKey()`
+
+Returns the key used for transactions.
+
+#### `.registration.registrationKey()`
+
+Returns the key used for registration.
+
+#### `.registration.encryptedSeed()`
+
+Returns the encrypted seed for a registered node by public key.
+
+#### `.slashing.params()`
+
+Params queries the parameters of slashing module.
+
+#### `.slashing.signingInfo()`
+
+SigningInfo queries the signing info of given cons address.
+
+#### `.slashing.signingInfos()`
+
+SigningInfos queries signing info of all validators.
+
+#### `.staking.validators()`
+
+Validators queries all validators that match the given status.
+
+#### `.staking.validator()`
+
+Validator queries validator info for given validator address.
+
+#### `.staking.validatorDelegations()`
+
+ValidatorDelegations queries delegate info for given validator.
+
+#### `.staking.validatorUnbondingDelegations()`
+
+ValidatorUnbondingDelegations queries unbonding delegations of a validator.
+
+#### `.staking.delegation()`
+
+Delegation queries delegate info for given validator delegator pair.
+
+#### `.staking.unbondingDelegation()`
+
+UnbondingDelegation queries unbonding info for given validator delegator pair.
+
+#### `.staking.delegatorDelegations()`
+
+DelegatorDelegations queries all delegations of a given delegator address.
+
+#### `.staking.delegatorUnbondingDelegations()`
+
+DelegatorUnbondingDelegations queries all unbonding delegations of a given delegator address.
+
+#### `.staking.redelegations()`
+
+Redelegations queries redelegations of given address.
+
+#### `.staking.delegatorValidators()`
+
+DelegatorValidators queries all validators info for given delegator address.
+
+#### `.staking.delegatorValidator()`
+
+DelegatorValidator queries validator info for given delegator validator pair.
+
+#### `.staking.historicalInfo()`
+
+HistoricalInfo queries the historical info for given height.
+
+#### `.staking.pool()`
+
+Pool queries the pool info.
+
+#### `.staking.params()`
+
+Parameters queries the staking parameters.
+
+#### `.tendermint.getNodeInfo()`
+
+GetNodeInfo queries the current node info.
+
+#### `.tendermint.getSyncing()`
+
+GetSyncing queries node syncing.
+
+#### `.tendermint.getLatestBlock()`
+
+GetLatestBlock returns the latest block.
+
+#### `.tendermint.getBlockByHeight()`
+
+GetBlockByHeight queries block for given height.
+
+#### `.tendermint.getLatestValidatorSet()`
+
+GetLatestValidatorSet queries latest validator-set.
+
+#### `.tendermint.getValidatorSetByHeight()`
+
+GetValidatorSetByHeight queries validator-set at a given height.
+
+#### `.upgrade.currentPlan()`
+
+CurrentPlan queries the current upgrade plan.
+
+#### `.upgrade.appliedPlan()`
+
+AppliedPlan queries a previously applied upgrade plan by its name.
+
+#### `.upgrade.upgradedConsensusState()`
+
+UpgradedConsensusState queries the consensus state that will serve as a trusted kernel for the next version of this chain. It will only be stored at the last height of this chain.
+
+#### `.upgrade.moduleVersions()`
+
+ModuleVersions queries the list of module versions from state.
+
+### `secretjs.address`
+
+On a signer secret.js, `secretjs.address` is the same as `walletAddress`:
 
 ```typescript
 import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
@@ -344,13 +905,13 @@ const secretjs = await SecretNetworkClient.create({
 const alsoMyAddress = secretjs.address;
 ```
 
-#### `secretjs.tx`
+### `secretjs.tx`
 
-`secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [SignAndBroadcastOptions](https://secretjs.scrt.network/modules#SignAndBroadcastOptions).
+On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [SignAndBroadcastOptions](https://secretjs.scrt.network/modules#SignAndBroadcastOptions).
 
 [Full API »](https://secretjs.scrt.network/modules#TxSender)
 
-##### `secretjs.tx.broadcast()`
+#### `.broadcast()`
 
 Used to send a complex transactions, which contains a list of messages. The messages are executed in sequence, and the transaction succeeds if all messages succeed.
 
@@ -395,257 +956,164 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 });
 ```
 
-##### `secretjs.tx.authz.exec()`
+#### `.authz.exec()`
 
 MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
 
 See: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
 
-##### `secretjs.tx.authz.grant()`
+#### `.authz.grant()`
 
 MsgGrant is a request type for Grant method. It declares authorization to the grantee on behalf of the granter with the provided expiration time.
 
 See: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
 
-##### `secretjs.tx.authz.revoke()`
+#### `.authz.revoke()`
 
 MsgRevoke revokes any authorization with the provided sdk.Msg type on the granter's account with that has been granted to the grantee.
 
 See: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
 
-##### `secretjs.tx.bank.multiSend()`
+#### `.bank.multiSend()`
 
 MsgMultiSend represents an arbitrary multi-in, multi-out send message.
 
 See: [MsgMultiSendParams](https://secretjs.scrt.network/interfaces/MsgMultiSendParams)
 
-##### `secretjs.tx.bank.send()`
+#### `.bank.send()`
 
 MsgSend represents a message to send coins from one account to another.
 
 See: [MsgSendParams](https://secretjs.scrt.network/interfaces/MsgSendParams)
 
-##### `secretjs.tx.compute.executeContract()`
+#### `.compute.executeContract()`
 
 Execute a function on a contract
 
 See: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgExecuteContractParams)
 
-##### `secretjs.tx.compute.instantiateContract()`
+#### `.compute.instantiateContract()`
 
 Instantiate a contract from code id
 
 See: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstantiateContractParams)
 
-##### `secretjs.tx.compute.storeCode()`
+#### `.compute.storeCode()`
 
 Upload a compiled contract to Secret Network
 
 See: [MsgStoreCodeParams](https://secretjs.scrt.network/interfaces/MsgStoreCodeParams)
 
-##### `secretjs.tx.crisis.verifyInvariant()`
+#### `.crisis.verifyInvariant()`
 
 MsgVerifyInvariant represents a message to verify a particular invariance.
 
 See: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
 
-##### `secretjs.tx.distribution.fundCommunityPool()`
+#### `.distribution.fundCommunityPool()`
 
 MsgFundCommunityPool allows an account to directly fund the community pool.
 
 See: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/MsgFundCommunityPoolParams)
 
-##### `secretjs.tx.distribution.setWithdrawAddress()`
+#### `.distribution.setWithdrawAddress()`
 
 MsgSetWithdrawAddress sets the withdraw address for a delegator (or validator self-delegation).
 
 See: [MsgSetWithdrawAddressParams](https://secretjs.scrt.network/interfaces/MsgSetWithdrawAddressParams)
 
-##### `secretjs.tx.distribution.withdrawDelegatorReward()`
+#### `.distribution.withdrawDelegatorReward()`
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
 See: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
 
-##### `secretjs.tx.distribution.withdrawValidatorCommission()`
+#### `.distribution.withdrawValidatorCommission()`
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
 See: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
 
-##### `secretjs.tx.evidence.submitEvidence()`
+#### `.evidence.submitEvidence()`
 
 MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
 
 See: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
 
-##### `secretjs.tx.feegrant.grantAllowance()`
+#### `.feegrant.grantAllowance()`
 
 MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees from the account of Granter.
 
 See: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
-##### `secretjs.tx.feegrant.revokeAllowance()`
+#### `.feegrant.revokeAllowance()`
 
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 See: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
 
-##### `secretjs.tx.gov.deposit()`
+#### `.gov.deposit()`
 
 MsgDeposit defines a message to submit a deposit to an existing proposal.
 
 See: [MsgDepositParams](https://secretjs.scrt.network/interfaces/MsgDepositParams)
 
-##### `secretjs.tx.gov.submitProposal()`
+#### `.gov.submitProposal()`
 
 MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary proposal Content.
 
 See: [MsgSubmitProposalParams](https://secretjs.scrt.network/interfaces/MsgSubmitProposalParams)
 
-##### `secretjs.tx.gov.vote()`
+#### `.gov.vote()`
 
 MsgVote defines a message to cast a vote.
 
 See: [MsgVoteParams](https://secretjs.scrt.network/interfaces/MsgVoteParams)
 
-##### `secretjs.tx.gov.voteWeighted()`
+#### `.gov.voteWeighted()`
 
 MsgVoteWeighted defines a message to cast a vote, with an option to split the vote.
 
 See: [MsgVoteWeightedParams](https://secretjs.scrt.network/interfaces/MsgVoteWeightedParams)
 
-##### `secretjs.tx.ibc.transfer()`
+#### `.ibc.transfer()`
 
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
 
 See: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
 
-##### `secretjs.tx.slashing.unjail()`
+#### `.slashing.unjail()`
 
 MsgUnjail defines a message to release a validator from jail.
 
 See: [MsgUnjailParams](https://secretjs.scrt.network/interfaces/MsgUnjailParams)
 
-##### `secretjs.tx.staking.redelegate()`
+#### `.staking.redelegate()`
 
 MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator.
 
-See: [MsgRedelegateParams](https://secretjs.scrt.network/interfaces/MsgRedelegateParams)
+See: [MsgBeginRedelegateParams](https://secretjs.scrt.network/interfaces/MsgBeginRedelegateParams)
 
-##### `secretjs.tx.staking.createValidator()`
+#### `.staking.createValidator()`
 
 MsgCreateValidator defines an SDK message for creating a new validator.
 
 See: [MsgCreateValidatorParams](https://secretjs.scrt.network/interfaces/MsgCreateValidatorParams)
 
-##### `secretjs.tx.staking.delegate()`
+#### `.staking.delegate()`
 
 MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator.
 
 See: [MsgDelegateParams](https://secretjs.scrt.network/interfaces/MsgDelegateParams)
 
-##### `secretjs.tx.staking.editValidator()`
+#### `.staking.editValidator()`
 
 MsgEditValidator defines an SDK message for editing an existing validator.
 
 See: [MsgEditValidatorParams](https://secretjs.scrt.network/interfaces/MsgEditValidatorParams)
 
-##### `secretjs.tx.staking.undelegate()`
+#### `.staking.undelegate()`
 
 MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator
 
 See: [MsgUndelegateParams](https://secretjs.scrt.network/interfaces/MsgUndelegateParams)
-
-### Using Keplr
-
-The recommended way is using `window.keplr.getOfflineSignerOnlyAmino()`:
-
-```typescript
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-while (
-  !window.keplr ||
-  !window.getEnigmaUtils ||
-  !window.getOfflineSignerOnlyAmino
-) {
-  await sleep(50);
-}
-
-const CHAIN_ID = "secret-4";
-const SECRET_RPC = "https://rpc-secret.scrtlabs.com/secret-4/rpc/";
-
-await window.keplr.enable(CHAIN_ID);
-
-const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
-const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
-
-const secretjs = await SecretNetworkClient.create({
-  rpcUrl: SECRET_RPC,
-  chainId: SECRET_CHAIN_ID,
-  wallet: keplrOfflineSigner,
-  walletAddress: myAddress,
-  encryptionUtils: window.getEnigmaUtils(SECRET_CHAIN_ID),
-});
-
-// Note: Using `window.getEnigmaUtils` is optional, it will allow
-// Keplr to use the same encryption seed across sessions for the account.
-// The benefit of this is that `secretjs.query.getTx()` will be able to decrypt
-// the response across sessions.
-```
-
-#### `getOfflineSignerOnlyAmino()`
-
-Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended due to Ledger support & better UI on Keplr.
-
-- 🟩 Looks good on Keplr
-- 🟩 Supports users signing with Ledger
-- 🟥 Doesn't support signing transactions with these Msgs:
-  - [authz/MsgExec](https://secretjs.scrt.network/classes/MsgExec)
-  - [authz/MsgGrant](https://secretjs.scrt.network/classes/MsgGrant)
-  - [authz/MsgRevoke](https://secretjs.scrt.network/classes/MsgRevoke)
-  - [feegrant/MsgGrantAllowance](https://secretjs.scrt.network/classes/MsgGrantAllowance)
-  - [feegrant/MsgRevokeAllowance](https://secretjs.scrt.network/classes/MsgRevokeAllowance)
-  - All IBC relayer Msgs:
-    - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
-    - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
-    - [ibc_channel/MsgAcknowledgement](https://secretjs.scrt.network/classes/MsgAcknowledgement)
-    - [ibc_channel/MsgChannelCloseConfirm](https://secretjs.scrt.network/classes/MsgChannelCloseConfirm)
-    - [ibc_channel/MsgChannelCloseInit](https://secretjs.scrt.network/classes/MsgChannelCloseInit)
-    - [ibc_channel/MsgChannelOpenAck](https://secretjs.scrt.network/classes/MsgChannelOpenAck)
-    - [ibc_channel/MsgChannelOpenConfirm](https://secretjs.scrt.network/classes/MsgChannelOpenConfirm)
-    - [ibc_channel/MsgChannelOpenInit](https://secretjs.scrt.network/classes/MsgChannelOpenInit)
-    - [ibc_channel/MsgChannelOpenTry](https://secretjs.scrt.network/classes/MsgChannelOpenTry)
-    - [ibc_channel/MsgRecvPacket](https://secretjs.scrt.network/classes/MsgRecvPacket)
-    - [ibc_channel/MsgTimeout](https://secretjs.scrt.network/classes/MsgTimeout)
-    - [ibc_channel/MsgTimeoutOnClose](https://secretjs.scrt.network/classes/MsgTimeoutOnClose)
-    - [ibc_client/MsgCreateClient](https://secretjs.scrt.network/classes/MsgCreateClient)
-    - [ibc_client/MsgSubmitMisbehaviour](https://secretjs.scrt.network/classes/MsgSubmitMisbehaviour)
-    - [ibc_client/MsgUpdateClient](https://secretjs.scrt.network/classes/MsgUpdateClient)
-    - [ibc_client/MsgUpgradeClient](https://secretjs.scrt.network/classes/MsgUpgradeClient)
-    - [ibc_connection/MsgConnectionOpenAck](https://secretjs.scrt.network/classes/MsgConnectionOpenAck)
-    - [ibc_connection/MsgConnectionOpenConfirm](https://secretjs.scrt.network/classes/MsgConnectionOpenConfirm)
-    - [ibc_connection/MsgConnectionOpenInit](https://secretjs.scrt.network/classes/MsgConnectionOpenInit)
-    - [ibc_connection/MsgConnectionOpenTry](https://secretjs.scrt.network/classes/MsgConnectionOpenTry)
-
-Please note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC is supported.
-
-<img src="./media/keplr-amino.png" width="60%" />
-
-#### `getOfflineSigner()`
-
-The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
-
-- 🟥 Looks bad on Keplr
-- 🟥 Doesn't support users signing with Ledger
-- 🟩 Supports signing transactions with all types of Msgs
-
-<img src="./media/keplr-proto.png" width="60%" />
-
-#### `getOfflineSignerAuto()`
-
-Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
-
-# Migrating from Secret.js v0.17.x
-
-TODO
