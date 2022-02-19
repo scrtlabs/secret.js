@@ -37,144 +37,11 @@
     - [Importing account from mnemonic](#importing-account-from-mnemonic)
     - [Generating a random account](#generating-a-random-account)
   - [SecretNetworkClient](#secretnetworkclient)
-    - [Readonly secret.js](#readonly-secretjs)
+    - [Querier secret.js](#querier-secretjs)
     - [Signer secret.js](#signer-secretjs)
     - [`secretjs.query`](#secretjsquery)
-      - [`.getTx(hash)`](#gettxhash)
-      - [`.txsQuery(query)`](#txsqueryquery)
-      - [`.auth.account()`](#authaccount)
-      - [`.auth.accounts()`](#authaccounts)
-      - [`.auth.params()`](#authparams)
-      - [`.authz.grants()`](#authzgrants)
-      - [`.bank.balance()`](#bankbalance)
-      - [`.bank.allBalances()`](#bankallbalances)
-      - [`.bank.totalSupply()`](#banktotalsupply)
-      - [`.bank.supplyOf()`](#banksupplyof)
-      - [`.bank.params()`](#bankparams)
-      - [`.bank.denomMetadata()`](#bankdenommetadata)
-      - [`.bank.denomsMetadata()`](#bankdenomsmetadata)
-      - [`.compute.contractCodeHash()`](#computecontractcodehash)
-      - [`.compute.codeHash()`](#computecodehash)
-      - [`.compute.contractInfo()`](#computecontractinfo)
-      - [`.compute.contractsByCode()`](#computecontractsbycode)
-      - [`.compute.queryContract()`](#computequerycontract)
-      - [`.compute.code()`](#computecode)
-      - [`.compute.codes()`](#computecodes)
-      - [`.distribution.params()`](#distributionparams)
-      - [`.distribution.validatorOutstandingRewards()`](#distributionvalidatoroutstandingrewards)
-      - [`.distribution.validatorCommission()`](#distributionvalidatorcommission)
-      - [`.distribution.validatorSlashes()`](#distributionvalidatorslashes)
-      - [`.distribution.delegationRewards()`](#distributiondelegationrewards)
-      - [`.distribution.delegationTotalRewards()`](#distributiondelegationtotalrewards)
-      - [`.distribution.delegatorValidators()`](#distributiondelegatorvalidators)
-      - [`.distribution.delegatorWithdrawAddress()`](#distributiondelegatorwithdrawaddress)
-      - [`.distribution.communityPool()`](#distributioncommunitypool)
-      - [`.distribution.foundationTax()`](#distributionfoundationtax)
-      - [`.evidence.evidence()`](#evidenceevidence)
-      - [`.evidence.allEvidence()`](#evidenceallevidence)
-      - [`.feegrant.allowance()`](#feegrantallowance)
-      - [`.feegrant.allowances()`](#feegrantallowances)
-      - [`.gov.proposal()`](#govproposal)
-      - [`.gov.proposals()`](#govproposals)
-      - [`.gov.vote()`](#govvote)
-      - [`.gov.votes()`](#govvotes)
-      - [`.gov.params()`](#govparams)
-      - [`.gov.deposit()`](#govdeposit)
-      - [`.gov.deposits()`](#govdeposits)
-      - [`.gov.tallyResult()`](#govtallyresult)
-      - [`.ibc_channel.channel()`](#ibc_channelchannel)
-      - [`.ibc_channel.channels()`](#ibc_channelchannels)
-      - [`.ibc_channel.connectionChannels()`](#ibc_channelconnectionchannels)
-      - [`.ibc_channel.channelClientState()`](#ibc_channelchannelclientstate)
-      - [`.ibc_channel.channelConsensusState()`](#ibc_channelchannelconsensusstate)
-      - [`.ibc_channel.packetCommitment()`](#ibc_channelpacketcommitment)
-      - [`.ibc_channel.packetCommitments()`](#ibc_channelpacketcommitments)
-      - [`.ibc_channel.packetReceipt()`](#ibc_channelpacketreceipt)
-      - [`.ibc_channel.packetAcknowledgement()`](#ibc_channelpacketacknowledgement)
-      - [`.ibc_channel.packetAcknowledgements()`](#ibc_channelpacketacknowledgements)
-      - [`.ibc_channel.unreceivedPackets()`](#ibc_channelunreceivedpackets)
-      - [`.ibc_channel.unreceivedAcks()`](#ibc_channelunreceivedacks)
-      - [`.ibc_channel.nextSequenceReceive()`](#ibc_channelnextsequencereceive)
-      - [`.ibc_client.clientState()`](#ibc_clientclientstate)
-      - [`.ibc_client.clientStates()`](#ibc_clientclientstates)
-      - [`.ibc_client.consensusState()`](#ibc_clientconsensusstate)
-      - [`.ibc_client.consensusStates()`](#ibc_clientconsensusstates)
-      - [`.ibc_client.clientStatus()`](#ibc_clientclientstatus)
-      - [`.ibc_client.clientParams()`](#ibc_clientclientparams)
-      - [`.ibc_client.upgradedClientState()`](#ibc_clientupgradedclientstate)
-      - [`.ibc_client.upgradedConsensusState()`](#ibc_clientupgradedconsensusstate)
-      - [`.ibc_connection.connection()`](#ibc_connectionconnection)
-      - [`.ibc_connection.connections()`](#ibc_connectionconnections)
-      - [`.ibc_connection.clientConnections()`](#ibc_connectionclientconnections)
-      - [`.ibc_connection.connectionClientState()`](#ibc_connectionconnectionclientstate)
-      - [`.ibc_connection.connectionConsensusState()`](#ibc_connectionconnectionconsensusstate)
-      - [`.ibc_transfer.denomTrace()`](#ibc_transferdenomtrace)
-      - [`.ibc_transfer.denomTraces()`](#ibc_transferdenomtraces)
-      - [`.ibc_transfer.params()`](#ibc_transferparams)
-      - [`.mint.params()`](#mintparams)
-      - [`.mint.inflation()`](#mintinflation)
-      - [`.mint.annualProvisions()`](#mintannualprovisions)
-      - [`.params.params()`](#paramsparams)
-      - [`.registration.txKey()`](#registrationtxkey)
-      - [`.registration.registrationKey()`](#registrationregistrationkey)
-      - [`.registration.encryptedSeed()`](#registrationencryptedseed)
-      - [`.slashing.params()`](#slashingparams)
-      - [`.slashing.signingInfo()`](#slashingsigninginfo)
-      - [`.slashing.signingInfos()`](#slashingsigninginfos)
-      - [`.staking.validators()`](#stakingvalidators)
-      - [`.staking.validator()`](#stakingvalidator)
-      - [`.staking.validatorDelegations()`](#stakingvalidatordelegations)
-      - [`.staking.validatorUnbondingDelegations()`](#stakingvalidatorunbondingdelegations)
-      - [`.staking.delegation()`](#stakingdelegation)
-      - [`.staking.unbondingDelegation()`](#stakingunbondingdelegation)
-      - [`.staking.delegatorDelegations()`](#stakingdelegatordelegations)
-      - [`.staking.delegatorUnbondingDelegations()`](#stakingdelegatorunbondingdelegations)
-      - [`.staking.redelegations()`](#stakingredelegations)
-      - [`.staking.delegatorValidators()`](#stakingdelegatorvalidators)
-      - [`.staking.delegatorValidator()`](#stakingdelegatorvalidator)
-      - [`.staking.historicalInfo()`](#stakinghistoricalinfo)
-      - [`.staking.pool()`](#stakingpool)
-      - [`.staking.params()`](#stakingparams)
-      - [`.tendermint.getNodeInfo()`](#tendermintgetnodeinfo)
-      - [`.tendermint.getSyncing()`](#tendermintgetsyncing)
-      - [`.tendermint.getLatestBlock()`](#tendermintgetlatestblock)
-      - [`.tendermint.getBlockByHeight()`](#tendermintgetblockbyheight)
-      - [`.tendermint.getLatestValidatorSet()`](#tendermintgetlatestvalidatorset)
-      - [`.tendermint.getValidatorSetByHeight()`](#tendermintgetvalidatorsetbyheight)
-      - [`.upgrade.currentPlan()`](#upgradecurrentplan)
-      - [`.upgrade.appliedPlan()`](#upgradeappliedplan)
-      - [`.upgrade.upgradedConsensusState()`](#upgradeupgradedconsensusstate)
-      - [`.upgrade.moduleVersions()`](#upgrademoduleversions)
     - [`secretjs.address`](#secretjsaddress)
     - [`secretjs.tx`](#secretjstx)
-      - [`.broadcast()`](#broadcast)
-      - [`.authz.exec()`](#authzexec)
-      - [`.authz.grant()`](#authzgrant)
-      - [`.authz.revoke()`](#authzrevoke)
-      - [`.bank.multiSend()`](#bankmultisend)
-      - [`.bank.send()`](#banksend)
-      - [`.compute.storeCode()`](#computestorecode)
-      - [`.compute.instantiateContract()`](#computeinstantiatecontract)
-      - [`.compute.executeContract()`](#computeexecutecontract)
-      - [`.crisis.verifyInvariant()`](#crisisverifyinvariant)
-      - [`.distribution.fundCommunityPool()`](#distributionfundcommunitypool)
-      - [`.distribution.setWithdrawAddress()`](#distributionsetwithdrawaddress)
-      - [`.distribution.withdrawDelegatorReward()`](#distributionwithdrawdelegatorreward)
-      - [`.distribution.withdrawValidatorCommission()`](#distributionwithdrawvalidatorcommission)
-      - [`.evidence.submitEvidence()`](#evidencesubmitevidence)
-      - [`.feegrant.grantAllowance()`](#feegrantgrantallowance)
-      - [`.feegrant.revokeAllowance()`](#feegrantrevokeallowance)
-      - [`.gov.deposit()`](#govdeposit-1)
-      - [`.gov.submitProposal()`](#govsubmitproposal)
-      - [`.gov.vote()`](#govvote-1)
-      - [`.gov.voteWeighted()`](#govvoteweighted)
-      - [`.ibc.transfer()`](#ibctransfer)
-      - [`.slashing.unjail()`](#slashingunjail)
-      - [`.staking.beginRedelegate()`](#stakingbeginredelegate)
-      - [`.staking.createValidator()`](#stakingcreatevalidator)
-      - [`.staking.delegate()`](#stakingdelegate)
-      - [`.staking.editValidator()`](#stakingeditvalidator)
-      - [`.staking.undelegate()`](#stakingundelegate)
 
 # Key Features
 
@@ -214,7 +81,7 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secretjs client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in an RPC endpoint
 const secretjs = await SecretNetworkClient.create({
   rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
 });
@@ -252,7 +119,7 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-// To create a signer secretjs client, also pass in a wallet
+// To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
   rpcUrl: "https://rpc.pulsar.griptapejs.com/",
   wallet: wallet,
@@ -404,14 +271,14 @@ const myMnemonicPhrase = wallet.mnemonic;
 
 [**Full API »**](https://secretjs.scrt.network/classes/SecretNetworkClient.html)
 
-### Readonly secret.js
+### Querier secret.js
 
-A readonly client can only send queries and get chain information. Access to all query types can be done via `secretjs.query`.
+A querier client can only send queries and get chain information. Access to all query types can be done via `secretjs.query`.
 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secretjs client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in an RPC endpoint
 const secretjs = await SecretNetworkClient.create({
   rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
 });
@@ -431,7 +298,7 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-// To create a signer secretjs client, also pass in a wallet
+// To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
   rpcUrl: "https://rpc.pulsar.griptapejs.com/",
   wallet: wallet,
@@ -962,7 +829,7 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-// To create a signer secretjs client, also pass in a wallet
+// To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
   rpcUrl: "https://rpc.pulsar.griptapejs.com/",
   wallet: wallet,

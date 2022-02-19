@@ -10,5 +10,6 @@
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "markdown.extension.toc.levels": "1..3"
 }
