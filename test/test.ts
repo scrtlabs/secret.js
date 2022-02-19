@@ -1268,7 +1268,7 @@ describe("tx.staking", () => {
 
     expect(txDelegate.code).toBe(0);
 
-    const tx = await accounts[0].secretjs.tx.staking.redelegate(
+    const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
         delegatorAddress: accounts[0].address,
         validatorSrcAddress: validators[0].operatorAddress,

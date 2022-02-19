@@ -150,9 +150,9 @@
       - [`.authz.revoke()`](#authzrevoke)
       - [`.bank.multiSend()`](#bankmultisend)
       - [`.bank.send()`](#banksend)
-      - [`.compute.executeContract()`](#computeexecutecontract)
-      - [`.compute.instantiateContract()`](#computeinstantiatecontract)
       - [`.compute.storeCode()`](#computestorecode)
+      - [`.compute.instantiateContract()`](#computeinstantiatecontract)
+      - [`.compute.executeContract()`](#computeexecutecontract)
       - [`.crisis.verifyInvariant()`](#crisisverifyinvariant)
       - [`.distribution.fundCommunityPool()`](#distributionfundcommunitypool)
       - [`.distribution.setWithdrawAddress()`](#distributionsetwithdrawaddress)
@@ -167,7 +167,7 @@
       - [`.gov.voteWeighted()`](#govvoteweighted)
       - [`.ibc.transfer()`](#ibctransfer)
       - [`.slashing.unjail()`](#slashingunjail)
-      - [`.staking.redelegate()`](#stakingredelegate)
+      - [`.staking.beginRedelegate()`](#stakingbeginredelegate)
       - [`.staking.createValidator()`](#stakingcreatevalidator)
       - [`.staking.delegate()`](#stakingdelegate)
       - [`.staking.editValidator()`](#stakingeditvalidator)
@@ -952,7 +952,7 @@ ModuleVersions queries the list of module versions from state.
 On a signer secret.js, `secretjs.address` is the same as `walletAddress`:
 
 ```ts
-import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
+import { Wallet, SecretNetworkClient } from "secretjs";
 
 const wallet = new Wallet(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
@@ -1025,160 +1025,506 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 
 MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
 
-See: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
+Input: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
 
 #### `.authz.grant()`
 
 MsgGrant is a request type for Grant method. It declares authorization to the grantee on behalf of the granter with the provided expiration time.
 
-See: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
+Input: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
 
 #### `.authz.revoke()`
 
 MsgRevoke revokes any authorization with the provided sdk.Msg type on the granter's account with that has been granted to the grantee.
 
-See: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
+Input: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
 
 #### `.bank.multiSend()`
 
 MsgMultiSend represents an arbitrary multi-in, multi-out send message.
 
-See: [MsgMultiSendParams](https://secretjs.scrt.network/interfaces/MsgMultiSendParams)
+Input: [MsgMultiSendParams](https://secretjs.scrt.network/interfaces/MsgMultiSendParams)
+
+```ts
+const tx = await secretjs.tx.bank.multiSend(
+  {
+    inputs: [
+      {
+        address: myAddress,
+        coins: [{ denom: "uscrt", amount: "2" }],
+      },
+    ],
+    outputs: [
+      {
+        address: alice,
+        coins: [{ denom: "uscrt", amount: "1" }],
+      },
+      {
+        address: bob,
+        coins: [{ denom: "uscrt", amount: "1" }],
+      },
+    ],
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.bank.send()`
 
 MsgSend represents a message to send coins from one account to another.
 
-See: [MsgSendParams](https://secretjs.scrt.network/interfaces/MsgSendParams)
+Input: [MsgSendParams](https://secretjs.scrt.network/interfaces/MsgSendParams)
 
-#### `.compute.executeContract()`
-
-Execute a function on a contract
-
-See: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgExecuteContractParams)
-
-#### `.compute.instantiateContract()`
-
-Instantiate a contract from code id
-
-See: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstantiateContractParams)
+```ts
+const tx = await secretjs.tx.bank.send(
+  {
+    fromAddress: myAddress,
+    toAddress: alice,
+    amount: [{ denom: "uscrt", amount: "1" }],
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.compute.storeCode()`
 
 Upload a compiled contract to Secret Network
 
-See: [MsgStoreCodeParams](https://secretjs.scrt.network/interfaces/MsgStoreCodeParams)
+Input: [MsgStoreCodeParams](https://secretjs.scrt.network/interfaces/MsgStoreCodeParams)
+
+```ts
+const tx = await secretjs.tx.compute.storeCode(
+  {
+    sender: myAddress,
+    wasmByteCode: fs.readFileSync(
+      `${__dirname}/snip20-ibc.wasm.gz`,
+    ) as Uint8Array,
+    source: "",
+    builder: "",
+  },
+  {
+    gasLimit: 1_000_000,
+  },
+);
+
+const codeId = Number(
+  tx.arrayLog.find((log) => log.type === "message" && log.key === "code_id")
+    .value,
+);
+```
+
+#### `.compute.instantiateContract()`
+
+Instantiate a contract from code id
+
+Input: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstantiateContractParams)
+
+```ts
+const tx = await secretjs.tx.compute.instantiateContract(
+  {
+    sender: myAddress,
+    codeId: codeId,
+    codeHash: codeHash, // optional, but way way faster with it
+    initMsg: {
+      name: "Secret SCRT",
+      admin: myAddress,
+      symbol: "SSCRT",
+      decimals: 6,
+      initial_balances: [{ address: myAddress, amount: "1" }],
+      prng_seed: "eW8=",
+      config: {
+        public_total_supply: true,
+        enable_deposit: true,
+        enable_redeem: true,
+        enable_mint: false,
+        enable_burn: false,
+      },
+      supported_denoms: ["uscrt"],
+    },
+    label: "sSCRT",
+    initFunds: [],
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+
+const contractAddress = tx.arrayLog.find(
+  (log) => log.type === "message" && log.key === "contract_address",
+).value;
+```
+
+#### `.compute.executeContract()`
+
+Execute a function on a contract
+
+Input: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgExecuteContractParams)
+
+```ts
+const tx = await secretjs.tx.compute.executeContract(
+  {
+    sender: myAddress,
+    contract: contractAddress,
+    codeHash: codeHash, // optional, but way way faster with it
+    msg: {
+      transfer: {
+        recipient: bob,
+        amount: "1",
+      },
+    },
+    sentFunds: [],
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+```
 
 #### `.crisis.verifyInvariant()`
 
 MsgVerifyInvariant represents a message to verify a particular invariance.
 
-See: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
+Input: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
 
 #### `.distribution.fundCommunityPool()`
 
 MsgFundCommunityPool allows an account to directly fund the community pool.
 
-See: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/MsgFundCommunityPoolParams)
+Input: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/MsgFundCommunityPoolParams)
+
+```ts
+const tx = await secretjs.tx.distribution.fundCommunityPool(
+  {
+    depositor: myAddress,
+    amount: [{ amount: "1", denom: "uscrt" }],
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.distribution.setWithdrawAddress()`
 
 MsgSetWithdrawAddress sets the withdraw address for a delegator (or validator self-delegation).
 
-See: [MsgSetWithdrawAddressParams](https://secretjs.scrt.network/interfaces/MsgSetWithdrawAddressParams)
+Input: [MsgSetWithdrawAddressParams](https://secretjs.scrt.network/interfaces/MsgSetWithdrawAddressParams)
+
+```ts
+const tx = await secretjs.tx.distribution.setWithdrawAddress(
+  {
+    delegatorAddress: mySelfDelegatorAddress,
+    withdrawAddress: myOtherAddress,
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.distribution.withdrawDelegatorReward()`
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
-See: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
+Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
+
+```ts
+const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
+  {
+    delegatorAddress: myAddress,
+    validatorAddress: someValidatorAddress,
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.distribution.withdrawValidatorCommission()`
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
-See: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
+Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
+
+```ts
+const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
+  {
+    validatorAddress: myValidatorAddress,
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
+
+Or a better one:
+
+```ts
+const tx = await secretjs.tx.broadcast(
+  [
+    new MsgWithdrawDelegatorReward({
+      delegatorAddress: mySelfDelegatorAddress,
+      validatorAddress: myValidatorAddress,
+    }),
+    new MsgWithdrawValidatorCommission({
+      validatorAddress: myValidatorAddress,
+    }),
+  ],
+  {
+    gasLimit: 30_000,
+  },
+);
+```
 
 #### `.evidence.submitEvidence()`
 
 MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
 
-See: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
+Input: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
 
 #### `.feegrant.grantAllowance()`
 
 MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees from the account of Granter.
 
-See: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
+Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
 #### `.feegrant.revokeAllowance()`
 
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
-See: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
 
 #### `.gov.deposit()`
 
 MsgDeposit defines a message to submit a deposit to an existing proposal.
 
-See: [MsgDepositParams](https://secretjs.scrt.network/interfaces/MsgDepositParams)
+Input: [MsgDepositParams](https://secretjs.scrt.network/interfaces/MsgDepositParams)
+
+```ts
+const tx = await secretjs.tx.gov.deposit(
+  {
+    depositor: myAddress,
+    proposalId: someProposalId,
+    amount: [{ amount: "1", denom: "uscrt" }],
+  },
+  {
+    gasLimit: 20_000,
+  },
+);
+```
 
 #### `.gov.submitProposal()`
 
 MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary proposal Content.
 
-See: [MsgSubmitProposalParams](https://secretjs.scrt.network/interfaces/MsgSubmitProposalParams)
+Input: [MsgSubmitProposalParams](https://secretjs.scrt.network/interfaces/MsgSubmitProposalParams)
+
+```ts
+const tx = await secretjs.tx.gov.submitProposal(
+  {
+    type: ProposalType.TextProposal,
+    proposer: myAddress,
+    initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+    content: {
+      title: "Hi",
+      description: "Let's vote on this",
+    },
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+
+const proposalId = Number(
+  tx.arrayLog.find(
+    (log) => log.type === "submit_proposal" && log.key === "proposal_id",
+  ).value,
+);
+```
 
 #### `.gov.vote()`
 
 MsgVote defines a message to cast a vote.
 
-See: [MsgVoteParams](https://secretjs.scrt.network/interfaces/MsgVoteParams)
+Input: [MsgVoteParams](https://secretjs.scrt.network/interfaces/MsgVoteParams)
+
+```ts
+const tx = await secretjs.tx.gov.vote(
+  {
+    voter: myAddress,
+    proposalId: someProposalId,
+    option: VoteOption.VOTE_OPTION_YES,
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```
 
 #### `.gov.voteWeighted()`
 
 MsgVoteWeighted defines a message to cast a vote, with an option to split the vote.
 
-See: [MsgVoteWeightedParams](https://secretjs.scrt.network/interfaces/MsgVoteWeightedParams)
+Input: [MsgVoteWeightedParams](https://secretjs.scrt.network/interfaces/MsgVoteWeightedParams)
+
+```ts
+// vote yes with 70% of my power
+const tx = await secretjs.tx.gov.voteWeighted(
+  {
+    voter: myAddress,
+    proposalId: someProposalId,
+    options: [
+      // weights must sum to 1.0
+      { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
+      { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
+    ],
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```
 
 #### `.ibc.transfer()`
 
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
 
-See: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
+Input: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
 
 #### `.slashing.unjail()`
 
 MsgUnjail defines a message to release a validator from jail.
 
-See: [MsgUnjailParams](https://secretjs.scrt.network/interfaces/MsgUnjailParams)
+Input: [MsgUnjailParams](https://secretjs.scrt.network/interfaces/MsgUnjailParams)
 
-#### `.staking.redelegate()`
+```ts
+const tx = await secretjs.tx.slashing.unjail(
+  {
+    validatorAddr: mValidatorsAddress,
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```
+
+#### `.staking.beginRedelegate()`
 
 MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator.
 
-See: [MsgBeginRedelegateParams](https://secretjs.scrt.network/interfaces/MsgBeginRedelegateParams)
+Input: [MsgBeginRedelegateParams](https://secretjs.scrt.network/interfaces/MsgBeginRedelegateParams)
+
+```ts
+const tx = await secretjs.tx.staking.beginRedelegate(
+  {
+    delegatorAddress: myAddress,
+    validatorSrcAddress: someValidator,
+    validatorDstAddress: someOtherValidator,
+    amount: { amount: "1", denom: "uscrt" },
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```
 
 #### `.staking.createValidator()`
 
 MsgCreateValidator defines an SDK message for creating a new validator.
 
-See: [MsgCreateValidatorParams](https://secretjs.scrt.network/interfaces/MsgCreateValidatorParams)
+Input: [MsgCreateValidatorParams](https://secretjs.scrt.network/interfaces/MsgCreateValidatorParams)
+
+```ts
+const tx = await secretjs.tx.staking.createValidator(
+  {
+    selfDelegatorAddress: myAddress,
+    commission: {
+      maxChangeRate: 0.01, // can change +-1% every 24h
+      maxRate: 0.1, // 10%
+      rate: 0.05, // 5%
+    },
+    description: {
+      moniker: "My validator's display name",
+      identity: "ID on keybase.io, to have a logo on explorer and stuff",
+      website: "example.com",
+      securityContact: "hi@example.com",
+      details: "We are good",
+    },
+    pubkey: toBase64(new Uint8Array(32).fill(1)), // validator's pubkey, to sign on validated blocks
+    minSelfDelegation: "1", // uscrt
+    initialDelegation: { amount: "1", denom: "uscrt" },
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+```
 
 #### `.staking.delegate()`
 
 MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator.
 
-See: [MsgDelegateParams](https://secretjs.scrt.network/interfaces/MsgDelegateParams)
+Input: [MsgDelegateParams](https://secretjs.scrt.network/interfaces/MsgDelegateParams)
+
+```ts
+const tx = await secretjs.tx.staking.delegate(
+  {
+    delegatorAddress: myAddress,
+    validatorAddress: someValidatorAddress,
+    amount: { amount: "1", denom: "uscrt" },
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```
 
 #### `.staking.editValidator()`
 
 MsgEditValidator defines an SDK message for editing an existing validator.
 
-See: [MsgEditValidatorParams](https://secretjs.scrt.network/interfaces/MsgEditValidatorParams)
+Input: [MsgEditValidatorParams](https://secretjs.scrt.network/interfaces/MsgEditValidatorParams)
+
+```ts
+const tx = await secretjs.tx.staking.editValidator(
+  {
+    validatorAddress: myValidatorAddress,
+    description: {
+      // To edit even one item in "description you have to re-input everything
+      moniker: "papaya",
+      identity: "banana",
+      website: "watermelon.com",
+      securityContact: "sec@watermelon.com",
+      details: "We are the banana papaya validator yay!",
+    },
+    minSelfDelegation: "2",
+    commissionRate: 0.04, // 4%, commission cannot be changed more than once in 24h
+  },
+  {
+    gasLimit: 5_000_000,
+  },
+);
+```
 
 #### `.staking.undelegate()`
 
 MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator
 
-See: [MsgUndelegateParams](https://secretjs.scrt.network/interfaces/MsgUndelegateParams)
+Input: [MsgUndelegateParams](https://secretjs.scrt.network/interfaces/MsgUndelegateParams)
+
+```ts
+const tx = await secretjs.tx.staking.undelegate(
+  {
+    delegatorAddress: myAddress,
+    validatorAddress: someValidatorAddress,
+    amount: { amount: "1", denom: "uscrt" },
+  },
+  {
+    gasLimit: 50_000,
+  },
+);
+```

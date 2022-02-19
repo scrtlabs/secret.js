@@ -7,9 +7,13 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
+  /** The id of the contract's WASM code */
   codeId: number;
+  /** A unique label across all contracts */
   label: string;
-  initMsg: object;
+  /** The input message to the contract's constructor */
+  initMsg: any;
+  /** Funds to send to the contract */
   initFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -126,8 +130,11 @@ export class MsgInstantiateContract implements Msg {
 
 export interface MsgExecuteContractParams extends MsgParams {
   sender: string;
+  /** The contract's address */
   contract: string;
-  msg: object;
+  /** The input message */
+  msg: any;
+  /** Funds to send to the contract */
   sentFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.

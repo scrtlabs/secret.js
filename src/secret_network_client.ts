@@ -2,6 +2,8 @@ import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import {
   Coin,
+  MsgBeginRedelegate,
+  MsgBeginRedelegateParams,
   MsgCreateValidator,
   MsgCreateValidatorParams,
   MsgDelegate,
@@ -24,8 +26,6 @@ import {
   MsgInstantiateContractParams,
   MsgMultiSend,
   MsgMultiSendParams,
-  MsgBeginRedelegate,
-  MsgBeginRedelegateParams,
   MsgRevoke,
   MsgRevokeAllowance,
   MsgRevokeAllowanceParams,
@@ -536,7 +536,7 @@ export type TxSender = {
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-    redelegate: (
+    beginRedelegate: (
       params: MsgBeginRedelegateParams,
       txOptions?: SignAndBroadcastOptions,
     ) => Promise<DeliverTxResponse>;
@@ -743,7 +743,7 @@ export class SecretNetworkClient {
         unjail: doMsg(MsgUnjail),
       },
       staking: {
-        redelegate: doMsg(MsgBeginRedelegate),
+        beginRedelegate: doMsg(MsgBeginRedelegate),
         createValidator: doMsg(MsgCreateValidator),
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),
