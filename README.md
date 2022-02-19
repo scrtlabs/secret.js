@@ -15,6 +15,9 @@
 <p align="center">
   <a href="https://secretjs.scrt.network" target="_blank"><strong>Explore the Docs »</strong></a>
 </p>
+<p align="center">
+  <a href="https://github.com/scrtlabs/secret.js" target="_blank"><strong>GitHub »</strong></a>
+</p>
 
 <h1 id="table-of-contents">Table of Contents</h1>
 
