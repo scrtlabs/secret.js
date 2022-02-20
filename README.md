@@ -858,7 +858,7 @@ const addMinterMsg = new MsgExecuteContract({
   contract: MY_NFT_CONTRACT,
   codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: { add_minters: { minters: [MY_ADDRESS] } },
-  sentFunds: [],
+  sentFunds: [], // optional
 });
 
 const mintMsg = new MsgExecuteContract({
@@ -883,7 +883,7 @@ const mintMsg = new MsgExecuteContract({
       },
     },
   },
-  sentFunds: [],
+  sentFunds: [], // optional
 });
 
 const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
