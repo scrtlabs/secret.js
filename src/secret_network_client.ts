@@ -264,10 +264,8 @@ export interface Tx {
    * import { sha256 } from "@noble/hashes/sha256";
    * import { toHex } from "@cosmjs/encoding";
    *
-   * const transactionId = toHex(sha256(indexTx.tx)).toUpperCase();
+   * const transactionHash = toHex(sha256(indexTx.tx)).toUpperCase();
    * ```
-   *
-   * Use `decodeTxRaw` from @cosmjs/proto-signing to decode this.
    */
   readonly tx: Uint8Array;
   readonly gasUsed: number;
@@ -802,6 +800,23 @@ export class SecretNetworkClient {
           } catch (decryptionError) {}
         }
 
+        // const { TxRaw, TxBody, AuthInfo } = await import(
+        //   "./protobuf_stuff/cosmos/tx/v1beta1/tx"
+        // );
+
+        // const txRaw = TxRaw.decode(tx.tx);
+        // const txBody = TxBody.decode(txRaw.bodyBytes);
+        // const authInfo = AuthInfo.decode(txRaw.authInfoBytes);
+        // const signatures = txRaw.signatures.map((sig) => toBase64(sig));
+
+        // const decodedMsgs = await Promise.all(
+        //   txBody.messages.map(async (m) => {
+        //     const { path, name } = typeUrlToImportData[m.typeUrl];
+
+        //     return (await import(path))[name].decode(m);
+        //   }),
+        // );
+
         return {
           height: tx.height,
           transactionHash: toHex(tx.hash).toUpperCase(),
@@ -1155,7 +1170,7 @@ function sleep(ms: number) {
 }
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
-  return Math.floor(gasLimit * gasPrice) + 1;
+  return Math.ceil(gasLimit * gasPrice);
 }
 
 function extractNonce(msg: ProtoMsg): Uint8Array {
@@ -1428,3 +1443,192 @@ export enum TxResultCode {
   /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
   ErrPanic = 111222,
 }
+
+const typeUrlToImportData: {
+  [typeUrl: string]: { name: string; path: string };
+} = {
+  "/cosmos.authz.v1beta1.MsgGrant": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgGrant",
+  },
+  "/cosmos.authz.v1beta1.MsgExec": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgExec",
+  },
+  "/cosmos.authz.v1beta1.MsgRevoke": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgRevoke",
+  },
+  "/cosmos.bank.v1beta1.MsgSend": {
+    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
+    name: "MsgSend",
+  },
+  "/cosmos.bank.v1beta1.MsgMultiSend": {
+    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
+    name: "MsgMultiSend",
+  },
+  "/cosmos.crisis.v1beta1.MsgVerifyInvariant": {
+    path: "./protobuf_stuff/cosmos/crisis/v1beta1/tx",
+    name: "MsgVerifyInvariant",
+  },
+  "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgSetWithdrawAddress",
+  },
+  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgWithdrawDelegatorReward",
+  },
+  "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgWithdrawValidatorCommission",
+  },
+  "/cosmos.distribution.v1beta1.MsgFundCommunityPool": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgFundCommunityPool",
+  },
+  "/cosmos.evidence.v1beta1.MsgSubmitEvidence": {
+    path: "./protobuf_stuff/cosmos/evidence/v1beta1/tx",
+    name: "MsgSubmitEvidence",
+  },
+  "/cosmos.feegrant.v1beta1.MsgGrantAllowance": {
+    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
+    name: "MsgGrantAllowance",
+  },
+  "/cosmos.feegrant.v1beta1.MsgRevokeAllowance": {
+    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
+    name: "MsgRevokeAllowance",
+  },
+  "/cosmos.gov.v1beta1.MsgSubmitProposal": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgSubmitProposal",
+  },
+  "/cosmos.gov.v1beta1.MsgVote": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgVote",
+  },
+  "/cosmos.gov.v1beta1.MsgVoteWeighted": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgVoteWeighted",
+  },
+  "/cosmos.gov.v1beta1.MsgDeposit": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgDeposit",
+  },
+  "/cosmos.slashing.v1beta1.MsgUnjail": {
+    path: "./protobuf_stuff/cosmos/slashing/v1beta1/tx",
+    name: "MsgUnjail",
+  },
+  "/cosmos.staking.v1beta1.MsgCreateValidator": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgCreateValidator",
+  },
+  "/cosmos.staking.v1beta1.MsgEditValidator": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgEditValidator",
+  },
+  "/cosmos.staking.v1beta1.MsgDelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgDelegate",
+  },
+  "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgBeginRedelegate",
+  },
+  "/cosmos.staking.v1beta1.MsgUndelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgUndelegate",
+  },
+  "/ibc.applications.transfer.v1.MsgTransfer": {
+    path: "./protobuf_stuff/ibc/applications/transfer/v1/tx",
+    name: "MsgTransfer",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenInit": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenInit",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenTry": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenTry",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenAck": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenAck",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenConfirm": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenConfirm",
+  },
+  "/ibc.core.channel.v1.MsgChannelCloseInit": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelCloseInit",
+  },
+  "/ibc.core.channel.v1.MsgChannelCloseConfirm": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelCloseConfirm",
+  },
+  "/ibc.core.channel.v1.MsgRecvPacket": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgRecvPacket",
+  },
+  "/ibc.core.channel.v1.MsgTimeout": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgTimeout",
+  },
+  "/ibc.core.channel.v1.MsgTimeoutOnClose": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgTimeoutOnClose",
+  },
+  "/ibc.core.channel.v1.MsgAcknowledgement": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgAcknowledgement",
+  },
+  "/ibc.core.client.v1.MsgCreateClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgCreateClient",
+  },
+  "/ibc.core.client.v1.MsgUpdateClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgUpdateClient",
+  },
+  "/ibc.core.client.v1.MsgUpgradeClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgUpgradeClient",
+  },
+  "/ibc.core.client.v1.MsgSubmitMisbehaviour": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgSubmitMisbehaviour",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenInit": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenInit",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenTry": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenTry",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenAck": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenAck",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenConfirm": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenConfirm",
+  },
+  "/secret.compute.v1beta1.MsgStoreCode": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgStoreCode",
+  },
+  "/secret.compute.v1beta1.MsgInstantiateContract": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgInstantiateContract",
+  },
+  "/secret.compute.v1beta1.MsgExecuteContract": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgExecuteContract",
+  },
+  "/secret.registration.v1beta1.RaAuthenticate": {
+    path: "./protobuf_stuff/secret/registration/v1beta1/msg",
+    name: "RaAuthenticate",
+  },
+};
