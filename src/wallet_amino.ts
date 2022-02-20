@@ -61,10 +61,7 @@ export class AminoWallet {
     this.privateKey = new Uint8Array(privateKey);
     this.publicKey = secp256k1.getPublicKey(this.privateKey, true);
 
-    this.address = bech32.encode(
-      "secret",
-      bech32.toWords(ripemd160(sha256(this.publicKey))),
-    );
+    this.address = pubkeyToAddress(this.publicKey);
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {
@@ -97,6 +94,16 @@ export class AminoWallet {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
+}
+
+/**
+ * Convert a secp256k1 compressed public key to a secret address
+ *
+ * @param pubkey tha account's pubkey, should be 33 bytes (compressed secp256k1)
+ * @returns the account's secret address
+ */
+export function pubkeyToAddress(pubkey: Uint8Array): string {
+  return bech32.encode("secret", bech32.toWords(ripemd160(sha256(pubkey))));
 }
 
 /**
