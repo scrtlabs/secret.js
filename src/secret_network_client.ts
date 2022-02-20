@@ -194,24 +194,24 @@ export type Querier = {
    */
   txsQuery: (query: string) => Promise<Tx[]>;
   auth: AuthQuerier;
-  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").QueryClientImpl;
-  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").QueryClientImpl;
+  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").Query;
+  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").Query;
   compute: ComputeQuerier;
-  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").QueryClientImpl;
-  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").QueryClientImpl;
-  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").QueryClientImpl;
-  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").QueryClientImpl;
-  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").QueryClientImpl;
-  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").QueryClientImpl;
-  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").QueryClientImpl;
-  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").QueryClientImpl;
-  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").QueryClientImpl;
-  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").QueryClientImpl;
-  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").QueryClientImpl;
-  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").QueryClientImpl;
-  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").QueryClientImpl;
-  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").ServiceClientImpl;
-  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").QueryClientImpl;
+  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").Query;
+  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").Query;
+  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").Query;
+  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").Query;
+  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").Query;
+  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").Query;
+  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").Query;
+  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").Query;
+  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").Query;
+  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").Query;
+  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").Query;
+  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").Query;
+  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").Query;
+  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").Service;
+  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").Query;
 };
 
 export type ArrayLog = Array<{
