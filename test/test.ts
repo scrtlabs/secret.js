@@ -622,6 +622,55 @@ describe("tx.compute", () => {
     );
   });
 
+  test("MsgInstantiateContract error", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {},
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(tx.jsonLog).toEqual({
+      parse_err: {
+        msg: "missing field `name`",
+        target: "snip20_reference_impl::msg::InitMsg",
+      },
+    });
+  });
+
   test("MsgExecuteContract", async () => {
     const { secretjs } = accounts[0];
 
@@ -726,6 +775,94 @@ describe("tx.compute", () => {
     // Check decryption
     expect(tx.arrayLog![10].key).toBe("minted");
     expect(tx.arrayLog![10].value).toBe("1");
+  });
+
+  test("MsgExecuteContract error", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+
+    const addMinterMsg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract,
+      // codeHash, // Test MsgExecuteContract without codeHash
+      msg: { add_minters: { minters: [accounts[0].address] } },
+      sentFunds: [],
+    });
+
+    const mintMsg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract,
+      codeHash,
+      msg: {
+        yolo: {},
+      },
+      sentFunds: [],
+    });
+
+    const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+      gasLimit: 5_000_000,
+    });
+
+    console.log(JSON.stringify(tx, null, 4));
+
+    expect(tx.jsonLog).toEqual({
+      parse_err: {
+        msg: "unknown variant `yolo`, expected one of `mint_nft`, `batch_mint_nft`, `mint_nft_clones`, `set_metadata`, `set_royalty_info`, `reveal`, `make_ownership_private`, `set_global_approval`, `set_whitelisted_approval`, `approve`, `revoke`, `approve_all`, `revoke_all`, `transfer_nft`, `batch_transfer_nft`, `send_nft`, `batch_send_nft`, `burn_nft`, `batch_burn_nft`, `register_receive_nft`, `create_viewing_key`, `set_viewing_key`, `add_minters`, `remove_minters`, `set_minters`, `change_admin`, `set_contract_status`, `revoke_permit`",
+        target: "snip721_reference_impl::msg::HandleMsg",
+      },
+    });
+    expect(tx.rawLog).toContain("failed to execute message; message index: 1");
   });
 });
 

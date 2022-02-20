@@ -111,7 +111,7 @@ export type TxOptions = {
   feeDenom?: string;
   /** Defaults to `""`. */
   memo?: string;
-  /** If false returns immediately with `transactionHash`. Defaults to `true`. */
+  /** If `false` returns immediately with only the `transactionHash` field set. Defaults to `true`. */
   waitForCommit?: boolean;
   /**
    * How much time (in milliseconds) to wait for tx to commit on-chain.
@@ -222,6 +222,7 @@ export type ArrayLog = Array<{
 }>;
 
 export type JsonLog = Array<{
+  msg_index: number;
   events: Array<{
     type: string;
     attributes: Array<{ key: string; value: string }>;
@@ -237,36 +238,13 @@ export type MsgData = {
   data: Uint8Array;
 };
 
-/**
- * The response after successfully broadcasting a transaction.
- */
-export type DeliverTxResponse = {
-  readonly height?: number;
-  /** Error code. The transaction suceeded iff code is 0. */
-  readonly code?: number;
-  readonly transactionHash: string;
-  /**
-   * If code != 0, rawLog contains the error.
-   *
-   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`. Values are not decrypted.
-   */
-  readonly rawLog?: string;
-  /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
-  readonly jsonLog?: JsonLog;
-  /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
-  readonly arrayLog?: ArrayLog;
-  readonly data?: MsgData[];
-  readonly gasUsed?: number;
-  readonly gasWanted?: number;
-};
-
 /** A transaction that is indexed as part of the transaction history */
 export interface Tx {
   readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
-  readonly hash: string;
-  /** Transaction execution error code. 0 on success. */
-  readonly code: number;
+  readonly transactionHash: string;
+  /** Transaction execution error code. 0 on success. See {@link TxResultCode}. */
+  readonly code: TxResultCode;
   /**
    * If code != 0, rawLog contains the error.
    *
@@ -313,7 +291,7 @@ export type TxSender = {
    * @param {Number} [options.explicitSignerData.accountNumber]
    * @param {Number} [options.explicitSignerData.sequence]
    * @param {String} [options.explicitSignerData.chainId]
-   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
+   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link Tx} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link Tx} `code` field will not be `0`.
    *
    * List of possible Msgs:
    *   - authz           {@link MsgExec}
@@ -364,10 +342,7 @@ export type TxSender = {
    *
    *
    */
-  broadcast: (
-    messages: Msg[],
-    txOptions?: TxOptions,
-  ) => Promise<DeliverTxResponse>;
+  broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
   authz: {
     /**
@@ -375,62 +350,50 @@ export type TxSender = {
      * authorizations granted to the grantee. Each message should have only
      * one signer corresponding to the granter of the authorization.
      */
-    exec: (
-      params: MsgExecParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    exec: (params: MsgExecParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
      * on behalf of the granter with the provided expiration time.
      */
-    grant: (
-      params: MsgGrantParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    grant: (params: MsgGrantParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
      * granter's account with that has been granted to the grantee.
      */
-    revoke: (
-      params: MsgRevokeParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    revoke: (params: MsgRevokeParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
     multiSend: (
       params: MsgMultiSendParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgSend represents a message to send coins from one account to another. */
-    send: (
-      params: MsgSendParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    send: (params: MsgSendParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   compute: {
     /** Execute a function on a contract */
     executeContract: (
       params: MsgExecuteContractParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** Instantiate a contract from code id */
     instantiateContract: (
       params: MsgInstantiateContractParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** Upload a compiled contract to Secret Network */
     storeCode: (
       params: MsgStoreCodeParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: (
       params: MsgVerifyInvariantParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   distribution: {
     /**
@@ -440,7 +403,7 @@ export type TxSender = {
     fundCommunityPool: (
       params: MsgFundCommunityPoolParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
      * a delegator (or validator self-delegation).
@@ -448,7 +411,7 @@ export type TxSender = {
     setWithdrawAddress: (
       params: MsgSetWithdrawAddressParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
      * from a single validator.
@@ -456,7 +419,7 @@ export type TxSender = {
     withdrawDelegatorReward: (
       params: MsgWithdrawDelegatorRewardParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
      * address.
@@ -464,7 +427,7 @@ export type TxSender = {
     withdrawValidatorCommission: (
       params: MsgWithdrawValidatorCommissionParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   evidence: {
     /**
@@ -474,7 +437,7 @@ export type TxSender = {
     submitEvidence: (
       params: MsgSubmitEvidenceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   feegrant: {
     /**
@@ -484,19 +447,16 @@ export type TxSender = {
     grantAllowance: (
       params: MsgGrantAllowanceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
     revokeAllowance: (
       params: MsgRevokeAllowanceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
-    deposit: (
-      params: MsgDepositParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    deposit: (params: MsgDepositParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
      * proposal Content.
@@ -504,17 +464,14 @@ export type TxSender = {
     submitProposal: (
       params: MsgSubmitProposalParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgVote defines a message to cast a vote. */
-    vote: (
-      params: MsgVoteParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    vote: (params: MsgVoteParams, txOptions?: TxOptions) => Promise<Tx>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
     voteWeighted: (
       params: MsgVoteWeightedParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   ibc: {
     /**
@@ -522,44 +479,35 @@ export type TxSender = {
      * ICS20 enabled chains. See ICS Spec here:
      * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
      */
-    transfer: (
-      params: MsgTransferParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    transfer: (params: MsgTransferParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
-    unjail: (
-      params: MsgUnjailParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    unjail: (params: MsgUnjailParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
     beginRedelegate: (
       params: MsgBeginRedelegateParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
     createValidator: (
       params: MsgCreateValidatorParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
-    delegate: (
-      params: MsgDelegateParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    delegate: (params: MsgDelegateParams, txOptions?: TxOptions) => Promise<Tx>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
     editValidator: (
       params: MsgEditValidatorParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: (
       params: MsgUndelegateParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
 };
 
@@ -778,13 +726,19 @@ export class SecretNetworkClient {
 
     return await Promise.all(
       results.txs.map(async (tx) => {
+        let rawLog: string = tx.result.log ?? "";
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
-        if (tx.result.code === 0 && tx.result.log) {
-          jsonLog = JSON.parse(tx.result.log) as JsonLog;
+        if (tx.result.code === 0 && rawLog !== "") {
+          jsonLog = JSON.parse(rawLog) as JsonLog;
 
           arrayLog = [];
           for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            if (jsonLog[msgIndex].msg_index === undefined) {
+              jsonLog[msgIndex].msg_index = msgIndex;
+              // See https://github.com/cosmos/cosmos-sdk/pull/11147
+            }
+
             const log = jsonLog[msgIndex];
             for (const event of log.events) {
               for (const attr of event.attributes) {
@@ -820,16 +774,43 @@ export class SecretNetworkClient {
               }
             }
           }
+        } else if (tx.result.code !== 0 && rawLog !== "") {
+          try {
+            const errorMessageRgx =
+              /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+            const rgxMatches = errorMessageRgx.exec(rawLog);
+            if (rgxMatches?.length === 3) {
+              const encryptedError = fromBase64(rgxMatches[2]);
+              const msgIndex = Number(rgxMatches[1]);
+
+              const decryptedBase64Error = await this.encryptionUtils.decrypt(
+                encryptedError,
+                nonces[msgIndex],
+              );
+
+              const decryptedError = fromUtf8(decryptedBase64Error);
+
+              rawLog = rawLog.replace(
+                `encrypted: ${rgxMatches[2]}`,
+                decryptedError,
+              );
+
+              try {
+                jsonLog = JSON.parse(decryptedError);
+              } catch (e) {}
+            }
+          } catch (decryptionError) {}
         }
 
         return {
           height: tx.height,
-          hash: toHex(tx.hash).toUpperCase(),
+          transactionHash: toHex(tx.hash).toUpperCase(),
           code: tx.result.code,
-          rawLog: tx.result.log || "",
-          jsonLog: jsonLog,
-          arrayLog: arrayLog,
           tx: tx.tx,
+          rawLog,
+          jsonLog,
+          arrayLog,
+          data: tx.result.data,
           gasUsed: tx.result.gasUsed,
           gasWanted: tx.result.gasWanted,
         };
@@ -845,7 +826,7 @@ export class SecretNetworkClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a {@link DeliverTxResponse} is returned. The caller then
+   * If the transaction is included in a block, a {@link Tx} is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   private async broadcastTx(
@@ -855,7 +836,7 @@ export class SecretNetworkClient {
     mode: BroadcastMode,
     waitForCommit: boolean,
     nonces: ComputeMsgToNonce,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<Tx> {
     const start = Date.now();
 
     let txhash: string;
@@ -873,6 +854,7 @@ export class SecretNetworkClient {
     }
 
     if (!waitForCommit) {
+      //@ts-ignore
       return { transactionHash: txhash };
     }
 
@@ -886,16 +868,7 @@ export class SecretNetworkClient {
       const result = await this.getTx(txhash, nonces);
 
       if (result) {
-        return {
-          code: result.code,
-          height: result.height,
-          rawLog: result.rawLog,
-          jsonLog: result.jsonLog,
-          arrayLog: result.arrayLog,
-          transactionHash: txhash,
-          gasUsed: result.gasUsed,
-          gasWanted: result.gasWanted,
-        };
+        return result;
       }
 
       await sleep(checkIntervalMs);
@@ -905,7 +878,7 @@ export class SecretNetworkClient {
   private async signAndBroadcast(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<Tx> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
@@ -1326,4 +1299,132 @@ function makeSignDocAmino(
     msgs: msgs,
     memo: memo || "",
   };
+}
+
+export enum TxResultCode {
+  /** Success is returned if the transaction executed successfuly */
+  Success = 0,
+
+  /** ErrInternal should never be exposed, but we reserve this code for non-specified errors */
+  ErrInternal = 1,
+
+  /** ErrTxDecode is returned if we cannot parse a transaction */
+  ErrTxDecode = 2,
+
+  /** ErrInvalidSequence is used the sequence number (nonce) is incorrect for the signature */
+  ErrInvalidSequence = 3,
+
+  /** ErrUnauthorized is used whenever a request without sufficient authorization is handled. */
+  ErrUnauthorized = 4,
+
+  /** ErrInsufficientFunds is used when the account cannot pay requested amount. */
+  ErrInsufficientFunds = 5,
+
+  /** ErrUnknownRequest to doc */
+  ErrUnknownRequest = 6,
+
+  /** ErrInvalidAddress to doc */
+  ErrInvalidAddress = 7,
+
+  /** ErrInvalidPubKey to doc */
+  ErrInvalidPubKey = 8,
+
+  /** ErrUnknownAddress to doc */
+  ErrUnknownAddress = 9,
+
+  /** ErrInvalidCoins to doc */
+  ErrInvalidCoins = 10,
+
+  /** ErrOutOfGas to doc */
+  ErrOutOfGas = 11,
+
+  /** ErrMemoTooLarge to doc */
+  ErrMemoTooLarge = 12,
+
+  /** ErrInsufficientFee to doc */
+  ErrInsufficientFee = 13,
+
+  /** ErrTooManySignatures to doc */
+  ErrTooManySignatures = 14,
+
+  /** ErrNoSignatures to doc */
+  ErrNoSignatures = 15,
+
+  /** ErrJSONMarshal defines an ABCI typed JSON marshalling error */
+  ErrJSONMarshal = 16,
+
+  /** ErrJSONUnmarshal defines an ABCI typed JSON unmarshalling error */
+  ErrJSONUnmarshal = 17,
+
+  /** ErrInvalidRequest defines an ABCI typed error where the request contains invalid data. */
+  ErrInvalidRequest = 18,
+
+  /** ErrTxInMempoolCache defines an ABCI typed error where a tx already exists in the mempool. */
+  ErrTxInMempoolCache = 19,
+
+  /** ErrMempoolIsFull defines an ABCI typed error where the mempool is full. */
+  ErrMempoolIsFull = 20,
+
+  /** ErrTxTooLarge defines an ABCI typed error where tx is too large. */
+  ErrTxTooLarge = 21,
+
+  /** ErrKeyNotFound defines an error when the key doesn't exist */
+  ErrKeyNotFound = 22,
+
+  /** ErrWrongPassword defines an error when the key password is invalid. */
+  ErrWrongPassword = 23,
+
+  /** ErrorInvalidSigner defines an error when the tx intended signer does not match the given signer. */
+  ErrorInvalidSigner = 24,
+
+  /** ErrorInvalidGasAdjustment defines an error for an invalid gas adjustment */
+  ErrorInvalidGasAdjustment = 25,
+
+  /** ErrInvalidHeight defines an error for an invalid height */
+  ErrInvalidHeight = 26,
+
+  /** ErrInvalidVersion defines a general error for an invalid version */
+  ErrInvalidVersion = 27,
+
+  /** ErrInvalidChainID defines an error when the chain-id is invalid. */
+  ErrInvalidChainID = 28,
+
+  /** ErrInvalidType defines an error an invalid type. */
+  ErrInvalidType = 29,
+
+  /** ErrTxTimeoutHeight defines an error for when a tx is rejected out due to an explicitly set timeout height. */
+  ErrTxTimeoutHeight = 30,
+
+  /** ErrUnknownExtensionOptions defines an error for unknown extension options. */
+  ErrUnknownExtensionOptions = 31,
+
+  /** ErrWrongSequence defines an error where the account sequence defined in the signer info doesn't match the account's actual sequence number. */
+  ErrWrongSequence = 32,
+
+  /** ErrPackAny defines an error when packing a protobuf message to Any fails. */
+  ErrPackAny = 33,
+
+  /** ErrUnpackAny defines an error when unpacking a protobuf message from Any fails. */
+  ErrUnpackAny = 34,
+
+  /** ErrLogic defines an internal logic error, e.g. an invariant or assertion that is violated. It is a programmer error, not a user-facing error. */
+  ErrLogic = 35,
+
+  /** ErrConflict defines a conflict error, e.g. when two goroutines try to access the same resource and one of them fails. */
+  ErrConflict = 36,
+
+  /** ErrNotSupported is returned when we call a branch of a code which is currently not supported. */
+  ErrNotSupported = 37,
+
+  /** ErrNotFound defines an error when requested entity doesn't exist in the state. */
+  ErrNotFound = 38,
+
+  /** ErrIO should be used to wrap internal errors caused by external operation. Examples: not DB domain error, file writing etc... */
+  ErrIO = 39,
+
+  /** ErrAppConfig defines an error occurred if min-gas-prices field in BaseConfig is empty. */
+  ErrAppConfig = 40,
+
+  /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
+  ErrPanic = 111222,
 }

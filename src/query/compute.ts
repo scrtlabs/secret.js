@@ -225,9 +225,7 @@ export class ComputeQuerier {
 
         return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))));
       } catch (decryptionError) {
-        throw new Error(
-          `Failed to decrypt the following error message: ${err.message}.`,
-        );
+        throw err;
       }
     }
   }
