@@ -460,19 +460,19 @@ Params queries params of the distribution module.
 
 #### `secretjs.query.distribution.validatorOutstandingRewards()`
 
-ValidatorOutstandingRewards queries rewards of a validator address. \*/
+ValidatorOutstandingRewards queries rewards of a validator address.
 
 #### `secretjs.query.distribution.validatorCommission()`
 
-ValidatorCommission queries accumulated commission for a validator. \*/
+ValidatorCommission queries accumulated commission for a validator.
 
 #### `secretjs.query.distribution.validatorSlashes()`
 
-ValidatorSlashes queries slash events of a validator. \*/
+ValidatorSlashes queries slash events of a validator.
 
 #### `secretjs.query.distribution.delegationRewards()`
 
-DelegationRewards queries the total rewards accrued by a delegation. \*/
+DelegationRewards queries the total rewards accrued by a delegation.
 
 #### `secretjs.query.distribution.delegationTotalRewards()`
 
@@ -480,19 +480,19 @@ DelegationTotalRewards queries the total rewards accrued by a each validator.
 
 #### `secretjs.query.distribution.delegatorValidators()`
 
-DelegatorValidators queries the validators of a delegator. \*/
+DelegatorValidators queries the validators of a delegator.
 
 #### `secretjs.query.distribution.delegatorWithdrawAddress()`
 
-DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+DelegatorWithdrawAddress queries withdraw address of a delegator.
 
 #### `secretjs.query.distribution.communityPool()`
 
-CommunityPool queries the community pool coins. \*/
+CommunityPool queries the community pool coins.
 
 #### `secretjs.query.distribution.foundationTax()`
 
-DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+DelegatorWithdrawAddress queries withdraw address of a delegator.
 
 #### `secretjs.query.evidence.evidence()`
 
@@ -844,7 +844,7 @@ const alsoMyAddress = secretjs.address;
 
 On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [TxOptions](https://secretjs.scrt.network/modules#TxOptions).
 
-[Full API »](https://secretjs.scrt.network/modules#TxSender)
+[**Full API »**](https://secretjs.scrt.network/modules#TxSender)
 
 #### `secretjs.tx.broadcast()`
 
