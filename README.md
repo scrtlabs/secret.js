@@ -437,7 +437,7 @@ type Result = {
 
 const result = (await secretjs.query.compute.queryContract({
   address: sScrtAddress,
-  codeHash: sScrtCodeHash,
+  codeHash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 })) as Result;
 ```
@@ -842,7 +842,7 @@ const alsoMyAddress = secretjs.address;
 
 ### `secretjs.tx`
 
-On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [SignAndBroadcastOptions](https://secretjs.scrt.network/modules#SignAndBroadcastOptions).
+On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [TxOptions](https://secretjs.scrt.network/modules#TxOptions).
 
 [Full API »](https://secretjs.scrt.network/modules#TxSender)
 
@@ -856,7 +856,7 @@ For a list of all messages see: https://secretjs.scrt.network/interfaces/Msg
 const addMinterMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
   contract: MY_NFT_CONTRACT,
-  codeHash: MY_NFT_CONTRACT_CODE_HASH,
+  codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: { add_minters: { minters: [MY_ADDRESS] } },
   sentFunds: [],
 });
@@ -864,7 +864,7 @@ const addMinterMsg = new MsgExecuteContract({
 const mintMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
   contract: MY_NFT_CONTRACT,
-  codeHash: MY_NFT_CONTRACT_CODE_HASH,
+  codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: {
     mint_nft: {
       token_id: "1",
@@ -998,7 +998,7 @@ const tx = await secretjs.tx.compute.instantiateContract(
   {
     sender: myAddress,
     codeId: codeId,
-    codeHash: codeHash, // optional, but way way faster with it
+    codeHash: codeHash, // optional but way faster
     initMsg: {
       name: "Secret SCRT",
       admin: myAddress,
@@ -1016,7 +1016,7 @@ const tx = await secretjs.tx.compute.instantiateContract(
       supported_denoms: ["uscrt"],
     },
     label: "sSCRT",
-    initFunds: [],
+    initFunds: [], // optional
   },
   {
     gasLimit: 100_000,
@@ -1039,14 +1039,14 @@ const tx = await secretjs.tx.compute.executeContract(
   {
     sender: myAddress,
     contract: contractAddress,
-    codeHash: codeHash, // optional, but way way faster with it
+    codeHash: codeHash, // optional but way faster
     msg: {
       transfer: {
         recipient: bob,
         amount: "1",
       },
     },
-    sentFunds: [],
+    sentFunds: [], // optional
   },
   {
     gasLimit: 100_000,

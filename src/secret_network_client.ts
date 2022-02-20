@@ -73,7 +73,7 @@ import {
   StdSignDoc,
 } from "./wallet_amino";
 
-export type ClientOptions = {
+export type CreateClientOptions = {
   rpcUrl: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
@@ -102,7 +102,7 @@ export enum BroadcastMode {
   Async,
 }
 
-export type SignAndBroadcastOptions = {
+export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
   /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
@@ -300,7 +300,7 @@ export type TxSender = {
   /**
    * Sign and broadcast a transaction to Secret Network.
    *
-   * @param {SignAndBroadcastOptions} [options] Options for signing and broadcasting
+   * @param {TxOptions} [options] Options for signing and broadcasting
    * @param {Number} [options.gasLimit=25_000]
    * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
    * @param {String} [options.feeDenom="uscrt"]
@@ -366,7 +366,7 @@ export type TxSender = {
    */
   broadcast: (
     messages: Msg[],
-    txOptions?: SignAndBroadcastOptions,
+    txOptions?: TxOptions,
   ) => Promise<DeliverTxResponse>;
 
   authz: {
@@ -377,7 +377,7 @@ export type TxSender = {
      */
     exec: (
       params: MsgExecParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
@@ -385,7 +385,7 @@ export type TxSender = {
      */
     grant: (
       params: MsgGrantParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
@@ -393,43 +393,43 @@ export type TxSender = {
      */
     revoke: (
       params: MsgRevokeParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
     multiSend: (
       params: MsgMultiSendParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgSend represents a message to send coins from one account to another. */
     send: (
       params: MsgSendParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   compute: {
     /** Execute a function on a contract */
     executeContract: (
       params: MsgExecuteContractParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** Instantiate a contract from code id */
     instantiateContract: (
       params: MsgInstantiateContractParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** Upload a compiled contract to Secret Network */
     storeCode: (
       params: MsgStoreCodeParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: (
       params: MsgVerifyInvariantParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   distribution: {
@@ -439,7 +439,7 @@ export type TxSender = {
      */
     fundCommunityPool: (
       params: MsgFundCommunityPoolParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
@@ -447,7 +447,7 @@ export type TxSender = {
      */
     setWithdrawAddress: (
       params: MsgSetWithdrawAddressParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
@@ -455,7 +455,7 @@ export type TxSender = {
      */
     withdrawDelegatorReward: (
       params: MsgWithdrawDelegatorRewardParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
@@ -463,7 +463,7 @@ export type TxSender = {
      */
     withdrawValidatorCommission: (
       params: MsgWithdrawValidatorCommissionParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   evidence: {
@@ -473,7 +473,7 @@ export type TxSender = {
      */
     submitEvidence: (
       params: MsgSubmitEvidenceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   feegrant: {
@@ -483,19 +483,19 @@ export type TxSender = {
      */
     grantAllowance: (
       params: MsgGrantAllowanceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
     revokeAllowance: (
       params: MsgRevokeAllowanceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
     deposit: (
       params: MsgDepositParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
@@ -503,17 +503,17 @@ export type TxSender = {
      */
     submitProposal: (
       params: MsgSubmitProposalParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgVote defines a message to cast a vote. */
     vote: (
       params: MsgVoteParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
     voteWeighted: (
       params: MsgVoteWeightedParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   ibc: {
@@ -524,41 +524,41 @@ export type TxSender = {
      */
     transfer: (
       params: MsgTransferParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
     unjail: (
       params: MsgUnjailParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
     beginRedelegate: (
       params: MsgBeginRedelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
     createValidator: (
       params: MsgCreateValidatorParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
     delegate: (
       params: MsgDelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
     editValidator: (
       params: MsgEditValidatorParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: (
       params: MsgUndelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
 };
@@ -586,7 +586,7 @@ export class SecretNetworkClient {
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
   public static async create(
-    options: ClientOptions,
+    options: CreateClientOptions,
   ): Promise<SecretNetworkClient> {
     const tendermint = await Tendermint34Client.connect(options.rpcUrl);
 
@@ -679,7 +679,7 @@ export class SecretNetworkClient {
   private constructor(
     tendermint: Tendermint34Client,
     query: Querier,
-    signingParams: ClientOptions,
+    signingParams: CreateClientOptions,
   ) {
     this.tendermint = tendermint;
 
@@ -692,7 +692,7 @@ export class SecretNetworkClient {
     this.chainId = signingParams.chainId ?? "";
 
     const doMsg = (msgClass: any) => {
-      return (params: MsgParams, options?: SignAndBroadcastOptions) => {
+      return (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
       };
     };
@@ -904,7 +904,7 @@ export class SecretNetworkClient {
 
   private async signAndBroadcast(
     messages: Msg[],
-    txOptions?: SignAndBroadcastOptions,
+    txOptions?: TxOptions,
   ): Promise<DeliverTxResponse> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
