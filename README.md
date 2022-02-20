@@ -337,13 +337,13 @@ Returns account details based on address.
 
 ```ts
 const { address, accountNumber, sequence } = await secretjs.query.auth.account({
-  address: accounts[1].address,
+  address: myAddress,
 });
 ```
 
 #### `secretjs.query.auth.accounts()`
 
-Returns all the existing accounts.
+Returns all existing accounts on the blockchain.
 
 ```ts
 /// Get all accounts
