@@ -407,6 +407,31 @@ describe("query.compute", () => {
     });
   });
 
+  test("queryContract() error", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(1);
+
+    const result = await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      codeHash,
+      query: {
+        balance: {
+          address: accounts[0].address,
+          key: "wrong",
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      viewing_key_error: {
+        msg: "Wrong viewing key for this address or viewing key not set",
+      },
+    });
+  });
+
   test("queryContract() without codeHash", async () => {
     const { secretjs } = accounts[0];
 

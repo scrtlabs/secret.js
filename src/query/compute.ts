@@ -195,17 +195,41 @@ export class ComputeQuerier {
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
     const nonce = encryptedQuery.slice(0, 32);
 
-    const { data: encryptedResult } = await this.client!.smartContractState({
-      address: addressToBytes(address),
-      queryData: encryptedQuery,
-    });
+    try {
+      const { data: encryptedResult } = await this.client!.smartContractState({
+        address: addressToBytes(address),
+        queryData: encryptedQuery,
+      });
 
-    const decryptedBase64Result = await this.encryption!.decrypt(
-      encryptedResult,
-      nonce,
-    );
+      const decryptedBase64Result = await this.encryption!.decrypt(
+        encryptedResult,
+        nonce,
+      );
 
-    return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Result))));
+      return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Result))));
+    } catch (err) {
+      try {
+        const errorMessageRgx =
+          /encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+        const rgxMatches = errorMessageRgx.exec(err.message);
+        if (rgxMatches == null || rgxMatches?.length != 2) {
+          throw err;
+        }
+
+        const encryptedError = fromBase64(rgxMatches[1]);
+
+        const decryptedBase64Error = await this.encryption!.decrypt(
+          encryptedError,
+          nonce,
+        );
+
+        return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))));
+      } catch (decryptionError) {
+        throw new Error(
+          `Failed to decrypt the following error message: ${err.message}.`,
+        );
+      }
+    }
   }
 
   /** Get WASM bytecode and metadata for a code id */
