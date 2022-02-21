@@ -115,7 +115,7 @@ export class AminoWallet {
 /**
  * Convert a secp256k1 compressed public key to a secret address
  *
- * @param {Uint8Array} pubkey  The account's pubkey, should be 33 bytes (compressed secp256k1)
+ * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
  * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
  * @returns the account's secret address
  */
@@ -129,7 +129,7 @@ export function pubkeyToAddress(
 /**
  * Convert a secp256k1 compressed public key to a secret address
  *
- * @param {Uint8Array} pubkey  The account's pubkey, should be 33 bytes (compressed secp256k1)
+ * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
  * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
  * @returns the account's secret address
  */
@@ -218,7 +218,7 @@ export type Pubkey = {
   readonly value: any;
 };
 
-export type Algo = "secp256k1" | "ed25519" | "sr25519";
+type Algo = "secp256k1" | "ed25519" | "sr25519";
 
 export type AccountData = {
   /** A printable address (typically bech32 encoded) */
@@ -244,11 +244,11 @@ function sortedObject(obj: any): any {
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-export function JsonSortedStringify(obj: any): string {
+function JsonSortedStringify(obj: any): string {
   return JSON.stringify(sortedObject(obj));
 }
 
-export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
+function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
   return toUtf8(JsonSortedStringify(signDoc));
 }
 
