@@ -700,6 +700,8 @@ export class SecretNetworkClient {
     if (signingParams.encryptionUtils) {
       this.encryptionUtils = signingParams.encryptionUtils;
     } else {
+      console.log("2 chainid", this.chainId);
+
       this.encryptionUtils = new EncryptionUtilsImpl(
         this.query.registration,
         signingParams.encryptionSeed,

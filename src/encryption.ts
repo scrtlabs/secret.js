@@ -48,6 +48,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     this.privkey = privkey;
     this.pubkey = pubkey;
 
+    console.log("1 chainid", chainId);
     if (chainId && mainnetChainIds.has(chainId)) {
       console.log("mainnet!");
 
