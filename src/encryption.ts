@@ -49,6 +49,8 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     this.pubkey = pubkey;
 
     if (chainId && mainnetChainIds.has(chainId)) {
+      console.log("mainnet!");
+
       // Major speedup
       // TODO: not sure if this is the best approach for detecting mainnet
       this.consensusIoPubKey = mainnetConsensusIoPubKey;
