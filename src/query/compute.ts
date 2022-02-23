@@ -7,7 +7,7 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
-import { EncryptionUtilsImpl } from "../encryption";
+import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
 
 interface Rpc {
   request(
@@ -95,12 +95,13 @@ export type QueryCodeResponse = {
 
 export class ComputeQuerier {
   private readonly rpc: Rpc;
-  private encryption?: EncryptionUtilsImpl;
+  private encryption?: EncryptionUtils;
   private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
   private codeHashCache = new Map<string | number, string>();
 
-  constructor(rpc: Rpc) {
+  constructor(rpc: Rpc, encryption?: EncryptionUtils) {
     this.rpc = rpc;
+    this.encryption = encryption;
   }
 
   private async init() {

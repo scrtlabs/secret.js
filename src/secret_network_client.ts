@@ -569,7 +569,7 @@ export class SecretNetworkClient {
       bank: new (
         await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
       ).QueryClientImpl(rpc),
-      compute: new ComputeQuerier(rpc),
+      compute: new ComputeQuerier(rpc), // stub until we can set this in the constructor with a shared EncryptionUtils
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
       ).QueryClientImpl(rpc),
@@ -619,11 +619,12 @@ export class SecretNetworkClient {
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(tendermint, query, options);
+    return new SecretNetworkClient(tendermint, rpc, query, options);
   }
 
   private constructor(
     tendermint: Tendermint34Client,
+    rpc: SecretRpcClient,
     query: Querier,
     signingParams: CreateClientOptions,
   ) {
@@ -700,14 +701,14 @@ export class SecretNetworkClient {
     if (signingParams.encryptionUtils) {
       this.encryptionUtils = signingParams.encryptionUtils;
     } else {
-      console.log("2 chainid", this.chainId);
-
       this.encryptionUtils = new EncryptionUtilsImpl(
         this.query.registration,
         signingParams.encryptionSeed,
         this.chainId,
       );
     }
+
+    this.query.compute = new ComputeQuerier(rpc, this.encryptionUtils);
   }
 
   private async getTx(
