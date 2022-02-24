@@ -877,11 +877,8 @@ export class SecretNetworkClient {
     }
 
     while (true) {
-      if (start + timeoutMs < Date.now()) {
-        throw new Error(
-          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
-        );
-      }
+      // sleep first because there's no point in checking right after broadcasting
+      await sleep(checkIntervalMs);
 
       const result = await this.getTx(txhash, nonces);
 
@@ -889,7 +886,11 @@ export class SecretNetworkClient {
         return result;
       }
 
-      await sleep(checkIntervalMs);
+      if (start + timeoutMs < Date.now()) {
+        throw new Error(
+          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
+        );
+      }
     }
   }
 
