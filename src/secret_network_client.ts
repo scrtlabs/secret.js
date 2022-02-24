@@ -531,18 +531,16 @@ export class SecretNetworkClient {
     );
     let grpcWeb: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
 
+    options.grpcWebUrl = options.grpcWebUrl.replace(/\/*$/, ""); // remove trailing slash
+
     if (typeof window === "undefined") {
       // node.js
-      console.log("node.js");
-
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
         transport: NodeHttpTransport(),
         // debug: true,
       });
     } else {
       // browser
-      console.log("browser");
-
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
         transport: grpc.CrossBrowserHttpTransport({ withCredentials: true }),
         // debug: true,
