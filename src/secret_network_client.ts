@@ -875,12 +875,12 @@ export class SecretNetworkClient {
       );
       const { txResponse } = await this.txService.broadcastTx({
         txBytes: tx,
-        mode: BroadcastMode.BROADCAST_MODE_SYNC,
+        mode: BroadcastMode.BROADCAST_MODE_ASYNC,
       });
       txhash = txResponse!.txhash;
     } else {
       throw new Error(
-        `Unknown broadcast mode "${String(mode)}", must be "${String(
+        `Unknown broadcast mode "${String(mode)}", must be either "${String(
           BroadcastMode.Sync,
         )}" or "${String(BroadcastMode.Async)}".`,
       );
