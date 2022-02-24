@@ -9,14 +9,6 @@ import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
 
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
-}
-
 /** QueryContractInfoRequest is the request type for the Query/ContractInfo RPC method */
 export type QueryContractInfoRequest = {
   /** address is the address of the contract to query */
@@ -94,13 +86,16 @@ export type QueryCodeResponse = {
 };
 
 export class ComputeQuerier {
-  private readonly rpc: Rpc;
+  private readonly grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
   private encryption?: EncryptionUtils;
   private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
   private codeHashCache = new Map<string | number, string>();
 
-  constructor(rpc: Rpc, encryption?: EncryptionUtils) {
-    this.rpc = rpc;
+  constructor(
+    grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
+    encryption?: EncryptionUtils,
+  ) {
+    this.grpc = grpc;
     this.encryption = encryption;
   }
 
@@ -108,14 +103,14 @@ export class ComputeQuerier {
     if (!this.client) {
       this.client = new (
         await import("../protobuf_stuff/secret/compute/v1beta1/query")
-      ).QueryClientImpl(this.rpc);
+      ).QueryClientImpl(this.grpc);
     }
 
     if (!this.encryption) {
       this.encryption = new EncryptionUtilsImpl(
         new (
           await import("../protobuf_stuff/secret/registration/v1beta1/query")
-        ).QueryClientImpl(this.rpc),
+        ).QueryClientImpl(this.grpc),
       );
     }
   }

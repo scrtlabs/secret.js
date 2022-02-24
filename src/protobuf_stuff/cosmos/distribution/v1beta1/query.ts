@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import {
   Params,
@@ -12,6 +13,7 @@ import {
   PageRequest,
   PageResponse,
 } from "../../../cosmos/base/query/v1beta1/pagination";
+import { BrowserHeaders } from "browser-headers";
 import { DecCoin } from "../../../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.distribution.v1beta1";
@@ -1504,50 +1506,63 @@ export const QueryCommunityPoolResponse = {
 /** Query defines the gRPC querier service for distribution module. */
 export interface Query {
   /** Params queries params of the distribution module. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse>;
   /** ValidatorOutstandingRewards queries rewards of a validator address. */
   validatorOutstandingRewards(
-    request: QueryValidatorOutstandingRewardsRequest,
+    request: DeepPartial<QueryValidatorOutstandingRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorOutstandingRewardsResponse>;
   /** ValidatorCommission queries accumulated commission for a validator. */
   validatorCommission(
-    request: QueryValidatorCommissionRequest,
+    request: DeepPartial<QueryValidatorCommissionRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorCommissionResponse>;
   /** ValidatorSlashes queries slash events of a validator. */
   validatorSlashes(
-    request: QueryValidatorSlashesRequest,
+    request: DeepPartial<QueryValidatorSlashesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorSlashesResponse>;
   /** DelegationRewards queries the total rewards accrued by a delegation. */
   delegationRewards(
-    request: QueryDelegationRewardsRequest,
+    request: DeepPartial<QueryDelegationRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegationRewardsResponse>;
   /**
    * DelegationTotalRewards queries the total rewards accrued by a each
    * validator.
    */
   delegationTotalRewards(
-    request: QueryDelegationTotalRewardsRequest,
+    request: DeepPartial<QueryDelegationTotalRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegationTotalRewardsResponse>;
   /** DelegatorValidators queries the validators of a delegator. */
   delegatorValidators(
-    request: QueryDelegatorValidatorsRequest,
+    request: DeepPartial<QueryDelegatorValidatorsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegatorValidatorsResponse>;
   /** DelegatorWithdrawAddress queries withdraw address of a delegator. */
   delegatorWithdrawAddress(
-    request: QueryDelegatorWithdrawAddressRequest,
+    request: DeepPartial<QueryDelegatorWithdrawAddressRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegatorWithdrawAddressResponse>;
   /** CommunityPool queries the community pool coins. */
   communityPool(
-    request: QueryCommunityPoolRequest,
+    request: DeepPartial<QueryCommunityPoolRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryCommunityPoolResponse>;
   /** DelegatorWithdrawAddress queries withdraw address of a delegator. */
   foundationTax(
-    request: QueryFoundationTaxRequest,
+    request: DeepPartial<QueryFoundationTaxRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryFoundationTaxResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.params = this.params.bind(this);
@@ -1562,152 +1577,413 @@ export class QueryClientImpl implements Query {
     this.communityPool = this.communityPool.bind(this);
     this.foundationTax = this.foundationTax.bind(this);
   }
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
-    const data = QueryParamsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "Params",
-      data,
-    );
-    return promise.then((data) =>
-      QueryParamsResponse.decode(new _m0.Reader(data)),
+
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse> {
+    return this.rpc.unary(
+      QueryParamsDesc,
+      QueryParamsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   validatorOutstandingRewards(
-    request: QueryValidatorOutstandingRewardsRequest,
+    request: DeepPartial<QueryValidatorOutstandingRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorOutstandingRewardsResponse> {
-    const data =
-      QueryValidatorOutstandingRewardsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "ValidatorOutstandingRewards",
-      data,
-    );
-    return promise.then((data) =>
-      QueryValidatorOutstandingRewardsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryValidatorOutstandingRewardsDesc,
+      QueryValidatorOutstandingRewardsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   validatorCommission(
-    request: QueryValidatorCommissionRequest,
+    request: DeepPartial<QueryValidatorCommissionRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorCommissionResponse> {
-    const data = QueryValidatorCommissionRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "ValidatorCommission",
-      data,
-    );
-    return promise.then((data) =>
-      QueryValidatorCommissionResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryValidatorCommissionDesc,
+      QueryValidatorCommissionRequest.fromPartial(request),
+      metadata,
     );
   }
 
   validatorSlashes(
-    request: QueryValidatorSlashesRequest,
+    request: DeepPartial<QueryValidatorSlashesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryValidatorSlashesResponse> {
-    const data = QueryValidatorSlashesRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "ValidatorSlashes",
-      data,
-    );
-    return promise.then((data) =>
-      QueryValidatorSlashesResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryValidatorSlashesDesc,
+      QueryValidatorSlashesRequest.fromPartial(request),
+      metadata,
     );
   }
 
   delegationRewards(
-    request: QueryDelegationRewardsRequest,
+    request: DeepPartial<QueryDelegationRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegationRewardsResponse> {
-    const data = QueryDelegationRewardsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "DelegationRewards",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDelegationRewardsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDelegationRewardsDesc,
+      QueryDelegationRewardsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   delegationTotalRewards(
-    request: QueryDelegationTotalRewardsRequest,
+    request: DeepPartial<QueryDelegationTotalRewardsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegationTotalRewardsResponse> {
-    const data = QueryDelegationTotalRewardsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "DelegationTotalRewards",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDelegationTotalRewardsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDelegationTotalRewardsDesc,
+      QueryDelegationTotalRewardsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   delegatorValidators(
-    request: QueryDelegatorValidatorsRequest,
+    request: DeepPartial<QueryDelegatorValidatorsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegatorValidatorsResponse> {
-    const data = QueryDelegatorValidatorsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "DelegatorValidators",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDelegatorValidatorsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDelegatorValidatorsDesc,
+      QueryDelegatorValidatorsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   delegatorWithdrawAddress(
-    request: QueryDelegatorWithdrawAddressRequest,
+    request: DeepPartial<QueryDelegatorWithdrawAddressRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDelegatorWithdrawAddressResponse> {
-    const data = QueryDelegatorWithdrawAddressRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "DelegatorWithdrawAddress",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDelegatorWithdrawAddressResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDelegatorWithdrawAddressDesc,
+      QueryDelegatorWithdrawAddressRequest.fromPartial(request),
+      metadata,
     );
   }
 
   communityPool(
-    request: QueryCommunityPoolRequest,
+    request: DeepPartial<QueryCommunityPoolRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryCommunityPoolResponse> {
-    const data = QueryCommunityPoolRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "CommunityPool",
-      data,
-    );
-    return promise.then((data) =>
-      QueryCommunityPoolResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryCommunityPoolDesc,
+      QueryCommunityPoolRequest.fromPartial(request),
+      metadata,
     );
   }
 
   foundationTax(
-    request: QueryFoundationTaxRequest,
+    request: DeepPartial<QueryFoundationTaxRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryFoundationTaxResponse> {
-    const data = QueryFoundationTaxRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.distribution.v1beta1.Query",
-      "FoundationTax",
-      data,
-    );
-    return promise.then((data) =>
-      QueryFoundationTaxResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryFoundationTaxDesc,
+      QueryFoundationTaxRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const QueryDesc = {
+  serviceName: "cosmos.distribution.v1beta1.Query",
+};
+
+export const QueryParamsDesc: UnaryMethodDefinitionish = {
+  methodName: "Params",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryParamsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryValidatorOutstandingRewardsDesc: UnaryMethodDefinitionish = {
+  methodName: "ValidatorOutstandingRewards",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryValidatorOutstandingRewardsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryValidatorOutstandingRewardsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryValidatorCommissionDesc: UnaryMethodDefinitionish = {
+  methodName: "ValidatorCommission",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryValidatorCommissionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryValidatorCommissionResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryValidatorSlashesDesc: UnaryMethodDefinitionish = {
+  methodName: "ValidatorSlashes",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryValidatorSlashesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryValidatorSlashesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDelegationRewardsDesc: UnaryMethodDefinitionish = {
+  methodName: "DelegationRewards",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDelegationRewardsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDelegationRewardsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDelegationTotalRewardsDesc: UnaryMethodDefinitionish = {
+  methodName: "DelegationTotalRewards",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDelegationTotalRewardsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDelegationTotalRewardsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDelegatorValidatorsDesc: UnaryMethodDefinitionish = {
+  methodName: "DelegatorValidators",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDelegatorValidatorsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDelegatorValidatorsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDelegatorWithdrawAddressDesc: UnaryMethodDefinitionish = {
+  methodName: "DelegatorWithdrawAddress",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDelegatorWithdrawAddressRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDelegatorWithdrawAddressResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryCommunityPoolDesc: UnaryMethodDefinitionish = {
+  methodName: "CommunityPool",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryCommunityPoolRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryCommunityPoolResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryFoundationTaxDesc: UnaryMethodDefinitionish = {
+  methodName: "FoundationTax",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryFoundationTaxRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryFoundationTaxResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

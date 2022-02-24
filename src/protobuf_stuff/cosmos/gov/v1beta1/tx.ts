@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Any } from "../../../google/protobuf/any";
 import {
@@ -8,6 +9,7 @@ import {
   voteOptionFromJSON,
   voteOptionToJSON,
 } from "../../../cosmos/gov/v1beta1/gov";
+import { BrowserHeaders } from "browser-headers";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.gov.v1beta1";
@@ -570,18 +572,29 @@ export const MsgDepositResponse = {
 export interface Msg {
   /** SubmitProposal defines a method to create new proposal given a content. */
   submitProposal(
-    request: MsgSubmitProposal,
+    request: DeepPartial<MsgSubmitProposal>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgSubmitProposalResponse>;
   /** Vote defines a method to add a vote on a specific proposal. */
-  vote(request: MsgVote): Promise<MsgVoteResponse>;
+  vote(
+    request: DeepPartial<MsgVote>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgVoteResponse>;
   /** VoteWeighted defines a method to add a weighted vote on a specific proposal. */
-  voteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse>;
+  voteWeighted(
+    request: DeepPartial<MsgVoteWeighted>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgVoteWeightedResponse>;
   /** Deposit defines a method to add deposit on a specific proposal. */
-  deposit(request: MsgDeposit): Promise<MsgDepositResponse>;
+  deposit(
+    request: DeepPartial<MsgDeposit>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgDepositResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.submitProposal = this.submitProposal.bind(this);
@@ -589,53 +602,211 @@ export class MsgClientImpl implements Msg {
     this.voteWeighted = this.voteWeighted.bind(this);
     this.deposit = this.deposit.bind(this);
   }
+
   submitProposal(
-    request: MsgSubmitProposal,
+    request: DeepPartial<MsgSubmitProposal>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgSubmitProposalResponse> {
-    const data = MsgSubmitProposal.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Msg",
-      "SubmitProposal",
-      data,
-    );
-    return promise.then((data) =>
-      MsgSubmitProposalResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      MsgSubmitProposalDesc,
+      MsgSubmitProposal.fromPartial(request),
+      metadata,
     );
   }
 
-  vote(request: MsgVote): Promise<MsgVoteResponse> {
-    const data = MsgVote.encode(request).finish();
-    const promise = this.rpc.request("cosmos.gov.v1beta1.Msg", "Vote", data);
-    return promise.then((data) => MsgVoteResponse.decode(new _m0.Reader(data)));
+  vote(
+    request: DeepPartial<MsgVote>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgVoteResponse> {
+    return this.rpc.unary(MsgVoteDesc, MsgVote.fromPartial(request), metadata);
   }
 
-  voteWeighted(request: MsgVoteWeighted): Promise<MsgVoteWeightedResponse> {
-    const data = MsgVoteWeighted.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Msg",
-      "VoteWeighted",
-      data,
-    );
-    return promise.then((data) =>
-      MsgVoteWeightedResponse.decode(new _m0.Reader(data)),
+  voteWeighted(
+    request: DeepPartial<MsgVoteWeighted>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgVoteWeightedResponse> {
+    return this.rpc.unary(
+      MsgVoteWeightedDesc,
+      MsgVoteWeighted.fromPartial(request),
+      metadata,
     );
   }
 
-  deposit(request: MsgDeposit): Promise<MsgDepositResponse> {
-    const data = MsgDeposit.encode(request).finish();
-    const promise = this.rpc.request("cosmos.gov.v1beta1.Msg", "Deposit", data);
-    return promise.then((data) =>
-      MsgDepositResponse.decode(new _m0.Reader(data)),
+  deposit(
+    request: DeepPartial<MsgDeposit>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgDepositResponse> {
+    return this.rpc.unary(
+      MsgDepositDesc,
+      MsgDeposit.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const MsgDesc = {
+  serviceName: "cosmos.gov.v1beta1.Msg",
+};
+
+export const MsgSubmitProposalDesc: UnaryMethodDefinitionish = {
+  methodName: "SubmitProposal",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgSubmitProposal.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgSubmitProposalResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgVoteDesc: UnaryMethodDefinitionish = {
+  methodName: "Vote",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgVote.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgVoteResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgVoteWeightedDesc: UnaryMethodDefinitionish = {
+  methodName: "VoteWeighted",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgVoteWeighted.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgVoteWeightedResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgDepositDesc: UnaryMethodDefinitionish = {
+  methodName: "Deposit",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgDeposit.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgDepositResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

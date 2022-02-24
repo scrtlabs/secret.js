@@ -1,5 +1,6 @@
-import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
+import { grpc } from "@improbable-eng/grpc-web";
+import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import {
   Coin,
   MsgBeginRedelegate,
@@ -74,7 +75,8 @@ import {
 } from "./wallet_amino";
 
 export type CreateClientOptions = {
-  rpcUrl: string;
+  /** A gRPC-web url, by default on port 9091 */
+  grpcWebUrl: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
   /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
@@ -93,13 +95,13 @@ export enum BroadcastMode {
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
    */
-  Sync,
+  Sync = "Sync",
   /**
    * Broadcast transaction to mempool and do not wait for CheckTx response.
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
    */
-  Async,
+  Async = "Async",
 }
 
 export type TxOptions = {
@@ -509,126 +511,117 @@ export type TxSender = {
   };
 };
 
-interface SecretRpcClient {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
-}
-
 type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
-
-export { Tendermint34Client };
 
 export class SecretNetworkClient {
   public readonly query: Querier;
   public readonly tx: TxSender;
   public readonly address: string;
-  private readonly tendermint: Tendermint34Client;
+  private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
   private readonly wallet: Signer;
   private readonly chainId: string;
   private encryptionUtils: EncryptionUtils;
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
+  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
   public static async create(
     options: CreateClientOptions,
   ): Promise<SecretNetworkClient> {
-    const tendermint = await Tendermint34Client.connect(options.rpcUrl);
+    const { GrpcWebImpl } = await import(
+      "./protobuf_stuff/secret/compute/v1beta1/query"
+    );
+    let grpcWeb: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
 
-    // Init this.query in here because we need async/await for dynamic imports
-    const rpc: SecretRpcClient = {
-      request: async (
-        service: string,
-        method: string,
-        data: Uint8Array,
-      ): Promise<Uint8Array> => {
-        const path = `/${service}/${method}`;
+    if (typeof window === "undefined") {
+      // node.js
+      console.log("node.js");
 
-        const response = await tendermint.abciQuery({
-          path,
-          data,
-          prove: false,
-        });
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: NodeHttpTransport(),
+        // debug: true,
+      });
+    } else {
+      // browser
+      console.log("browser");
 
-        if (response.code) {
-          throw new Error(
-            `Query failed with (${response.code}): ${response.log}`,
-          );
-        }
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: grpc.CrossBrowserHttpTransport({ withCredentials: true }),
+        // debug: true,
+      });
+    }
 
-        return response.value;
-      },
-    };
+    const { ServiceClientImpl } = await import(
+      "./protobuf_stuff/cosmos/tx/v1beta1/service"
+    );
+    const txService = new ServiceClientImpl(grpcWeb);
 
     const query: Querier = {
-      auth: new AuthQuerier(rpc),
+      auth: new AuthQuerier(grpcWeb),
       authz: new (
         await import("./protobuf_stuff/cosmos/authz/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       bank: new (
         await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
-      ).QueryClientImpl(rpc),
-      compute: new ComputeQuerier(rpc), // stub until we can set this in the constructor with a shared EncryptionUtils
+      ).QueryClientImpl(grpcWeb),
+      compute: new ComputeQuerier(grpcWeb), // stub until we can set this in the constructor with a shared EncryptionUtils
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       evidence: new (
         await import("./protobuf_stuff/cosmos/evidence/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       feegrant: new (
         await import("./protobuf_stuff/cosmos/feegrant/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       gov: new (
         await import("./protobuf_stuff/cosmos/gov/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_channel: new (
         await import("./protobuf_stuff/ibc/core/channel/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_client: new (
         await import("./protobuf_stuff/ibc/core/client/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_connection: new (
         await import("./protobuf_stuff/ibc/core/connection/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_transfer: new (
         await import("./protobuf_stuff/ibc/applications/transfer/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       mint: new (
         await import("./protobuf_stuff/cosmos/mint/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       params: new (
         await import("./protobuf_stuff/cosmos/params/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       registration: new (
         await import("./protobuf_stuff/secret/registration/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       slashing: new (
         await import("./protobuf_stuff/cosmos/slashing/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       staking: new (
         await import("./protobuf_stuff/cosmos/staking/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       tendermint: new (
         await import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query")
-      ).ServiceClientImpl(rpc),
+      ).ServiceClientImpl(grpcWeb),
       upgrade: new (
         await import("./protobuf_stuff/cosmos/upgrade/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       getTx: async () => null, // stub until we can set this in the constructor
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(tendermint, rpc, query, options);
+    return new SecretNetworkClient(grpcWeb, txService, query, options);
   }
 
   private constructor(
-    tendermint: Tendermint34Client,
-    rpc: SecretRpcClient,
+    grpc: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
+    txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl,
     query: Querier,
     signingParams: CreateClientOptions,
   ) {
-    this.tendermint = tendermint;
+    this.txService = txService;
 
     this.query = query;
     this.query.getTx = (hash) => this.getTx(hash);
@@ -708,7 +701,8 @@ export class SecretNetworkClient {
       );
     }
 
-    this.query.compute = new ComputeQuerier(rpc, this.encryptionUtils);
+    // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, same seed)
+    this.query.compute = new ComputeQuerier(grpc, this.encryptionUtils);
   }
 
   private async getTx(
@@ -723,14 +717,16 @@ export class SecretNetworkClient {
     query: string,
     nonces: ComputeMsgToNonce = {},
   ): Promise<Tx[]> {
-    const results = await this.tendermint.txSearchAll({ query: query });
+    const { txResponses } = await this.txService.getTxsEvent({
+      events: query.split(" AND ").map((q) => q.trim()),
+    });
 
     return await Promise.all(
-      results.txs.map(async (tx) => {
-        let rawLog: string = tx.result.log ?? "";
+      txResponses.map(async (tx) => {
+        let rawLog: string = tx.rawLog;
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
-        if (tx.result.code === 0 && rawLog !== "") {
+        if (tx.code === 0 && rawLog !== "") {
           jsonLog = JSON.parse(rawLog) as JsonLog;
 
           arrayLog = [];
@@ -775,7 +771,7 @@ export class SecretNetworkClient {
               }
             }
           }
-        } else if (tx.result.code !== 0 && rawLog !== "") {
+        } else if (tx.code !== 0 && rawLog !== "") {
           try {
             const errorMessageRgx =
               /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
@@ -820,17 +816,19 @@ export class SecretNetworkClient {
         //   }),
         // );
 
+        const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+
         return {
-          height: tx.height,
-          transactionHash: toHex(tx.hash).toUpperCase(),
-          code: tx.result.code,
-          tx: tx.tx,
+          height: Number(tx.height),
+          transactionHash: tx.txhash,
+          code: tx.code,
+          tx: Any.encode(tx.tx!).finish(),
           rawLog,
           jsonLog,
           arrayLog,
-          data: tx.result.data,
-          gasUsed: tx.result.gasUsed,
-          gasWanted: tx.result.gasWanted,
+          data: tx.data,
+          gasUsed: Number(tx.gasUsed),
+          gasWanted: Number(tx.gasWanted),
         };
       }),
     );
@@ -858,17 +856,36 @@ export class SecretNetworkClient {
     const start = Date.now();
 
     let txhash: string;
+
     if (mode === BroadcastMode.Sync) {
-      const broadcasted = await this.tendermint.broadcastTxSync({ tx });
-      if (broadcasted.code) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+      const { txResponse } = await this.txService.broadcastTx({
+        txBytes: tx,
+        mode: BroadcastMode.BROADCAST_MODE_SYNC,
+      });
+      if (txResponse?.code) {
         throw new Error(
-          `Broadcasting transaction failed with code ${broadcasted.code} (codespace: ${broadcasted.codeSpace}). Log: ${broadcasted.log}`,
+          `Broadcasting transaction failed with code ${txResponse?.code} (codespace: ${txResponse?.codespace}). Log: ${txResponse?.rawLog}`,
         );
       }
-      txhash = toHex(broadcasted.hash).toUpperCase();
+      txhash = txResponse!.txhash;
+    } else if (mode === BroadcastMode.Async) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+      const { txResponse } = await this.txService.broadcastTx({
+        txBytes: tx,
+        mode: BroadcastMode.BROADCAST_MODE_SYNC,
+      });
+      txhash = txResponse!.txhash;
     } else {
-      const broadcasted = await this.tendermint.broadcastTxAsync({ tx });
-      txhash = toHex(broadcasted.hash).toUpperCase();
+      throw new Error(
+        `Unknown broadcast mode "${String(mode)}", must be "${String(
+          BroadcastMode.Sync,
+        )}" or "${String(BroadcastMode.Async)}".`,
+      );
     }
 
     if (!waitForCommit) {

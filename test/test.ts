@@ -141,7 +141,7 @@ beforeAll(async () => {
     console.log("Setting up a local testnet...");
     await exec("docker rm -f secretjs-testnet || true");
     const { /* stdout, */ stderr } = await exec(
-      "docker run -it -d -p 26657:26657 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
+      "docker run -it -d -p 9091:9091 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
     );
     // console.log("stdout (testnet container id?):", stdout);
     if (stderr) {
@@ -155,14 +155,14 @@ beforeAll(async () => {
     while (true) {
       expect(Date.now()).toBeLessThan(timeout);
 
+      const secretjs = await SecretNetworkClient.create({
+        grpcWebUrl: "http://localhost:9091",
+      });
+
       try {
-        const { stdout: status } = await exec(
-          "docker exec -i secretjs-testnet secretd status",
-        );
+        const { block } = await secretjs.query.tendermint.getLatestBlock({});
 
-        const resp = JSON.parse(status);
-
-        if (Number(resp?.SyncInfo?.latest_block_height) >= 1) {
+        if (Number(block?.header?.height) >= 1) {
           break;
         }
       } catch (e) {
@@ -187,7 +187,7 @@ beforeAll(async () => {
           parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
           parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
           parsedAccount.secretjs = await SecretNetworkClient.create({
-            rpcUrl: "http://localhost:26657",
+            grpcWebUrl: "http://localhost:9091",
             wallet: parsedAccount.walletAmino,
             walletAddress: parsedAccount.address,
             chainId: "secretdev-1",
@@ -215,7 +215,7 @@ beforeAll(async () => {
         walletAmino: wallet,
         walletProto: walletProto,
         secretjs: await SecretNetworkClient.create({
-          rpcUrl: "http://localhost:26657",
+          grpcWebUrl: "http://localhost:9091",
           wallet: wallet,
           walletAddress: address,
           chainId: "secretdev-1",
@@ -330,15 +330,13 @@ describe("query.auth", () => {
   test("params()", async () => {
     const { secretjs } = accounts[0];
 
-    const response = await secretjs.query.auth.params();
-    expect(response).toEqual({
-      params: {
-        maxMemoCharacters: "256",
-        sigVerifyCostEd25519: "590",
-        sigVerifyCostSecp256k1: "1000",
-        txSigLimit: "7",
-        txSizeCostPerByte: "10",
-      },
+    const { params } = await secretjs.query.auth.params();
+    expect(params).toEqual({
+      maxMemoCharacters: "256",
+      sigVerifyCostEd25519: "590",
+      sigVerifyCostSecp256k1: "1000",
+      txSigLimit: "7",
+      txSizeCostPerByte: "10",
     });
   });
 });
