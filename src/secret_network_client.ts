@@ -542,7 +542,7 @@ export class SecretNetworkClient {
     } else {
       // browser
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: grpc.CrossBrowserHttpTransport({ withCredentials: true }),
+        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
         // debug: true,
       });
     }
