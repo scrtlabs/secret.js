@@ -331,7 +331,7 @@ describe("query.auth", () => {
     const { secretjs } = accounts[0];
 
     const { params } = await secretjs.query.auth.params();
-    expect(params).toEqual({
+    expect(params).toStrictEqual({
       maxMemoCharacters: "256",
       sigVerifyCostEd25519: "590",
       sigVerifyCostSecp256k1: "1000",
@@ -395,7 +395,7 @@ describe("query.compute", () => {
       query: { token_info: {} },
     })) as Result;
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       token_info: {
         decimals: 6,
         name: "Secret SCRT",
@@ -405,7 +405,7 @@ describe("query.compute", () => {
     });
   });
 
-  test("queryContract() error", async () => {
+  test("queryContract() StdError", async () => {
     const { secretjs } = accounts[0];
 
     const {
@@ -423,9 +423,32 @@ describe("query.compute", () => {
       },
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       viewing_key_error: {
         msg: "Wrong viewing key for this address or viewing key not set",
+      },
+    });
+  });
+
+  test("queryContract() VmError", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(1);
+
+    const result = await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      codeHash,
+      query: {
+        non_existent_query: {},
+      },
+    });
+
+    expect(result).toStrictEqual({
+      parse_err: {
+        msg: "unknown variant `non_existent_query`, expected one of `token_info`, `token_config`, `contract_status`, `exchange_rate`, `allowance`, `balance`, `transfer_history`, `transaction_history`, `minters`, `with_permit`",
+        target: "snip20_reference_impl::msg::QueryMsg",
       },
     });
   });
@@ -447,7 +470,7 @@ describe("query.compute", () => {
       query: { token_info: {} },
     })) as Result;
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       token_info: {
         decimals: 6,
         name: "Secret SCRT",
@@ -661,7 +684,7 @@ describe("tx.compute", () => {
       },
     );
 
-    expect(tx.jsonLog).toEqual({
+    expect(tx.jsonLog).toStrictEqual({
       parse_err: {
         msg: "missing field `name`",
         target: "snip20_reference_impl::msg::InitMsg",
@@ -852,7 +875,7 @@ describe("tx.compute", () => {
       gasLimit: 5_000_000,
     });
 
-    expect(tx.jsonLog).toEqual({
+    expect(tx.jsonLog).toStrictEqual({
       parse_err: {
         msg: "unknown variant `yolo`, expected one of `mint_nft`, `batch_mint_nft`, `mint_nft_clones`, `set_metadata`, `set_royalty_info`, `reveal`, `make_ownership_private`, `set_global_approval`, `set_whitelisted_approval`, `approve`, `revoke`, `approve_all`, `revoke_all`, `transfer_nft`, `batch_transfer_nft`, `send_nft`, `batch_send_nft`, `burn_nft`, `batch_burn_nft`, `register_receive_nft`, `create_viewing_key`, `set_viewing_key`, `add_minters`, `remove_minters`, `set_minters`, `change_admin`, `set_contract_status`, `revoke_permit`",
         target: "snip721_reference_impl::msg::HandleMsg",
@@ -1198,7 +1221,7 @@ describe("tx.gov", () => {
       proposalId,
     });
 
-    expect(deposit?.amount).toEqual([{ amount: "1", denom: "uscrt" }]);
+    expect(deposit?.amount).toStrictEqual([{ amount: "1", denom: "uscrt" }]);
   });
 });
 
@@ -1372,7 +1395,7 @@ describe("tx.staking", () => {
     )!;
 
     expect(validator).toBeTruthy();
-    expect(validator.description).toEqual({
+    expect(validator.description).toStrictEqual({
       moniker: "papaya",
       identity: "banana",
       website: "com.watermelon",
@@ -1627,7 +1650,7 @@ describe("sanity", () => {
       .map((msg) => msg.trim())
       .filter((msg) => msg.length > 0);
 
-    expect(msgs).toEqual(classes);
+    expect(msgs).toStrictEqual(classes);
   });
 
   test.skip("All queries are implemented", async () => {});
