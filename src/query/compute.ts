@@ -222,7 +222,17 @@ export class ComputeQuerier {
           nonce,
         );
 
-        return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))));
+        try {
+          return JSON.parse(
+            fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))),
+          );
+        } catch (parseError) {
+          if (parseError.message === "Invalid base64 string format") {
+            return JSON.parse(fromUtf8(decryptedBase64Error));
+          } else {
+            throw err;
+          }
+        }
       } catch (decryptionError) {
         throw err;
       }
