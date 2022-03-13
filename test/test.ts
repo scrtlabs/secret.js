@@ -643,7 +643,7 @@ describe("tx.compute", () => {
     );
   });
 
-  test("MsgInstantiateContract error", async () => {
+  test("MsgInstantiateContract VmError", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -798,7 +798,98 @@ describe("tx.compute", () => {
     expect(tx.arrayLog![10].value).toBe("1");
   });
 
-  test("MsgExecuteContract error", async () => {
+  test("MsgExecuteContract StdError", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
+
+    const txExec = await secretjs.tx.compute.executeContract(
+      {
+        sender: accounts[0].address,
+        contract: contractAddress,
+        codeHash,
+        msg: {
+          transfer: {
+            recipient: accounts[1].address,
+            amount: "2",
+          },
+        },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txExec.rawLog).toContain(
+      "failed to execute message; message index: 0",
+    );
+    expect(txExec.jsonLog).toStrictEqual({
+      generic_err: { msg: "insufficient funds: balance=1, required=2" },
+    });
+  });
+
+  test("MsgExecuteContract VmError", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
