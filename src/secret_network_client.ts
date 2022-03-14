@@ -1,4 +1,4 @@
-import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8 } from "@cosmjs/encoding";
 import { grpc } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import {
@@ -257,6 +257,8 @@ export interface Tx {
   readonly jsonLog?: JsonLog;
   /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
   readonly arrayLog?: ArrayLog;
+  /** Return value (if there's any) for each input message */
+  readonly data: Array<Uint8Array>;
   /**
    * Raw transaction bytes stored in Tendermint.
    *
@@ -797,22 +799,30 @@ export class SecretNetworkClient {
           } catch (decryptionError) {}
         }
 
-        // const { TxRaw, TxBody, AuthInfo } = await import(
-        //   "./protobuf_stuff/cosmos/tx/v1beta1/tx"
-        // );
+        const { TxMsgData } = await import(
+          "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
+        );
 
-        // const txRaw = TxRaw.decode(tx.tx);
-        // const txBody = TxBody.decode(txRaw.bodyBytes);
-        // const authInfo = AuthInfo.decode(txRaw.authInfoBytes);
-        // const signatures = txRaw.signatures.map((sig) => toBase64(sig));
+        const txMsgData = TxMsgData.decode(fromHex(tx.data));
+        let data = new Array<Uint8Array>(txMsgData.data.length);
 
-        // const decodedMsgs = await Promise.all(
-        //   txBody.messages.map(async (m) => {
-        //     const { path, name } = typeUrlToImportData[m.typeUrl];
-
-        //     return (await import(path))[name].decode(m);
-        //   }),
-        // );
+        for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+          const nonce = nonces[msgIndex];
+          if (nonce && nonce.length === 32) {
+            try {
+              data[msgIndex] = fromBase64(
+                fromUtf8(
+                  await this.encryptionUtils.decrypt(
+                    txMsgData.data[msgIndex].data,
+                    nonce,
+                  ),
+                ),
+              );
+            } catch (decryptionError) {
+              data[msgIndex] = txMsgData.data[msgIndex].data;
+            }
+          }
+        }
 
         const { Any } = await import("./protobuf_stuff/google/protobuf/any");
 
@@ -824,7 +834,7 @@ export class SecretNetworkClient {
           rawLog,
           jsonLog,
           arrayLog,
-          data: tx.data,
+          data,
           gasUsed: Number(tx.gasUsed),
           gasWanted: Number(tx.gasWanted),
         };
