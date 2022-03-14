@@ -81,7 +81,7 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secret.js client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
 });
@@ -277,7 +277,7 @@ A querier client can only send queries and get chain information. Access to all 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secret.js client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
 });
