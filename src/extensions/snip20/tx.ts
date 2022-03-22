@@ -1,12 +1,4 @@
-import {
-  AminoMsg,
-  Msg,
-  MsgExecParams,
-  MsgExecuteContract,
-  MsgExecuteContractParams,
-  ProtoMsg,
-} from "../../tx";
-import { EncryptionUtils } from "../../encryption";
+import { MsgExecuteContract } from "../../tx";
 import {
   Snip20DecreaseAllowanceOptions,
   Snip20IncreaseAllowanceOptions,
