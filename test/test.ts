@@ -186,14 +186,12 @@ beforeAll(async () => {
           const parsedAccount = JSON.parse(match[0]) as Account;
           parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
           parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
-          parsedAccount.secretjs = await SecretNetworkClient.create(
-            "http://localhost:26657",
-            {
-              wallet: parsedAccount.walletAmino,
-              walletAddress: parsedAccount.address,
-              chainId: "secretdev-1",
-            },
-          );
+          parsedAccount.secretjs = await SecretNetworkClient.create({
+            rpcUrl: "http://localhost:26657",
+            wallet: parsedAccount.walletAmino,
+            walletAddress: parsedAccount.address,
+            chainId: "secretdev-1",
+          });
           accounts[accountId] = parsedAccount as Account;
         }
       }
@@ -216,7 +214,8 @@ beforeAll(async () => {
         mnemonic: wallet.mnemonic,
         walletAmino: wallet,
         walletProto: walletProto,
-        secretjs: await SecretNetworkClient.create("http://localhost:26657", {
+        secretjs: await SecretNetworkClient.create({
+          rpcUrl: "http://localhost:26657",
           wallet: wallet,
           walletAddress: address,
           chainId: "secretdev-1",
@@ -404,6 +403,31 @@ describe("query.compute", () => {
         name: "Secret SCRT",
         symbol: "SSCRT",
         total_supply: "1",
+      },
+    });
+  });
+
+  test("queryContract() error", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(1);
+
+    const result = await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      codeHash,
+      query: {
+        balance: {
+          address: accounts[0].address,
+          key: "wrong",
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      viewing_key_error: {
+        msg: "Wrong viewing key for this address or viewing key not set",
       },
     });
   });
@@ -1269,7 +1293,7 @@ describe("tx.staking", () => {
 
     expect(txDelegate.code).toBe(0);
 
-    const tx = await accounts[0].secretjs.tx.staking.redelegate(
+    const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
         delegatorAddress: accounts[0].address,
         validatorSrcAddress: validators[0].operatorAddress,

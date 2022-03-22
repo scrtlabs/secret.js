@@ -7,9 +7,13 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
+  /** The id of the contract's WASM code */
   codeId: number;
+  /** A unique label across all contracts */
   label: string;
-  initMsg: object;
+  /** The input message to the contract's constructor */
+  initMsg: any;
+  /** Funds to send to the contract */
   initFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -27,7 +31,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
 }
 
 export function getMissingCodeHashWarning(method: string): string {
-  return `WARNING: ${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
+  return `${new Date().toISOString()} WARNING: ${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
 }
 
 /** Instantiate a contract from code id */
@@ -126,8 +130,11 @@ export class MsgInstantiateContract implements Msg {
 
 export interface MsgExecuteContractParams<T> extends MsgParams {
   sender: string;
+  /** The contract's address */
   contract: string;
+  /** The input message */
   msg: T;
+  /** Funds to send to the contract */
   sentFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -256,7 +263,7 @@ export class MsgStoreCode implements Msg {
     this.wasmByteCode = wasmByteCode;
   }
 
-  async gzipWasm() {
+  private async gzipWasm() {
     if (!is_gzip(this.wasmByteCode)) {
       const pako = await import("pako");
       this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });

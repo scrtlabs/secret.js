@@ -2,6 +2,8 @@ import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import {
   Coin,
+  MsgBeginRedelegate,
+  MsgBeginRedelegateParams,
   MsgCreateValidator,
   MsgCreateValidatorParams,
   MsgDelegate,
@@ -24,8 +26,6 @@ import {
   MsgInstantiateContractParams,
   MsgMultiSend,
   MsgMultiSendParams,
-  MsgRedelegate,
-  MsgRedelegateParams,
   MsgRevoke,
   MsgRevokeAllowance,
   MsgRevokeAllowanceParams,
@@ -86,10 +86,14 @@ import {
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
 
-export type SigningParams = {
-  walletAddress: string;
-  wallet: Signer;
-  chainId: string;
+export type CreateClientOptions = {
+  rpcUrl: string;
+  /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
+  wallet?: Signer;
+  /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
+  walletAddress?: string;
+  /** The chain-id on which the wallet is allowed to sign transactions & permits. */
+  chainId?: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
@@ -111,7 +115,7 @@ export enum BroadcastMode {
   Async,
 }
 
-export type SignAndBroadcastOptions = {
+export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
   /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
@@ -129,9 +133,9 @@ export type SignAndBroadcastOptions = {
    */
   broadcastTimeoutMs?: number;
   /**
-   * When waiting for tx to commit on-chain, this how much time (in milliseconds) to wait between checking if the tx is committed on-chain.
+   * When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks.
    *
-   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to commit.
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize.
    *
    * Defaults to `6_000`. Ignored if `waitForCommit = false`.
    */
@@ -178,27 +182,49 @@ export class ReadonlySigner implements AminoSigner {
 }
 
 export type Querier = {
+  /** Returns a transaction with a txhash. Must be 64 character upper-case hex string */
+  getTx: (hash: string) => Promise<Tx | null>;
+  /**
+   * To tell which events you want, you need to provide a query. query is a string, which has a form: "condition AND condition ..." (no OR at the moment).
+   *
+   * condition has a form: "key operation operand". key is a string with a restricted set of possible symbols (\t\n\r\()"'=>< are not allowed).
+   *
+   * operation can be "=", "<", "<=", ">", ">=", "CONTAINS" AND "EXISTS". operand can be a string (escaped with single quotes), number, date or time.
+   *
+   * Examples:
+   * - `tx.hash = 'XYZ'` # single transaction
+   * - `tx.height = 5` # all txs of the fifth block
+   * - `create_validator.validator = 'ABC'` # tx where validator ABC was created
+   *
+   * Tendermint provides a few predefined keys: tm.event, tx.hash and tx.height. You can provide additional event keys that were emitted during the transaction.
+   *
+   * All events are indexed by a composite key of the form `{eventType}.{evenAttrKey}`.
+   *
+   * Multiple event types with duplicate keys are allowed and are meant to categorize unique and distinct events.
+   *
+   * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
+   *
+   */
+  txsQuery: (query: string) => Promise<Tx[]>;
   auth: AuthQuerier;
-  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").QueryClientImpl;
-  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").QueryClientImpl;
+  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").Query;
+  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").Query;
   compute: ComputeQuerier;
-  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").QueryClientImpl;
-  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").QueryClientImpl;
-  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").QueryClientImpl;
-  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").QueryClientImpl;
-  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").QueryClientImpl;
-  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").QueryClientImpl;
-  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").QueryClientImpl;
-  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").QueryClientImpl;
-  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").QueryClientImpl;
-  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").QueryClientImpl;
-  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").QueryClientImpl;
-  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").QueryClientImpl;
-  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").QueryClientImpl;
-  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").ServiceClientImpl;
-  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").QueryClientImpl;
-  getTx: (id: string) => Promise<IndexedTx | null>;
-  txsQuery: (query: string) => Promise<IndexedTx[]>;
+  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").Query;
+  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").Query;
+  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").Query;
+  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").Query;
+  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").Query;
+  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").Query;
+  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").Query;
+  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").Query;
+  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").Query;
+  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").Query;
+  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").Query;
+  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").Query;
+  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").Query;
+  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").Service;
+  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").Query;
   snip20: Snip20Querier;
 };
 
@@ -249,12 +275,17 @@ export type DeliverTxResponse = {
 };
 
 /** A transaction that is indexed as part of the transaction history */
-export interface IndexedTx {
+export interface Tx {
   readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly hash: string;
   /** Transaction execution error code. 0 on success. */
   readonly code: number;
+  /**
+   * If code != 0, rawLog contains the error.
+   *
+   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`. Values are not decrypted.
+   */
   readonly rawLog: string;
   /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
   readonly jsonLog?: JsonLog;
@@ -283,7 +314,20 @@ export type TxSender = {
   /**
    * Sign and broadcast a transaction to Secret Network.
    *
-   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succed then the transaction succeds, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
+   * @param {TxOptions} [options] Options for signing and broadcasting
+   * @param {Number} [options.gasLimit=25_000]
+   * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
+   * @param {String} [options.feeDenom="uscrt"]
+   * @param {String} [options.memo=""]
+   * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
+   * @param {Number} [options.broadcastTimeoutMs=60_000] How much time (in milliseconds) to wait for tx to commit on-chain. Ignored if `waitForCommit = false`.
+   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize. Ignored if `waitForCommit = false`.
+   * @param {BroadcastMode} [options.broadcastMode=BroadcastMode.Sync] If {@link BroadcastMode.Sync} - Broadcast transaction to mempool and wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync. If {@link BroadcastMode.Async} Broadcast transaction to mempool and do not wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async.
+   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
+   * @param {Number} [options.explicitSignerData.accountNumber]
+   * @param {Number} [options.explicitSignerData.sequence]
+   * @param {String} [options.explicitSignerData.chainId]
+   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
    *
    * List of possible Msgs:
    *   - authz           {@link MsgExec}
@@ -332,35 +376,11 @@ export type TxSender = {
    *   - staking         {@link MsgEditValidator}
    *   - staking         {@link MsgUndelegate}
    *
-   * @param {SignAndBroadcastOptions} [options] Options for signing and broadcasting
    *
-   * @param {Number} [options.gasLimit=25_000]
-   *
-   * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
-   *
-   * @param {String} [options.feeDenom="uscrt"]
-   *
-   * @param {String} [options.memo=""]
-   *
-   * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
-   *
-   * @param {Number} [options.broadcastTimeoutMs=60_000] How much time (in milliseconds) to wait for tx to commit on-chain. Ignored if `waitForCommit = false`.
-   *
-   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for tx to commit on-chain, this how much time (in milliseconds) to wait between checking if the tx is committed on-chain. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to commit. Ignored if `waitForCommit = false`.
-   *
-   * @param {BroadcastMode} [options.broadcastMode=BroadcastMode.Sync] If {@link BroadcastMode.Sync} - Broadcast transaction to mempool and wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
-   *
-   * If {@link BroadcastMode.Async} Broadcast transaction to mempool and do not wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
-   *
-   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
-   *
-   * @param {Number} [options.explicitSignerData.accountNumber]
-   * @param {Number} [options.explicitSignerData.sequence]
-   * @param {String} [options.explicitSignerData.chainId]
    */
   broadcast: (
     messages: Msg[],
-    txOptions?: SignAndBroadcastOptions,
+    txOptions?: TxOptions,
   ) => Promise<DeliverTxResponse>;
 
   snip20: {
@@ -371,21 +391,21 @@ export type TxSender = {
     //getMinters
     send: (
       params: Snip20SendOptions,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
 
     transfer: (
       params: Snip20TransferOptions,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     increaseAllowance: (
       params: Snip20IncreaseAllowanceOptions,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
 
     decreaseAllowance: (
       params: Snip20DecreaseAllowanceOptions,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
 
@@ -397,7 +417,7 @@ export type TxSender = {
      */
     exec: (
       params: MsgExecParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
@@ -405,7 +425,7 @@ export type TxSender = {
      */
     grant: (
       params: MsgGrantParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
@@ -413,43 +433,43 @@ export type TxSender = {
      */
     revoke: (
       params: MsgRevokeParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
     multiSend: (
       params: MsgMultiSendParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgSend represents a message to send coins from one account to another. */
     send: (
       params: MsgSendParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   compute: {
     /** Execute a function on a contract */
     executeContract: (
       params: MsgExecuteContractParams<object>,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** Instantiate a contract from code id */
     instantiateContract: (
       params: MsgInstantiateContractParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** Upload a compiled contract to Secret Network */
     storeCode: (
       params: MsgStoreCodeParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: (
       params: MsgVerifyInvariantParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   distribution: {
@@ -459,7 +479,7 @@ export type TxSender = {
      */
     fundCommunityPool: (
       params: MsgFundCommunityPoolParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
@@ -467,7 +487,7 @@ export type TxSender = {
      */
     setWithdrawAddress: (
       params: MsgSetWithdrawAddressParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
@@ -475,7 +495,7 @@ export type TxSender = {
      */
     withdrawDelegatorReward: (
       params: MsgWithdrawDelegatorRewardParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
@@ -483,7 +503,7 @@ export type TxSender = {
      */
     withdrawValidatorCommission: (
       params: MsgWithdrawValidatorCommissionParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   evidence: {
@@ -493,7 +513,7 @@ export type TxSender = {
      */
     submitEvidence: (
       params: MsgSubmitEvidenceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   feegrant: {
@@ -503,19 +523,19 @@ export type TxSender = {
      */
     grantAllowance: (
       params: MsgGrantAllowanceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
     revokeAllowance: (
       params: MsgRevokeAllowanceParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
     deposit: (
       params: MsgDepositParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
@@ -523,17 +543,17 @@ export type TxSender = {
      */
     submitProposal: (
       params: MsgSubmitProposalParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgVote defines a message to cast a vote. */
     vote: (
       params: MsgVoteParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
     voteWeighted: (
       params: MsgVoteWeightedParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   ibc: {
@@ -544,41 +564,41 @@ export type TxSender = {
      */
     transfer: (
       params: MsgTransferParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
     unjail: (
       params: MsgUnjailParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-    redelegate: (
-      params: MsgRedelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+    beginRedelegate: (
+      params: MsgBeginRedelegateParams,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
     createValidator: (
       params: MsgCreateValidatorParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
     delegate: (
       params: MsgDelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
     editValidator: (
       params: MsgEditValidatorParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: (
       params: MsgUndelegateParams,
-      txOptions?: SignAndBroadcastOptions,
+      txOptions?: TxOptions,
     ) => Promise<DeliverTxResponse>;
   };
 };
@@ -606,14 +626,9 @@ export class SecretNetworkClient {
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
   public static async create(
-    rpcUrl: string,
-    signingParams: SigningParams = {
-      wallet: new ReadonlySigner(),
-      chainId: "",
-      walletAddress: "",
-    },
+    options: CreateClientOptions,
   ): Promise<SecretNetworkClient> {
-    const tendermint = await Tendermint34Client.connect(rpcUrl);
+    const tendermint = await Tendermint34Client.connect(options.rpcUrl);
 
     // Init this.query in here because we need async/await for dynamic imports
     const rpc: SecretRpcClient = {
@@ -699,26 +714,26 @@ export class SecretNetworkClient {
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(tendermint, query, signingParams);
+    return new SecretNetworkClient(tendermint, query, options);
   }
 
   private constructor(
     tendermint: Tendermint34Client,
     query: Querier,
-    signingParams: SigningParams,
+    signingParams: CreateClientOptions,
   ) {
     this.tendermint = tendermint;
 
     this.query = query;
-    this.query.getTx = this.getTx.bind(this);
-    this.query.txsQuery = this.txsQuery.bind(this);
+    this.query.getTx = (hash) => this.getTx(hash);
+    this.query.txsQuery = (query) => this.txsQuery(query);
 
-    this.wallet = signingParams.wallet;
-    this.address = signingParams.walletAddress;
-    this.chainId = signingParams.chainId;
+    this.wallet = signingParams.wallet ?? new ReadonlySigner();
+    this.address = signingParams.walletAddress ?? "";
+    this.chainId = signingParams.chainId ?? "";
 
     const doMsg = (msgClass: any) => {
-      return (params: MsgParams, options?: SignAndBroadcastOptions) => {
+      return (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
       };
     };
@@ -776,7 +791,7 @@ export class SecretNetworkClient {
         unjail: doMsg(MsgUnjail),
       },
       staking: {
-        redelegate: doMsg(MsgRedelegate),
+        beginRedelegate: doMsg(MsgBeginRedelegate),
         createValidator: doMsg(MsgCreateValidator),
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),
@@ -795,24 +810,79 @@ export class SecretNetworkClient {
     }
   }
 
-  private async getTx(id: string): Promise<IndexedTx | null> {
-    const results = await this.txsQuery(`tx.hash='${id}'`);
+  private async getTx(
+    hash: string,
+    nonces: ComputeMsgToNonce = {},
+  ): Promise<Tx | null> {
+    const results = await this.txsQuery(`tx.hash='${hash}'`, nonces);
     return results[0] ?? null;
   }
 
-  private async txsQuery(query: string): Promise<IndexedTx[]> {
+  private async txsQuery(
+    query: string,
+    nonces: ComputeMsgToNonce = {},
+  ): Promise<Tx[]> {
     const results = await this.tendermint.txSearchAll({ query: query });
-    return results.txs.map((tx) => {
-      return {
-        height: tx.height,
-        hash: toHex(tx.hash).toUpperCase(),
-        code: tx.result.code,
-        rawLog: tx.result.log || "",
-        tx: tx.tx,
-        gasUsed: tx.result.gasUsed,
-        gasWanted: tx.result.gasWanted,
-      };
-    });
+
+    return await Promise.all(
+      results.txs.map(async (tx) => {
+        let jsonLog: JsonLog | undefined;
+        let arrayLog: ArrayLog | undefined;
+        if (tx.result.code === 0 && tx.result.log) {
+          jsonLog = JSON.parse(tx.result.log) as JsonLog;
+
+          arrayLog = [];
+          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            const log = jsonLog[msgIndex];
+            for (const event of log.events) {
+              for (const attr of event.attributes) {
+                // Try to decrypt
+                if (event.type === "wasm") {
+                  const nonce = nonces[msgIndex];
+                  if (nonce && nonce.length === 32) {
+                    try {
+                      attr.key = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.key),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                    try {
+                      attr.value = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.value),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                  }
+                }
+
+                arrayLog.push({
+                  msg: msgIndex,
+                  type: event.type,
+                  key: attr.key,
+                  value: attr.value,
+                });
+              }
+            }
+          }
+        }
+
+        return {
+          height: tx.height,
+          hash: toHex(tx.hash).toUpperCase(),
+          code: tx.result.code,
+          rawLog: tx.result.log || "",
+          jsonLog: jsonLog,
+          arrayLog: arrayLog,
+          tx: tx.tx,
+          gasUsed: tx.result.gasUsed,
+          gasWanted: tx.result.gasWanted,
+        };
+      }),
+    );
   }
 
   /**
@@ -861,58 +931,15 @@ export class SecretNetworkClient {
         );
       }
 
-      const result = await this.getTx(txhash);
+      const result = await this.getTx(txhash, nonces);
+
       if (result) {
-        let jsonLog: JsonLog | undefined;
-        let arrayLog: ArrayLog | undefined;
-        if (result.code == 0) {
-          jsonLog = JSON.parse(result.rawLog) as JsonLog;
-
-          arrayLog = [];
-          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
-            const log = jsonLog[msgIndex];
-            for (const event of log.events) {
-              for (const attr of event.attributes) {
-                // Try to decrypt
-                if (event.type === "wasm") {
-                  const nonce = nonces[msgIndex];
-                  if (nonce && nonce.length === 32) {
-                    try {
-                      attr.key = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.key),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                    try {
-                      attr.value = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.value),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                  }
-                }
-
-                arrayLog.push({
-                  msg: msgIndex,
-                  type: event.type,
-                  key: attr.key,
-                  value: attr.value,
-                });
-              }
-            }
-          }
-        }
-
         return {
           code: result.code,
           height: result.height,
           rawLog: result.rawLog,
-          jsonLog,
-          arrayLog,
+          jsonLog: result.jsonLog,
+          arrayLog: result.arrayLog,
           transactionHash: txhash,
           gasUsed: result.gasUsed,
           gasWanted: result.gasWanted,
@@ -925,7 +952,7 @@ export class SecretNetworkClient {
 
   private async signAndBroadcast(
     messages: Msg[],
-    txOptions?: SignAndBroadcastOptions,
+    txOptions?: TxOptions,
   ): Promise<DeliverTxResponse> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
@@ -984,6 +1011,13 @@ export class SecretNetworkClient {
   ): Promise<
     [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
   > {
+    const accountFromSigner = (await this.wallet.getAccounts()).find(
+      (account) => account.address === this.address,
+    );
+    if (!accountFromSigner) {
+      throw new Error("Failed to retrieve account from signer");
+    }
+
     let signerData: SignerData;
     if (explicitSignerData) {
       signerData = explicitSignerData;
@@ -1005,28 +1039,22 @@ export class SecretNetworkClient {
       }
 
       const chainId = this.chainId;
+      const baseAccount =
+        account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount;
       signerData = {
-        accountNumber: Number(
-          (
-            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
-          ).accountNumber,
-        ),
-        sequence: Number(
-          (
-            account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount
-          ).sequence,
-        ),
+        accountNumber: Number(baseAccount.accountNumber),
+        sequence: Number(baseAccount.sequence),
         chainId: chainId,
       };
     }
 
     return isOfflineDirectSigner(this.wallet)
-      ? this.signDirect(this.address, messages, fee, memo, signerData)
-      : this.signAmino(this.address, messages, fee, memo, signerData);
+      ? this.signDirect(accountFromSigner, messages, fee, memo, signerData)
+      : this.signAmino(accountFromSigner, messages, fee, memo, signerData);
   }
 
   private async signAmino(
-    signerAddress: string,
+    account: AccountData,
     messages: Msg[],
     fee: StdFee,
     memo: string,
@@ -1036,13 +1064,6 @@ export class SecretNetworkClient {
   > {
     if (isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
-    }
-
-    const accountFromSigner = (await this.wallet.getAccounts()).find(
-      (account) => account.address === signerAddress,
-    );
-    if (!accountFromSigner) {
-      throw new Error("Failed to retrieve account from signer");
     }
 
     const signMode = (
@@ -1063,7 +1084,7 @@ export class SecretNetworkClient {
       sequence,
     );
     const { signature, signed } = await this.wallet.signAmino(
-      signerAddress,
+      account.address,
       signDoc,
     );
     const encryptionNonces: ComputeMsgToNonce = {};
@@ -1085,9 +1106,7 @@ export class SecretNetworkClient {
     const txBodyBytes = await this.encodeTx(txBody);
     const signedGasLimit = Number(signed.fee.gas);
     const signedSequence = Number(signed.sequence);
-    const pubkey = await encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
+    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const signedAuthInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
@@ -1147,7 +1166,7 @@ export class SecretNetworkClient {
   }
 
   private async signDirect(
-    signerAddress: string,
+    account: AccountData,
     messages: Msg[],
     fee: StdFee,
     memo: string,
@@ -1157,13 +1176,6 @@ export class SecretNetworkClient {
   > {
     if (!isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
-    }
-
-    const accountFromSigner = (await this.wallet.getAccounts()).find(
-      (account) => account.address === signerAddress,
-    );
-    if (!accountFromSigner) {
-      throw new Error("Failed to retrieve account from signer");
     }
 
     const encryptionNonces: ComputeMsgToNonce = {};
@@ -1183,9 +1195,7 @@ export class SecretNetworkClient {
       },
     };
     const txBodyBytes = await this.encodeTx(txBody);
-    const pubkey = await encodePubkey(
-      encodeSecp256k1Pubkey(accountFromSigner.pubkey),
-    );
+    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const gasLimit = Number(fee.gas);
     const authInfoBytes = await makeAuthInfoBytes(
       [{ pubkey, sequence }],
@@ -1199,7 +1209,7 @@ export class SecretNetworkClient {
       accountNumber,
     );
     const { signature, signed } = await this.wallet.signDirect(
-      signerAddress,
+      account.address,
       signDoc,
     );
     return [
@@ -1216,7 +1226,7 @@ export class SecretNetworkClient {
 }
 
 function sleep(ms: number) {
-  return new Promise((accept, reject) => setTimeout(accept, ms));
+  return new Promise((accept) => setTimeout(accept, ms));
 }
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
