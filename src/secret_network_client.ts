@@ -59,9 +59,9 @@ import {
   MsgWithdrawValidatorCommissionParams,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
-import { AuthQuerier } from "./query/auth";
-import { ComputeQuerier } from "./query/compute";
-import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx/types";
+import { AuthQuerier } from "./query";
+import { ComputeQuerier } from "./query";
+import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
 import {
   AccountData,
   AminoSigner,
@@ -86,6 +86,9 @@ import {
   Snip20SendOptions,
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
+import { MsgSnip721Send } from "./extensions/snip721";
+import { Snip721SendOptions } from "./extensions/snip721/types";
+import { Snip721Querier } from "./extensions/snip721";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -228,6 +231,7 @@ export type Querier = {
   tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").Service;
   upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").Query;
   snip20: Snip20Querier;
+  snip721: Snip721Querier;
 };
 
 export type ArrayLog = Array<{
@@ -360,16 +364,17 @@ export type TxSender = {
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
+  snip721: {
+    send: (params: Snip721SendOptions, txOptions?: TxOptions) => Promise<Tx>;
+  };
+
   snip20: {
     //Send
     //Transfer
     //getTransferHistory
     //getAllowance
     //getMinters
-    send: (
-      params: Snip20SendOptions,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    send: (params: Snip20SendOptions, txOptions?: TxOptions) => Promise<Tx>;
 
     transfer: (
       params: Snip20TransferOptions,
@@ -604,6 +609,7 @@ export class SecretNetworkClient {
       ).QueryClientImpl(grpcWeb),
       compute: new ComputeQuerier(grpcWeb),
       snip20: new Snip20Querier(grpcWeb),
+      snip721: new Snip721Querier(grpcWeb),
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
       ).QueryClientImpl(grpcWeb),
@@ -686,6 +692,10 @@ export class SecretNetworkClient {
         transfer: doMsg(MsgSnip20Transfer),
         increaseAllowance: doMsg(MsgSnip20IncreaseAllowance),
         decreaseAllowance: doMsg(MsgSnip20DecreaseAllowance),
+      },
+
+      snip721: {
+        send: doMsg(MsgSnip721Send),
       },
 
       authz: {

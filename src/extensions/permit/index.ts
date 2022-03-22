@@ -1,8 +1,11 @@
 import { StdSignDoc } from "secretjs/types/encoding";
 import { Wallet } from "../../wallet_proto";
-import { AminoWallet } from "../../wallet_amino";
+import { AminoWallet, serializeStdSignDoc } from "../../wallet_amino";
 import { bech32 } from "bech32";
 import { base64PubkeyToAddress } from "../../index";
+import * as secp256k1 from "@noble/secp256k1";
+import { fromBase64 } from "@cosmjs/encoding";
+import { sha256 } from "@noble/hashes/sha256";
 // import { Keplr } from "@keplr-wallet/types";
 
 class PermitError extends Error {
@@ -37,14 +40,14 @@ class SignatureInvalid extends PermitError {
 }
 
 class SignerIsNotAddress extends PermitError {
-  signature: string;
+  publicKey: PubKey;
   address: string;
 
-  constructor(signature: string, address: string) {
+  constructor(publicKey: PubKey, address: string) {
     super("Address is not signer");
     this.name = "SignerIsNotAddress";
     this.address = address;
-    this.signature = signature;
+    this.publicKey = publicKey;
   }
 }
 
@@ -118,26 +121,10 @@ export const newPermit = async (
   allowedTokens: string[],
   permissions: Permission[],
 ): Promise<Permit> => {
-  const { signature } = await signer.signAmino(owner, {
-    chain_id: chainId,
-    account_number: "0", // Must be 0
-    sequence: "0", // Must be 0
-    fee: {
-      amount: [{ denom: "uscrt", amount: "0" }], // Must be 0 uscrt
-      gas: "1", // Must be 1
-    },
-    msgs: [
-      {
-        type: "query_permit", // Must be "query_permit"
-        value: {
-          permit_name: permitName,
-          allowed_tokens: allowedTokens,
-          permissions,
-        },
-      },
-    ],
-    memo: "", // Must be empty
-  });
+  const { signature } = await signer.signAmino(
+    owner,
+    newSignDoc(chainId, permitName, allowedTokens, permissions),
+  );
 
   return {
     params: {
@@ -180,10 +167,33 @@ export const validatePermit = (
     );
   }
 
-  const permitAcc = base64PubkeyToAddress(
-    permit.signature.pub_key.value,
-    "secret",
-  );
+  const permitAcc = base64PubkeyToAddress(permit.signature.pub_key.value, hrp);
+
+  if (permitAcc !== address) {
+    throw new SignerIsNotAddress(permit.signature.pub_key, address);
+  }
+
+  if (!_validate_sig(permit)) {
+    throw new SignatureInvalid(
+      permit.signature.signature,
+      permit.signature.pub_key.value,
+    );
+  }
 
   return true;
+};
+
+const _validate_sig = (permit: Permit): boolean => {
+  let signDoc = newSignDoc(
+    permit.params.chain_id,
+    permit.params.permit_name,
+    permit.params.allowed_tokens,
+    permit.params.permissions,
+  );
+  const messageHash = sha256(serializeStdSignDoc(signDoc));
+  let sig = secp256k1.Signature.fromCompact(
+    fromBase64(permit.signature.signature),
+  );
+
+  return secp256k1.verify(sig, messageHash, permit.signature.pub_key.value);
 };

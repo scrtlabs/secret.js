@@ -248,7 +248,7 @@ function JsonSortedStringify(obj: any): string {
   return JSON.stringify(sortedObject(obj));
 }
 
-function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
+export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
   return toUtf8(JsonSortedStringify(signDoc));
 }
 
