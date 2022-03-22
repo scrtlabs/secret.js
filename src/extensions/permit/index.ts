@@ -1,12 +1,10 @@
-import { StdSignDoc } from "secretjs/types/encoding";
-import { Wallet } from "../../wallet_proto";
+import { StdSignDoc } from "../../wallet_amino";
 import { AminoWallet, serializeStdSignDoc } from "../../wallet_amino";
 import { bech32 } from "bech32";
 import { base64PubkeyToAddress } from "../../index";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromBase64 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
-// import { Keplr } from "@keplr-wallet/types";
 
 class PermitError extends Error {
   constructor(message: string) {
