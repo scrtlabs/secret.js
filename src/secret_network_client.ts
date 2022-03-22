@@ -1,5 +1,6 @@
-import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { fromBase64, fromHex, fromUtf8 } from "@cosmjs/encoding";
+import { grpc } from "@improbable-eng/grpc-web";
+import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import {
   Coin,
   MsgBeginRedelegate,
@@ -87,7 +88,8 @@ import {
 } from "./extensions/snip20/types";
 
 export type CreateClientOptions = {
-  rpcUrl: string;
+  /** A gRPC-web url, by default on port 9091 */
+  grpcWebUrl: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
   /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
@@ -106,13 +108,13 @@ export enum BroadcastMode {
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
    */
-  Sync,
+  Sync = "Sync",
   /**
    * Broadcast transaction to mempool and do not wait for CheckTx response.
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async
    */
-  Async,
+  Async = "Async",
 }
 
 export type TxOptions = {
@@ -124,7 +126,7 @@ export type TxOptions = {
   feeDenom?: string;
   /** Defaults to `""`. */
   memo?: string;
-  /** If false returns immediately with `transactionHash`. Defaults to `true`. */
+  /** If `false` returns immediately with only the `transactionHash` field set. Defaults to `true`. */
   waitForCommit?: boolean;
   /**
    * How much time (in milliseconds) to wait for tx to commit on-chain.
@@ -236,6 +238,7 @@ export type ArrayLog = Array<{
 }>;
 
 export type JsonLog = Array<{
+  msg_index: number;
   events: Array<{
     type: string;
     attributes: Array<{ key: string; value: string }>;
@@ -251,36 +254,13 @@ export type MsgData = {
   data: Uint8Array;
 };
 
-/**
- * The response after successfully broadcasting a transaction.
- */
-export type DeliverTxResponse = {
-  readonly height?: number;
-  /** Error code. The transaction suceeded iff code is 0. */
-  readonly code?: number;
-  readonly transactionHash: string;
-  /**
-   * If code != 0, rawLog contains the error.
-   *
-   * If code = 0 you'll probably want to use `jsonLog` or `arrayLog`. Values are not decrypted.
-   */
-  readonly rawLog?: string;
-  /** If code = 0, `jsonLog = JSON.parse(rawLow)`. Values are decrypted if possible. */
-  readonly jsonLog?: JsonLog;
-  /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
-  readonly arrayLog?: ArrayLog;
-  readonly data?: MsgData[];
-  readonly gasUsed?: number;
-  readonly gasWanted?: number;
-};
-
 /** A transaction that is indexed as part of the transaction history */
 export interface Tx {
   readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
-  readonly hash: string;
-  /** Transaction execution error code. 0 on success. */
-  readonly code: number;
+  readonly transactionHash: string;
+  /** Transaction execution error code. 0 on success. See {@link TxResultCode}. */
+  readonly code: TxResultCode;
   /**
    * If code != 0, rawLog contains the error.
    *
@@ -291,6 +271,8 @@ export interface Tx {
   readonly jsonLog?: JsonLog;
   /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
   readonly arrayLog?: ArrayLog;
+  /** Return value (if there's any) for each input message */
+  readonly data: Array<Uint8Array>;
   /**
    * Raw transaction bytes stored in Tendermint.
    *
@@ -300,10 +282,8 @@ export interface Tx {
    * import { sha256 } from "@noble/hashes/sha256";
    * import { toHex } from "@cosmjs/encoding";
    *
-   * const transactionId = toHex(sha256(indexTx.tx)).toUpperCase();
+   * const transactionHash = toHex(sha256(indexTx.tx)).toUpperCase();
    * ```
-   *
-   * Use `decodeTxRaw` from @cosmjs/proto-signing to decode this.
    */
   readonly tx: Uint8Array;
   readonly gasUsed: number;
@@ -327,7 +307,7 @@ export type TxSender = {
    * @param {Number} [options.explicitSignerData.accountNumber]
    * @param {Number} [options.explicitSignerData.sequence]
    * @param {String} [options.explicitSignerData.chainId]
-   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link DeliverTxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link DeliverTxResponse} `code` field will not be `0`.
+   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link Tx} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link Tx} `code` field will not be `0`.
    *
    * List of possible Msgs:
    *   - authz           {@link MsgExec}
@@ -378,10 +358,7 @@ export type TxSender = {
    *
    *
    */
-  broadcast: (
-    messages: Msg[],
-    txOptions?: TxOptions,
-  ) => Promise<DeliverTxResponse>;
+  broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
   snip20: {
     //Send
@@ -392,21 +369,21 @@ export type TxSender = {
     send: (
       params: Snip20SendOptions,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
 
     transfer: (
       params: Snip20TransferOptions,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     increaseAllowance: (
       params: Snip20IncreaseAllowanceOptions,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
 
     decreaseAllowance: (
       params: Snip20DecreaseAllowanceOptions,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
 
   authz: {
@@ -415,62 +392,50 @@ export type TxSender = {
      * authorizations granted to the grantee. Each message should have only
      * one signer corresponding to the granter of the authorization.
      */
-    exec: (
-      params: MsgExecParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    exec: (params: MsgExecParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
      * on behalf of the granter with the provided expiration time.
      */
-    grant: (
-      params: MsgGrantParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    grant: (params: MsgGrantParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
      * granter's account with that has been granted to the grantee.
      */
-    revoke: (
-      params: MsgRevokeParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    revoke: (params: MsgRevokeParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
     multiSend: (
       params: MsgMultiSendParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgSend represents a message to send coins from one account to another. */
-    send: (
-      params: MsgSendParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    send: (params: MsgSendParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   compute: {
     /** Execute a function on a contract */
     executeContract: (
       params: MsgExecuteContractParams<object>,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** Instantiate a contract from code id */
     instantiateContract: (
       params: MsgInstantiateContractParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** Upload a compiled contract to Secret Network */
     storeCode: (
       params: MsgStoreCodeParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: (
       params: MsgVerifyInvariantParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   distribution: {
     /**
@@ -480,7 +445,7 @@ export type TxSender = {
     fundCommunityPool: (
       params: MsgFundCommunityPoolParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
      * a delegator (or validator self-delegation).
@@ -488,7 +453,7 @@ export type TxSender = {
     setWithdrawAddress: (
       params: MsgSetWithdrawAddressParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
      * from a single validator.
@@ -496,7 +461,7 @@ export type TxSender = {
     withdrawDelegatorReward: (
       params: MsgWithdrawDelegatorRewardParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
      * address.
@@ -504,7 +469,7 @@ export type TxSender = {
     withdrawValidatorCommission: (
       params: MsgWithdrawValidatorCommissionParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   evidence: {
     /**
@@ -514,7 +479,7 @@ export type TxSender = {
     submitEvidence: (
       params: MsgSubmitEvidenceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   feegrant: {
     /**
@@ -524,19 +489,16 @@ export type TxSender = {
     grantAllowance: (
       params: MsgGrantAllowanceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
     revokeAllowance: (
       params: MsgRevokeAllowanceParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
-    deposit: (
-      params: MsgDepositParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    deposit: (params: MsgDepositParams, txOptions?: TxOptions) => Promise<Tx>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
      * proposal Content.
@@ -544,17 +506,14 @@ export type TxSender = {
     submitProposal: (
       params: MsgSubmitProposalParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgVote defines a message to cast a vote. */
-    vote: (
-      params: MsgVoteParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    vote: (params: MsgVoteParams, txOptions?: TxOptions) => Promise<Tx>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
     voteWeighted: (
       params: MsgVoteWeightedParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
   ibc: {
     /**
@@ -562,167 +521,148 @@ export type TxSender = {
      * ICS20 enabled chains. See ICS Spec here:
      * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
      */
-    transfer: (
-      params: MsgTransferParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    transfer: (params: MsgTransferParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
-    unjail: (
-      params: MsgUnjailParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    unjail: (params: MsgUnjailParams, txOptions?: TxOptions) => Promise<Tx>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
     beginRedelegate: (
       params: MsgBeginRedelegateParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
     createValidator: (
       params: MsgCreateValidatorParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
-    delegate: (
-      params: MsgDelegateParams,
-      txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    delegate: (params: MsgDelegateParams, txOptions?: TxOptions) => Promise<Tx>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
     editValidator: (
       params: MsgEditValidatorParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: (
       params: MsgUndelegateParams,
       txOptions?: TxOptions,
-    ) => Promise<DeliverTxResponse>;
+    ) => Promise<Tx>;
   };
 };
 
-interface SecretRpcClient {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
-}
-
 type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
-
-export { Tendermint34Client };
 
 export class SecretNetworkClient {
   public readonly query: Querier;
   public readonly tx: TxSender;
   public readonly address: string;
-  private readonly tendermint: Tendermint34Client;
+  private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
   private readonly wallet: Signer;
   private readonly chainId: string;
   private encryptionUtils: EncryptionUtils;
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `rpcUrl` param. */
+  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
   public static async create(
     options: CreateClientOptions,
   ): Promise<SecretNetworkClient> {
-    const tendermint = await Tendermint34Client.connect(options.rpcUrl);
+    const { GrpcWebImpl } = await import(
+      "./protobuf_stuff/secret/compute/v1beta1/query"
+    );
+    let grpcWeb: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
 
-    // Init this.query in here because we need async/await for dynamic imports
-    const rpc: SecretRpcClient = {
-      request: async (
-        service: string,
-        method: string,
-        data: Uint8Array,
-      ): Promise<Uint8Array> => {
-        const path = `/${service}/${method}`;
+    options.grpcWebUrl = options.grpcWebUrl.replace(/\/*$/, ""); // remove trailing slash
 
-        const response = await tendermint.abciQuery({
-          path,
-          data,
-          prove: false,
-        });
+    if (typeof window === "undefined") {
+      // node.js
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: NodeHttpTransport(),
+        // debug: true,
+      });
+    } else {
+      // browser
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+        // debug: true,
+      });
+    }
 
-        if (response.code) {
-          throw new Error(
-            `Query failed with (${response.code}): ${response.log}`,
-          );
-        }
-
-        return response.value;
-      },
-    };
+    const { ServiceClientImpl } = await import(
+      "./protobuf_stuff/cosmos/tx/v1beta1/service"
+    );
+    const txService = new ServiceClientImpl(grpcWeb);
 
     const query: Querier = {
-      auth: new AuthQuerier(rpc),
+      auth: new AuthQuerier(grpcWeb),
       authz: new (
         await import("./protobuf_stuff/cosmos/authz/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       bank: new (
         await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
-      ).QueryClientImpl(rpc),
-      compute: new ComputeQuerier(rpc),
-      snip20: new Snip20Querier(rpc),
+      ).QueryClientImpl(grpcWeb),
+      compute: new ComputeQuerier(grpcWeb),
+      snip20: new Snip20Querier(grpcWeb),
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       evidence: new (
         await import("./protobuf_stuff/cosmos/evidence/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       feegrant: new (
         await import("./protobuf_stuff/cosmos/feegrant/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       gov: new (
         await import("./protobuf_stuff/cosmos/gov/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_channel: new (
         await import("./protobuf_stuff/ibc/core/channel/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_client: new (
         await import("./protobuf_stuff/ibc/core/client/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_connection: new (
         await import("./protobuf_stuff/ibc/core/connection/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       ibc_transfer: new (
         await import("./protobuf_stuff/ibc/applications/transfer/v1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       mint: new (
         await import("./protobuf_stuff/cosmos/mint/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       params: new (
         await import("./protobuf_stuff/cosmos/params/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       registration: new (
         await import("./protobuf_stuff/secret/registration/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       slashing: new (
         await import("./protobuf_stuff/cosmos/slashing/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       staking: new (
         await import("./protobuf_stuff/cosmos/staking/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       tendermint: new (
         await import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query")
-      ).ServiceClientImpl(rpc),
+      ).ServiceClientImpl(grpcWeb),
       upgrade: new (
         await import("./protobuf_stuff/cosmos/upgrade/v1beta1/query")
-      ).QueryClientImpl(rpc),
+      ).QueryClientImpl(grpcWeb),
       getTx: async () => null, // stub until we can set this in the constructor
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(tendermint, query, options);
+    return new SecretNetworkClient(grpcWeb, txService, query, options);
   }
 
   private constructor(
-    tendermint: Tendermint34Client,
+    grpc: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
+    txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl,
     query: Querier,
     signingParams: CreateClientOptions,
   ) {
-    this.tendermint = tendermint;
+    this.txService = txService;
 
     this.query = query;
     this.query.getTx = (hash) => this.getTx(hash);
@@ -808,6 +748,9 @@ export class SecretNetworkClient {
         this.chainId,
       );
     }
+
+    // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, same seed)
+    this.query.compute = new ComputeQuerier(grpc, this.encryptionUtils);
   }
 
   private async getTx(
@@ -822,17 +765,25 @@ export class SecretNetworkClient {
     query: string,
     nonces: ComputeMsgToNonce = {},
   ): Promise<Tx[]> {
-    const results = await this.tendermint.txSearchAll({ query: query });
+    const { txResponses } = await this.txService.getTxsEvent({
+      events: query.split(" AND ").map((q) => q.trim()),
+    });
 
     return await Promise.all(
-      results.txs.map(async (tx) => {
+      txResponses.map(async (tx) => {
+        let rawLog: string = tx.rawLog;
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
-        if (tx.result.code === 0 && tx.result.log) {
-          jsonLog = JSON.parse(tx.result.log) as JsonLog;
+        if (tx.code === 0 && rawLog !== "") {
+          jsonLog = JSON.parse(rawLog) as JsonLog;
 
           arrayLog = [];
           for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            if (jsonLog[msgIndex].msg_index === undefined) {
+              jsonLog[msgIndex].msg_index = msgIndex;
+              // See https://github.com/cosmos/cosmos-sdk/pull/11147
+            }
+
             const log = jsonLog[msgIndex];
             for (const event of log.events) {
               for (const attr of event.attributes) {
@@ -868,18 +819,72 @@ export class SecretNetworkClient {
               }
             }
           }
+        } else if (tx.code !== 0 && rawLog !== "") {
+          try {
+            const errorMessageRgx =
+              /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+            const rgxMatches = errorMessageRgx.exec(rawLog);
+            if (rgxMatches?.length === 3) {
+              const encryptedError = fromBase64(rgxMatches[2]);
+              const msgIndex = Number(rgxMatches[1]);
+
+              const decryptedBase64Error = await this.encryptionUtils.decrypt(
+                encryptedError,
+                nonces[msgIndex],
+              );
+
+              const decryptedError = fromUtf8(decryptedBase64Error);
+
+              rawLog = rawLog.replace(
+                `encrypted: ${rgxMatches[2]}`,
+                decryptedError,
+              );
+
+              try {
+                jsonLog = JSON.parse(decryptedError);
+              } catch (e) {}
+            }
+          } catch (decryptionError) {}
         }
 
+        const { TxMsgData } = await import(
+          "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
+        );
+
+        const txMsgData = TxMsgData.decode(fromHex(tx.data));
+        let data = new Array<Uint8Array>(txMsgData.data.length);
+
+        for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+          const nonce = nonces[msgIndex];
+          if (nonce && nonce.length === 32) {
+            try {
+              data[msgIndex] = fromBase64(
+                fromUtf8(
+                  await this.encryptionUtils.decrypt(
+                    txMsgData.data[msgIndex].data,
+                    nonce,
+                  ),
+                ),
+              );
+            } catch (decryptionError) {
+              data[msgIndex] = txMsgData.data[msgIndex].data;
+            }
+          }
+        }
+
+        const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+
         return {
-          height: tx.height,
-          hash: toHex(tx.hash).toUpperCase(),
-          code: tx.result.code,
-          rawLog: tx.result.log || "",
-          jsonLog: jsonLog,
-          arrayLog: arrayLog,
-          tx: tx.tx,
-          gasUsed: tx.result.gasUsed,
-          gasWanted: tx.result.gasWanted,
+          height: Number(tx.height),
+          transactionHash: tx.txhash,
+          code: tx.code,
+          tx: Any.encode(tx.tx!).finish(),
+          rawLog,
+          jsonLog,
+          arrayLog,
+          data,
+          gasUsed: Number(tx.gasUsed),
+          gasWanted: Number(tx.gasWanted),
         };
       }),
     );
@@ -893,7 +898,7 @@ export class SecretNetworkClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a {@link DeliverTxResponse} is returned. The caller then
+   * If the transaction is included in a block, a {@link Tx} is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   private async broadcastTx(
@@ -903,57 +908,69 @@ export class SecretNetworkClient {
     mode: BroadcastMode,
     waitForCommit: boolean,
     nonces: ComputeMsgToNonce,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<Tx> {
     const start = Date.now();
 
     let txhash: string;
+
     if (mode === BroadcastMode.Sync) {
-      const broadcasted = await this.tendermint.broadcastTxSync({ tx });
-      if (broadcasted.code) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+      const { txResponse } = await this.txService.broadcastTx({
+        txBytes: tx,
+        mode: BroadcastMode.BROADCAST_MODE_SYNC,
+      });
+      if (txResponse?.code) {
         throw new Error(
-          `Broadcasting transaction failed with code ${broadcasted.code} (codespace: ${broadcasted.codeSpace}). Log: ${broadcasted.log}`,
+          `Broadcasting transaction failed with code ${txResponse?.code} (codespace: ${txResponse?.codespace}). Log: ${txResponse?.rawLog}`,
         );
       }
-      txhash = toHex(broadcasted.hash).toUpperCase();
+      txhash = txResponse!.txhash;
+    } else if (mode === BroadcastMode.Async) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+      const { txResponse } = await this.txService.broadcastTx({
+        txBytes: tx,
+        mode: BroadcastMode.BROADCAST_MODE_ASYNC,
+      });
+      txhash = txResponse!.txhash;
     } else {
-      const broadcasted = await this.tendermint.broadcastTxAsync({ tx });
-      txhash = toHex(broadcasted.hash).toUpperCase();
+      throw new Error(
+        `Unknown broadcast mode "${String(mode)}", must be either "${String(
+          BroadcastMode.Sync,
+        )}" or "${String(BroadcastMode.Async)}".`,
+      );
     }
 
     if (!waitForCommit) {
+      //@ts-ignore
       return { transactionHash: txhash };
     }
 
     while (true) {
+      // sleep first because there's no point in checking right after broadcasting
+      await sleep(checkIntervalMs);
+
+      const result = await this.getTx(txhash, nonces);
+
+      if (result) {
+        return result;
+      }
+
       if (start + timeoutMs < Date.now()) {
         throw new Error(
           `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
         );
       }
-
-      const result = await this.getTx(txhash, nonces);
-
-      if (result) {
-        return {
-          code: result.code,
-          height: result.height,
-          rawLog: result.rawLog,
-          jsonLog: result.jsonLog,
-          arrayLog: result.arrayLog,
-          transactionHash: txhash,
-          gasUsed: result.gasUsed,
-          gasWanted: result.gasWanted,
-        };
-      }
-
-      await sleep(checkIntervalMs);
     }
   }
 
   private async signAndBroadcast(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<DeliverTxResponse> {
+  ): Promise<Tx> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
@@ -1230,7 +1247,7 @@ function sleep(ms: number) {
 }
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
-  return Math.floor(gasLimit * gasPrice) + 1;
+  return Math.ceil(gasLimit * gasPrice);
 }
 
 function extractNonce(msg: ProtoMsg): Uint8Array {
@@ -1375,3 +1392,320 @@ function makeSignDocAmino(
     memo: memo || "",
   };
 }
+
+export enum TxResultCode {
+  /** Success is returned if the transaction executed successfuly */
+  Success = 0,
+
+  /** ErrInternal should never be exposed, but we reserve this code for non-specified errors */
+  ErrInternal = 1,
+
+  /** ErrTxDecode is returned if we cannot parse a transaction */
+  ErrTxDecode = 2,
+
+  /** ErrInvalidSequence is used the sequence number (nonce) is incorrect for the signature */
+  ErrInvalidSequence = 3,
+
+  /** ErrUnauthorized is used whenever a request without sufficient authorization is handled. */
+  ErrUnauthorized = 4,
+
+  /** ErrInsufficientFunds is used when the account cannot pay requested amount. */
+  ErrInsufficientFunds = 5,
+
+  /** ErrUnknownRequest to doc */
+  ErrUnknownRequest = 6,
+
+  /** ErrInvalidAddress to doc */
+  ErrInvalidAddress = 7,
+
+  /** ErrInvalidPubKey to doc */
+  ErrInvalidPubKey = 8,
+
+  /** ErrUnknownAddress to doc */
+  ErrUnknownAddress = 9,
+
+  /** ErrInvalidCoins to doc */
+  ErrInvalidCoins = 10,
+
+  /** ErrOutOfGas to doc */
+  ErrOutOfGas = 11,
+
+  /** ErrMemoTooLarge to doc */
+  ErrMemoTooLarge = 12,
+
+  /** ErrInsufficientFee to doc */
+  ErrInsufficientFee = 13,
+
+  /** ErrTooManySignatures to doc */
+  ErrTooManySignatures = 14,
+
+  /** ErrNoSignatures to doc */
+  ErrNoSignatures = 15,
+
+  /** ErrJSONMarshal defines an ABCI typed JSON marshalling error */
+  ErrJSONMarshal = 16,
+
+  /** ErrJSONUnmarshal defines an ABCI typed JSON unmarshalling error */
+  ErrJSONUnmarshal = 17,
+
+  /** ErrInvalidRequest defines an ABCI typed error where the request contains invalid data. */
+  ErrInvalidRequest = 18,
+
+  /** ErrTxInMempoolCache defines an ABCI typed error where a tx already exists in the mempool. */
+  ErrTxInMempoolCache = 19,
+
+  /** ErrMempoolIsFull defines an ABCI typed error where the mempool is full. */
+  ErrMempoolIsFull = 20,
+
+  /** ErrTxTooLarge defines an ABCI typed error where tx is too large. */
+  ErrTxTooLarge = 21,
+
+  /** ErrKeyNotFound defines an error when the key doesn't exist */
+  ErrKeyNotFound = 22,
+
+  /** ErrWrongPassword defines an error when the key password is invalid. */
+  ErrWrongPassword = 23,
+
+  /** ErrorInvalidSigner defines an error when the tx intended signer does not match the given signer. */
+  ErrorInvalidSigner = 24,
+
+  /** ErrorInvalidGasAdjustment defines an error for an invalid gas adjustment */
+  ErrorInvalidGasAdjustment = 25,
+
+  /** ErrInvalidHeight defines an error for an invalid height */
+  ErrInvalidHeight = 26,
+
+  /** ErrInvalidVersion defines a general error for an invalid version */
+  ErrInvalidVersion = 27,
+
+  /** ErrInvalidChainID defines an error when the chain-id is invalid. */
+  ErrInvalidChainID = 28,
+
+  /** ErrInvalidType defines an error an invalid type. */
+  ErrInvalidType = 29,
+
+  /** ErrTxTimeoutHeight defines an error for when a tx is rejected out due to an explicitly set timeout height. */
+  ErrTxTimeoutHeight = 30,
+
+  /** ErrUnknownExtensionOptions defines an error for unknown extension options. */
+  ErrUnknownExtensionOptions = 31,
+
+  /** ErrWrongSequence defines an error where the account sequence defined in the signer info doesn't match the account's actual sequence number. */
+  ErrWrongSequence = 32,
+
+  /** ErrPackAny defines an error when packing a protobuf message to Any fails. */
+  ErrPackAny = 33,
+
+  /** ErrUnpackAny defines an error when unpacking a protobuf message from Any fails. */
+  ErrUnpackAny = 34,
+
+  /** ErrLogic defines an internal logic error, e.g. an invariant or assertion that is violated. It is a programmer error, not a user-facing error. */
+  ErrLogic = 35,
+
+  /** ErrConflict defines a conflict error, e.g. when two goroutines try to access the same resource and one of them fails. */
+  ErrConflict = 36,
+
+  /** ErrNotSupported is returned when we call a branch of a code which is currently not supported. */
+  ErrNotSupported = 37,
+
+  /** ErrNotFound defines an error when requested entity doesn't exist in the state. */
+  ErrNotFound = 38,
+
+  /** ErrIO should be used to wrap internal errors caused by external operation. Examples: not DB domain error, file writing etc... */
+  ErrIO = 39,
+
+  /** ErrAppConfig defines an error occurred if min-gas-prices field in BaseConfig is empty. */
+  ErrAppConfig = 40,
+
+  /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
+  ErrPanic = 111222,
+}
+
+const typeUrlToImportData: {
+  [typeUrl: string]: { name: string; path: string };
+} = {
+  "/cosmos.authz.v1beta1.MsgGrant": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgGrant",
+  },
+  "/cosmos.authz.v1beta1.MsgExec": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgExec",
+  },
+  "/cosmos.authz.v1beta1.MsgRevoke": {
+    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
+    name: "MsgRevoke",
+  },
+  "/cosmos.bank.v1beta1.MsgSend": {
+    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
+    name: "MsgSend",
+  },
+  "/cosmos.bank.v1beta1.MsgMultiSend": {
+    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
+    name: "MsgMultiSend",
+  },
+  "/cosmos.crisis.v1beta1.MsgVerifyInvariant": {
+    path: "./protobuf_stuff/cosmos/crisis/v1beta1/tx",
+    name: "MsgVerifyInvariant",
+  },
+  "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgSetWithdrawAddress",
+  },
+  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgWithdrawDelegatorReward",
+  },
+  "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgWithdrawValidatorCommission",
+  },
+  "/cosmos.distribution.v1beta1.MsgFundCommunityPool": {
+    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
+    name: "MsgFundCommunityPool",
+  },
+  "/cosmos.evidence.v1beta1.MsgSubmitEvidence": {
+    path: "./protobuf_stuff/cosmos/evidence/v1beta1/tx",
+    name: "MsgSubmitEvidence",
+  },
+  "/cosmos.feegrant.v1beta1.MsgGrantAllowance": {
+    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
+    name: "MsgGrantAllowance",
+  },
+  "/cosmos.feegrant.v1beta1.MsgRevokeAllowance": {
+    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
+    name: "MsgRevokeAllowance",
+  },
+  "/cosmos.gov.v1beta1.MsgSubmitProposal": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgSubmitProposal",
+  },
+  "/cosmos.gov.v1beta1.MsgVote": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgVote",
+  },
+  "/cosmos.gov.v1beta1.MsgVoteWeighted": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgVoteWeighted",
+  },
+  "/cosmos.gov.v1beta1.MsgDeposit": {
+    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
+    name: "MsgDeposit",
+  },
+  "/cosmos.slashing.v1beta1.MsgUnjail": {
+    path: "./protobuf_stuff/cosmos/slashing/v1beta1/tx",
+    name: "MsgUnjail",
+  },
+  "/cosmos.staking.v1beta1.MsgCreateValidator": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgCreateValidator",
+  },
+  "/cosmos.staking.v1beta1.MsgEditValidator": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgEditValidator",
+  },
+  "/cosmos.staking.v1beta1.MsgDelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgDelegate",
+  },
+  "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgBeginRedelegate",
+  },
+  "/cosmos.staking.v1beta1.MsgUndelegate": {
+    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
+    name: "MsgUndelegate",
+  },
+  "/ibc.applications.transfer.v1.MsgTransfer": {
+    path: "./protobuf_stuff/ibc/applications/transfer/v1/tx",
+    name: "MsgTransfer",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenInit": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenInit",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenTry": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenTry",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenAck": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenAck",
+  },
+  "/ibc.core.channel.v1.MsgChannelOpenConfirm": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelOpenConfirm",
+  },
+  "/ibc.core.channel.v1.MsgChannelCloseInit": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelCloseInit",
+  },
+  "/ibc.core.channel.v1.MsgChannelCloseConfirm": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgChannelCloseConfirm",
+  },
+  "/ibc.core.channel.v1.MsgRecvPacket": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgRecvPacket",
+  },
+  "/ibc.core.channel.v1.MsgTimeout": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgTimeout",
+  },
+  "/ibc.core.channel.v1.MsgTimeoutOnClose": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgTimeoutOnClose",
+  },
+  "/ibc.core.channel.v1.MsgAcknowledgement": {
+    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
+    name: "MsgAcknowledgement",
+  },
+  "/ibc.core.client.v1.MsgCreateClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgCreateClient",
+  },
+  "/ibc.core.client.v1.MsgUpdateClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgUpdateClient",
+  },
+  "/ibc.core.client.v1.MsgUpgradeClient": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgUpgradeClient",
+  },
+  "/ibc.core.client.v1.MsgSubmitMisbehaviour": {
+    path: "./protobuf_stuff/ibc/core/client/v1/tx",
+    name: "MsgSubmitMisbehaviour",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenInit": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenInit",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenTry": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenTry",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenAck": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenAck",
+  },
+  "/ibc.core.connection.v1.MsgConnectionOpenConfirm": {
+    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
+    name: "MsgConnectionOpenConfirm",
+  },
+  "/secret.compute.v1beta1.MsgStoreCode": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgStoreCode",
+  },
+  "/secret.compute.v1beta1.MsgInstantiateContract": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgInstantiateContract",
+  },
+  "/secret.compute.v1beta1.MsgExecuteContract": {
+    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
+    name: "MsgExecuteContract",
+  },
+  "/secret.registration.v1beta1.RaAuthenticate": {
+    path: "./protobuf_stuff/secret/registration/v1beta1/msg",
+    name: "RaAuthenticate",
+  },
+};

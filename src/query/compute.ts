@@ -7,15 +7,7 @@
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
-import { EncryptionUtilsImpl } from "../encryption";
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
-}
+import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
 
 /** QueryContractInfoRequest is the request type for the Query/ContractInfo RPC method */
 export type QueryContractInfoRequest = {
@@ -94,27 +86,31 @@ export type QueryCodeResponse = {
 };
 
 export class ComputeQuerier {
-  private readonly rpc: Rpc;
-  private encryption?: EncryptionUtilsImpl;
+  private readonly grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
+  private encryption?: EncryptionUtils;
   private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
   private codeHashCache = new Map<string | number, string>();
 
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
+  constructor(
+    grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
+    encryption?: EncryptionUtils,
+  ) {
+    this.grpc = grpc;
+    this.encryption = encryption;
   }
 
   private async init() {
     if (!this.client) {
       this.client = new (
         await import("../protobuf_stuff/secret/compute/v1beta1/query")
-      ).QueryClientImpl(this.rpc);
+      ).QueryClientImpl(this.grpc);
     }
 
     if (!this.encryption) {
       this.encryption = new EncryptionUtilsImpl(
         new (
           await import("../protobuf_stuff/secret/registration/v1beta1/query")
-        ).QueryClientImpl(this.rpc),
+        ).QueryClientImpl(this.grpc),
       );
     }
   }
@@ -126,7 +122,9 @@ export class ComputeQuerier {
     let codeHash = this.codeHashCache.get(address);
     if (!codeHash) {
       const { ContractInfo } = await this.contractInfo(address);
-      codeHash = await this.codeHash(Number(ContractInfo.codeId));
+      codeHash = (await this.codeHash(Number(ContractInfo.codeId)))
+        .replace("0x", "")
+        .toLowerCase();
       this.codeHashCache.set(address, codeHash);
     }
 
@@ -191,6 +189,7 @@ export class ComputeQuerier {
       console.warn(getMissingCodeHashWarning("queryContract()"));
       codeHash = await this.contractCodeHash(address);
     }
+    codeHash = codeHash.replace("0x", "").toLowerCase();
 
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
     const nonce = encryptedQuery.slice(0, 32);
@@ -223,11 +222,19 @@ export class ComputeQuerier {
           nonce,
         );
 
-        return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))));
+        try {
+          return JSON.parse(
+            fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))),
+          );
+        } catch (parseError) {
+          if (parseError.message === "Invalid base64 string format") {
+            return JSON.parse(fromUtf8(decryptedBase64Error));
+          } else {
+            throw err;
+          }
+        }
       } catch (decryptionError) {
-        throw new Error(
-          `Failed to decrypt the following error message: ${err.message}.`,
-        );
+        throw err;
       }
     }
   }
@@ -239,7 +246,10 @@ export class ComputeQuerier {
     const response = await this.client!.code({ codeId: String(codeId) });
     const codeInfo = codeInfoResponseFromProtobuf(response.codeInfo);
 
-    this.codeHashCache.set(codeId, codeInfo.codeHash);
+    this.codeHashCache.set(
+      codeId,
+      codeInfo.codeHash.replace("0x", "").toLowerCase(),
+    );
 
     return {
       codeInfo,
@@ -287,7 +297,7 @@ function codeInfoResponseFromProtobuf(
     ? {
         codeId: codeInfo.codeId,
         creator: bytesToAddress(codeInfo.creator),
-        codeHash: toHex(codeInfo.dataHash),
+        codeHash: toHex(codeInfo.dataHash).replace("0x", "").toLowerCase(),
         source: codeInfo.source,
         builder: codeInfo.builder,
       }

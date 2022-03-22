@@ -1,4 +1,4 @@
-import { toBase64 } from "@cosmjs/encoding";
+import { fromUtf8, toBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
 import util from "util";
@@ -141,7 +141,7 @@ beforeAll(async () => {
     console.log("Setting up a local testnet...");
     await exec("docker rm -f secretjs-testnet || true");
     const { /* stdout, */ stderr } = await exec(
-      "docker run -it -d -p 26657:26657 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
+      "docker run -it -d -p 9091:9091 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
     );
     // console.log("stdout (testnet container id?):", stdout);
     if (stderr) {
@@ -155,14 +155,14 @@ beforeAll(async () => {
     while (true) {
       expect(Date.now()).toBeLessThan(timeout);
 
+      const secretjs = await SecretNetworkClient.create({
+        grpcWebUrl: "http://localhost:9091",
+      });
+
       try {
-        const { stdout: status } = await exec(
-          "docker exec -i secretjs-testnet secretd status",
-        );
+        const { block } = await secretjs.query.tendermint.getLatestBlock({});
 
-        const resp = JSON.parse(status);
-
-        if (Number(resp?.SyncInfo?.latest_block_height) >= 1) {
+        if (Number(block?.header?.height) >= 1) {
           break;
         }
       } catch (e) {
@@ -187,7 +187,7 @@ beforeAll(async () => {
           parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
           parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
           parsedAccount.secretjs = await SecretNetworkClient.create({
-            rpcUrl: "http://localhost:26657",
+            grpcWebUrl: "http://localhost:9091",
             wallet: parsedAccount.walletAmino,
             walletAddress: parsedAccount.address,
             chainId: "secretdev-1",
@@ -215,7 +215,7 @@ beforeAll(async () => {
         walletAmino: wallet,
         walletProto: walletProto,
         secretjs: await SecretNetworkClient.create({
-          rpcUrl: "http://localhost:26657",
+          grpcWebUrl: "http://localhost:9091",
           wallet: wallet,
           walletAddress: address,
           chainId: "secretdev-1",
@@ -330,15 +330,13 @@ describe("query.auth", () => {
   test("params()", async () => {
     const { secretjs } = accounts[0];
 
-    const response = await secretjs.query.auth.params();
-    expect(response).toEqual({
-      params: {
-        maxMemoCharacters: "256",
-        sigVerifyCostEd25519: "590",
-        sigVerifyCostSecp256k1: "1000",
-        txSigLimit: "7",
-        txSizeCostPerByte: "10",
-      },
+    const { params } = await secretjs.query.auth.params();
+    expect(params).toStrictEqual({
+      maxMemoCharacters: "256",
+      sigVerifyCostEd25519: "590",
+      sigVerifyCostSecp256k1: "1000",
+      txSigLimit: "7",
+      txSizeCostPerByte: "10",
     });
   });
 });
@@ -397,7 +395,7 @@ describe("query.compute", () => {
       query: { token_info: {} },
     })) as Result;
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       token_info: {
         decimals: 6,
         name: "Secret SCRT",
@@ -407,7 +405,7 @@ describe("query.compute", () => {
     });
   });
 
-  test("queryContract() error", async () => {
+  test("queryContract() StdError", async () => {
     const { secretjs } = accounts[0];
 
     const {
@@ -425,9 +423,32 @@ describe("query.compute", () => {
       },
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       viewing_key_error: {
         msg: "Wrong viewing key for this address or viewing key not set",
+      },
+    });
+  });
+
+  test("queryContract() VmError", async () => {
+    const { secretjs } = accounts[0];
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(1);
+
+    const result = await secretjs.query.compute.queryContract({
+      address: sSCRT,
+      codeHash,
+      query: {
+        non_existent_query: {},
+      },
+    });
+
+    expect(result).toStrictEqual({
+      parse_err: {
+        msg: "unknown variant `non_existent_query`, expected one of `token_info`, `token_config`, `contract_status`, `exchange_rate`, `allowance`, `balance`, `transfer_history`, `transaction_history`, `minters`, `with_permit`",
+        target: "snip20_reference_impl::msg::QueryMsg",
       },
     });
   });
@@ -449,7 +470,7 @@ describe("query.compute", () => {
       query: { token_info: {} },
     })) as Result;
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       token_info: {
         decimals: 6,
         name: "Secret SCRT",
@@ -622,6 +643,55 @@ describe("tx.compute", () => {
     );
   });
 
+  test("MsgInstantiateContract VmError", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {},
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(tx.jsonLog).toStrictEqual({
+      parse_err: {
+        msg: "missing field `name`",
+        target: "snip20_reference_impl::msg::InitMsg",
+      },
+    });
+  });
+
   test("MsgExecuteContract", async () => {
     const { secretjs } = accounts[0];
 
@@ -726,6 +796,273 @@ describe("tx.compute", () => {
     // Check decryption
     expect(tx.arrayLog![10].key).toBe("minted");
     expect(tx.arrayLog![10].value).toBe("1");
+  });
+
+  test("MsgExecuteContract StdError", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
+
+    const txExec = await secretjs.tx.compute.executeContract(
+      {
+        sender: accounts[0].address,
+        contract: contractAddress,
+        codeHash,
+        msg: {
+          transfer: {
+            recipient: accounts[1].address,
+            amount: "2",
+          },
+        },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txExec.rawLog).toContain(
+      "failed to execute message; message index: 0",
+    );
+    expect(txExec.jsonLog).toStrictEqual({
+      generic_err: { msg: "insufficient funds: balance=1, required=2" },
+    });
+  });
+
+  test("MsgExecuteContract decrypt output data", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
+    const txExec = await secretjs.tx.compute.executeContract(
+      {
+        sender: accounts[0].address,
+        contract: contractAddress,
+        codeHash,
+        msg: {
+          create_viewing_key: {
+            entropy: "bla bla",
+          },
+        },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(fromUtf8(txExec.data[0])).toContain(
+      '{"create_viewing_key":{"key":"',
+    );
+  });
+
+  test("MsgExecuteContract VmError", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+
+    const addMinterMsg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract,
+      // codeHash, // Test MsgExecuteContract without codeHash
+      msg: { add_minters: { minters: [accounts[0].address] } },
+      sentFunds: [],
+    });
+
+    const mintMsg = new MsgExecuteContract({
+      sender: accounts[0].address,
+      contract,
+      codeHash,
+      msg: {
+        yolo: {},
+      },
+      sentFunds: [],
+    });
+
+    const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.jsonLog).toStrictEqual({
+      parse_err: {
+        msg: "unknown variant `yolo`, expected one of `mint_nft`, `batch_mint_nft`, `mint_nft_clones`, `set_metadata`, `set_royalty_info`, `reveal`, `make_ownership_private`, `set_global_approval`, `set_whitelisted_approval`, `approve`, `revoke`, `approve_all`, `revoke_all`, `transfer_nft`, `batch_transfer_nft`, `send_nft`, `batch_send_nft`, `burn_nft`, `batch_burn_nft`, `register_receive_nft`, `create_viewing_key`, `set_viewing_key`, `add_minters`, `remove_minters`, `set_minters`, `change_admin`, `set_contract_status`, `revoke_permit`",
+        target: "snip721_reference_impl::msg::HandleMsg",
+      },
+    });
+    expect(tx.rawLog).toContain("failed to execute message; message index: 1");
   });
 });
 
@@ -1065,7 +1402,7 @@ describe("tx.gov", () => {
       proposalId,
     });
 
-    expect(deposit?.amount).toEqual([{ amount: "1", denom: "uscrt" }]);
+    expect(deposit?.amount).toStrictEqual([{ amount: "1", denom: "uscrt" }]);
   });
 });
 
@@ -1239,7 +1576,7 @@ describe("tx.staking", () => {
     )!;
 
     expect(validator).toBeTruthy();
-    expect(validator.description).toEqual({
+    expect(validator.description).toStrictEqual({
       moniker: "papaya",
       identity: "banana",
       website: "com.watermelon",
@@ -1494,7 +1831,7 @@ describe("sanity", () => {
       .map((msg) => msg.trim())
       .filter((msg) => msg.length > 0);
 
-    expect(msgs).toEqual(classes);
+    expect(msgs).toStrictEqual(classes);
   });
 
   test.skip("All queries are implemented", async () => {});

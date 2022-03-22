@@ -18,6 +18,9 @@ export class MsgGrantAllowance implements Msg {
   constructor(public params: MsgGrantAllowanceParams) {}
 
   async toProto(): Promise<ProtoMsg> {
+    throw new Error("MsgGrantAllowance not implemented.");
+
+    // TODO
     return {
       typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
       value: this.params,
@@ -29,6 +32,9 @@ export class MsgGrantAllowance implements Msg {
   }
 
   async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgGrantAllowance not implemented.");
+
+    // TODO
     return {
       type: "cosmos-sdk/MsgGrantAllowance",
       value: this.params,

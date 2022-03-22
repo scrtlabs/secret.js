@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.base.reflection.v2alpha1";
 
@@ -1996,32 +1998,39 @@ export interface ReflectionService {
    * future releases of the cosmos-sdk.
    */
   getAuthnDescriptor(
-    request: GetAuthnDescriptorRequest,
+    request: DeepPartial<GetAuthnDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetAuthnDescriptorResponse>;
   /** GetChainDescriptor returns the description of the chain */
   getChainDescriptor(
-    request: GetChainDescriptorRequest,
+    request: DeepPartial<GetChainDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetChainDescriptorResponse>;
   /** GetCodecDescriptor returns the descriptor of the codec of the application */
   getCodecDescriptor(
-    request: GetCodecDescriptorRequest,
+    request: DeepPartial<GetCodecDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetCodecDescriptorResponse>;
   /** GetConfigurationDescriptor returns the descriptor for the sdk.Config of the application */
   getConfigurationDescriptor(
-    request: GetConfigurationDescriptorRequest,
+    request: DeepPartial<GetConfigurationDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetConfigurationDescriptorResponse>;
   /** GetQueryServicesDescriptor returns the available gRPC queryable services of the application */
   getQueryServicesDescriptor(
-    request: GetQueryServicesDescriptorRequest,
+    request: DeepPartial<GetQueryServicesDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetQueryServicesDescriptorResponse>;
   /** GetTxDescriptor returns information on the used transaction object and available msgs that can be used */
   getTxDescriptor(
-    request: GetTxDescriptorRequest,
+    request: DeepPartial<GetTxDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetTxDescriptorResponse>;
 }
 
 export class ReflectionServiceClientImpl implements ReflectionService {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.getAuthnDescriptor = this.getAuthnDescriptor.bind(this);
@@ -2033,97 +2042,286 @@ export class ReflectionServiceClientImpl implements ReflectionService {
       this.getQueryServicesDescriptor.bind(this);
     this.getTxDescriptor = this.getTxDescriptor.bind(this);
   }
+
   getAuthnDescriptor(
-    request: GetAuthnDescriptorRequest,
+    request: DeepPartial<GetAuthnDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetAuthnDescriptorResponse> {
-    const data = GetAuthnDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetAuthnDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetAuthnDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetAuthnDescriptorDesc,
+      GetAuthnDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 
   getChainDescriptor(
-    request: GetChainDescriptorRequest,
+    request: DeepPartial<GetChainDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetChainDescriptorResponse> {
-    const data = GetChainDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetChainDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetChainDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetChainDescriptorDesc,
+      GetChainDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 
   getCodecDescriptor(
-    request: GetCodecDescriptorRequest,
+    request: DeepPartial<GetCodecDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetCodecDescriptorResponse> {
-    const data = GetCodecDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetCodecDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetCodecDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetCodecDescriptorDesc,
+      GetCodecDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 
   getConfigurationDescriptor(
-    request: GetConfigurationDescriptorRequest,
+    request: DeepPartial<GetConfigurationDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetConfigurationDescriptorResponse> {
-    const data = GetConfigurationDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetConfigurationDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetConfigurationDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetConfigurationDescriptorDesc,
+      GetConfigurationDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 
   getQueryServicesDescriptor(
-    request: GetQueryServicesDescriptorRequest,
+    request: DeepPartial<GetQueryServicesDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetQueryServicesDescriptorResponse> {
-    const data = GetQueryServicesDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetQueryServicesDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetQueryServicesDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetQueryServicesDescriptorDesc,
+      GetQueryServicesDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 
   getTxDescriptor(
-    request: GetTxDescriptorRequest,
+    request: DeepPartial<GetTxDescriptorRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<GetTxDescriptorResponse> {
-    const data = GetTxDescriptorRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v2alpha1.ReflectionService",
-      "GetTxDescriptor",
-      data,
-    );
-    return promise.then((data) =>
-      GetTxDescriptorResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceGetTxDescriptorDesc,
+      GetTxDescriptorRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const ReflectionServiceDesc = {
+  serviceName: "cosmos.base.reflection.v2alpha1.ReflectionService",
+};
+
+export const ReflectionServiceGetAuthnDescriptorDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetAuthnDescriptor",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetAuthnDescriptorRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetAuthnDescriptorResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceGetChainDescriptorDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetChainDescriptor",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetChainDescriptorRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetChainDescriptorResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceGetCodecDescriptorDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetCodecDescriptor",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetCodecDescriptorRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetCodecDescriptorResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceGetConfigurationDescriptorDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetConfigurationDescriptor",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetConfigurationDescriptorRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetConfigurationDescriptorResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceGetQueryServicesDescriptorDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetQueryServicesDescriptor",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetQueryServicesDescriptorRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetQueryServicesDescriptorResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceGetTxDescriptorDesc: UnaryMethodDefinitionish = {
+  methodName: "GetTxDescriptor",
+  service: ReflectionServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetTxDescriptorRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetTxDescriptorResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

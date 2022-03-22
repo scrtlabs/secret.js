@@ -81,9 +81,9 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secret.js client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
+  grpcWebUrl: "https://grpc-web.azure-api.net",
 });
 
 const {
@@ -121,10 +121,10 @@ const myAddress = wallet.address;
 
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  grpcWebUrl: "https://grpc-web.azure-api.net",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "pulsar-2",
+  chainId: "secret-4",
 });
 
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
@@ -157,7 +157,6 @@ while (
 }
 
 const CHAIN_ID = "secret-4";
-const SECRET_RPC = "https://rpc-secret.scrtlabs.com/secret-4/rpc/";
 
 await window.keplr.enable(CHAIN_ID);
 
@@ -165,11 +164,11 @@ const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: SECRET_RPC,
-  chainId: SECRET_CHAIN_ID,
+  grpcWebUrl: "https://grpc-web.azure-api.net",
+  chainId: CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
-  encryptionUtils: window.getEnigmaUtils(SECRET_CHAIN_ID),
+  encryptionUtils: window.getEnigmaUtils(CHAIN_ID),
 });
 
 // Note: Using `window.getEnigmaUtils` is optional, it will allow
@@ -278,9 +277,9 @@ A querier client can only send queries and get chain information. Access to all 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-// To create a readonly secret.js client, just pass in an RPC endpoint
+// To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: "https://rpc-secret.scrtlabs.com/secret-4/rpc/",
+  grpcWebUrl: "https://grpc-web.azure-api.net",
 });
 ```
 
@@ -300,10 +299,10 @@ const myAddress = wallet.address;
 
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  grpcWebUrl: "https://grpc-web.azure-api.net",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "pulsar-2",
+  chainId: "secret-4",
 });
 ```
 
@@ -337,13 +336,13 @@ Returns account details based on address.
 
 ```ts
 const { address, accountNumber, sequence } = await secretjs.query.auth.account({
-  address: accounts[1].address,
+  address: myAddress,
 });
 ```
 
 #### `secretjs.query.auth.accounts()`
 
-Returns all the existing accounts.
+Returns all existing accounts on the blockchain.
 
 ```ts
 /// Get all accounts
@@ -460,19 +459,19 @@ Params queries params of the distribution module.
 
 #### `secretjs.query.distribution.validatorOutstandingRewards()`
 
-ValidatorOutstandingRewards queries rewards of a validator address. \*/
+ValidatorOutstandingRewards queries rewards of a validator address.
 
 #### `secretjs.query.distribution.validatorCommission()`
 
-ValidatorCommission queries accumulated commission for a validator. \*/
+ValidatorCommission queries accumulated commission for a validator.
 
 #### `secretjs.query.distribution.validatorSlashes()`
 
-ValidatorSlashes queries slash events of a validator. \*/
+ValidatorSlashes queries slash events of a validator.
 
 #### `secretjs.query.distribution.delegationRewards()`
 
-DelegationRewards queries the total rewards accrued by a delegation. \*/
+DelegationRewards queries the total rewards accrued by a delegation.
 
 #### `secretjs.query.distribution.delegationTotalRewards()`
 
@@ -480,19 +479,19 @@ DelegationTotalRewards queries the total rewards accrued by a each validator.
 
 #### `secretjs.query.distribution.delegatorValidators()`
 
-DelegatorValidators queries the validators of a delegator. \*/
+DelegatorValidators queries the validators of a delegator.
 
 #### `secretjs.query.distribution.delegatorWithdrawAddress()`
 
-DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+DelegatorWithdrawAddress queries withdraw address of a delegator.
 
 #### `secretjs.query.distribution.communityPool()`
 
-CommunityPool queries the community pool coins. \*/
+CommunityPool queries the community pool coins.
 
 #### `secretjs.query.distribution.foundationTax()`
 
-DelegatorWithdrawAddress queries withdraw address of a delegator. \*/
+DelegatorWithdrawAddress queries withdraw address of a delegator.
 
 #### `secretjs.query.evidence.evidence()`
 
@@ -831,10 +830,10 @@ const myAddress = wallet.address;
 
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  rpcUrl: "https://rpc.pulsar.griptapejs.com/",
+  grpcWebUrl: "https://grpc-web.azure-api.net",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "pulsar-2",
+  chainId: "secret-4",
 });
 
 const alsoMyAddress = secretjs.address;
@@ -844,7 +843,7 @@ const alsoMyAddress = secretjs.address;
 
 On a signer secret.js, `secretjs.tx` is used to broadcast transactions. Every function under `secretjs.tx` can receive an optional [TxOptions](https://secretjs.scrt.network/modules#TxOptions).
 
-[Full API »](https://secretjs.scrt.network/modules#TxSender)
+[**Full API »**](https://secretjs.scrt.network/modules#TxSender)
 
 #### `secretjs.tx.broadcast()`
 

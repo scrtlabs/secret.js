@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import {
   PageRequest,
@@ -11,6 +12,7 @@ import {
   Result,
 } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Tx } from "../../../cosmos/tx/v1beta1/tx";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.tx.v1beta1";
 
@@ -797,17 +799,30 @@ export const GetTxResponse = {
 /** Service defines a gRPC service for interacting with transactions. */
 export interface Service {
   /** Simulate simulates executing a transaction for estimating gas usage. */
-  simulate(request: SimulateRequest): Promise<SimulateResponse>;
+  simulate(
+    request: DeepPartial<SimulateRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SimulateResponse>;
   /** GetTx fetches a tx by hash. */
-  getTx(request: GetTxRequest): Promise<GetTxResponse>;
+  getTx(
+    request: DeepPartial<GetTxRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetTxResponse>;
   /** BroadcastTx broadcast transaction. */
-  broadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse>;
+  broadcastTx(
+    request: DeepPartial<BroadcastTxRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<BroadcastTxResponse>;
   /** GetTxsEvent fetches txs by event. */
-  getTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse>;
+  getTxsEvent(
+    request: DeepPartial<GetTxsEventRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetTxsEventResponse>;
 }
 
 export class ServiceClientImpl implements Service {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.simulate = this.simulate.bind(this);
@@ -815,59 +830,215 @@ export class ServiceClientImpl implements Service {
     this.broadcastTx = this.broadcastTx.bind(this);
     this.getTxsEvent = this.getTxsEvent.bind(this);
   }
-  simulate(request: SimulateRequest): Promise<SimulateResponse> {
-    const data = SimulateRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.tx.v1beta1.Service",
-      "Simulate",
-      data,
-    );
-    return promise.then((data) =>
-      SimulateResponse.decode(new _m0.Reader(data)),
+
+  simulate(
+    request: DeepPartial<SimulateRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SimulateResponse> {
+    return this.rpc.unary(
+      ServiceSimulateDesc,
+      SimulateRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  getTx(request: GetTxRequest): Promise<GetTxResponse> {
-    const data = GetTxRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.tx.v1beta1.Service",
-      "GetTx",
-      data,
-    );
-    return promise.then((data) => GetTxResponse.decode(new _m0.Reader(data)));
-  }
-
-  broadcastTx(request: BroadcastTxRequest): Promise<BroadcastTxResponse> {
-    const data = BroadcastTxRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.tx.v1beta1.Service",
-      "BroadcastTx",
-      data,
-    );
-    return promise.then((data) =>
-      BroadcastTxResponse.decode(new _m0.Reader(data)),
+  getTx(
+    request: DeepPartial<GetTxRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetTxResponse> {
+    return this.rpc.unary(
+      ServiceGetTxDesc,
+      GetTxRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  getTxsEvent(request: GetTxsEventRequest): Promise<GetTxsEventResponse> {
-    const data = GetTxsEventRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.tx.v1beta1.Service",
-      "GetTxsEvent",
-      data,
+  broadcastTx(
+    request: DeepPartial<BroadcastTxRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<BroadcastTxResponse> {
+    return this.rpc.unary(
+      ServiceBroadcastTxDesc,
+      BroadcastTxRequest.fromPartial(request),
+      metadata,
     );
-    return promise.then((data) =>
-      GetTxsEventResponse.decode(new _m0.Reader(data)),
+  }
+
+  getTxsEvent(
+    request: DeepPartial<GetTxsEventRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetTxsEventResponse> {
+    return this.rpc.unary(
+      ServiceGetTxsEventDesc,
+      GetTxsEventRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const ServiceDesc = {
+  serviceName: "cosmos.tx.v1beta1.Service",
+};
+
+export const ServiceSimulateDesc: UnaryMethodDefinitionish = {
+  methodName: "Simulate",
+  service: ServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return SimulateRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...SimulateResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ServiceGetTxDesc: UnaryMethodDefinitionish = {
+  methodName: "GetTx",
+  service: ServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetTxRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetTxResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ServiceBroadcastTxDesc: UnaryMethodDefinitionish = {
+  methodName: "BroadcastTx",
+  service: ServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return BroadcastTxRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...BroadcastTxResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ServiceGetTxsEventDesc: UnaryMethodDefinitionish = {
+  methodName: "GetTxsEvent",
+  service: ServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetTxsEventRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetTxsEventResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;

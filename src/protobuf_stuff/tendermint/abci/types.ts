@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Timestamp } from "../../google/protobuf/timestamp";
 import { Header } from "../../tendermint/types/types";
@@ -10,6 +11,7 @@ import {
   VersionParams,
 } from "../../tendermint/types/params";
 import { PublicKey } from "../../tendermint/crypto/keys";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "tendermint.abci";
 
@@ -4667,29 +4669,71 @@ export const Snapshot = {
 };
 
 export interface ABCIApplication {
-  echo(request: RequestEcho): Promise<ResponseEcho>;
-  flush(request: RequestFlush): Promise<ResponseFlush>;
-  info(request: RequestInfo): Promise<ResponseInfo>;
-  setOption(request: RequestSetOption): Promise<ResponseSetOption>;
-  deliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx>;
-  checkTx(request: RequestCheckTx): Promise<ResponseCheckTx>;
-  query(request: RequestQuery): Promise<ResponseQuery>;
-  commit(request: RequestCommit): Promise<ResponseCommit>;
-  initChain(request: RequestInitChain): Promise<ResponseInitChain>;
-  beginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock>;
-  endBlock(request: RequestEndBlock): Promise<ResponseEndBlock>;
-  listSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots>;
-  offerSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot>;
+  echo(
+    request: DeepPartial<RequestEcho>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseEcho>;
+  flush(
+    request: DeepPartial<RequestFlush>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseFlush>;
+  info(
+    request: DeepPartial<RequestInfo>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseInfo>;
+  setOption(
+    request: DeepPartial<RequestSetOption>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseSetOption>;
+  deliverTx(
+    request: DeepPartial<RequestDeliverTx>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseDeliverTx>;
+  checkTx(
+    request: DeepPartial<RequestCheckTx>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseCheckTx>;
+  query(
+    request: DeepPartial<RequestQuery>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseQuery>;
+  commit(
+    request: DeepPartial<RequestCommit>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseCommit>;
+  initChain(
+    request: DeepPartial<RequestInitChain>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseInitChain>;
+  beginBlock(
+    request: DeepPartial<RequestBeginBlock>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseBeginBlock>;
+  endBlock(
+    request: DeepPartial<RequestEndBlock>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseEndBlock>;
+  listSnapshots(
+    request: DeepPartial<RequestListSnapshots>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseListSnapshots>;
+  offerSnapshot(
+    request: DeepPartial<RequestOfferSnapshot>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseOfferSnapshot>;
   loadSnapshotChunk(
-    request: RequestLoadSnapshotChunk,
+    request: DeepPartial<RequestLoadSnapshotChunk>,
+    metadata?: grpc.Metadata,
   ): Promise<ResponseLoadSnapshotChunk>;
   applySnapshotChunk(
-    request: RequestApplySnapshotChunk,
+    request: DeepPartial<RequestApplySnapshotChunk>,
+    metadata?: grpc.Metadata,
   ): Promise<ResponseApplySnapshotChunk>;
 }
 
 export class ABCIApplicationClientImpl implements ABCIApplication {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.echo = this.echo.bind(this);
@@ -4708,185 +4752,578 @@ export class ABCIApplicationClientImpl implements ABCIApplication {
     this.loadSnapshotChunk = this.loadSnapshotChunk.bind(this);
     this.applySnapshotChunk = this.applySnapshotChunk.bind(this);
   }
-  echo(request: RequestEcho): Promise<ResponseEcho> {
-    const data = RequestEcho.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "Echo",
-      data,
-    );
-    return promise.then((data) => ResponseEcho.decode(new _m0.Reader(data)));
-  }
 
-  flush(request: RequestFlush): Promise<ResponseFlush> {
-    const data = RequestFlush.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "Flush",
-      data,
-    );
-    return promise.then((data) => ResponseFlush.decode(new _m0.Reader(data)));
-  }
-
-  info(request: RequestInfo): Promise<ResponseInfo> {
-    const data = RequestInfo.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "Info",
-      data,
-    );
-    return promise.then((data) => ResponseInfo.decode(new _m0.Reader(data)));
-  }
-
-  setOption(request: RequestSetOption): Promise<ResponseSetOption> {
-    const data = RequestSetOption.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "SetOption",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseSetOption.decode(new _m0.Reader(data)),
+  echo(
+    request: DeepPartial<RequestEcho>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseEcho> {
+    return this.rpc.unary(
+      ABCIApplicationEchoDesc,
+      RequestEcho.fromPartial(request),
+      metadata,
     );
   }
 
-  deliverTx(request: RequestDeliverTx): Promise<ResponseDeliverTx> {
-    const data = RequestDeliverTx.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "DeliverTx",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseDeliverTx.decode(new _m0.Reader(data)),
-    );
-  }
-
-  checkTx(request: RequestCheckTx): Promise<ResponseCheckTx> {
-    const data = RequestCheckTx.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "CheckTx",
-      data,
-    );
-    return promise.then((data) => ResponseCheckTx.decode(new _m0.Reader(data)));
-  }
-
-  query(request: RequestQuery): Promise<ResponseQuery> {
-    const data = RequestQuery.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "Query",
-      data,
-    );
-    return promise.then((data) => ResponseQuery.decode(new _m0.Reader(data)));
-  }
-
-  commit(request: RequestCommit): Promise<ResponseCommit> {
-    const data = RequestCommit.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "Commit",
-      data,
-    );
-    return promise.then((data) => ResponseCommit.decode(new _m0.Reader(data)));
-  }
-
-  initChain(request: RequestInitChain): Promise<ResponseInitChain> {
-    const data = RequestInitChain.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "InitChain",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseInitChain.decode(new _m0.Reader(data)),
+  flush(
+    request: DeepPartial<RequestFlush>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseFlush> {
+    return this.rpc.unary(
+      ABCIApplicationFlushDesc,
+      RequestFlush.fromPartial(request),
+      metadata,
     );
   }
 
-  beginBlock(request: RequestBeginBlock): Promise<ResponseBeginBlock> {
-    const data = RequestBeginBlock.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "BeginBlock",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseBeginBlock.decode(new _m0.Reader(data)),
-    );
-  }
-
-  endBlock(request: RequestEndBlock): Promise<ResponseEndBlock> {
-    const data = RequestEndBlock.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "EndBlock",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseEndBlock.decode(new _m0.Reader(data)),
+  info(
+    request: DeepPartial<RequestInfo>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseInfo> {
+    return this.rpc.unary(
+      ABCIApplicationInfoDesc,
+      RequestInfo.fromPartial(request),
+      metadata,
     );
   }
 
-  listSnapshots(request: RequestListSnapshots): Promise<ResponseListSnapshots> {
-    const data = RequestListSnapshots.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "ListSnapshots",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseListSnapshots.decode(new _m0.Reader(data)),
+  setOption(
+    request: DeepPartial<RequestSetOption>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseSetOption> {
+    return this.rpc.unary(
+      ABCIApplicationSetOptionDesc,
+      RequestSetOption.fromPartial(request),
+      metadata,
     );
   }
 
-  offerSnapshot(request: RequestOfferSnapshot): Promise<ResponseOfferSnapshot> {
-    const data = RequestOfferSnapshot.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "OfferSnapshot",
-      data,
+  deliverTx(
+    request: DeepPartial<RequestDeliverTx>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseDeliverTx> {
+    return this.rpc.unary(
+      ABCIApplicationDeliverTxDesc,
+      RequestDeliverTx.fromPartial(request),
+      metadata,
     );
-    return promise.then((data) =>
-      ResponseOfferSnapshot.decode(new _m0.Reader(data)),
+  }
+
+  checkTx(
+    request: DeepPartial<RequestCheckTx>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseCheckTx> {
+    return this.rpc.unary(
+      ABCIApplicationCheckTxDesc,
+      RequestCheckTx.fromPartial(request),
+      metadata,
+    );
+  }
+
+  query(
+    request: DeepPartial<RequestQuery>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseQuery> {
+    return this.rpc.unary(
+      ABCIApplicationQueryDesc,
+      RequestQuery.fromPartial(request),
+      metadata,
+    );
+  }
+
+  commit(
+    request: DeepPartial<RequestCommit>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseCommit> {
+    return this.rpc.unary(
+      ABCIApplicationCommitDesc,
+      RequestCommit.fromPartial(request),
+      metadata,
+    );
+  }
+
+  initChain(
+    request: DeepPartial<RequestInitChain>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseInitChain> {
+    return this.rpc.unary(
+      ABCIApplicationInitChainDesc,
+      RequestInitChain.fromPartial(request),
+      metadata,
+    );
+  }
+
+  beginBlock(
+    request: DeepPartial<RequestBeginBlock>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseBeginBlock> {
+    return this.rpc.unary(
+      ABCIApplicationBeginBlockDesc,
+      RequestBeginBlock.fromPartial(request),
+      metadata,
+    );
+  }
+
+  endBlock(
+    request: DeepPartial<RequestEndBlock>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseEndBlock> {
+    return this.rpc.unary(
+      ABCIApplicationEndBlockDesc,
+      RequestEndBlock.fromPartial(request),
+      metadata,
+    );
+  }
+
+  listSnapshots(
+    request: DeepPartial<RequestListSnapshots>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseListSnapshots> {
+    return this.rpc.unary(
+      ABCIApplicationListSnapshotsDesc,
+      RequestListSnapshots.fromPartial(request),
+      metadata,
+    );
+  }
+
+  offerSnapshot(
+    request: DeepPartial<RequestOfferSnapshot>,
+    metadata?: grpc.Metadata,
+  ): Promise<ResponseOfferSnapshot> {
+    return this.rpc.unary(
+      ABCIApplicationOfferSnapshotDesc,
+      RequestOfferSnapshot.fromPartial(request),
+      metadata,
     );
   }
 
   loadSnapshotChunk(
-    request: RequestLoadSnapshotChunk,
+    request: DeepPartial<RequestLoadSnapshotChunk>,
+    metadata?: grpc.Metadata,
   ): Promise<ResponseLoadSnapshotChunk> {
-    const data = RequestLoadSnapshotChunk.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "LoadSnapshotChunk",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseLoadSnapshotChunk.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ABCIApplicationLoadSnapshotChunkDesc,
+      RequestLoadSnapshotChunk.fromPartial(request),
+      metadata,
     );
   }
 
   applySnapshotChunk(
-    request: RequestApplySnapshotChunk,
+    request: DeepPartial<RequestApplySnapshotChunk>,
+    metadata?: grpc.Metadata,
   ): Promise<ResponseApplySnapshotChunk> {
-    const data = RequestApplySnapshotChunk.encode(request).finish();
-    const promise = this.rpc.request(
-      "tendermint.abci.ABCIApplication",
-      "ApplySnapshotChunk",
-      data,
-    );
-    return promise.then((data) =>
-      ResponseApplySnapshotChunk.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ABCIApplicationApplySnapshotChunkDesc,
+      RequestApplySnapshotChunk.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const ABCIApplicationDesc = {
+  serviceName: "tendermint.abci.ABCIApplication",
+};
+
+export const ABCIApplicationEchoDesc: UnaryMethodDefinitionish = {
+  methodName: "Echo",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestEcho.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseEcho.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationFlushDesc: UnaryMethodDefinitionish = {
+  methodName: "Flush",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestFlush.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseFlush.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationInfoDesc: UnaryMethodDefinitionish = {
+  methodName: "Info",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestInfo.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseInfo.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationSetOptionDesc: UnaryMethodDefinitionish = {
+  methodName: "SetOption",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestSetOption.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseSetOption.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationDeliverTxDesc: UnaryMethodDefinitionish = {
+  methodName: "DeliverTx",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestDeliverTx.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseDeliverTx.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationCheckTxDesc: UnaryMethodDefinitionish = {
+  methodName: "CheckTx",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestCheckTx.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseCheckTx.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationQueryDesc: UnaryMethodDefinitionish = {
+  methodName: "Query",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestQuery.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseQuery.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationCommitDesc: UnaryMethodDefinitionish = {
+  methodName: "Commit",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestCommit.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseCommit.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationInitChainDesc: UnaryMethodDefinitionish = {
+  methodName: "InitChain",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestInitChain.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseInitChain.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationBeginBlockDesc: UnaryMethodDefinitionish = {
+  methodName: "BeginBlock",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestBeginBlock.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseBeginBlock.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationEndBlockDesc: UnaryMethodDefinitionish = {
+  methodName: "EndBlock",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestEndBlock.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseEndBlock.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationListSnapshotsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListSnapshots",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestListSnapshots.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseListSnapshots.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationOfferSnapshotDesc: UnaryMethodDefinitionish = {
+  methodName: "OfferSnapshot",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestOfferSnapshot.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseOfferSnapshot.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationLoadSnapshotChunkDesc: UnaryMethodDefinitionish = {
+  methodName: "LoadSnapshotChunk",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestLoadSnapshotChunk.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseLoadSnapshotChunk.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ABCIApplicationApplySnapshotChunkDesc: UnaryMethodDefinitionish = {
+  methodName: "ApplySnapshotChunk",
+  service: ABCIApplicationDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RequestApplySnapshotChunk.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...ResponseApplySnapshotChunk.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;
