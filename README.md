@@ -297,7 +297,7 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-// To create a signer secret.js client, also pass in a wallet
+// To create a signer secret.js client you must also pass in `wallet`, `walletAddress` and `chainId`
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
   wallet: wallet,
