@@ -100,42 +100,60 @@ export interface GetTransactionHistoryRequestWithPermit {
 }
 
 export interface TransferHistoryResponse {
-  txs: Tx[];
-  total?: number;
+  transfer_history: {
+    txs: Tx[];
+    total?: number;
+  };
 }
 
 export interface TransactionHistoryResponse {
-  txs: RichTx[];
-  total?: number;
+  transaction_history: {
+    txs: RichTx[];
+    total?: number;
+  };
 }
 
 export interface Snip20SendOptions {
-  recipient: string;
-  amount: string;
-  msg?: string;
-  padding?: string;
+  send: {
+    recipient: string;
+    amount: string;
+    msg?: string;
+    padding?: string;
+  };
 }
 
 export interface Snip20TransferOptions {
-  recipient: string;
-  amount: string;
-  padding?: string;
+  transfer: {
+    recipient: string;
+    amount: string;
+    padding?: string;
+  };
 }
 
 export interface Snip20IncreaseAllowanceOptions {
-  spender: string;
-  amount: string;
-  expiration?: number;
-  padding?: string;
+  increase_allowance: {
+    spender: string;
+    amount: string;
+    expiration?: number;
+    padding?: string;
+  };
 }
 
 export interface Snip20DecreaseAllowanceOptions {
-  spender: string;
-  amount: string;
-  expiration?: number;
-  padding?: string;
+  decrease_allowance: {
+    spender: string;
+    amount: string;
+    expiration?: number;
+    padding?: string;
+  };
 }
 
+export interface Snip20SetViewingKeyOptions {
+  set_viewing_key: {
+    key: string;
+    padding?: string;
+  };
+}
 //transaction_history: {
 //             page?: number;
 //             page_size: number;

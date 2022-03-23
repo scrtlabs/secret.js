@@ -35,6 +35,7 @@ import {
   MsgSendParams,
   MsgSetWithdrawAddress,
   MsgSetWithdrawAddressParams,
+  MsgSnip20SetViewingKey,
   MsgStoreCode,
   MsgStoreCodeParams,
   MsgSubmitEvidence,
@@ -84,6 +85,7 @@ import {
   Snip20DecreaseAllowanceOptions,
   Snip20IncreaseAllowanceOptions,
   Snip20SendOptions,
+  Snip20SetViewingKeyOptions,
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
 import { MsgSnip721Send } from "./extensions/snip721";
@@ -365,7 +367,10 @@ export type TxSender = {
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
   snip721: {
-    send: (params: Snip721SendOptions, txOptions?: TxOptions) => Promise<Tx>;
+    send: (
+      params: MsgExecuteContractParams<Snip721SendOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
   };
 
   snip20: {
@@ -374,19 +379,27 @@ export type TxSender = {
     //getTransferHistory
     //getAllowance
     //getMinters
-    send: (params: Snip20SendOptions, txOptions?: TxOptions) => Promise<Tx>;
+    send: (
+      params: MsgExecuteContractParams<Snip20SendOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
 
     transfer: (
-      params: Snip20TransferOptions,
+      params: MsgExecuteContractParams<Snip20TransferOptions>,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
     increaseAllowance: (
-      params: Snip20IncreaseAllowanceOptions,
+      params: MsgExecuteContractParams<Snip20IncreaseAllowanceOptions>,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
 
     decreaseAllowance: (
-      params: Snip20DecreaseAllowanceOptions,
+      params: MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    setViewingKey: (
+      params: MsgExecuteContractParams<Snip20SetViewingKeyOptions>,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
   };
@@ -692,6 +705,7 @@ export class SecretNetworkClient {
         transfer: doMsg(MsgSnip20Transfer),
         increaseAllowance: doMsg(MsgSnip20IncreaseAllowance),
         decreaseAllowance: doMsg(MsgSnip20DecreaseAllowance),
+        setViewingKey: doMsg(MsgSnip20SetViewingKey),
       },
 
       snip721: {

@@ -69,9 +69,14 @@ export interface Metadata {
 }
 
 export interface Snip721SendOptions {
-  address: string;
-  token_id: string;
-  msg: object;
-  recipient: string;
-  recipient_code_hash: string;
+  send_nft: {
+    contract: string;
+    token_id: string;
+    msg?: object;
+    memo?: string;
+    receiver_info?: {
+      recipient_code_hash: string;
+      also_implements_batch_receive_nft?: boolean;
+    };
+  };
 }
