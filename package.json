@@ -15,7 +15,7 @@
   "browser": "dist/browser.js",
   "scripts": {
     "build": "rm -rf ./dist && webpack && tsc",
-    "test": "jest --runInBand",
+    "test": "./test.sh",
     "gen-docs": "typedoc"
   },
   "dependencies": {
