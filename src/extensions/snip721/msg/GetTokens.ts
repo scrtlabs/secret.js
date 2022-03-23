@@ -1,4 +1,3 @@
-import { CosmWasmClient } from "secretjs";
 import { Permit } from "../../permit";
 
 interface _TokenList {
