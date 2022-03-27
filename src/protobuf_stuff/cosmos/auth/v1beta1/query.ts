@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import {
   PageRequest,
@@ -7,6 +8,7 @@ import {
 } from "../../../cosmos/base/query/v1beta1/pagination";
 import { Any } from "../../../google/protobuf/any";
 import { Params } from "../../../cosmos/auth/v1beta1/auth";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.auth.v1beta1";
 
@@ -415,64 +417,207 @@ export const QueryParamsResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Accounts returns all the existing accounts */
-  accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse>;
+  accounts(
+    request: DeepPartial<QueryAccountsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryAccountsResponse>;
   /** Account returns account details based on address. */
-  account(request: QueryAccountRequest): Promise<QueryAccountResponse>;
+  account(
+    request: DeepPartial<QueryAccountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryAccountResponse>;
   /** Params queries all parameters. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.accounts = this.accounts.bind(this);
     this.account = this.account.bind(this);
     this.params = this.params.bind(this);
   }
-  accounts(request: QueryAccountsRequest): Promise<QueryAccountsResponse> {
-    const data = QueryAccountsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.auth.v1beta1.Query",
-      "Accounts",
-      data,
-    );
-    return promise.then((data) =>
-      QueryAccountsResponse.decode(new _m0.Reader(data)),
+
+  accounts(
+    request: DeepPartial<QueryAccountsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryAccountsResponse> {
+    return this.rpc.unary(
+      QueryAccountsDesc,
+      QueryAccountsRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  account(request: QueryAccountRequest): Promise<QueryAccountResponse> {
-    const data = QueryAccountRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.auth.v1beta1.Query",
-      "Account",
-      data,
-    );
-    return promise.then((data) =>
-      QueryAccountResponse.decode(new _m0.Reader(data)),
+  account(
+    request: DeepPartial<QueryAccountRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryAccountResponse> {
+    return this.rpc.unary(
+      QueryAccountDesc,
+      QueryAccountRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
-    const data = QueryParamsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.auth.v1beta1.Query",
-      "Params",
-      data,
-    );
-    return promise.then((data) =>
-      QueryParamsResponse.decode(new _m0.Reader(data)),
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse> {
+    return this.rpc.unary(
+      QueryParamsDesc,
+      QueryParamsRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const QueryDesc = {
+  serviceName: "cosmos.auth.v1beta1.Query",
+};
+
+export const QueryAccountsDesc: UnaryMethodDefinitionish = {
+  methodName: "Accounts",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryAccountsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryAccountsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryAccountDesc: UnaryMethodDefinitionish = {
+  methodName: "Account",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryAccountRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryAccountResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryParamsDesc: UnaryMethodDefinitionish = {
+  methodName: "Params",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryParamsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

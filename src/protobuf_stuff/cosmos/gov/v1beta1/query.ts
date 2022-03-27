@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import {
   Proposal,
@@ -17,6 +18,7 @@ import {
   PageRequest,
   PageResponse,
 } from "../../../cosmos/base/query/v1beta1/pagination";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.gov.v1beta1";
 
@@ -1294,27 +1296,50 @@ export const QueryTallyResultResponse = {
 /** Query defines the gRPC querier service for gov module */
 export interface Query {
   /** Proposal queries proposal details based on ProposalID. */
-  proposal(request: QueryProposalRequest): Promise<QueryProposalResponse>;
+  proposal(
+    request: DeepPartial<QueryProposalRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryProposalResponse>;
   /** Proposals queries all proposals based on given status. */
-  proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse>;
+  proposals(
+    request: DeepPartial<QueryProposalsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryProposalsResponse>;
   /** Vote queries voted information based on proposalID, voterAddr. */
-  vote(request: QueryVoteRequest): Promise<QueryVoteResponse>;
+  vote(
+    request: DeepPartial<QueryVoteRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryVoteResponse>;
   /** Votes queries votes of a given proposal. */
-  votes(request: QueryVotesRequest): Promise<QueryVotesResponse>;
+  votes(
+    request: DeepPartial<QueryVotesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryVotesResponse>;
   /** Params queries all parameters of the gov module. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse>;
   /** Deposit queries single deposit information based proposalID, depositAddr. */
-  deposit(request: QueryDepositRequest): Promise<QueryDepositResponse>;
+  deposit(
+    request: DeepPartial<QueryDepositRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDepositResponse>;
   /** Deposits queries all deposits of a single proposal. */
-  deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse>;
+  deposits(
+    request: DeepPartial<QueryDepositsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDepositsResponse>;
   /** TallyResult queries the tally of a proposal vote. */
   tallyResult(
-    request: QueryTallyResultRequest,
+    request: DeepPartial<QueryTallyResultRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryTallyResultResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.proposal = this.proposal.bind(this);
@@ -1326,103 +1351,347 @@ export class QueryClientImpl implements Query {
     this.deposits = this.deposits.bind(this);
     this.tallyResult = this.tallyResult.bind(this);
   }
-  proposal(request: QueryProposalRequest): Promise<QueryProposalResponse> {
-    const data = QueryProposalRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "Proposal",
-      data,
-    );
-    return promise.then((data) =>
-      QueryProposalResponse.decode(new _m0.Reader(data)),
+
+  proposal(
+    request: DeepPartial<QueryProposalRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryProposalResponse> {
+    return this.rpc.unary(
+      QueryProposalDesc,
+      QueryProposalRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  proposals(request: QueryProposalsRequest): Promise<QueryProposalsResponse> {
-    const data = QueryProposalsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "Proposals",
-      data,
-    );
-    return promise.then((data) =>
-      QueryProposalsResponse.decode(new _m0.Reader(data)),
-    );
-  }
-
-  vote(request: QueryVoteRequest): Promise<QueryVoteResponse> {
-    const data = QueryVoteRequest.encode(request).finish();
-    const promise = this.rpc.request("cosmos.gov.v1beta1.Query", "Vote", data);
-    return promise.then((data) =>
-      QueryVoteResponse.decode(new _m0.Reader(data)),
+  proposals(
+    request: DeepPartial<QueryProposalsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryProposalsResponse> {
+    return this.rpc.unary(
+      QueryProposalsDesc,
+      QueryProposalsRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  votes(request: QueryVotesRequest): Promise<QueryVotesResponse> {
-    const data = QueryVotesRequest.encode(request).finish();
-    const promise = this.rpc.request("cosmos.gov.v1beta1.Query", "Votes", data);
-    return promise.then((data) =>
-      QueryVotesResponse.decode(new _m0.Reader(data)),
+  vote(
+    request: DeepPartial<QueryVoteRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryVoteResponse> {
+    return this.rpc.unary(
+      QueryVoteDesc,
+      QueryVoteRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
-    const data = QueryParamsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "Params",
-      data,
-    );
-    return promise.then((data) =>
-      QueryParamsResponse.decode(new _m0.Reader(data)),
-    );
-  }
-
-  deposit(request: QueryDepositRequest): Promise<QueryDepositResponse> {
-    const data = QueryDepositRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "Deposit",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDepositResponse.decode(new _m0.Reader(data)),
+  votes(
+    request: DeepPartial<QueryVotesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryVotesResponse> {
+    return this.rpc.unary(
+      QueryVotesDesc,
+      QueryVotesRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  deposits(request: QueryDepositsRequest): Promise<QueryDepositsResponse> {
-    const data = QueryDepositsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "Deposits",
-      data,
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse> {
+    return this.rpc.unary(
+      QueryParamsDesc,
+      QueryParamsRequest.fromPartial(request),
+      metadata,
     );
-    return promise.then((data) =>
-      QueryDepositsResponse.decode(new _m0.Reader(data)),
+  }
+
+  deposit(
+    request: DeepPartial<QueryDepositRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDepositResponse> {
+    return this.rpc.unary(
+      QueryDepositDesc,
+      QueryDepositRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  deposits(
+    request: DeepPartial<QueryDepositsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDepositsResponse> {
+    return this.rpc.unary(
+      QueryDepositsDesc,
+      QueryDepositsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   tallyResult(
-    request: QueryTallyResultRequest,
+    request: DeepPartial<QueryTallyResultRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryTallyResultResponse> {
-    const data = QueryTallyResultRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.gov.v1beta1.Query",
-      "TallyResult",
-      data,
-    );
-    return promise.then((data) =>
-      QueryTallyResultResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryTallyResultDesc,
+      QueryTallyResultRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const QueryDesc = {
+  serviceName: "cosmos.gov.v1beta1.Query",
+};
+
+export const QueryProposalDesc: UnaryMethodDefinitionish = {
+  methodName: "Proposal",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryProposalRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryProposalResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryProposalsDesc: UnaryMethodDefinitionish = {
+  methodName: "Proposals",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryProposalsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryProposalsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryVoteDesc: UnaryMethodDefinitionish = {
+  methodName: "Vote",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryVoteRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryVoteResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryVotesDesc: UnaryMethodDefinitionish = {
+  methodName: "Votes",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryVotesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryVotesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryParamsDesc: UnaryMethodDefinitionish = {
+  methodName: "Params",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryParamsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDepositDesc: UnaryMethodDefinitionish = {
+  methodName: "Deposit",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDepositRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDepositResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDepositsDesc: UnaryMethodDefinitionish = {
+  methodName: "Deposits",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDepositsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDepositsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryTallyResultDesc: UnaryMethodDefinitionish = {
+  methodName: "TallyResult",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryTallyResultRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryTallyResultResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

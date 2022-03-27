@@ -3,14 +3,6 @@
 // 1. Proxy the auto-generated QueryClientImpl from "src/protobuf_stuff/cosmos/auth/v1beta1/query.tx" (See the "scripts/generate_protobuf.sh" script)
 // 2. Convert the "account: Any" in the underlying types to the acctual account type
 
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
-}
-
 type AccountData = {
   type: "BaseAccount" | "ModuleAccount" | "BaseVestingAccount";
   account:
@@ -31,24 +23,25 @@ export type ModuleAccount = {
 };
 
 /** AuthQuerier is the query interface for the x/auth module */
-export class AuthQuerier /* implements Query */ {
+export class AuthQuerier {
   private client?: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryClientImpl;
-  private readonly rpc: Rpc;
+  private readonly grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
 
-  constructor(rpc: Rpc) {
-    // this.baseQuerier = ;
-    this.rpc = rpc;
+  constructor(
+    grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
+  ) {
+    this.grpc = grpc;
   }
 
   private async init() {
     if (!this.client) {
       this.client = new (
         await import("../protobuf_stuff/cosmos/auth/v1beta1/query")
-      ).QueryClientImpl(this.rpc);
+      ).QueryClientImpl(this.grpc);
     }
   }
 
-  /** Accounts returns all the existing accounts */
+  /** returns all the existing accounts */
   async accounts(
     request: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryAccountsRequest,
   ): Promise<Account[]> {
@@ -57,7 +50,7 @@ export class AuthQuerier /* implements Query */ {
     const response = await this.client!.accounts(request);
     return Promise.all(response.accounts.map((a) => accountFromAny(a)));
   }
-  /** Account returns account details based on address. */
+  /** returns account details based on address. */
   async account({
     address,
   }: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryAccountRequest): Promise<Account> {
@@ -66,7 +59,7 @@ export class AuthQuerier /* implements Query */ {
     const response = await this.client!.account({ address });
     return response.account ? accountFromAny(response.account) : null;
   }
-  /** Params queries all parameters. */
+  /** queries all parameters. */
   async params(): Promise<
     import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryParamsResponse
   > {

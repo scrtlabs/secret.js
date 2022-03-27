@@ -1,7 +1,9 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Plan, ModuleVersion } from "../../../cosmos/upgrade/v1beta1/upgrade";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.upgrade.v1beta1";
 
@@ -553,11 +555,13 @@ export const QueryModuleVersionsResponse = {
 export interface Query {
   /** CurrentPlan queries the current upgrade plan. */
   currentPlan(
-    request: QueryCurrentPlanRequest,
+    request: DeepPartial<QueryCurrentPlanRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryCurrentPlanResponse>;
   /** AppliedPlan queries a previously applied upgrade plan by its name. */
   appliedPlan(
-    request: QueryAppliedPlanRequest,
+    request: DeepPartial<QueryAppliedPlanRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryAppliedPlanResponse>;
   /**
    * UpgradedConsensusState queries the consensus state that will serve
@@ -566,16 +570,19 @@ export interface Query {
    * UpgradedConsensusState RPC not supported with legacy querier
    */
   upgradedConsensusState(
-    request: QueryUpgradedConsensusStateRequest,
+    request: DeepPartial<QueryUpgradedConsensusStateRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryUpgradedConsensusStateResponse>;
   /** ModuleVersions queries the list of module versions from state. */
   moduleVersions(
-    request: QueryModuleVersionsRequest,
+    request: DeepPartial<QueryModuleVersionsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryModuleVersionsResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.currentPlan = this.currentPlan.bind(this);
@@ -583,69 +590,215 @@ export class QueryClientImpl implements Query {
     this.upgradedConsensusState = this.upgradedConsensusState.bind(this);
     this.moduleVersions = this.moduleVersions.bind(this);
   }
+
   currentPlan(
-    request: QueryCurrentPlanRequest,
+    request: DeepPartial<QueryCurrentPlanRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryCurrentPlanResponse> {
-    const data = QueryCurrentPlanRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.upgrade.v1beta1.Query",
-      "CurrentPlan",
-      data,
-    );
-    return promise.then((data) =>
-      QueryCurrentPlanResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryCurrentPlanDesc,
+      QueryCurrentPlanRequest.fromPartial(request),
+      metadata,
     );
   }
 
   appliedPlan(
-    request: QueryAppliedPlanRequest,
+    request: DeepPartial<QueryAppliedPlanRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryAppliedPlanResponse> {
-    const data = QueryAppliedPlanRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.upgrade.v1beta1.Query",
-      "AppliedPlan",
-      data,
-    );
-    return promise.then((data) =>
-      QueryAppliedPlanResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryAppliedPlanDesc,
+      QueryAppliedPlanRequest.fromPartial(request),
+      metadata,
     );
   }
 
   upgradedConsensusState(
-    request: QueryUpgradedConsensusStateRequest,
+    request: DeepPartial<QueryUpgradedConsensusStateRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryUpgradedConsensusStateResponse> {
-    const data = QueryUpgradedConsensusStateRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.upgrade.v1beta1.Query",
-      "UpgradedConsensusState",
-      data,
-    );
-    return promise.then((data) =>
-      QueryUpgradedConsensusStateResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryUpgradedConsensusStateDesc,
+      QueryUpgradedConsensusStateRequest.fromPartial(request),
+      metadata,
     );
   }
 
   moduleVersions(
-    request: QueryModuleVersionsRequest,
+    request: DeepPartial<QueryModuleVersionsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryModuleVersionsResponse> {
-    const data = QueryModuleVersionsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.upgrade.v1beta1.Query",
-      "ModuleVersions",
-      data,
-    );
-    return promise.then((data) =>
-      QueryModuleVersionsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryModuleVersionsDesc,
+      QueryModuleVersionsRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const QueryDesc = {
+  serviceName: "cosmos.upgrade.v1beta1.Query",
+};
+
+export const QueryCurrentPlanDesc: UnaryMethodDefinitionish = {
+  methodName: "CurrentPlan",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryCurrentPlanRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryCurrentPlanResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryAppliedPlanDesc: UnaryMethodDefinitionish = {
+  methodName: "AppliedPlan",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryAppliedPlanRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryAppliedPlanResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryUpgradedConsensusStateDesc: UnaryMethodDefinitionish = {
+  methodName: "UpgradedConsensusState",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryUpgradedConsensusStateRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryUpgradedConsensusStateResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryModuleVersionsDesc: UnaryMethodDefinitionish = {
+  methodName: "ModuleVersions",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryModuleVersionsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryModuleVersionsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;

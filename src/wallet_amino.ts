@@ -1,4 +1,4 @@
-import { toBase64, toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { ripemd160 } from "@noble/hashes/ripemd160";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
@@ -8,6 +8,13 @@ import * as bip39 from "bip39";
 import { AminoMsg, Coin } from ".";
 
 export const SECRET_COIN_TYPE = 529;
+export const SECRET_BECH32_PREFIX = "secret";
+
+export type WalletOptions = {
+  hdAccountIndex?: number;
+  coinType?: number;
+  bech32Prefix?: string;
+};
 
 /**
  * AminoWallet is a wallet capable of signing on the legacy Amino encoding.
@@ -26,31 +33,40 @@ export const SECRET_COIN_TYPE = 529;
  * */
 export class AminoWallet {
   /** The mnemonic phrase used to derive this account */
-  public mnemonic: string;
+  public readonly mnemonic: string;
   /** The account index in the HD derivation path */
-  public hdAccountIndex: number;
+  public readonly hdAccountIndex: number;
+  /** The coin type in the HD derivation path */
+  public readonly coinType: number;
   /** The secp256k1 private key that was derived from `mnemonic` + `hdAccountIndex` */
-  public privateKey: Uint8Array;
+  public readonly privateKey: Uint8Array;
   /** The secp256k1 public key that was derived from `privateKey` */
-  public publicKey: Uint8Array;
+  public readonly publicKey: Uint8Array;
   /** The account's secret address, derived from `publicKey` */
-  public address: string;
+  public readonly address: string;
+  /** The bech32 prefix for the account's address  */
+  private readonly bech32Prefix: string;
 
   /**
-   * @param mnemonic Import mnemonic or generate random if empty
-   * @param hdAccountIndex The account index in the HD derivation path
+   * @param {String} mnemonic Import mnemonic or generate random if empty
+   * @param {Number} [options.hdAccountIndex] The account index in the HD derivation path. Defaults to `0`.
+   * @param {Number} [options.coinType] The coin type in the HD derivation path. Defalts to Secret's `529`.
+   * @param {String} [options.bech32Prefix] The bech32 prefix for the account's address. Defaults tp `"secret"`
    */
-  constructor(mnemonic: string = "", hdAccountIndex: number = 0) {
+  constructor(mnemonic: string = "", options: WalletOptions = {}) {
     if (mnemonic === "") {
       mnemonic = bip39.generateMnemonic(256 /* 24 words */);
     }
     this.mnemonic = mnemonic;
-    this.hdAccountIndex = hdAccountIndex;
+
+    this.hdAccountIndex = options.hdAccountIndex ?? 0;
+    this.coinType = options.coinType ?? SECRET_COIN_TYPE;
+    this.bech32Prefix = options.bech32Prefix ?? SECRET_BECH32_PREFIX;
 
     const seed = bip39.mnemonicToSeedSync(this.mnemonic);
     const node = bip32.fromSeed(seed);
     const secretHD = node.derivePath(
-      `m/44'/${SECRET_COIN_TYPE}'/0'/0/${hdAccountIndex}`,
+      `m/44'/${this.coinType}'/0'/0/${this.hdAccountIndex}`,
     );
     const privateKey = secretHD.privateKey;
 
@@ -61,10 +77,7 @@ export class AminoWallet {
     this.privateKey = new Uint8Array(privateKey);
     this.publicKey = secp256k1.getPublicKey(this.privateKey, true);
 
-    this.address = bech32.encode(
-      "secret",
-      bech32.toWords(ripemd160(sha256(this.publicKey))),
-    );
+    this.address = pubkeyToAddress(this.publicKey, this.bech32Prefix);
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {
@@ -97,6 +110,37 @@ export class AminoWallet {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
+}
+
+/**
+ * Convert a secp256k1 compressed public key to a secret address
+ *
+ * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
+ * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
+ * @returns the account's secret address
+ */
+export function pubkeyToAddress(
+  pubkey: Uint8Array,
+  prefix: string = "secret",
+): string {
+  return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
+}
+
+/**
+ * Convert a secp256k1 compressed public key to a secret address
+ *
+ * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
+ * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
+ * @returns the account's secret address
+ */
+export function base64PubkeyToAddress(
+  pubkey: string,
+  prefix: string = "secret",
+): string {
+  return bech32.encode(
+    prefix,
+    bech32.toWords(ripemd160(sha256(fromBase64(pubkey)))),
+  );
 }
 
 /**
@@ -174,7 +218,7 @@ export type Pubkey = {
   readonly value: any;
 };
 
-export type Algo = "secp256k1" | "ed25519" | "sr25519";
+type Algo = "secp256k1" | "ed25519" | "sr25519";
 
 export type AccountData = {
   /** A printable address (typically bech32 encoded) */
@@ -200,7 +244,7 @@ function sortedObject(obj: any): any {
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-export function JsonSortedStringify(obj: any): string {
+function JsonSortedStringify(obj: any): string {
   return JSON.stringify(sortedObject(obj));
 }
 

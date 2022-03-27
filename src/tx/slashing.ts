@@ -1,8 +1,9 @@
+import { MsgParams } from ".";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export type MsgUnjailParams = {
+export interface MsgUnjailParams extends MsgParams {
   validatorAddr: string;
-};
+}
 
 /** MsgUnjail defines a message to release a validator from jail. */
 export class MsgUnjail implements Msg {

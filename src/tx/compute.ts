@@ -1,14 +1,19 @@
 import { toBase64 } from "@cosmjs/encoding";
 import is_gzip from "is-gzip";
+import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
 import { addressToBytes } from "../query/compute";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
-export interface MsgInstantiateContractParams {
+export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
+  /** The id of the contract's WASM code */
   codeId: number;
+  /** A unique label across all contracts */
   label: string;
-  initMsg: object;
+  /** The input message to the contract's constructor */
+  initMsg: any;
+  /** Funds to send to the contract */
   initFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -26,7 +31,7 @@ export interface MsgInstantiateContractParams {
 }
 
 export function getMissingCodeHashWarning(method: string): string {
-  return `${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
+  return `${new Date().toISOString()} WARNING: ${method} was used without the "codeHash" parameter. This is discouraged and will result in much slower execution times for your app.`;
 }
 
 /** Instantiate a contract from code id */
@@ -123,10 +128,13 @@ export class MsgInstantiateContract implements Msg {
   }
 }
 
-export interface MsgExecuteContractParams {
+export interface MsgExecuteContractParams<T> extends MsgParams {
   sender: string;
+  /** The contract's address */
   contract: string;
-  msg: object;
+  /** The input message */
+  msg: T;
+  /** Funds to send to the contract */
   sentFunds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
@@ -144,10 +152,10 @@ export interface MsgExecuteContractParams {
 }
 
 /** Execute a function on a contract */
-export class MsgExecuteContract implements Msg {
+export class MsgExecuteContract<T extends object> implements Msg {
   public sender: string;
   public contract: string;
-  public msg: object;
+  public msg: T;
   private msgEncrypted: Uint8Array | null;
   public sentFunds: Coin[];
   public codeHash: string;
@@ -159,7 +167,7 @@ export class MsgExecuteContract implements Msg {
     msg,
     sentFunds,
     codeHash,
-  }: MsgExecuteContractParams) {
+  }: MsgExecuteContractParams<T>) {
     this.sender = sender;
     this.contract = contract;
     this.msg = msg;
@@ -231,7 +239,7 @@ export class MsgExecuteContract implements Msg {
   }
 }
 
-export interface MsgStoreCodeParams {
+export interface MsgStoreCodeParams extends MsgParams {
   sender: string;
   /** WASMByteCode can be raw or gzip compressed */
   wasmByteCode: Uint8Array;
@@ -255,7 +263,7 @@ export class MsgStoreCode implements Msg {
     this.wasmByteCode = wasmByteCode;
   }
 
-  async gzipWasm() {
+  private async gzipWasm() {
     if (!is_gzip(this.wasmByteCode)) {
       const pako = await import("pako");
       this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });

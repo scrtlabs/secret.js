@@ -1,9 +1,11 @@
 /* eslint-disable */
+import { grpc } from "@improbable-eng/grpc-web";
+import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { ContractInfo } from "../../../secret/compute/v1beta1/types";
 import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Empty } from "../../../google/protobuf/empty";
+import { ContractInfo } from "../../../secret/compute/v1beta1/types";
 
 export const protobufPackage = "secret.compute.v1beta1";
 
@@ -1478,24 +1480,34 @@ export const DecryptedAnswer = {
 export interface Query {
   /** Query contract */
   contractInfo(
-    request: QueryContractInfoRequest,
+    request: DeepPartial<QueryContractInfoRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryContractInfoResponse>;
   /** Query contract */
   contractsByCode(
-    request: QueryContractsByCodeRequest,
+    request: DeepPartial<QueryContractsByCodeRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryContractsByCodeResponse>;
   /** Query contract */
   smartContractState(
-    request: QuerySmartContractStateRequest,
+    request: DeepPartial<QuerySmartContractStateRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QuerySmartContractStateResponse>;
   /** Query a specific contract code */
-  code(request: QueryCodeRequest): Promise<QueryCodeResponse>;
+  code(
+    request: DeepPartial<QueryCodeRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryCodeResponse>;
   /** Query all contract codes on-chain */
-  codes(request: Empty): Promise<QueryCodesResponse>;
+  codes(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryCodesResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.contractInfo = this.contractInfo.bind(this);
@@ -1504,79 +1516,244 @@ export class QueryClientImpl implements Query {
     this.code = this.code.bind(this);
     this.codes = this.codes.bind(this);
   }
+
   contractInfo(
-    request: QueryContractInfoRequest,
+    request: DeepPartial<QueryContractInfoRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryContractInfoResponse> {
-    const data = QueryContractInfoRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "secret.compute.v1beta1.Query",
-      "ContractInfo",
-      data,
-    );
-    return promise.then((data) =>
-      QueryContractInfoResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryContractInfoDesc,
+      QueryContractInfoRequest.fromPartial(request),
+      metadata,
     );
   }
 
   contractsByCode(
-    request: QueryContractsByCodeRequest,
+    request: DeepPartial<QueryContractsByCodeRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryContractsByCodeResponse> {
-    const data = QueryContractsByCodeRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "secret.compute.v1beta1.Query",
-      "ContractsByCode",
-      data,
-    );
-    return promise.then((data) =>
-      QueryContractsByCodeResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryContractsByCodeDesc,
+      QueryContractsByCodeRequest.fromPartial(request),
+      metadata,
     );
   }
 
   smartContractState(
-    request: QuerySmartContractStateRequest,
+    request: DeepPartial<QuerySmartContractStateRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QuerySmartContractStateResponse> {
-    const data = QuerySmartContractStateRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "secret.compute.v1beta1.Query",
-      "SmartContractState",
-      data,
-    );
-    return promise.then((data) =>
-      QuerySmartContractStateResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QuerySmartContractStateDesc,
+      QuerySmartContractStateRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  code(request: QueryCodeRequest): Promise<QueryCodeResponse> {
-    const data = QueryCodeRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "secret.compute.v1beta1.Query",
-      "Code",
-      data,
-    );
-    return promise.then((data) =>
-      QueryCodeResponse.decode(new _m0.Reader(data)),
+  code(
+    request: DeepPartial<QueryCodeRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryCodeResponse> {
+    return this.rpc.unary(
+      QueryCodeDesc,
+      QueryCodeRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  codes(request: Empty): Promise<QueryCodesResponse> {
-    const data = Empty.encode(request).finish();
-    const promise = this.rpc.request(
-      "secret.compute.v1beta1.Query",
-      "Codes",
-      data,
-    );
-    return promise.then((data) =>
-      QueryCodesResponse.decode(new _m0.Reader(data)),
-    );
+  codes(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryCodesResponse> {
+    return this.rpc.unary(QueryCodesDesc, Empty.fromPartial(request), metadata);
   }
 }
 
+export const QueryDesc = {
+  serviceName: "secret.compute.v1beta1.Query",
+};
+
+export const QueryContractInfoDesc: UnaryMethodDefinitionish = {
+  methodName: "ContractInfo",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryContractInfoRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryContractInfoResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryContractsByCodeDesc: UnaryMethodDefinitionish = {
+  methodName: "ContractsByCode",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryContractsByCodeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryContractsByCodeResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QuerySmartContractStateDesc: UnaryMethodDefinitionish = {
+  methodName: "SmartContractState",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QuerySmartContractStateRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QuerySmartContractStateResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryCodeDesc: UnaryMethodDefinitionish = {
+  methodName: "Code",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryCodeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryCodeResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryCodesDesc: UnaryMethodDefinitionish = {
+  methodName: "Codes",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryCodesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;

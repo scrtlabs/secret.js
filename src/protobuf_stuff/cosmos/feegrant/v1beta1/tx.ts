@@ -1,7 +1,9 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Any } from "../../../google/protobuf/any";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.feegrant.v1beta1";
 
@@ -276,59 +278,170 @@ export interface Msg {
    * account with the provided expiration time.
    */
   grantAllowance(
-    request: MsgGrantAllowance,
+    request: DeepPartial<MsgGrantAllowance>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgGrantAllowanceResponse>;
   /**
    * RevokeAllowance revokes any fee allowance of granter's account that
    * has been granted to the grantee.
    */
   revokeAllowance(
-    request: MsgRevokeAllowance,
+    request: DeepPartial<MsgRevokeAllowance>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgRevokeAllowanceResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.grantAllowance = this.grantAllowance.bind(this);
     this.revokeAllowance = this.revokeAllowance.bind(this);
   }
+
   grantAllowance(
-    request: MsgGrantAllowance,
+    request: DeepPartial<MsgGrantAllowance>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgGrantAllowanceResponse> {
-    const data = MsgGrantAllowance.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.feegrant.v1beta1.Msg",
-      "GrantAllowance",
-      data,
-    );
-    return promise.then((data) =>
-      MsgGrantAllowanceResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      MsgGrantAllowanceDesc,
+      MsgGrantAllowance.fromPartial(request),
+      metadata,
     );
   }
 
   revokeAllowance(
-    request: MsgRevokeAllowance,
+    request: DeepPartial<MsgRevokeAllowance>,
+    metadata?: grpc.Metadata,
   ): Promise<MsgRevokeAllowanceResponse> {
-    const data = MsgRevokeAllowance.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.feegrant.v1beta1.Msg",
-      "RevokeAllowance",
-      data,
-    );
-    return promise.then((data) =>
-      MsgRevokeAllowanceResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      MsgRevokeAllowanceDesc,
+      MsgRevokeAllowance.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const MsgDesc = {
+  serviceName: "cosmos.feegrant.v1beta1.Msg",
+};
+
+export const MsgGrantAllowanceDesc: UnaryMethodDefinitionish = {
+  methodName: "GrantAllowance",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgGrantAllowance.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgGrantAllowanceResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgRevokeAllowanceDesc: UnaryMethodDefinitionish = {
+  methodName: "RevokeAllowance",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgRevokeAllowance.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgRevokeAllowanceResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

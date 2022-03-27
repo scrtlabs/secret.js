@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.base.reflection.v1beta1";
 
@@ -275,59 +277,172 @@ export interface ReflectionService {
    * registry.
    */
   listAllInterfaces(
-    request: ListAllInterfacesRequest,
+    request: DeepPartial<ListAllInterfacesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<ListAllInterfacesResponse>;
   /**
    * ListImplementations list all the concrete types that implement a given
    * interface.
    */
   listImplementations(
-    request: ListImplementationsRequest,
+    request: DeepPartial<ListImplementationsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<ListImplementationsResponse>;
 }
 
 export class ReflectionServiceClientImpl implements ReflectionService {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.listAllInterfaces = this.listAllInterfaces.bind(this);
     this.listImplementations = this.listImplementations.bind(this);
   }
+
   listAllInterfaces(
-    request: ListAllInterfacesRequest,
+    request: DeepPartial<ListAllInterfacesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<ListAllInterfacesResponse> {
-    const data = ListAllInterfacesRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v1beta1.ReflectionService",
-      "ListAllInterfaces",
-      data,
-    );
-    return promise.then((data) =>
-      ListAllInterfacesResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceListAllInterfacesDesc,
+      ListAllInterfacesRequest.fromPartial(request),
+      metadata,
     );
   }
 
   listImplementations(
-    request: ListImplementationsRequest,
+    request: DeepPartial<ListImplementationsRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<ListImplementationsResponse> {
-    const data = ListImplementationsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.base.reflection.v1beta1.ReflectionService",
-      "ListImplementations",
-      data,
-    );
-    return promise.then((data) =>
-      ListImplementationsResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      ReflectionServiceListImplementationsDesc,
+      ListImplementationsRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const ReflectionServiceDesc = {
+  serviceName: "cosmos.base.reflection.v1beta1.ReflectionService",
+};
+
+export const ReflectionServiceListAllInterfacesDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "ListAllInterfaces",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return ListAllInterfacesRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...ListAllInterfacesResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const ReflectionServiceListImplementationsDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "ListImplementations",
+    service: ReflectionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return ListImplementationsRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...ListImplementationsResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

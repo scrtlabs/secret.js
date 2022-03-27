@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 import {
@@ -7,6 +8,7 @@ import {
   PageResponse,
 } from "../../../cosmos/base/query/v1beta1/pagination";
 import { Params, Metadata } from "../../../cosmos/bank/v1beta1/bank";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.bank.v1beta1";
 
@@ -1046,31 +1048,45 @@ export const QueryDenomMetadataResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Balance queries the balance of a single coin for a single account. */
-  balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse>;
+  balance(
+    request: DeepPartial<QueryBalanceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryBalanceResponse>;
   /** AllBalances queries the balance of all coins for a single account. */
   allBalances(
-    request: QueryAllBalancesRequest,
+    request: DeepPartial<QueryAllBalancesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryAllBalancesResponse>;
   /** TotalSupply queries the total supply of all coins. */
   totalSupply(
-    request: QueryTotalSupplyRequest,
+    request: DeepPartial<QueryTotalSupplyRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryTotalSupplyResponse>;
   /** SupplyOf queries the supply of a single coin. */
-  supplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse>;
+  supplyOf(
+    request: DeepPartial<QuerySupplyOfRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QuerySupplyOfResponse>;
   /** Params queries the parameters of x/bank module. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse>;
   /** DenomsMetadata queries the client metadata of a given coin denomination. */
   denomMetadata(
-    request: QueryDenomMetadataRequest,
+    request: DeepPartial<QueryDenomMetadataRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDenomMetadataResponse>;
   /** DenomsMetadata queries the client metadata for all registered coin denominations. */
   denomsMetadata(
-    request: QueryDenomsMetadataRequest,
+    request: DeepPartial<QueryDenomsMetadataRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDenomsMetadataResponse>;
 }
 
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.balance = this.balance.bind(this);
@@ -1081,105 +1097,314 @@ export class QueryClientImpl implements Query {
     this.denomMetadata = this.denomMetadata.bind(this);
     this.denomsMetadata = this.denomsMetadata.bind(this);
   }
-  balance(request: QueryBalanceRequest): Promise<QueryBalanceResponse> {
-    const data = QueryBalanceRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "Balance",
-      data,
-    );
-    return promise.then((data) =>
-      QueryBalanceResponse.decode(new _m0.Reader(data)),
+
+  balance(
+    request: DeepPartial<QueryBalanceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryBalanceResponse> {
+    return this.rpc.unary(
+      QueryBalanceDesc,
+      QueryBalanceRequest.fromPartial(request),
+      metadata,
     );
   }
 
   allBalances(
-    request: QueryAllBalancesRequest,
+    request: DeepPartial<QueryAllBalancesRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryAllBalancesResponse> {
-    const data = QueryAllBalancesRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "AllBalances",
-      data,
-    );
-    return promise.then((data) =>
-      QueryAllBalancesResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryAllBalancesDesc,
+      QueryAllBalancesRequest.fromPartial(request),
+      metadata,
     );
   }
 
   totalSupply(
-    request: QueryTotalSupplyRequest,
+    request: DeepPartial<QueryTotalSupplyRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryTotalSupplyResponse> {
-    const data = QueryTotalSupplyRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "TotalSupply",
-      data,
-    );
-    return promise.then((data) =>
-      QueryTotalSupplyResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryTotalSupplyDesc,
+      QueryTotalSupplyRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  supplyOf(request: QuerySupplyOfRequest): Promise<QuerySupplyOfResponse> {
-    const data = QuerySupplyOfRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "SupplyOf",
-      data,
-    );
-    return promise.then((data) =>
-      QuerySupplyOfResponse.decode(new _m0.Reader(data)),
+  supplyOf(
+    request: DeepPartial<QuerySupplyOfRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QuerySupplyOfResponse> {
+    return this.rpc.unary(
+      QuerySupplyOfDesc,
+      QuerySupplyOfRequest.fromPartial(request),
+      metadata,
     );
   }
 
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
-    const data = QueryParamsRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "Params",
-      data,
-    );
-    return promise.then((data) =>
-      QueryParamsResponse.decode(new _m0.Reader(data)),
+  params(
+    request: DeepPartial<QueryParamsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryParamsResponse> {
+    return this.rpc.unary(
+      QueryParamsDesc,
+      QueryParamsRequest.fromPartial(request),
+      metadata,
     );
   }
 
   denomMetadata(
-    request: QueryDenomMetadataRequest,
+    request: DeepPartial<QueryDenomMetadataRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDenomMetadataResponse> {
-    const data = QueryDenomMetadataRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "DenomMetadata",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDenomMetadataResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDenomMetadataDesc,
+      QueryDenomMetadataRequest.fromPartial(request),
+      metadata,
     );
   }
 
   denomsMetadata(
-    request: QueryDenomsMetadataRequest,
+    request: DeepPartial<QueryDenomsMetadataRequest>,
+    metadata?: grpc.Metadata,
   ): Promise<QueryDenomsMetadataResponse> {
-    const data = QueryDenomsMetadataRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "cosmos.bank.v1beta1.Query",
-      "DenomsMetadata",
-      data,
-    );
-    return promise.then((data) =>
-      QueryDenomsMetadataResponse.decode(new _m0.Reader(data)),
+    return this.rpc.unary(
+      QueryDenomsMetadataDesc,
+      QueryDenomsMetadataRequest.fromPartial(request),
+      metadata,
     );
   }
 }
 
+export const QueryDesc = {
+  serviceName: "cosmos.bank.v1beta1.Query",
+};
+
+export const QueryBalanceDesc: UnaryMethodDefinitionish = {
+  methodName: "Balance",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryBalanceRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryBalanceResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryAllBalancesDesc: UnaryMethodDefinitionish = {
+  methodName: "AllBalances",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryAllBalancesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryAllBalancesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryTotalSupplyDesc: UnaryMethodDefinitionish = {
+  methodName: "TotalSupply",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryTotalSupplyRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryTotalSupplyResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QuerySupplyOfDesc: UnaryMethodDefinitionish = {
+  methodName: "SupplyOf",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QuerySupplyOfRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QuerySupplyOfResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryParamsDesc: UnaryMethodDefinitionish = {
+  methodName: "Params",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryParamsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDenomMetadataDesc: UnaryMethodDefinitionish = {
+  methodName: "DenomMetadata",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDenomMetadataRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDenomMetadataResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDenomsMetadataDesc: UnaryMethodDefinitionish = {
+  methodName: "DenomsMetadata",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDenomsMetadataRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDenomsMetadataResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array,
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =

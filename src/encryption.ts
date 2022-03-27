@@ -23,14 +23,14 @@ const mainnetConsensusIoPubKey = fromHex(
 const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
 export class EncryptionUtilsImpl implements EncryptionUtils {
-  private readonly registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").QueryClientImpl;
+  private readonly registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").Query;
   private readonly seed: Uint8Array;
   private readonly privkey: Uint8Array;
   public readonly pubkey: Uint8Array;
   private consensusIoPubKey: Uint8Array = new Uint8Array(); // cache
 
   public constructor(
-    registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").QueryClientImpl,
+    registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").Query,
     seed?: Uint8Array,
     chainId?: string,
   ) {
