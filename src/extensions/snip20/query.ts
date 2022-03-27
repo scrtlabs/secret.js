@@ -1,5 +1,4 @@
 import { ComputeQuerier } from "../../";
-import { Permit } from "../permit";
 import {
   GetAllowanceRequest,
   GetAllowanceRequestWithPermit,
@@ -16,7 +15,7 @@ import {
   TransactionHistoryResponse,
   TransferHistoryResponse,
 } from "./types";
-import { ViewingKey } from "../viewing_key";
+import { ViewingKey, Permit } from "../auth";
 
 interface SecretContract {
   address: string;
@@ -75,7 +74,9 @@ export class Snip20Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            balance: {},
+            query: {
+              balance: {},
+            },
           },
         },
       });
@@ -126,9 +127,11 @@ export class Snip20Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            transfer_history: {
-              page,
-              page_size,
+            query: {
+              transfer_history: {
+                page,
+                page_size,
+              },
             },
           },
         },
@@ -182,9 +185,11 @@ export class Snip20Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            transaction_history: {
-              page,
-              page_size,
+            query: {
+              transaction_history: {
+                page,
+                page_size,
+              },
             },
           },
         },
@@ -235,9 +240,11 @@ export class Snip20Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            allowance: {
-              owner,
-              spender,
+            query: {
+              allowance: {
+                owner,
+                spender,
+              },
             },
           },
         },

@@ -1,4 +1,4 @@
-import { Permit } from "../../permit";
+import { Permit } from "../../auth";
 import { Extension, ViewerInfo } from "../types";
 
 export interface GetNftPrivateMetadataResponse {

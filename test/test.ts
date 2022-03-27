@@ -29,7 +29,6 @@ import { AminoWallet } from "../src/wallet_amino";
 let accounts: Account[];
 
 beforeAll(async () => {
-  console.log("in beforeAll");
   // @ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
@@ -59,7 +58,6 @@ beforeAll(async () => {
     }
   }
 
-  console.log(`Done 1st step`);
   // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
   for (let i = 4; i <= 19; i++) {
     const wallet = new AminoWallet();
@@ -115,7 +113,6 @@ beforeAll(async () => {
     throw new Error(`Failed to multisend: ${e.stack}`);
   }
 
-  console.log(`Done 4th step`);
   if (tx.code !== 0) {
     console.error(`failed to multisend coins`);
     throw new Error("Failed to multisend coins to initial accounts");

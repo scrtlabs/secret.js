@@ -1,4 +1,4 @@
-import { Permit } from "../../permit";
+import { Permit } from "../../auth";
 import { Extension, ViewerInfo } from "../types";
 
 export interface GetTokenInfoRequest {
@@ -10,8 +10,10 @@ export interface GetTokenInfoRequest {
 
 export interface GetTokenInfoRequestWithPermit {
   with_permit: {
-    all_nft_info: {
-      token_id: string;
+    query: {
+      all_nft_info: {
+        token_id: string;
+      };
     };
     permit: Permit;
   };

@@ -85,12 +85,20 @@ import {
   Snip20DecreaseAllowanceOptions,
   Snip20IncreaseAllowanceOptions,
   Snip20SendOptions,
-  Snip20SetViewingKeyOptions,
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
 import { MsgSnip721Send } from "./extensions/snip721";
 import { Snip721SendOptions } from "./extensions/snip721/types";
 import { Snip721Querier } from "./extensions/snip721";
+import {
+  MsgCreateViewingKey,
+  MsgSetViewingKey,
+} from "./extensions/auth/viewing_key/msgs";
+import {
+  CreateViewingKeyContractParams,
+  SetViewingKeyContractParams,
+} from "./extensions/auth/viewing_key/params";
+import { PermitSigner } from "./extensions/auth/permit/permit_signer";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -371,6 +379,16 @@ export type TxSender = {
       params: MsgExecuteContractParams<Snip721SendOptions>,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
+
+    setViewingKey: (
+      params: SetViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    createViewingKey: (
+      params: CreateViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
   };
 
   snip20: {
@@ -399,7 +417,12 @@ export type TxSender = {
     ) => Promise<Tx>;
 
     setViewingKey: (
-      params: MsgExecuteContractParams<Snip20SetViewingKeyOptions>,
+      params: SetViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    createViewingKey: (
+      params: CreateViewingKeyContractParams,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
   };
@@ -580,7 +603,12 @@ export class SecretNetworkClient {
   private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
   private readonly wallet: Signer;
   private readonly chainId: string;
+
   private encryptionUtils: EncryptionUtils;
+
+  public auth: {
+    permit: PermitSigner;
+  };
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
   public static async create(
@@ -691,6 +719,8 @@ export class SecretNetworkClient {
     this.address = signingParams.walletAddress ?? "";
     this.chainId = signingParams.chainId ?? "";
 
+    this.auth = { permit: new PermitSigner(this.wallet) };
+
     const doMsg = (msgClass: any) => {
       return (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
@@ -705,11 +735,14 @@ export class SecretNetworkClient {
         transfer: doMsg(MsgSnip20Transfer),
         increaseAllowance: doMsg(MsgSnip20IncreaseAllowance),
         decreaseAllowance: doMsg(MsgSnip20DecreaseAllowance),
-        setViewingKey: doMsg(MsgSnip20SetViewingKey),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
       },
 
       snip721: {
         send: doMsg(MsgSnip721Send),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
       },
 
       authz: {

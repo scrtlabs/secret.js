@@ -1,6 +1,5 @@
 import { ComputeQuerier } from "../../query";
-import { ViewingKey } from "../viewing_key";
-import { Permit } from "../permit";
+import { Permit, ViewingKey } from "../auth";
 import {
   GetTokenParamsRequest,
   Snip721TokenInfo,
@@ -79,8 +78,10 @@ export class Snip721Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            all_nft_info: {
-              token_id,
+            query: {
+              all_nft_info: {
+                token_id,
+              },
             },
           },
         },

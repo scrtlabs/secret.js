@@ -1,4 +1,4 @@
-import { ViewingKey } from "../viewing_key";
+import { ViewingKey } from "../auth";
 import { RichTx, Tx } from "./txTypes";
 
 export interface GetAllowanceRequest {
@@ -12,9 +12,11 @@ export interface GetAllowanceRequest {
 export interface GetAllowanceRequestWithPermit {
   with_permit: {
     permit: {};
-    allowance: {
-      owner: string;
-      spender: string;
+    query: {
+      allowance: {
+        owner: string;
+        spender: string;
+      };
     };
   };
 }
@@ -38,7 +40,9 @@ export interface GetBalanceRequest {
 export interface GetBalanceRequestWithPermit {
   with_permit: {
     permit: {};
-    balance: {};
+    query: {
+      balance: {};
+    };
   };
 }
 
@@ -73,9 +77,11 @@ export interface GetTransferHistoryRequest {
 export interface GetTransferHistoryRequestWithPermit {
   with_permit: {
     permit: {};
-    transfer_history: {
-      page?: number;
-      page_size: number;
+    query: {
+      transfer_history: {
+        page?: number;
+        page_size: number;
+      };
     };
   };
 }
@@ -92,9 +98,11 @@ export interface GetTransactionHistoryRequest {
 export interface GetTransactionHistoryRequestWithPermit {
   with_permit: {
     permit: {};
-    transaction_history: {
-      page?: number;
-      page_size: number;
+    query: {
+      transaction_history: {
+        page?: number;
+        page_size: number;
+      };
     };
   };
 }

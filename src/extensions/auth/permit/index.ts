@@ -1,19 +1,20 @@
-import { StdSignDoc } from "../../wallet_amino";
-import { AminoWallet, serializeStdSignDoc } from "../../wallet_amino";
+import { AminoSigner, StdSignDoc } from "../../../wallet_amino";
+import { AminoWallet, serializeStdSignDoc } from "../../../wallet_amino";
 import { bech32 } from "bech32";
-import { base64PubkeyToAddress } from "../../index";
+import { base64PubkeyToAddress } from "../../../index";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromBase64 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 
-class PermitError extends Error {
+export class PermitError extends Error {
+  readonly type = "PermitError";
   constructor(message: string) {
     super(message);
     this.name = "PermitError";
   }
 }
 
-class ContractNotInPermit extends PermitError {
+export class ContractNotInPermit extends PermitError {
   contract: string;
   allowed_contracts: string[];
 
@@ -25,7 +26,7 @@ class ContractNotInPermit extends PermitError {
   }
 }
 
-class SignatureInvalid extends PermitError {
+export class SignatureInvalid extends PermitError {
   signature: string;
   key: string;
 
@@ -37,7 +38,7 @@ class SignatureInvalid extends PermitError {
   }
 }
 
-class SignerIsNotAddress extends PermitError {
+export class SignerIsNotAddress extends PermitError {
   publicKey: PubKey;
   address: string;
 
@@ -49,7 +50,7 @@ class SignerIsNotAddress extends PermitError {
   }
 }
 
-class PermissionNotInPermit extends PermitError {
+export class PermissionNotInPermit extends PermitError {
   permission: Permission[];
   permissionsInContract: Permission[];
 
@@ -112,7 +113,7 @@ export const newSignDoc = (
 };
 //
 export const newPermit = async (
-  signer: AminoWallet,
+  signer: AminoSigner,
   owner: string,
   chainId: string,
   permitName: string,
@@ -140,11 +141,15 @@ export const validatePermit = (
   address: string,
   contract: string,
   permissions: Permission[],
+  exceptions: boolean = true,
 ): boolean => {
   // check if contract is valid
   let contractInPermit = permit.params.allowed_tokens.includes(contract);
 
   if (!contractInPermit) {
+    if (!exceptions) {
+      return false;
+    }
     throw new ContractNotInPermit(contract, permit.params.allowed_tokens);
   }
 
@@ -153,6 +158,9 @@ export const validatePermit = (
   );
 
   if (!permissionInPermit) {
+    if (!exceptions) {
+      return false;
+    }
     throw new PermissionNotInPermit(permissions, permit.params.permissions);
   }
 
@@ -165,13 +173,35 @@ export const validatePermit = (
     );
   }
 
-  const permitAcc = base64PubkeyToAddress(permit.signature.pub_key.value, hrp);
+  let permitAcc = "";
+  try {
+    permitAcc = base64PubkeyToAddress(permit.signature.pub_key.value, hrp);
+  } catch (e) {
+    throw new PermitError("Pubkey invalid");
+  }
 
   if (permitAcc !== address) {
+    if (!exceptions) {
+      return false;
+    }
     throw new SignerIsNotAddress(permit.signature.pub_key, address);
   }
 
-  if (!_validate_sig(permit)) {
+  let sigIsValid = false;
+  try {
+    sigIsValid = _validate_sig(permit);
+  } catch (e) {
+    // validation can fail if signature is malformed
+    throw new SignatureInvalid(
+      permit.signature.signature,
+      permit.signature.pub_key.value,
+    );
+  }
+
+  if (!sigIsValid) {
+    if (!exceptions) {
+      return false;
+    }
     throw new SignatureInvalid(
       permit.signature.signature,
       permit.signature.pub_key.value,
