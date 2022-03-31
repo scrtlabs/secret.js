@@ -77,12 +77,12 @@ import {
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
   grpcWebUrl: string;
+  /** The chain-id is used in encryption code & when signing txs. */
+  chainId: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
   /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
   walletAddress?: string;
-  /** The chain-id on which the wallet is allowed to sign transactions & permits. */
-  chainId?: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
@@ -619,7 +619,7 @@ export class SecretNetworkClient {
     grpc: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
     txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl,
     query: Querier,
-    signingParams: CreateClientOptions,
+    options: CreateClientOptions,
   ) {
     this.txService = txService;
 
@@ -627,9 +627,9 @@ export class SecretNetworkClient {
     this.query.getTx = (hash) => this.getTx(hash);
     this.query.txsQuery = (query) => this.txsQuery(query);
 
-    this.wallet = signingParams.wallet ?? new ReadonlySigner();
-    this.address = signingParams.walletAddress ?? "";
-    this.chainId = signingParams.chainId ?? "";
+    this.wallet = options.wallet ?? new ReadonlySigner();
+    this.address = options.walletAddress ?? "";
+    this.chainId = options.chainId;
 
     const doMsg = (msgClass: any) => {
       return (params: MsgParams, options?: TxOptions) => {
@@ -691,12 +691,12 @@ export class SecretNetworkClient {
       },
     };
 
-    if (signingParams.encryptionUtils) {
-      this.encryptionUtils = signingParams.encryptionUtils;
+    if (options.encryptionUtils) {
+      this.encryptionUtils = options.encryptionUtils;
     } else {
       this.encryptionUtils = new EncryptionUtilsImpl(
         this.query.registration,
-        signingParams.encryptionSeed,
+        options.encryptionSeed,
         this.chainId,
       );
     }

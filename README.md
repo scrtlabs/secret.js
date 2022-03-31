@@ -84,6 +84,7 @@ import { SecretNetworkClient } from "secretjs";
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
+  chainId: "secret-4",
 });
 
 const {
@@ -122,9 +123,9 @@ const myAddress = wallet.address;
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
+  chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "secret-4",
 });
 
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
@@ -279,6 +280,7 @@ import { SecretNetworkClient } from "secretjs";
 
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
+  chainId: "secret-4",
   grpcWebUrl: "https://grpc-web.azure-api.net",
 });
 ```
@@ -300,9 +302,9 @@ const myAddress = wallet.address;
 // To create a signer secret.js client you must also pass in `wallet`, `walletAddress` and `chainId`
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
+  chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "secret-4",
 });
 ```
 
@@ -831,9 +833,9 @@ const myAddress = wallet.address;
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
   grpcWebUrl: "https://grpc-web.azure-api.net",
+  chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
-  chainId: "secret-4",
 });
 
 const alsoMyAddress = secretjs.address;

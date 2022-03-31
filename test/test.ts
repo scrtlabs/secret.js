@@ -157,6 +157,7 @@ beforeAll(async () => {
 
       const secretjs = await SecretNetworkClient.create({
         grpcWebUrl: "http://localhost:9091",
+        chainId: "secretdev-1",
       });
 
       try {
@@ -188,9 +189,9 @@ beforeAll(async () => {
           parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
           parsedAccount.secretjs = await SecretNetworkClient.create({
             grpcWebUrl: "http://localhost:9091",
+            chainId: "secretdev-1",
             wallet: parsedAccount.walletAmino,
             walletAddress: parsedAccount.address,
-            chainId: "secretdev-1",
           });
           accounts[accountId] = parsedAccount as Account;
         }
@@ -216,9 +217,9 @@ beforeAll(async () => {
         walletProto: walletProto,
         secretjs: await SecretNetworkClient.create({
           grpcWebUrl: "http://localhost:9091",
+          chainId: "secretdev-1",
           wallet: wallet,
           walletAddress: address,
-          chainId: "secretdev-1",
         }),
       };
     }
