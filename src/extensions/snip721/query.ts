@@ -1,5 +1,5 @@
 import { ComputeQuerier } from "../../query";
-import { Permit, ViewingKey } from "../auth";
+import { Permit, ViewingKey } from "../access_control";
 import {
   GetTokenParamsRequest,
   Snip721TokenInfo,

@@ -163,7 +163,7 @@ describe("permit", () => {
       txInit.rawLog,
       "message.contract_address",
     );
-    let permit = await secretjs.auth.permit.sign(
+    let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -183,7 +183,7 @@ describe("permit", () => {
   test("invalid permit signature", async () => {
     const { secretjs } = accounts[0];
 
-    let permit = await secretjs.auth.permit.sign(
+    let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -197,9 +197,12 @@ describe("permit", () => {
     };
 
     try {
-      secretjs.auth.permit.verify(permit, accounts[0].address, "abcdef", [
-        "owner",
-      ]);
+      secretjs.utils.accessControl.permit.verify(
+        permit,
+        accounts[0].address,
+        "abcdef",
+        ["owner"],
+      );
     } catch (e: any) {
       expect(e?.type).toBe("PermitError");
       return;
@@ -210,7 +213,7 @@ describe("permit", () => {
   test("contract not in permit", async () => {
     const { secretjs } = accounts[0];
 
-    let permit = await secretjs.auth.permit.sign(
+    let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -224,7 +227,7 @@ describe("permit", () => {
     };
 
     try {
-      secretjs.auth.permit.verify(
+      secretjs.utils.accessControl.permit.verify(
         permit,
         accounts[0].address,
         "xxxxxxxxxxxxxxxxxxxxx",
@@ -240,7 +243,7 @@ describe("permit", () => {
   test("permit address is not signer", async () => {
     const { secretjs } = accounts[0];
 
-    let permit = await secretjs.auth.permit.sign(
+    let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -254,9 +257,12 @@ describe("permit", () => {
     };
 
     try {
-      secretjs.auth.permit.verify(permit, accounts[1].address, "abcdef", [
-        "owner",
-      ]);
+      secretjs.utils.accessControl.permit.verify(
+        permit,
+        accounts[1].address,
+        "abcdef",
+        ["owner"],
+      );
     } catch (e: any) {
       expect(e?.type).toBe("PermitError");
       return;
@@ -268,7 +274,7 @@ describe("permit", () => {
     const { secretjs } = accounts[0];
     const secretjs2 = accounts[1].secretjs;
 
-    let permit = await secretjs.auth.permit.sign(
+    let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -276,7 +282,7 @@ describe("permit", () => {
       ["owner", "balance"],
     );
 
-    let permit2 = await secretjs2.auth.permit.sign(
+    let permit2 = await secretjs2.utils.accessControl.permit.sign(
       accounts[1].address,
       "secret-2",
       "test",
@@ -287,9 +293,12 @@ describe("permit", () => {
     permit.signature = permit2.signature;
 
     try {
-      secretjs.auth.permit.verify(permit, accounts[1].address, "abcdef", [
-        "owner",
-      ]);
+      secretjs.utils.accessControl.permit.verify(
+        permit,
+        accounts[1].address,
+        "abcdef",
+        ["owner"],
+      );
     } catch (e: any) {
       expect(e?.type).toBe("PermitError");
       return;

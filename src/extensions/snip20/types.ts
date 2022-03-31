@@ -1,4 +1,4 @@
-import { ViewingKey } from "../auth";
+import { ViewingKey } from "../access_control";
 import { RichTx, Tx } from "./txTypes";
 
 export interface GetAllowanceRequest {

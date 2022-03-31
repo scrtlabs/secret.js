@@ -15,7 +15,7 @@ import {
   TransactionHistoryResponse,
   TransferHistoryResponse,
 } from "./types";
-import { ViewingKey, Permit } from "../auth";
+import { ViewingKey, Permit } from "../access_control";
 
 interface SecretContract {
   address: string;

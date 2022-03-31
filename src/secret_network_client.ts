@@ -93,12 +93,12 @@ import { Snip721Querier } from "./extensions/snip721";
 import {
   MsgCreateViewingKey,
   MsgSetViewingKey,
-} from "./extensions/auth/viewing_key/msgs";
+} from "./extensions/access_control/viewing_key/msgs";
 import {
   CreateViewingKeyContractParams,
   SetViewingKeyContractParams,
-} from "./extensions/auth/viewing_key/params";
-import { PermitSigner } from "./extensions/auth/permit/permit_signer";
+} from "./extensions/access_control/viewing_key/params";
+import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -606,9 +606,7 @@ export class SecretNetworkClient {
 
   private encryptionUtils: EncryptionUtils;
 
-  public auth: {
-    permit: PermitSigner;
-  };
+  public utils: { accessControl: { permit: PermitSigner } };
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
   public static async create(
@@ -719,7 +717,7 @@ export class SecretNetworkClient {
     this.address = signingParams.walletAddress ?? "";
     this.chainId = signingParams.chainId ?? "";
 
-    this.auth = { permit: new PermitSigner(this.wallet) };
+    this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
 
     const doMsg = (msgClass: any) => {
       return (params: MsgParams, options?: TxOptions) => {

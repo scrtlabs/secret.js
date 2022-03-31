@@ -1,4 +1,4 @@
-import { Permit } from "../../auth";
+import { Permit } from "../../access_control";
 
 interface _TokenList {
   tokens: string[];

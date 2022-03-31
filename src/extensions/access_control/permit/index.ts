@@ -19,7 +19,7 @@ export class ContractNotInPermit extends PermitError {
   allowed_contracts: string[];
 
   constructor(contract: string, allowed_contracts: string[]) {
-    super("No contract in : " + contract);
+    super(`Contract ${contract} is not allowed for this permit`);
     this.name = "ContractNotInPermit";
     this.contract = contract;
     this.allowed_contracts = allowed_contracts;
@@ -31,7 +31,7 @@ export class SignatureInvalid extends PermitError {
   key: string;
 
   constructor(signature: string, key: string) {
-    super("Signature invalid in permit");
+    super(`Signature invalid`);
     this.name = "SignatureInvalid";
     this.key = key;
     this.signature = signature;
@@ -43,7 +43,7 @@ export class SignerIsNotAddress extends PermitError {
   address: string;
 
   constructor(publicKey: PubKey, address: string) {
-    super("Address is not signer");
+    super(`Address ${address} is not the permit signer`);
     this.name = "SignerIsNotAddress";
     this.address = address;
     this.publicKey = publicKey;
@@ -55,14 +55,14 @@ export class PermissionNotInPermit extends PermitError {
   permissionsInContract: Permission[];
 
   constructor(permission: Permission[], permissionsInContract: Permission[]) {
-    super("Address is not signer");
+    super("Permit does not contain required the permissions");
     this.name = "PermissionNotInPermit";
     this.permission = permission;
     this.permissionsInContract = permissionsInContract;
   }
 }
 
-export type Permission = "owner" | "history" | "balance" | "Allowance";
+export type Permission = "owner" | "history" | "balance" | "allowance";
 
 export interface StdSignature {
   readonly pub_key: PubKey;
