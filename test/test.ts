@@ -64,25 +64,25 @@ beforeAll(async () => {
     const [{ address, pubkey }] = await wallet.getAccounts();
     const walletProto = new Wallet(wallet.mnemonic);
 
-    accounts[i] = {
-      name: String(i),
-      type: "generated for fun",
-      address: address,
-      pubkey: JSON.stringify({
-        "@type": "cosmos.crypto.secp256k1.PubKey",
-        key: toBase64(pubkey),
-      }),
-      mnemonic: wallet.mnemonic,
-      walletAmino: wallet,
-      walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
-        wallet: wallet,
-        walletAddress: address,
-        chainId: "secretdev-1",
-      }),
-    };
-  }
+      accounts[i] = {
+        name: String(i),
+        type: "generated for fun",
+        address: address,
+        pubkey: JSON.stringify({
+          "@type": "cosmos.crypto.secp256k1.PubKey",
+          key: toBase64(pubkey),
+        }),
+        mnemonic: wallet.mnemonic,
+        walletAmino: wallet,
+        walletProto: walletProto,
+        secretjs: await SecretNetworkClient.create({
+          grpcWebUrl: "http://localhost:9091",
+          chainId: "secretdev-1",
+          wallet: wallet,
+          walletAddress: address,
+        }),
+      };
+    }
 
   // expect(accounts.length).toBe(20);
 
