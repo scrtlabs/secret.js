@@ -1,208 +1,68 @@
 import { fromUtf8, toBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
-import util from "util";
 import {
   BaseAccount,
   BondStatus,
+  gasToFee,
   MsgExecuteContract,
   Proposal,
   ProposalStatus,
   ProposalType,
   SecretNetworkClient,
+  Tx,
   VoteOption,
   Wallet,
 } from "../src";
-import { gasToFee } from "../src/secret_network_client";
+import {
+  Account,
+  exec,
+  getBalance,
+  getMnemonicRegexForAccountName,
+  getValueFromRawLog,
+  secretcliInit,
+  secretcliStore,
+} from "./utils";
 import { AminoWallet } from "../src/wallet_amino";
 
-const exec = util.promisify(require("child_process").exec);
-
-type Account = {
-  name: string;
-  type: string;
-  address: string;
-  pubkey: string;
-  mnemonic: string;
-  walletAmino: AminoWallet;
-  walletProto: Wallet;
-  secretjs: SecretNetworkClient;
-};
-
-const accounts: Account[] = [];
-
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getMnemonicRegexForAccountName(account: string) {
-  return new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
-}
-
-function getValueFromRawLog(rawLog: string | undefined, key: string): string {
-  if (!rawLog) {
-    return "";
-  }
-
-  for (const l of JSON.parse(rawLog)) {
-    for (const e of l.events) {
-      for (const a of e.attributes) {
-        if (`${e.type}.${a.key}` === key) {
-          return String(a.value);
-        }
-      }
-    }
-  }
-
-  return "";
-}
-
-async function waitForTx(txhash: string): Promise<any> {
-  while (true) {
-    try {
-      const { stdout } = await exec(
-        `docker exec -i secretjs-testnet secretd q tx ${txhash}`,
-      );
-
-      if (Number(JSON.parse(stdout)?.code) === 0) {
-        return JSON.parse(stdout);
-      }
-    } catch (error) {
-      // console.error("q tx:", error);
-    }
-
-    await sleep(1000);
-  }
-}
-
-async function secretcliStore(
-  wasmPath: string,
-  account: Account,
-): Promise<number> {
-  const { stdout: cp_wasm, stderr } = await exec(
-    `docker cp "${wasmPath}" secretjs-testnet:/wasm-file`,
-  );
-
-  const { stdout: secretcli_store } = await exec(
-    `docker exec -i secretjs-testnet secretd tx compute store /wasm-file --from "${account.name}" --gas 10000000 -y`,
-  );
-  const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
-
-  const tx = await waitForTx(txhash);
-
-  return Number(
-    tx.logs[0].events[0].attributes.find(
-      (a: { key: string; value: string }) => a.key === "code_id",
-    ).value,
-  );
-}
-
-async function secretcliInit(
-  codeId: number,
-  initMsg: object,
-  label: string,
-  account: Account,
-): Promise<string> {
-  const { stdout: secretcli_store } = await exec(
-    `docker exec -i secretjs-testnet secretd tx compute instantiate ${codeId} '${JSON.stringify(
-      initMsg,
-    )}' --label "${label}" --from "${account.name}" --gas 500000 -y`,
-  );
-  const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
-
-  const tx = await waitForTx(txhash);
-
-  return String(
-    tx.logs[0].events[0].attributes.find(
-      (a: { key: string; value: string }) => a.key === "contract_address",
-    ).value,
-  );
-}
-
-async function getBalance(
-  secretjs: SecretNetworkClient,
-  address: string,
-): Promise<bigint> {
-  const response = await secretjs.query.bank.balance({
-    address,
-    denom: "uscrt",
-  });
-
-  if (response.balance) {
-    return BigInt(response.balance.amount);
-  } else {
-    return BigInt(0);
-  }
-}
+// @ts-ignore
+let accounts: Account[];
 
 beforeAll(async () => {
-  try {
-    // init testnet
-    console.log("Setting up a local testnet...");
-    await exec("docker rm -f secretjs-testnet || true");
-    const { /* stdout, */ stderr } = await exec(
-      "docker run -it -d -p 9091:9091 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
-    );
-    // console.log("stdout (testnet container id?):", stdout);
-    if (stderr) {
-      console.error("stderr:", stderr);
-    }
+  // @ts-ignore
+  accounts = global.__SCRT_TEST_ACCOUNTS__;
 
-    // Wait for the network to start (i.e. block number >= 1)
-    console.log("Waiting for the network to start...");
-
-    const timeout = Date.now() + 30_000;
-    while (true) {
-      expect(Date.now()).toBeLessThan(timeout);
-
-      const secretjs = await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
-        chainId: "secretdev-1",
-      });
-
-      try {
-        const { block } = await secretjs.query.tendermint.getLatestBlock({});
-
-        if (Number(block?.header?.height) >= 1) {
-          break;
-        }
-      } catch (e) {
-        // console.error(e);
-      }
-      await sleep(250);
-    }
-
-    // Extract genesis accounts from logs
-    const accountIdToName = ["a", "b", "c", "d"];
-    const { stdout: dockerLogsStdout } = await exec(
-      "docker logs secretjs-testnet",
-    );
-    const logs = String(dockerLogsStdout);
-    for (const accountId of [0, 1, 2, 3]) {
-      if (!accounts[accountId]) {
-        const match = logs.match(
-          getMnemonicRegexForAccountName(accountIdToName[accountId]),
-        );
-        if (match) {
-          const parsedAccount = JSON.parse(match[0]) as Account;
-          parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
-          parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
-          parsedAccount.secretjs = await SecretNetworkClient.create({
-            grpcWebUrl: "http://localhost:9091",
-            chainId: "secretdev-1",
-            wallet: parsedAccount.walletAmino,
-            walletAddress: parsedAccount.address,
-          });
-          accounts[accountId] = parsedAccount as Account;
-        }
+  // Extract genesis accounts from logs
+  const accountIdToName = ["a", "b", "c", "d"];
+  const { stdout: dockerLogsStdout } = await exec(
+    "docker logs secretjs-testnet",
+  );
+  const logs = String(dockerLogsStdout);
+  for (const accountId of [0, 1, 2, 3]) {
+    if (!accounts[accountId]) {
+      const match = logs.match(
+        getMnemonicRegexForAccountName(accountIdToName[accountId]),
+      );
+      if (match) {
+        const parsedAccount = JSON.parse(match[0]) as Account;
+        parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
+        parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
+        parsedAccount.secretjs = await SecretNetworkClient.create({
+          grpcWebUrl: "http://localhost:9091",
+          wallet: parsedAccount.walletAmino,
+          walletAddress: parsedAccount.address,
+          chainId: "secretdev-1",
+        });
+        accounts[accountId] = parsedAccount as Account;
       }
     }
+  }
 
-    // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
-    for (let i = 4; i <= 19; i++) {
-      const wallet = new AminoWallet();
-      const [{ address, pubkey }] = await wallet.getAccounts();
-      const walletProto = new Wallet(wallet.mnemonic);
+  // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
+  for (let i = 4; i <= 19; i++) {
+    const wallet = new AminoWallet();
+    const [{ address, pubkey }] = await wallet.getAccounts();
+    const walletProto = new Wallet(wallet.mnemonic);
 
       accounts[i] = {
         name: String(i),
@@ -224,13 +84,15 @@ beforeAll(async () => {
       };
     }
 
-    expect(accounts.length).toBe(20);
+  // expect(accounts.length).toBe(20);
 
-    // Send 100k SCRT from account 0 to each of accounts 1-19
+  // Send 100k SCRT from account 0 to each of accounts 1-19
 
-    const { secretjs } = accounts[0];
+  const { secretjs } = accounts[0];
 
-    const tx = await secretjs.tx.bank.multiSend(
+  let tx: Tx;
+  try {
+    tx = await secretjs.tx.bank.multiSend(
       {
         inputs: [
           {
@@ -247,39 +109,33 @@ beforeAll(async () => {
         gasLimit: 200_000,
       },
     );
-
-    expect(tx.code).toBe(0);
-
-    for (let accountId = 0; accountId < 20; accountId++) {
-      console.log(
-        `account[${accountId}]:\n${JSON.stringify(
-          {
-            ...accounts[accountId],
-            walletAmino: undefined, // don't flood the screen with wallet object internals
-            walletProto: undefined, // don't flood the screen with wallet object internals
-            secretjs: undefined, // don't flood the screen with secretjs object internals
-          },
-          null,
-          2,
-        )}`,
-      );
-    }
   } catch (e) {
-    console.error("Setup failed:", e);
+    throw new Error(`Failed to multisend: ${e.stack}`);
   }
-}, 45_000);
 
-afterAll(async () => {
-  try {
-    console.log("Tearing down local testnet...");
-    const { stdout, stderr } = await exec("docker rm -f secretjs-testnet");
-    // console.log("stdout (testnet container name?):", stdout);
-    if (stderr) {
-      console.error("stderr:", stderr);
-    }
-  } catch (e) {
-    console.error("Teardown failed:", e);
+  if (tx.code !== 0) {
+    console.error(`failed to multisend coins`);
+    throw new Error("Failed to multisend coins to initial accounts");
   }
+
+  for (let accountId = 0; accountId < 20; accountId++) {
+    console.log(
+      `account[${accountId}]:\n${JSON.stringify(
+        {
+          ...accounts[accountId],
+          walletAmino: undefined, // don't flood the screen with wallet object internals
+          walletProto: undefined, // don't flood the screen with wallet object internals
+          secretjs: undefined, // don't flood the screen with secretjs object internals
+        },
+        null,
+        2,
+      )}`,
+    );
+  }
+
+  // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
+  // @ts-ignore
+  // global.__SCRT_TEST_ACCOUNTS__ = accounts;
 });
 
 describe("query.auth", () => {

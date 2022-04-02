@@ -35,6 +35,7 @@ import {
   MsgSendParams,
   MsgSetWithdrawAddress,
   MsgSetWithdrawAddressParams,
+  MsgSnip20SetViewingKey,
   MsgStoreCode,
   MsgStoreCodeParams,
   MsgSubmitEvidence,
@@ -59,9 +60,9 @@ import {
   MsgWithdrawValidatorCommissionParams,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
-import { AuthQuerier } from "./query/auth";
-import { ComputeQuerier } from "./query/compute";
-import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx/types";
+import { AuthQuerier } from "./query";
+import { ComputeQuerier } from "./query";
+import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
 import {
   AccountData,
   AminoSigner,
@@ -73,6 +74,31 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import {
+  MsgSnip20DecreaseAllowance,
+  MsgSnip20IncreaseAllowance,
+  MsgSnip20Send,
+  MsgSnip20Transfer,
+  Snip20Querier,
+} from "./extensions/snip20";
+import {
+  Snip20DecreaseAllowanceOptions,
+  Snip20IncreaseAllowanceOptions,
+  Snip20SendOptions,
+  Snip20TransferOptions,
+} from "./extensions/snip20/types";
+import { MsgSnip721Send } from "./extensions/snip721";
+import { Snip721SendOptions } from "./extensions/snip721/types";
+import { Snip721Querier } from "./extensions/snip721";
+import {
+  MsgCreateViewingKey,
+  MsgSetViewingKey,
+} from "./extensions/access_control/viewing_key/msgs";
+import {
+  CreateViewingKeyContractParams,
+  SetViewingKeyContractParams,
+} from "./extensions/access_control/viewing_key/params";
+import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -214,6 +240,8 @@ export type Querier = {
   staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").Query;
   tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").Service;
   upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").Query;
+  snip20: Snip20Querier;
+  snip721: Snip721Querier;
 };
 
 export type ArrayLog = Array<{
@@ -346,6 +374,59 @@ export type TxSender = {
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
+  snip721: {
+    send: (
+      params: MsgExecuteContractParams<Snip721SendOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    setViewingKey: (
+      params: SetViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    createViewingKey: (
+      params: CreateViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+  };
+
+  snip20: {
+    //Send
+    //Transfer
+    //getTransferHistory
+    //getAllowance
+    //getMinters
+    send: (
+      params: MsgExecuteContractParams<Snip20SendOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    transfer: (
+      params: MsgExecuteContractParams<Snip20TransferOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+    increaseAllowance: (
+      params: MsgExecuteContractParams<Snip20IncreaseAllowanceOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    decreaseAllowance: (
+      params: MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    setViewingKey: (
+      params: SetViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+
+    createViewingKey: (
+      params: CreateViewingKeyContractParams,
+      txOptions?: TxOptions,
+    ) => Promise<Tx>;
+  };
+
   authz: {
     /**
      * MsgExec attempts to execute the provided messages using
@@ -376,7 +457,7 @@ export type TxSender = {
   compute: {
     /** Execute a function on a contract */
     executeContract: (
-      params: MsgExecuteContractParams,
+      params: MsgExecuteContractParams<object>,
       txOptions?: TxOptions,
     ) => Promise<Tx>;
     /** Instantiate a contract from code id */
@@ -522,7 +603,10 @@ export class SecretNetworkClient {
   private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
   private readonly wallet: Signer;
   private readonly chainId: string;
+
   private encryptionUtils: EncryptionUtils;
+
+  public utils: { accessControl: { permit: PermitSigner } };
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
   public static async create(
@@ -562,7 +646,9 @@ export class SecretNetworkClient {
       bank: new (
         await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
       ).QueryClientImpl(grpcWeb),
-      compute: new ComputeQuerier(grpcWeb), // stub until we can set this in the constructor with a shared EncryptionUtils
+      compute: new ComputeQuerier(grpcWeb),
+      snip20: new Snip20Querier(grpcWeb),
+      snip721: new Snip721Querier(grpcWeb),
       distribution: new (
         await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
       ).QueryClientImpl(grpcWeb),
@@ -631,6 +717,8 @@ export class SecretNetworkClient {
     this.address = options.walletAddress ?? "";
     this.chainId = options.chainId;
 
+    this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
+
     const doMsg = (msgClass: any) => {
       return (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
@@ -639,6 +727,21 @@ export class SecretNetworkClient {
 
     this.tx = {
       broadcast: this.signAndBroadcast.bind(this),
+
+      snip20: {
+        send: doMsg(MsgSnip20Send),
+        transfer: doMsg(MsgSnip20Transfer),
+        increaseAllowance: doMsg(MsgSnip20IncreaseAllowance),
+        decreaseAllowance: doMsg(MsgSnip20DecreaseAllowance),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
+      },
+
+      snip721: {
+        send: doMsg(MsgSnip721Send),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
+      },
 
       authz: {
         exec: doMsg(MsgExec),

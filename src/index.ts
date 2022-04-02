@@ -9,3 +9,7 @@ export {
   WalletOptions,
 } from "./wallet_amino";
 export { Wallet } from "./wallet_proto";
+
+export * from "./extensions/snip20";
+export * from "./extensions/snip721";
+export * from "./extensions/access_control";
