@@ -26,6 +26,7 @@ module.exports = async () => {
 
     const secretjs = await SecretNetworkClient.create({
       grpcWebUrl: "http://localhost:9091",
+      chainId: "secretdev-1",
     });
 
     try {
