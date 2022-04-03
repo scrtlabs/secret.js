@@ -896,12 +896,12 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 
 Used to simulate a complex transactions, which contains a list of messages, without broadcasting it to the chain. Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
 
-The input should be exactly how you'd use it in `secretjs.tx.broadcast()`.
+The input should be exactly how you'd use it in `secretjs.tx.broadcast()`, except that you don't have to pass in `gasLimit`, `gasPriceInFeeDenom` & `feeDenom`.
 
-Caveates:
+Notes:
 
-1. Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
-2. Simulation is not available for `MsgInstantiate`, `MsgExecute` & `MsgStore`.
+- On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
+- Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
 
 ```ts
 const sendToAlice = new MsgSend({
@@ -916,13 +916,11 @@ const sendToEve = new MsgSend({
   amount: [{ denom: "uscrt", amount: "1" }],
 });
 
-const sim = await secretjs.tx.simulate([sendToAlice, sendToEve], {
-  gasLimit: 100_000,
-});
+const sim = await secretjs.tx.simulate([sendToAlice, sendToEve]);
 
 const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
-  // Adjust gasLimit up by 15% to account for gas estimation error
-  gasLimit: Math.ceil(sim.gasInfo.gasUsed * 1.15),
+  // Adjust gasLimit up by 10% to account for gas estimation error
+  gasLimit: Math.ceil(sim.gasInfo.gasUsed * 1.1),
 });
 ```
 
