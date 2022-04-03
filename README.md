@@ -894,7 +894,7 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 
 #### `secretjs.tx.simulate()`
 
-Used to simulate a complex transactions, which contains a list of messages, without broadcasting it to the chain. Can be used to get a gas estimation or to see the output without actually commiting a transaction on-chain.
+Used to simulate a complex transactions, which contains a list of messages, without broadcasting it to the chain. Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
 
 The input should be exactly how you'd use it in `secretjs.tx.broadcast()`.
 

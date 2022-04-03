@@ -115,7 +115,7 @@ export type CreateClientOptions = {
 /**
  * MsgTx is a function that broadcasts a single message transaction.
  * It also has a `simulate()` method to execute the transaction without
- * commiting it on-chain. This is helpful for gas estimation.
+ * committing it on-chain. This is helpful for gas estimation.
  */
 export type MsgTx<T> = {
   (params: T, txOptions?: TxOptions): Promise<Tx>;
@@ -386,7 +386,7 @@ export type TxSender = {
 
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
-   * Can be used to get a gas estimation or to see the output without actually commiting a transaction on-chain.
+   * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
    * The input should be exactly how you'd use it in `broadcast`.
    */
   simulate: (
