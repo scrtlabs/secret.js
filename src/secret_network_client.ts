@@ -113,11 +113,11 @@ export type CreateClientOptions = {
 };
 
 /**
- * MsgTx is a function that broadcasts a single message transaction.
+ * SingleMsgTx is a function that broadcasts a single message transaction.
  * It also has a `simulate()` method to execute the transaction without
  * committing it on-chain. This is helpful for gas estimation.
  */
-export type MsgTx<T> = {
+export type SingleMsgTx<T> = {
   (params: T, txOptions?: TxOptions): Promise<Tx>;
   simulate(
     params: T,
@@ -397,9 +397,9 @@ export type TxSender = {
   >;
 
   snip721: {
-    send: MsgTx<MsgExecuteContractParams<Snip721SendOptions>>;
-    setViewingKey: MsgTx<SetViewingKeyContractParams>;
-    createViewingKey: MsgTx<CreateViewingKeyContractParams>;
+    send: SingleMsgTx<MsgExecuteContractParams<Snip721SendOptions>>;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
   snip20: {
@@ -408,16 +408,16 @@ export type TxSender = {
     //getTransferHistory
     //getAllowance
     //getMinters
-    send: MsgTx<MsgExecuteContractParams<Snip20SendOptions>>;
-    transfer: MsgTx<MsgExecuteContractParams<Snip20TransferOptions>>;
-    increaseAllowance: MsgTx<
+    send: SingleMsgTx<MsgExecuteContractParams<Snip20SendOptions>>;
+    transfer: SingleMsgTx<MsgExecuteContractParams<Snip20TransferOptions>>;
+    increaseAllowance: SingleMsgTx<
       MsgExecuteContractParams<Snip20IncreaseAllowanceOptions>
     >;
-    decreaseAllowance: MsgTx<
+    decreaseAllowance: SingleMsgTx<
       MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>
     >;
-    setViewingKey: MsgTx<SetViewingKeyContractParams>;
-    createViewingKey: MsgTx<CreateViewingKeyContractParams>;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
   authz: {
@@ -426,86 +426,86 @@ export type TxSender = {
      * authorizations granted to the grantee. Each message should have only
      * one signer corresponding to the granter of the authorization.
      */
-    exec: MsgTx<MsgExecParams>;
+    exec: SingleMsgTx<MsgExecParams>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
      * on behalf of the granter with the provided expiration time.
      */
-    grant: MsgTx<MsgGrantParams>;
+    grant: SingleMsgTx<MsgGrantParams>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
      * granter's account with that has been granted to the grantee.
      */
-    revoke: MsgTx<MsgRevokeParams>;
+    revoke: SingleMsgTx<MsgRevokeParams>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
-    multiSend: MsgTx<MsgMultiSendParams>;
+    multiSend: SingleMsgTx<MsgMultiSendParams>;
     /** MsgSend represents a message to send coins from one account to another. */
-    send: MsgTx<MsgSendParams>;
+    send: SingleMsgTx<MsgSendParams>;
   };
   compute: {
     /** Execute a function on a contract */
-    executeContract: MsgTx<MsgExecuteContractParams<object>>;
+    executeContract: SingleMsgTx<MsgExecuteContractParams<object>>;
     /** Instantiate a contract from code id */
-    instantiateContract: MsgTx<MsgInstantiateContractParams>;
+    instantiateContract: SingleMsgTx<MsgInstantiateContractParams>;
     /** Upload a compiled contract to Secret Network */
-    storeCode: MsgTx<MsgStoreCodeParams>;
+    storeCode: SingleMsgTx<MsgStoreCodeParams>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
-    verifyInvariant: MsgTx<MsgVerifyInvariantParams>;
+    verifyInvariant: SingleMsgTx<MsgVerifyInvariantParams>;
   };
   distribution: {
     /**
      * MsgFundCommunityPool allows an account to directly
      * fund the community pool.
      */
-    fundCommunityPool: MsgTx<MsgFundCommunityPoolParams>;
+    fundCommunityPool: SingleMsgTx<MsgFundCommunityPoolParams>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
      * a delegator (or validator self-delegation).
      */
-    setWithdrawAddress: MsgTx<MsgSetWithdrawAddressParams>;
+    setWithdrawAddress: SingleMsgTx<MsgSetWithdrawAddressParams>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
      * from a single validator.
      */
-    withdrawDelegatorReward: MsgTx<MsgWithdrawDelegatorRewardParams>;
+    withdrawDelegatorReward: SingleMsgTx<MsgWithdrawDelegatorRewardParams>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
      * address.
      */
-    withdrawValidatorCommission: MsgTx<MsgWithdrawValidatorCommissionParams>;
+    withdrawValidatorCommission: SingleMsgTx<MsgWithdrawValidatorCommissionParams>;
   };
   evidence: {
     /**
      * MsgSubmitEvidence represents a message that supports submitting arbitrary
      * Evidence of misbehavior such as equivocation or counterfactual signing.
      */
-    submitEvidence: MsgTx<MsgSubmitEvidenceParams>;
+    submitEvidence: SingleMsgTx<MsgSubmitEvidenceParams>;
   };
   feegrant: {
     /**
      * MsgGrantAllowance adds permission for Grantee to spend up to Allowance
      * of fees from the account of Granter.
      */
-    grantAllowance: MsgTx<MsgGrantAllowanceParams>;
+    grantAllowance: SingleMsgTx<MsgGrantAllowanceParams>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
-    revokeAllowance: MsgTx<MsgRevokeAllowanceParams>;
+    revokeAllowance: SingleMsgTx<MsgRevokeAllowanceParams>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
-    deposit: MsgTx<MsgDepositParams>;
+    deposit: SingleMsgTx<MsgDepositParams>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
      * proposal Content.
      */
-    submitProposal: MsgTx<MsgSubmitProposalParams>;
+    submitProposal: SingleMsgTx<MsgSubmitProposalParams>;
     /** MsgVote defines a message to cast a vote. */
-    vote: MsgTx<MsgVoteParams>;
+    vote: SingleMsgTx<MsgVoteParams>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
-    voteWeighted: MsgTx<MsgVoteWeightedParams>;
+    voteWeighted: SingleMsgTx<MsgVoteWeightedParams>;
   };
   ibc: {
     /**
@@ -513,23 +513,23 @@ export type TxSender = {
      * ICS20 enabled chains. See ICS Spec here:
      * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
      */
-    transfer: MsgTx<MsgTransferParams>;
+    transfer: SingleMsgTx<MsgTransferParams>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
-    unjail: MsgTx<MsgUnjailParams>;
+    unjail: SingleMsgTx<MsgUnjailParams>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-    beginRedelegate: MsgTx<MsgBeginRedelegateParams>;
+    beginRedelegate: SingleMsgTx<MsgBeginRedelegateParams>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
-    createValidator: MsgTx<MsgCreateValidatorParams>;
+    createValidator: SingleMsgTx<MsgCreateValidatorParams>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
-    delegate: MsgTx<MsgDelegateParams>;
+    delegate: SingleMsgTx<MsgDelegateParams>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
-    editValidator: MsgTx<MsgEditValidatorParams>;
+    editValidator: SingleMsgTx<MsgEditValidatorParams>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
-    undelegate: MsgTx<MsgUndelegateParams>;
+    undelegate: SingleMsgTx<MsgUndelegateParams>;
   };
 };
 
@@ -659,7 +659,7 @@ export class SecretNetworkClient {
     this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
 
     // TODO fix this any
-    const doMsg = (msgClass: any): MsgTx<any> => {
+    const doMsg = (msgClass: any): SingleMsgTx<any> => {
       const func = (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
       };
