@@ -900,7 +900,7 @@ The input should be exactly how you'd use it in `secretjs.tx.broadcast()`, excep
 
 Notes:
 
-- On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
+- :warning: On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
 - Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
 
 ```ts
