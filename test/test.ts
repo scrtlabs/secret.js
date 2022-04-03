@@ -14,6 +14,7 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
@@ -23,7 +24,6 @@ import {
   secretcliInit,
   secretcliStore,
 } from "./utils";
-import { AminoWallet } from "../src/wallet_amino";
 
 // @ts-ignore
 let accounts: Account[];
@@ -64,25 +64,25 @@ beforeAll(async () => {
     const [{ address, pubkey }] = await wallet.getAccounts();
     const walletProto = new Wallet(wallet.mnemonic);
 
-      accounts[i] = {
-        name: String(i),
-        type: "generated for fun",
-        address: address,
-        pubkey: JSON.stringify({
-          "@type": "cosmos.crypto.secp256k1.PubKey",
-          key: toBase64(pubkey),
-        }),
-        mnemonic: wallet.mnemonic,
-        walletAmino: wallet,
-        walletProto: walletProto,
-        secretjs: await SecretNetworkClient.create({
-          grpcWebUrl: "http://localhost:9091",
-          chainId: "secretdev-1",
-          wallet: wallet,
-          walletAddress: address,
-        }),
-      };
-    }
+    accounts[i] = {
+      name: String(i),
+      type: "generated for fun",
+      address: address,
+      pubkey: JSON.stringify({
+        "@type": "cosmos.crypto.secp256k1.PubKey",
+        key: toBase64(pubkey),
+      }),
+      mnemonic: wallet.mnemonic,
+      walletAmino: wallet,
+      walletProto: walletProto,
+      secretjs: await SecretNetworkClient.create({
+        grpcWebUrl: "http://localhost:9091",
+        chainId: "secretdev-1",
+        wallet: wallet,
+        walletAddress: address,
+      }),
+    };
+  }
 
   // expect(accounts.length).toBe(20);
 
@@ -345,7 +345,18 @@ describe("tx.bank", () => {
     const aBefore = await getBalance(secretjs, accounts[0].address);
     const cBefore = await getBalance(secretjs, accounts[2].address);
 
-    const gasLimit = 20_000;
+    const sim = await secretjs.tx.bank.send.simulate(
+      {
+        fromAddress: accounts[0].address,
+        toAddress: accounts[2].address,
+        amount: [{ denom: "uscrt", amount: "1" }],
+      },
+      {
+        gasLimit: 20_000,
+      },
+    );
+
+    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.15);
 
     const tx = await secretjs.tx.bank.send(
       {
