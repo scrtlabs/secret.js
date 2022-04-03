@@ -892,11 +892,47 @@ const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
 });
 ```
 
+#### `secretjs.tx.simulate()`
+
+Used to simulate a complex transactions, which contains a list of messages, without broadcasting it to the chain. Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
+
+The input should be exactly how you'd use it in `secretjs.tx.broadcast()`, except that you don't have to pass in `gasLimit`, `gasPriceInFeeDenom` & `feeDenom`.
+
+Notes:
+
+- On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
+- Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
+
+```ts
+const sendToAlice = new MsgSend({
+  fromAddress: bob,
+  toAddress: alice,
+  amount: [{ denom: "uscrt", amount: "1" }],
+});
+
+const sendToEve = new MsgSend({
+  fromAddress: bob,
+  toAddress: eve,
+  amount: [{ denom: "uscrt", amount: "1" }],
+});
+
+const sim = await secretjs.tx.simulate([sendToAlice, sendToEve]);
+
+const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
+  // Adjust gasLimit up by 10% to account for gas estimation error
+  gasLimit: Math.ceil(sim.gasInfo.gasUsed * 1.1),
+});
+```
+
 #### `secretjs.tx.authz.exec()`
 
 MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
 
 Input: [MsgExecParams](https://secretjs.scrt.network/interfaces/MsgExecParams)
+
+##### `secretjs.tx.authz.exec.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.authz.grant()`
 
@@ -904,11 +940,19 @@ MsgGrant is a request type for Grant method. It declares authorization to the gr
 
 Input: [MsgGrantParams](https://secretjs.scrt.network/interfaces/MsgGrantParams)
 
+##### `secretjs.tx.authz.grant.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.authz.revoke()`
 
 MsgRevoke revokes any authorization with the provided sdk.Msg type on the granter's account with that has been granted to the grantee.
 
 Input: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParams)
+
+##### `secretjs.tx.authz.revoke.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.bank.multiSend()`
 
@@ -942,6 +986,10 @@ const tx = await secretjs.tx.bank.multiSend(
 );
 ```
 
+    ##### `secretjs.tx.bank.multiSend.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.bank.send()`
 
 MsgSend represents a message to send coins from one account to another.
@@ -960,6 +1008,10 @@ const tx = await secretjs.tx.bank.send(
   },
 );
 ```
+
+##### `secretjs.tx.bank.send.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.compute.storeCode()`
 
@@ -988,11 +1040,17 @@ const codeId = Number(
 );
 ```
 
+##### `secretjs.tx.compute.storeCode.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.compute.instantiateContract()`
 
 Instantiate a contract from code id
 
-Input: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstantiateContractParams)
+Input: [MsgInstantiateContractParams](https://secretjs.scrt.network/interfaces/MsgInstanti
+
+ateContractParams)
 
 ```ts
 const tx = await secretjs.tx.compute.instantiateContract(
@@ -1029,6 +1087,10 @@ const contractAddress = tx.arrayLog.find(
 ).value;
 ```
 
+##### `secretjs.tx.compute.instantiateContract.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.compute.executeContract()`
 
 Execute a function on a contract
@@ -1055,11 +1117,19 @@ const tx = await secretjs.tx.compute.executeContract(
 );
 ```
 
+##### `secretjs.tx.compute.executeContract.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.crisis.verifyInvariant()`
 
 MsgVerifyInvariant represents a message to verify a particular invariance.
 
 Input: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
+
+##### `secretjs.tx.crisis.verifyInvariant.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.distribution.fundCommunityPool()`
 
@@ -1079,6 +1149,10 @@ const tx = await secretjs.tx.distribution.fundCommunityPool(
 );
 ```
 
+##### `secretjs.tx.distribution.fundCommunityPool.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.distribution.setWithdrawAddress()`
 
 MsgSetWithdrawAddress sets the withdraw address for a delegator (or validator self-delegation).
@@ -1097,11 +1171,17 @@ const tx = await secretjs.tx.distribution.setWithdrawAddress(
 );
 ```
 
+##### `secretjs.tx.distribution.setWithdrawAddress.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.distribution.withdrawDelegatorReward()`
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
-Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
+Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
+
+DelegatorRewardParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
@@ -1115,11 +1195,17 @@ const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
 );
 ```
 
+##### `secretjs.tx.distribution.withdrawDelegatorReward.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.distribution.withdrawValidatorCommission()`
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
-Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
+Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
+
+ValidatorCommissionParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
@@ -1151,11 +1237,19 @@ const tx = await secretjs.tx.broadcast(
 );
 ```
 
+##### `secretjs.tx.distribution.withdrawValidatorCommission.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.evidence.submitEvidence()`
 
 MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
 
 Input: [MsgSubmitEvidenceParams](https://secretjs.scrt.network/interfaces/MsgSubmitEvidenceParams)
+
+##### `secretjs.tx.evidence.submitEvidence.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.feegrant.grantAllowance()`
 
@@ -1163,11 +1257,19 @@ MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees f
 
 Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
+##### `secretjs.tx.feegrant.grantAllowance.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.feegrant.revokeAllowance()`
 
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+
+##### `secretjs.tx.feegrant.revokeAllowance.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.gov.deposit()`
 
@@ -1187,6 +1289,10 @@ const tx = await secretjs.tx.gov.deposit(
   },
 );
 ```
+
+##### `secretjs.tx.gov.deposit.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.gov.submitProposal()`
 
@@ -1217,6 +1323,10 @@ const proposalId = Number(
 );
 ```
 
+##### `secretjs.tx.gov.submitProposal.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.gov.vote()`
 
 MsgVote defines a message to cast a vote.
@@ -1235,6 +1345,10 @@ const tx = await secretjs.tx.gov.vote(
   },
 );
 ```
+
+##### `secretjs.tx.gov.vote.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.gov.voteWeighted()`
 
@@ -1260,11 +1374,19 @@ const tx = await secretjs.tx.gov.voteWeighted(
 );
 ```
 
+##### `secretjs.tx.gov.voteWeighted.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.ibc.transfer()`
 
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
 
 Input: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferParams)
+
+##### `secretjs.tx.ibc.transfer.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.slashing.unjail()`
 
@@ -1282,6 +1404,10 @@ const tx = await secretjs.tx.slashing.unjail(
   },
 );
 ```
+
+##### `secretjs.tx.slashing.unjail.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.staking.beginRedelegate()`
 
@@ -1302,6 +1428,10 @@ const tx = await secretjs.tx.staking.beginRedelegate(
   },
 );
 ```
+
+##### `secretjs.tx.staking.beginRedelegate.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.staking.createValidator()`
 
@@ -1335,6 +1465,10 @@ const tx = await secretjs.tx.staking.createValidator(
 );
 ```
 
+##### `secretjs.tx.staking.createValidator.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.staking.delegate()`
 
 MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator.
@@ -1353,6 +1487,10 @@ const tx = await secretjs.tx.staking.delegate(
   },
 );
 ```
+
+##### `secretjs.tx.staking.delegate.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
 #### `secretjs.tx.staking.editValidator()`
 
@@ -1381,6 +1519,10 @@ const tx = await secretjs.tx.staking.editValidator(
 );
 ```
 
+##### `secretjs.tx.staking.editValidator.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
 #### `secretjs.tx.staking.undelegate()`
 
 MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator
@@ -1399,3 +1541,7 @@ const tx = await secretjs.tx.staking.undelegate(
   },
 );
 ```
+
+##### `secretjs.tx.staking.undelegate.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).

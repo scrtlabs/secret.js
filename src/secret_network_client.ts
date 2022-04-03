@@ -35,7 +35,6 @@ import {
   MsgSendParams,
   MsgSetWithdrawAddress,
   MsgSetWithdrawAddressParams,
-  MsgSnip20SetViewingKey,
   MsgStoreCode,
   MsgStoreCodeParams,
   MsgSubmitEvidence,
@@ -60,20 +59,15 @@ import {
   MsgWithdrawValidatorCommissionParams,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
-import { AuthQuerier } from "./query";
-import { ComputeQuerier } from "./query";
-import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
+import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 import {
-  AccountData,
-  AminoSigner,
-  AminoSignResponse,
-  encodeSecp256k1Pubkey,
-  isOfflineDirectSigner,
-  Pubkey,
-  Signer,
-  StdFee,
-  StdSignDoc,
-} from "./wallet_amino";
+  MsgCreateViewingKey,
+  MsgSetViewingKey,
+} from "./extensions/access_control/viewing_key/msgs";
+import {
+  CreateViewingKeyContractParams,
+  SetViewingKeyContractParams,
+} from "./extensions/access_control/viewing_key/params";
 import {
   MsgSnip20DecreaseAllowance,
   MsgSnip20IncreaseAllowance,
@@ -87,18 +81,21 @@ import {
   Snip20SendOptions,
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
-import { MsgSnip721Send } from "./extensions/snip721";
+import { MsgSnip721Send, Snip721Querier } from "./extensions/snip721";
 import { Snip721SendOptions } from "./extensions/snip721/types";
-import { Snip721Querier } from "./extensions/snip721";
+import { AuthQuerier, ComputeQuerier } from "./query";
+import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
 import {
-  MsgCreateViewingKey,
-  MsgSetViewingKey,
-} from "./extensions/access_control/viewing_key/msgs";
-import {
-  CreateViewingKeyContractParams,
-  SetViewingKeyContractParams,
-} from "./extensions/access_control/viewing_key/params";
-import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
+  AccountData,
+  AminoSigner,
+  AminoSignResponse,
+  encodeSecp256k1Pubkey,
+  isOfflineDirectSigner,
+  Pubkey,
+  Signer,
+  StdFee,
+  StdSignDoc,
+} from "./wallet_amino";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -113,6 +110,21 @@ export type CreateClientOptions = {
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
   encryptionUtils?: EncryptionUtils;
+};
+
+/**
+ * SingleMsgTx is a function that broadcasts a single message transaction.
+ * It also has a `simulate()` method to execute the transaction without
+ * committing it on-chain. This is helpful for gas estimation.
+ */
+export type SingleMsgTx<T> = {
+  (params: T, txOptions?: TxOptions): Promise<Tx>;
+  simulate(
+    params: T,
+    txOptions?: TxOptions,
+  ): Promise<
+    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
+  >;
 };
 
 export enum BroadcastMode {
@@ -369,26 +381,25 @@ export type TxSender = {
    *   - staking         {@link MsgDelegate}
    *   - staking         {@link MsgEditValidator}
    *   - staking         {@link MsgUndelegate}
-   *
-   *
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
 
+  /**
+   * Simulates a transaction on the node without broadcasting it to the chain.
+   * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
+   * The input should be exactly how you'd use it in `broadcast`.
+   */
+  simulate: (
+    messages: Msg[],
+    txOptions?: TxOptions,
+  ) => Promise<
+    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
+  >;
+
   snip721: {
-    send: (
-      params: MsgExecuteContractParams<Snip721SendOptions>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    setViewingKey: (
-      params: SetViewingKeyContractParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    createViewingKey: (
-      params: CreateViewingKeyContractParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    send: SingleMsgTx<MsgExecuteContractParams<Snip721SendOptions>>;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
   snip20: {
@@ -397,34 +408,16 @@ export type TxSender = {
     //getTransferHistory
     //getAllowance
     //getMinters
-    send: (
-      params: MsgExecuteContractParams<Snip20SendOptions>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    transfer: (
-      params: MsgExecuteContractParams<Snip20TransferOptions>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-    increaseAllowance: (
-      params: MsgExecuteContractParams<Snip20IncreaseAllowanceOptions>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    decreaseAllowance: (
-      params: MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    setViewingKey: (
-      params: SetViewingKeyContractParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
-
-    createViewingKey: (
-      params: CreateViewingKeyContractParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    send: SingleMsgTx<MsgExecuteContractParams<Snip20SendOptions>>;
+    transfer: SingleMsgTx<MsgExecuteContractParams<Snip20TransferOptions>>;
+    increaseAllowance: SingleMsgTx<
+      MsgExecuteContractParams<Snip20IncreaseAllowanceOptions>
+    >;
+    decreaseAllowance: SingleMsgTx<
+      MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>
+    >;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
   authz: {
@@ -433,128 +426,86 @@ export type TxSender = {
      * authorizations granted to the grantee. Each message should have only
      * one signer corresponding to the granter of the authorization.
      */
-    exec: (params: MsgExecParams, txOptions?: TxOptions) => Promise<Tx>;
+    exec: SingleMsgTx<MsgExecParams>;
     /**
      * MsgGrant is a request type for Grant method. It declares authorization to the grantee
      * on behalf of the granter with the provided expiration time.
      */
-    grant: (params: MsgGrantParams, txOptions?: TxOptions) => Promise<Tx>;
+    grant: SingleMsgTx<MsgGrantParams>;
     /**
      * MsgRevoke revokes any authorization with the provided sdk.Msg type on the
      * granter's account with that has been granted to the grantee.
      */
-    revoke: (params: MsgRevokeParams, txOptions?: TxOptions) => Promise<Tx>;
+    revoke: SingleMsgTx<MsgRevokeParams>;
   };
   bank: {
     /** MsgMultiSend represents an arbitrary multi-in, multi-out send message. */
-    multiSend: (
-      params: MsgMultiSendParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    multiSend: SingleMsgTx<MsgMultiSendParams>;
     /** MsgSend represents a message to send coins from one account to another. */
-    send: (params: MsgSendParams, txOptions?: TxOptions) => Promise<Tx>;
+    send: SingleMsgTx<MsgSendParams>;
   };
   compute: {
     /** Execute a function on a contract */
-    executeContract: (
-      params: MsgExecuteContractParams<object>,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    executeContract: SingleMsgTx<MsgExecuteContractParams<object>>;
     /** Instantiate a contract from code id */
-    instantiateContract: (
-      params: MsgInstantiateContractParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    instantiateContract: SingleMsgTx<MsgInstantiateContractParams>;
     /** Upload a compiled contract to Secret Network */
-    storeCode: (
-      params: MsgStoreCodeParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    storeCode: SingleMsgTx<MsgStoreCodeParams>;
   };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
-    verifyInvariant: (
-      params: MsgVerifyInvariantParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    verifyInvariant: SingleMsgTx<MsgVerifyInvariantParams>;
   };
   distribution: {
     /**
      * MsgFundCommunityPool allows an account to directly
      * fund the community pool.
      */
-    fundCommunityPool: (
-      params: MsgFundCommunityPoolParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    fundCommunityPool: SingleMsgTx<MsgFundCommunityPoolParams>;
     /**
      * MsgSetWithdrawAddress sets the withdraw address for
      * a delegator (or validator self-delegation).
      */
-    setWithdrawAddress: (
-      params: MsgSetWithdrawAddressParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    setWithdrawAddress: SingleMsgTx<MsgSetWithdrawAddressParams>;
     /**
      * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
      * from a single validator.
      */
-    withdrawDelegatorReward: (
-      params: MsgWithdrawDelegatorRewardParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    withdrawDelegatorReward: SingleMsgTx<MsgWithdrawDelegatorRewardParams>;
     /**
      * MsgWithdrawValidatorCommission withdraws the full commission to the validator
      * address.
      */
-    withdrawValidatorCommission: (
-      params: MsgWithdrawValidatorCommissionParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    withdrawValidatorCommission: SingleMsgTx<MsgWithdrawValidatorCommissionParams>;
   };
   evidence: {
     /**
      * MsgSubmitEvidence represents a message that supports submitting arbitrary
      * Evidence of misbehavior such as equivocation or counterfactual signing.
      */
-    submitEvidence: (
-      params: MsgSubmitEvidenceParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    submitEvidence: SingleMsgTx<MsgSubmitEvidenceParams>;
   };
   feegrant: {
     /**
      * MsgGrantAllowance adds permission for Grantee to spend up to Allowance
      * of fees from the account of Granter.
      */
-    grantAllowance: (
-      params: MsgGrantAllowanceParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    grantAllowance: SingleMsgTx<MsgGrantAllowanceParams>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
-    revokeAllowance: (
-      params: MsgRevokeAllowanceParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    revokeAllowance: SingleMsgTx<MsgRevokeAllowanceParams>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
-    deposit: (params: MsgDepositParams, txOptions?: TxOptions) => Promise<Tx>;
+    deposit: SingleMsgTx<MsgDepositParams>;
     /**
      * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
      * proposal Content.
      */
-    submitProposal: (
-      params: MsgSubmitProposalParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    submitProposal: SingleMsgTx<MsgSubmitProposalParams>;
     /** MsgVote defines a message to cast a vote. */
-    vote: (params: MsgVoteParams, txOptions?: TxOptions) => Promise<Tx>;
+    vote: SingleMsgTx<MsgVoteParams>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
-    voteWeighted: (
-      params: MsgVoteWeightedParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    voteWeighted: SingleMsgTx<MsgVoteWeightedParams>;
   };
   ibc: {
     /**
@@ -562,35 +513,23 @@ export type TxSender = {
      * ICS20 enabled chains. See ICS Spec here:
      * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
      */
-    transfer: (params: MsgTransferParams, txOptions?: TxOptions) => Promise<Tx>;
+    transfer: SingleMsgTx<MsgTransferParams>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
-    unjail: (params: MsgUnjailParams, txOptions?: TxOptions) => Promise<Tx>;
+    unjail: SingleMsgTx<MsgUnjailParams>;
   };
   staking: {
     /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
-    beginRedelegate: (
-      params: MsgBeginRedelegateParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    beginRedelegate: SingleMsgTx<MsgBeginRedelegateParams>;
     /** MsgCreateValidator defines an SDK message for creating a new validator. */
-    createValidator: (
-      params: MsgCreateValidatorParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    createValidator: SingleMsgTx<MsgCreateValidatorParams>;
     /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
-    delegate: (params: MsgDelegateParams, txOptions?: TxOptions) => Promise<Tx>;
+    delegate: SingleMsgTx<MsgDelegateParams>;
     /** MsgEditValidator defines an SDK message for editing an existing validator. */
-    editValidator: (
-      params: MsgEditValidatorParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    editValidator: SingleMsgTx<MsgEditValidatorParams>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
-    undelegate: (
-      params: MsgUndelegateParams,
-      txOptions?: TxOptions,
-    ) => Promise<Tx>;
+    undelegate: SingleMsgTx<MsgUndelegateParams>;
   };
 };
 
@@ -719,14 +658,21 @@ export class SecretNetworkClient {
 
     this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
 
-    const doMsg = (msgClass: any) => {
-      return (params: MsgParams, options?: TxOptions) => {
+    // TODO fix this any
+    const doMsg = (msgClass: any): SingleMsgTx<any> => {
+      const func = (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
       };
+      func.simulate = (params: MsgParams, options?: TxOptions) => {
+        return this.tx.simulate([new msgClass(params)], options);
+      };
+
+      return func;
     };
 
     this.tx = {
       broadcast: this.signAndBroadcast.bind(this),
+      simulate: this.simulate.bind(this),
 
       snip20: {
         send: doMsg(MsgSnip20Send),
@@ -1022,19 +968,15 @@ export class SecretNetworkClient {
     }
   }
 
-  private async signAndBroadcast(
+  private async prepareAndSign(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<Tx> {
+  ): Promise<[Uint8Array, ComputeMsgToNonce]> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
     const memo = txOptions?.memo ?? "";
-    const waitForCommit = txOptions?.waitForCommit ?? true;
-    const broadcastTimeoutMs = txOptions?.broadcastTimeoutMs ?? 60_000;
-    const broadcastCheckIntervalMs =
-      txOptions?.broadcastCheckIntervalMs ?? 6_000;
-    const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
+
     const explicitSignerData = txOptions?.explicitSignerData;
 
     const [txRaw, nonces] = await this.sign(
@@ -1051,9 +993,25 @@ export class SecretNetworkClient {
       memo,
       explicitSignerData,
     );
+
     const txBytes = (
       await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
     ).TxRaw.encode(txRaw).finish();
+
+    return [txBytes, nonces];
+  }
+
+  private async signAndBroadcast(
+    messages: Msg[],
+    txOptions?: TxOptions,
+  ): Promise<Tx> {
+    const waitForCommit = txOptions?.waitForCommit ?? true;
+    const broadcastTimeoutMs = txOptions?.broadcastTimeoutMs ?? 60_000;
+    const broadcastCheckIntervalMs =
+      txOptions?.broadcastCheckIntervalMs ?? 6_000;
+    const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
+
+    const [txBytes, nonces] = await this.prepareAndSign(messages, txOptions);
 
     return this.broadcastTx(
       txBytes,
@@ -1063,6 +1021,16 @@ export class SecretNetworkClient {
       waitForCommit,
       nonces,
     );
+  }
+
+  private async simulate(
+    messages: Msg[],
+    txOptions?: TxOptions,
+  ): Promise<
+    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
+  > {
+    const [txBytes] = await this.prepareAndSign(messages, txOptions);
+    return this.txService.simulate({ txBytes });
   }
 
   /**

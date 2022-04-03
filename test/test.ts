@@ -14,6 +14,7 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
@@ -23,7 +24,6 @@ import {
   secretcliInit,
   secretcliStore,
 } from "./utils";
-import { AminoWallet } from "../src/wallet_amino";
 
 // @ts-ignore
 let accounts: Account[];
@@ -64,25 +64,25 @@ beforeAll(async () => {
     const [{ address, pubkey }] = await wallet.getAccounts();
     const walletProto = new Wallet(wallet.mnemonic);
 
-      accounts[i] = {
-        name: String(i),
-        type: "generated for fun",
-        address: address,
-        pubkey: JSON.stringify({
-          "@type": "cosmos.crypto.secp256k1.PubKey",
-          key: toBase64(pubkey),
-        }),
-        mnemonic: wallet.mnemonic,
-        walletAmino: wallet,
-        walletProto: walletProto,
-        secretjs: await SecretNetworkClient.create({
-          grpcWebUrl: "http://localhost:9091",
-          chainId: "secretdev-1",
-          wallet: wallet,
-          walletAddress: address,
-        }),
-      };
-    }
+    accounts[i] = {
+      name: String(i),
+      type: "generated for fun",
+      address: address,
+      pubkey: JSON.stringify({
+        "@type": "cosmos.crypto.secp256k1.PubKey",
+        key: toBase64(pubkey),
+      }),
+      mnemonic: wallet.mnemonic,
+      walletAmino: wallet,
+      walletProto: walletProto,
+      secretjs: await SecretNetworkClient.create({
+        grpcWebUrl: "http://localhost:9091",
+        chainId: "secretdev-1",
+        wallet: wallet,
+        walletAddress: address,
+      }),
+    };
+  }
 
   // expect(accounts.length).toBe(20);
 
@@ -345,7 +345,13 @@ describe("tx.bank", () => {
     const aBefore = await getBalance(secretjs, accounts[0].address);
     const cBefore = await getBalance(secretjs, accounts[2].address);
 
-    const gasLimit = 20_000;
+    const sim = await secretjs.tx.bank.send.simulate({
+      fromAddress: accounts[0].address,
+      toAddress: accounts[2].address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    });
+
+    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.15);
 
     const tx = await secretjs.tx.bank.send(
       {
@@ -549,22 +555,23 @@ describe("tx.compute", () => {
     });
   });
 
-  test("MsgExecuteContract", async () => {
+  test("MsgExecuteContract xyz", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
-          `${__dirname}/snip721.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        gasLimit: 5_000_000,
-      },
-    );
+    const storeInput = {
+      sender: accounts[0].address,
+      wasmByteCode: fs.readFileSync(
+        `${__dirname}/snip721.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    };
+
+    const simStore = await secretjs.tx.compute.storeCode.simulate(storeInput);
+
+    const txStore = await secretjs.tx.compute.storeCode(storeInput, {
+      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.1),
+    });
 
     expect(txStore.code).toBe(0);
 
@@ -576,29 +583,32 @@ describe("tx.compute", () => {
       codeInfo: { codeHash },
     } = await secretjs.query.compute.code(codeId);
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
-      {
-        sender: accounts[0].address,
-        codeId,
-        // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
-          name: "SecretJS NFTs",
-          symbol: "YOLO",
-          admin: accounts[0].address,
-          entropy: "a2FraS1waXBpCg==",
-          royalty_info: {
-            decimal_places_in_rates: 4,
-            royalties: [{ recipient: accounts[0].address, rate: 700 }],
-          },
-          config: { public_token_supply: true },
+    const initInput = {
+      sender: accounts[0].address,
+      codeId,
+      // codeHash, // Test MsgInstantiateContract without codeHash
+      initMsg: {
+        name: "SecretJS NFTs",
+        symbol: "YOLO",
+        admin: accounts[0].address,
+        entropy: "a2FraS1waXBpCg==",
+        royalty_info: {
+          decimal_places_in_rates: 4,
+          royalties: [{ recipient: accounts[0].address, rate: 700 }],
         },
-        label: `label-${Date.now()}`,
-        initFunds: [],
+        config: { public_token_supply: true },
       },
-      {
-        gasLimit: 5_000_000,
-      },
+      label: `label-${Date.now()}`,
+      initFunds: [],
+    };
+
+    const simInit = await secretjs.tx.compute.instantiateContract.simulate(
+      initInput,
     );
+
+    const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
+      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.1),
+    });
 
     expect(txInit.code).toBe(0);
 
@@ -639,8 +649,10 @@ describe("tx.compute", () => {
       sentFunds: [],
     });
 
+    const simExec = await secretjs.tx.simulate([addMinterMsg, mintMsg]);
+
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
-      gasLimit: 5_000_000,
+      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.1),
     });
 
     expect(tx.code).toBe(0);
