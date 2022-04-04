@@ -94,7 +94,7 @@ const {
   denom: "uscrt",
 });
 
-console.log(`I have ${amount / 1e6} SCRT!`);
+console.log(`I have ${Number(amount) / 1e6} SCRT!`);
 
 const sSCRT = "secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek";
 // Get codeHash using `secretcli q compute contract-hash secret1k0jntykt7e4g3y88ltc60czgjuqdy4c9e8fzek`
