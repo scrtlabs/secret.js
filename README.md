@@ -102,7 +102,7 @@ const sScrtCodeHash =
   "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e";
 
 const { token_info } = await secretjs.query.compute.queryContract({
-  address: sSCRT,
+  contractAddress: sSCRT,
   codeHash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 });
@@ -437,7 +437,7 @@ type Result = {
 };
 
 const result = (await secretjs.query.compute.queryContract({
-  address: sScrtAddress,
+  contractAddress: sScrtAddress,
   codeHash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 })) as Result;
@@ -856,7 +856,7 @@ For a list of all messages see: https://secretjs.scrt.network/interfaces/Msg
 ```ts
 const addMinterMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
-  contract: MY_NFT_CONTRACT,
+  contractAddress: MY_NFT_CONTRACT,
   codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: { add_minters: { minters: [MY_ADDRESS] } },
   sentFunds: [], // optional
@@ -864,7 +864,7 @@ const addMinterMsg = new MsgExecuteContract({
 
 const mintMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
-  contract: MY_NFT_CONTRACT,
+  contractAddress: MY_NFT_CONTRACT,
   codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: {
     mint_nft: {
@@ -1101,7 +1101,7 @@ Input: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgEx
 const tx = await secretjs.tx.compute.executeContract(
   {
     sender: myAddress,
-    contract: contractAddress,
+    contractAddress: contractAddress,
     codeHash: codeHash, // optional but way faster
     msg: {
       transfer: {
