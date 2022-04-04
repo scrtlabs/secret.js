@@ -247,7 +247,7 @@ describe("query.compute", () => {
     };
 
     const result = (await secretjs.query.compute.queryContract({
-      address: sSCRT,
+      contractAddress: sSCRT,
       codeHash,
       query: { token_info: {} },
     })) as Result;
@@ -270,7 +270,7 @@ describe("query.compute", () => {
     } = await secretjs.query.compute.code(1);
 
     const result = await secretjs.query.compute.queryContract({
-      address: sSCRT,
+      contractAddress: sSCRT,
       codeHash,
       query: {
         balance: {
@@ -295,7 +295,7 @@ describe("query.compute", () => {
     } = await secretjs.query.compute.code(1);
 
     const result = await secretjs.query.compute.queryContract({
-      address: sSCRT,
+      contractAddress: sSCRT,
       codeHash,
       query: {
         non_existent_query: {},
@@ -323,7 +323,7 @@ describe("query.compute", () => {
     };
 
     const result = (await secretjs.query.compute.queryContract({
-      address: sSCRT,
+      contractAddress: sSCRT,
       query: { token_info: {} },
     })) as Result;
 
@@ -616,7 +616,7 @@ describe("tx.compute", () => {
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract,
+      contractAddress: contract,
       // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
@@ -624,7 +624,7 @@ describe("tx.compute", () => {
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract,
+      contractAddress: contract,
       codeHash,
       msg: {
         mint_nft: {
@@ -736,7 +736,7 @@ describe("tx.compute", () => {
     const txExec = await secretjs.tx.compute.executeContract(
       {
         sender: accounts[0].address,
-        contract: contractAddress,
+        contractAddress: contractAddress,
         codeHash,
         msg: {
           transfer: {
@@ -830,7 +830,7 @@ describe("tx.compute", () => {
     const txExec = await secretjs.tx.compute.executeContract(
       {
         sender: accounts[0].address,
-        contract: contractAddress,
+        contractAddress: contractAddress,
         codeHash,
         msg: {
           create_viewing_key: {
@@ -905,7 +905,7 @@ describe("tx.compute", () => {
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract,
+      contractAddress: contract,
       // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
@@ -913,7 +913,7 @@ describe("tx.compute", () => {
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract,
+      contractAddress: contract,
       codeHash,
       msg: {
         yolo: {},

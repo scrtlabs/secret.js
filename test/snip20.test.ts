@@ -1,14 +1,14 @@
-import fs from "fs";
-import { bech32 } from "bech32";
 import { fromUtf8, toBase64 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
+import fs from "fs";
+import { SecretNetworkClient, Tx, Wallet } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
   getMnemonicRegexForAccountName,
   getValueFromRawLog,
 } from "./utils";
-import { AminoWallet } from "../src/wallet_amino";
-import { SecretNetworkClient, Tx, Wallet } from "../src";
 
 // @ts-ignore
 let accounts: Account[];
@@ -177,7 +177,7 @@ describe("tx.snip20", () => {
     const txExec = await secretjs.tx.snip20.transfer(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
       },
       {
@@ -262,7 +262,7 @@ describe("tx.snip20", () => {
     const txExec = await secretjs.tx.snip20.send(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: { send: { recipient: accounts[1].address, amount: "2" } },
       },
       {
@@ -345,7 +345,7 @@ describe("tx.snip20", () => {
     let txExec = await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -430,7 +430,7 @@ describe("tx.snip20", () => {
     let txExec = await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -445,7 +445,7 @@ describe("tx.snip20", () => {
     txExec = await secretjs.tx.snip20.decreaseAllowance(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: {
           decrease_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -531,7 +531,7 @@ describe("query.snip20", () => {
 
     const txExec = await secretjs.tx.snip20.setViewingKey({
       sender: secretjs.address,
-      contract: contractAddress,
+      contractAddress,
       msg: { set_viewing_key: { key: "hello" } },
     });
 
@@ -699,7 +699,7 @@ describe("query.snip20", () => {
     await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -711,7 +711,7 @@ describe("query.snip20", () => {
 
     await secretjs.tx.snip20.setViewingKey({
       sender: secretjs.address,
-      contract: contractAddress,
+      contractAddress,
       msg: { set_viewing_key: { key: "hello" } },
     });
 
@@ -801,14 +801,14 @@ describe("query.snip20", () => {
 
     await secretjs.tx.snip20.setViewingKey({
       sender: secretjs.address,
-      contract: contractAddress,
+      contractAddress,
       msg: { set_viewing_key: { key: "hello" } },
     });
 
     await secretjs.tx.snip20.transfer(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
       },
       {

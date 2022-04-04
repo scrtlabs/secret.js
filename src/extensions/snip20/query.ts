@@ -33,7 +33,7 @@ export class Snip20Querier extends ComputeQuerier {
       GetTokenParamsRequest,
       GetTokenParamsResponse
     >({
-      address: contract.address,
+      contractAddress: contract.address,
       codeHash: contract.codeHash,
       query: {
         token_info: {},
@@ -55,7 +55,7 @@ export class Snip20Querier extends ComputeQuerier {
   }): Promise<GetBalanceResponse> => {
     if (auth.key) {
       return await this.queryContract<GetBalanceRequest, GetBalanceResponse>({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           balance: {
@@ -69,7 +69,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetBalanceRequestWithPermit,
         GetBalanceResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
@@ -106,7 +106,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetTransferHistoryRequest,
         TransferHistoryResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           transfer_history: {
@@ -122,7 +122,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetTransferHistoryRequestWithPermit,
         TransferHistoryResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
@@ -164,7 +164,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetTransactionHistoryRequest,
         TransactionHistoryResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           transaction_history: {
@@ -180,7 +180,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetTransactionHistoryRequestWithPermit,
         TransactionHistoryResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
@@ -220,7 +220,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetAllowanceRequest,
         GetAllowanceResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           allowance: {
@@ -235,7 +235,7 @@ export class Snip20Querier extends ComputeQuerier {
         GetAllowanceRequestWithPermit,
         GetAllowanceResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {

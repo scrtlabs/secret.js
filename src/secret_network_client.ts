@@ -1168,7 +1168,7 @@ export class SecretNetworkClient {
   private async populateCodeHash(msg: Msg) {
     if (msg instanceof MsgExecuteContract) {
       if (!msg.codeHash) {
-        msg.codeHash = await this.query.compute.contractCodeHash(msg.contract);
+        msg.codeHash = await this.query.compute.contractCodeHash(msg.contractAddress);
       }
     } else if (msg instanceof MsgInstantiateContract) {
       if (!msg.codeHash) {

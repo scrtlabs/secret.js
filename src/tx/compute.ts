@@ -131,7 +131,7 @@ export class MsgInstantiateContract implements Msg {
 export interface MsgExecuteContractParams<T> extends MsgParams {
   sender: string;
   /** The contract's address */
-  contract: string;
+  contractAddress: string;
   /** The input message */
   msg: T;
   /** Funds to send to the contract */
@@ -154,7 +154,7 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
 /** Execute a function on a contract */
 export class MsgExecuteContract<T extends object> implements Msg {
   public sender: string;
-  public contract: string;
+  public contractAddress: string;
   public msg: T;
   private msgEncrypted: Uint8Array | null;
   public sentFunds: Coin[];
@@ -163,13 +163,13 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
   constructor({
     sender,
-    contract,
+    contractAddress,
     msg,
     sentFunds,
     codeHash,
   }: MsgExecuteContractParams<T>) {
     this.sender = sender;
-    this.contract = contract;
+    this.contractAddress = contractAddress;
     this.msg = msg;
     this.msgEncrypted = null;
     this.sentFunds = sentFunds ?? [];
@@ -198,7 +198,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
     const msgContent = {
       sender: addressToBytes(this.sender),
-      contract: addressToBytes(this.contract),
+      contract: addressToBytes(this.contractAddress),
       msg: this.msgEncrypted,
       sentFunds: this.sentFunds,
       // callbackSig & callbackCodeHash are internal stuff that doesn't matter here
@@ -231,7 +231,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
       type: "wasm/MsgExecuteContract",
       value: {
         sender: this.sender,
-        contract: this.contract,
+        contract: this.contractAddress,
         msg: toBase64(this.msgEncrypted),
         sent_funds: this.sentFunds,
       },

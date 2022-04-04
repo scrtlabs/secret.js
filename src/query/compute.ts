@@ -54,7 +54,7 @@ export type ContractInfoWithAddress = {
 
 export type QueryContractRequest<T> = {
   /** The address of the contract */
-  address: string;
+  contractAddress: string;
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
@@ -179,7 +179,7 @@ export class ComputeQuerier {
 
   /** Query a Secret Contract */
   async queryContract<T extends object, R extends object>({
-    address,
+    contractAddress,
     codeHash,
     query,
   }: QueryContractRequest<T>): Promise<R> {
@@ -187,7 +187,7 @@ export class ComputeQuerier {
 
     if (!codeHash) {
       console.warn(getMissingCodeHashWarning("queryContract()"));
-      codeHash = await this.contractCodeHash(address);
+      codeHash = await this.contractCodeHash(contractAddress);
     }
     codeHash = codeHash.replace("0x", "").toLowerCase();
 
@@ -196,7 +196,7 @@ export class ComputeQuerier {
 
     try {
       const { data: encryptedResult } = await this.client!.smartContractState({
-        address: addressToBytes(address),
+        address: addressToBytes(contractAddress),
         queryData: encryptedQuery,
       });
 

@@ -37,7 +37,7 @@ export class Snip721Querier extends ComputeQuerier {
     contract: SecretContract;
   }): Promise<Snip721TokenInfo> => {
     return await this.queryContract<GetTokenParamsRequest, Snip721TokenInfo>({
-      address: contract.address,
+      contractAddress: contract.address,
       codeHash: contract.codeHash,
       query: {
         token_info: {},
@@ -59,7 +59,7 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequest,
         GetTokenInfoResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           all_nft_info: {
@@ -73,7 +73,7 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequestWithPermit,
         GetTokenInfoResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
@@ -107,7 +107,7 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequest,
         Snip721GetTokensResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           tokens: {
@@ -121,7 +121,7 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequestWithPermit,
         Snip721GetTokensResponse
       >({
-        address: contract.address,
+        contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
