@@ -1,14 +1,14 @@
-import fs from "fs";
-import { bech32 } from "bech32";
 import { fromUtf8, toBase64 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
+import fs from "fs";
+import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
   getMnemonicRegexForAccountName,
   getValueFromRawLog,
 } from "./utils";
-import { AminoWallet } from "../src/wallet_amino";
-import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
 
 // @ts-ignore
 let accounts: Account[];
@@ -169,7 +169,7 @@ describe("tx.snip721", () => {
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract: contractAddress,
+      contractAddress,
       // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
       sentFunds: [],
@@ -177,7 +177,7 @@ describe("tx.snip721", () => {
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contract: contractAddress,
+      contractAddress,
       codeHash,
       msg: {
         mint_nft: {
@@ -209,7 +209,7 @@ describe("tx.snip721", () => {
     const txExec = await secretjs.tx.snip721.send(
       {
         sender: secretjs.address,
-        contract: contractAddress,
+        contractAddress,
         msg: {
           send_nft: {
             contract: accounts[1].address,

@@ -1,6 +1,6 @@
 import util from "util";
-import { AminoWallet } from "../src/wallet_amino";
 import { SecretNetworkClient, Wallet } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
 

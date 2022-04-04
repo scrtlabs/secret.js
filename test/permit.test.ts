@@ -1,13 +1,13 @@
-import fs from "fs";
 import { toBase64 } from "@cosmjs/encoding";
+import fs from "fs";
+import { SecretNetworkClient, Tx, Wallet } from "../src";
+import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
   getMnemonicRegexForAccountName,
   getValueFromRawLog,
 } from "./utils";
-import { AminoWallet } from "../src/wallet_amino";
-import { PermitError, SecretNetworkClient, Tx, Wallet } from "../src";
 
 // @ts-ignore
 let accounts: Account[];

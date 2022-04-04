@@ -1,5 +1,5 @@
-import { Account, exec, sleep } from "./utils";
 import { SecretNetworkClient } from "../src";
+import { Account, exec, sleep } from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 
