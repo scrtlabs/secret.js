@@ -80,3 +80,31 @@ export interface Snip721SendOptions {
     };
   };
 }
+
+export interface Snip721AddMinterOptions {
+  add_minters: {
+    minters: string[];
+  };
+}
+
+export interface Snip721MintOptions {
+  mint_nft: {
+    token_id?: string;
+    owner?: string;
+    public_metadata?: Metadata;
+    private_metadata?: Metadata;
+    serial_number?: string;
+    memo?: string;
+    royalty_info?: RoyaltyInfo;
+  };
+}
+
+interface RoyaltyInfo {
+  decimal_places_in_rates: string;
+  royalties: Royalty[];
+}
+
+interface Royalty {
+  recipient: string;
+  rate: number;
+}

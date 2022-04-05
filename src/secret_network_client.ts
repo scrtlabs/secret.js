@@ -35,6 +35,8 @@ import {
   MsgSendParams,
   MsgSetWithdrawAddress,
   MsgSetWithdrawAddressParams,
+  MsgSnip721AddMinter,
+  MsgSnip721Mint,
   MsgStoreCode,
   MsgStoreCodeParams,
   MsgSubmitEvidence,
@@ -82,7 +84,11 @@ import {
   Snip20TransferOptions,
 } from "./extensions/snip20/types";
 import { MsgSnip721Send, Snip721Querier } from "./extensions/snip721";
-import { Snip721SendOptions } from "./extensions/snip721/types";
+import {
+  Snip721AddMinterOptions,
+  Snip721MintOptions,
+  Snip721SendOptions,
+} from "./extensions/snip721/types";
 import { AuthQuerier, ComputeQuerier } from "./query";
 import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
 import {
@@ -398,16 +404,13 @@ export type TxSender = {
 
   snip721: {
     send: SingleMsgTx<MsgExecuteContractParams<Snip721SendOptions>>;
+    mint: SingleMsgTx<MsgExecuteContractParams<Snip721MintOptions>>;
+    addMinter: SingleMsgTx<MsgExecuteContractParams<Snip721AddMinterOptions>>;
     setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
     createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
   snip20: {
-    //Send
-    //Transfer
-    //getTransferHistory
-    //getAllowance
-    //getMinters
     send: SingleMsgTx<MsgExecuteContractParams<Snip20SendOptions>>;
     transfer: SingleMsgTx<MsgExecuteContractParams<Snip20TransferOptions>>;
     increaseAllowance: SingleMsgTx<
@@ -685,6 +688,8 @@ export class SecretNetworkClient {
 
       snip721: {
         send: doMsg(MsgSnip721Send),
+        mint: doMsg(MsgSnip721Mint),
+        addMinter: doMsg(MsgSnip721AddMinter),
         setViewingKey: doMsg(MsgSetViewingKey),
         createViewingKey: doMsg(MsgCreateViewingKey),
       },
@@ -1168,7 +1173,9 @@ export class SecretNetworkClient {
   private async populateCodeHash(msg: Msg) {
     if (msg instanceof MsgExecuteContract) {
       if (!msg.codeHash) {
-        msg.codeHash = await this.query.compute.contractCodeHash(msg.contractAddress);
+        msg.codeHash = await this.query.compute.contractCodeHash(
+          msg.contractAddress,
+        );
       }
     } else if (msg instanceof MsgInstantiateContract) {
       if (!msg.codeHash) {

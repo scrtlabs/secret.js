@@ -226,6 +226,273 @@ describe("tx.snip721", () => {
       '{"send_nft":{"status":"success"}}',
     );
   });
+
+  test("Add Minters", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "wasm.contract_address",
+    );
+
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
+    const addMinterMsg = await secretjs.tx.snip721.addMinter({
+      contractAddress,
+      msg: { add_minters: { minters: [accounts[0].address] } },
+      sender: accounts[0].address,
+    });
+
+    expect(fromUtf8(addMinterMsg.data[0])).toContain(
+      '{"add_minters":{"status":"success"}}',
+    );
+  });
+
+  test("Mint", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "wasm.contract_address",
+    );
+
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
+    const addMinterMsg = await secretjs.tx.snip721.addMinter({
+      contractAddress,
+      msg: { add_minters: { minters: [accounts[0].address] } },
+      sender: accounts[0].address,
+    });
+
+    expect(fromUtf8(addMinterMsg.data[0])).toContain(
+      '{"add_minters":{"status":"success"}}',
+    );
+
+    const mintMsg = await secretjs.tx.snip721.mint(
+      {
+        contractAddress,
+        sender: accounts[0].address,
+        msg: {
+          mint_nft: {
+            token_id: "1",
+          },
+        },
+      },
+      {
+        gasLimit: 200_000,
+      },
+    );
+
+    expect(fromUtf8(mintMsg.data[0])).toContain(
+      '{"mint_nft":{"token_id":"1"}}',
+    );
+  });
 });
 
-describe("query.snip721", () => {});
+describe("query.snip721", () => {
+  test("View Tokens", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip721.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        // codeHash, // Test MsgInstantiateContract without codeHash
+        initMsg: {
+          name: "SecretJS NFTs",
+          symbol: "YOLO",
+          admin: accounts[0].address,
+          entropy: "a2FraS1waXBpCg==",
+          royalty_info: {
+            decimal_places_in_rates: 4,
+            royalties: [{ recipient: accounts[0].address, rate: 700 }],
+          },
+          config: { public_token_supply: true },
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "wasm.contract_address",
+    );
+
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
+    await secretjs.tx.snip721.setViewingKey({
+      contractAddress,
+      sender: accounts[0].address,
+      msg: {
+        set_viewing_key: {
+          key: "hello",
+        },
+      },
+    });
+
+    await secretjs.tx.snip721.addMinter({
+      contractAddress,
+      msg: { add_minters: { minters: [accounts[0].address] } },
+      sender: accounts[0].address,
+    });
+
+    await secretjs.tx.snip721.mint(
+      {
+        contractAddress,
+        sender: accounts[0].address,
+        msg: {
+          mint_nft: {
+            token_id: "1",
+          },
+        },
+      },
+      {
+        gasLimit: 200_000,
+      },
+    );
+
+    let tokens = await secretjs.query.snip721.GetOwnedTokens({
+      contract: { address: contractAddress, codeHash },
+      owner: accounts[0].address,
+      auth: { viewer: { viewing_key: "hello", address: accounts[0].address } },
+    });
+
+    expect(tokens.token_list.tokens.length).toEqual(1);
+  });
+});
