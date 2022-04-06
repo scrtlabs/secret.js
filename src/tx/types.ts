@@ -17,9 +17,6 @@ export interface Msg {
 }
 
 export interface MsgParams {}
-export interface IMsg {
-  new (params: MsgParams): Msg;
-}
 
 /////////////////////////////////////////////////////
 // bank

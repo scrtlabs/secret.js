@@ -90,7 +90,14 @@ import {
   Snip721SendOptions,
 } from "./extensions/snip721/types";
 import { AuthQuerier, ComputeQuerier } from "./query";
-import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
+import {
+  AminoMsg,
+  getMsgDecoderRegistry,
+  Msg,
+  MsgDecoder,
+  MsgParams,
+  ProtoMsg,
+} from "./tx";
 import {
   AccountData,
   AminoSigner,
@@ -286,8 +293,61 @@ export type MsgData = {
   data: Uint8Array;
 };
 
+/** TxBody is the body of a transaction that all signers sign over. */
+export interface TxBody {
+  /**
+   * messages is a list of messages to be executed. The required signers of
+   * those messages define the number and order of elements in AuthInfo's
+   * signer_infos and Tx's signatures. Each required signer address is added to
+   * the list only the first time it occurs.
+   * By convention, the first required signer (usually from the first message)
+   * is referred to as the primary signer and pays the fee for the whole
+   * transaction.
+   */
+  messages: Array<{ typeUrl: string; value: any }>;
+  /**
+   * memo is any arbitrary note/comment to be added to the transaction.
+   * WARNING: in clients, any publicly exposed text should not be called memo,
+   * but should be called `note` instead (see https://github.com/cosmos/cosmos-sdk/issues/9122).
+   */
+  memo: string;
+  /**
+   * timeout is the block height after which this transaction will not
+   * be processed by the chain
+   */
+  timeoutHeight: string;
+  /**
+   * extension_options are arbitrary options that can be added by chains
+   * when the default options are not sufficient. If any of these are present
+   * and can't be handled, the transaction will be rejected
+   */
+  extensionOptions: import("./protobuf_stuff/google/protobuf/any").Any[];
+  /**
+   * extension_options are arbitrary options that can be added by chains
+   * when the default options are not sufficient. If any of these are present
+   * and can't be handled, they will be ignored
+   */
+  nonCriticalExtensionOptions: import("./protobuf_stuff/google/protobuf/any").Any[];
+}
+
+export type TxContent = {
+  /** body is the processable content of the transaction */
+  body: TxBody;
+  /**
+   * auth_info is the authorization related content of the transaction,
+   * specifically signers, signer modes and fee
+   */
+  authInfo: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").AuthInfo;
+  /**
+   * signatures is a list of signatures that matches the length and order of
+   * AuthInfo's signer_infos to allow connecting signature meta information like
+   * public key and signing mode by position.
+   */
+  signatures: Uint8Array[];
+};
+
 /** A transaction that is indexed as part of the transaction history */
-export interface Tx {
+export type Tx = {
   readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
@@ -308,7 +368,7 @@ export interface Tx {
   /**
    * Decoded transaction input.
    */
-  readonly tx: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").Tx;
+  readonly tx: TxContent;
   /**
    * Raw transaction bytes stored in Tendermint.
    *
@@ -324,7 +384,7 @@ export interface Tx {
   readonly txBytes: Uint8Array;
   readonly gasUsed: number;
   readonly gasWanted: number;
-}
+};
 
 export type TxSender = {
   /**
@@ -549,6 +609,7 @@ export class SecretNetworkClient {
   private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
   private readonly wallet: Signer;
   private readonly chainId: string;
+  private readonly msgDecoderRegistry: Map<string, MsgDecoder>;
 
   private encryptionUtils: EncryptionUtils;
 
@@ -644,13 +705,22 @@ export class SecretNetworkClient {
       txsQuery: async () => [], // stub until we can set this in the constructor
     };
 
-    return new SecretNetworkClient(grpcWeb, txService, query, options);
+    const msgDecoderRegistry = await getMsgDecoderRegistry();
+
+    return new SecretNetworkClient(
+      grpcWeb,
+      txService,
+      query,
+      msgDecoderRegistry,
+      options,
+    );
   }
 
   private constructor(
     grpc: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
     txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl,
     query: Querier,
+    msgDecoderRegistry: Map<string, MsgDecoder>,
     options: CreateClientOptions,
   ) {
     this.txService = txService;
@@ -664,6 +734,8 @@ export class SecretNetworkClient {
     this.chainId = options.chainId;
 
     this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
+
+    this.msgDecoderRegistry = msgDecoderRegistry;
 
     // TODO fix this any
     const doMsg = (msgClass: any): SingleMsgTx<any> => {
@@ -854,7 +926,9 @@ export class SecretNetworkClient {
                 jsonLog = JSON.parse(decryptedError);
               } catch (e) {}
             }
-          } catch (decryptionError) {}
+          } catch (decryptionError) {
+            // Not encrypted or can't decrypt because not original sender
+          }
         }
 
         const { TxMsgData } = await import(
@@ -862,7 +936,7 @@ export class SecretNetworkClient {
         );
 
         const txMsgData = TxMsgData.decode(fromHex(tx.data));
-        let data = new Array<Uint8Array>(txMsgData.data.length);
+        const data = new Array<Uint8Array>(txMsgData.data.length);
 
         for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
           const nonce = nonces[msgIndex];
@@ -877,18 +951,74 @@ export class SecretNetworkClient {
                 ),
               );
             } catch (decryptionError) {
+              // Not encrypted or can't decrypt because not original sender
               data[msgIndex] = txMsgData.data[msgIndex].data;
             }
           }
         }
 
-        const { Tx } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
+        // Decode input tx
+        const decodedTx = (
+          await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+        ).Tx.decode(tx.tx!.value) as TxContent;
+
+        // Decoded input tx messages
+        for (let i = 0; i < decodedTx.body!.messages.length; i++) {
+          const { typeUrl: msgType, value: msgBytes } =
+            decodedTx.body!.messages[i];
+
+          const msgDecoder = this.msgDecoderRegistry.get(msgType);
+          if (!msgDecoder) {
+            continue;
+          }
+
+          const msg = {
+            typeUrl: msgType,
+            value: msgDecoder.decode(msgBytes as Uint8Array),
+          };
+
+          // Check if the message needs decryption
+          let contractInputMsgFieldName = "";
+          if (
+            msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
+          ) {
+            contractInputMsgFieldName = "initMsg";
+          } else if (
+            msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
+            contractInputMsgFieldName = "msg";
+          }
+
+          if (contractInputMsgFieldName !== "") {
+            // Encrypted, try to decrypt
+            try {
+              const contractInputMsgBytes: Uint8Array =
+                msg.value[contractInputMsgFieldName];
+
+              const nonce = contractInputMsgBytes.slice(0, 32);
+              const accountPubkey = contractInputMsgBytes.slice(32, 64); // unused in decryption
+              const ciphertext = contractInputMsgBytes.slice(64);
+
+              const plaintext = await this.encryptionUtils.decrypt(
+                ciphertext,
+                nonce,
+              );
+              msg.value[contractInputMsgFieldName] = JSON.parse(
+                fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
+              );
+            } catch (decryptionError) {
+              // Not encrypted or can't decrypt because not original sender
+            }
+          }
+
+          decodedTx.body!.messages[i] = msg;
+        }
 
         return {
           height: Number(tx.height),
           transactionHash: tx.txhash,
           code: tx.code,
-          tx: Tx.decode(tx.tx!.value),
+          tx: decodedTx,
           txBytes: tx.tx!.value,
           rawLog,
           jsonLog,
@@ -1555,192 +1685,3 @@ export enum TxResultCode {
   /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
   ErrPanic = 111222,
 }
-
-export const typeUrlToImportData: {
-  [typeUrl: string]: { name: string; path: string };
-} = {
-  "/cosmos.authz.v1beta1.MsgGrant": {
-    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
-    name: "MsgGrant",
-  },
-  "/cosmos.authz.v1beta1.MsgExec": {
-    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
-    name: "MsgExec",
-  },
-  "/cosmos.authz.v1beta1.MsgRevoke": {
-    path: "./protobuf_stuff/cosmos/authz/v1beta1/tx",
-    name: "MsgRevoke",
-  },
-  "/cosmos.bank.v1beta1.MsgSend": {
-    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
-    name: "MsgSend",
-  },
-  "/cosmos.bank.v1beta1.MsgMultiSend": {
-    path: "./protobuf_stuff/cosmos/bank/v1beta1/tx",
-    name: "MsgMultiSend",
-  },
-  "/cosmos.crisis.v1beta1.MsgVerifyInvariant": {
-    path: "./protobuf_stuff/cosmos/crisis/v1beta1/tx",
-    name: "MsgVerifyInvariant",
-  },
-  "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress": {
-    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
-    name: "MsgSetWithdrawAddress",
-  },
-  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward": {
-    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
-    name: "MsgWithdrawDelegatorReward",
-  },
-  "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission": {
-    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
-    name: "MsgWithdrawValidatorCommission",
-  },
-  "/cosmos.distribution.v1beta1.MsgFundCommunityPool": {
-    path: "./protobuf_stuff/cosmos/distribution/v1beta1/tx",
-    name: "MsgFundCommunityPool",
-  },
-  "/cosmos.evidence.v1beta1.MsgSubmitEvidence": {
-    path: "./protobuf_stuff/cosmos/evidence/v1beta1/tx",
-    name: "MsgSubmitEvidence",
-  },
-  "/cosmos.feegrant.v1beta1.MsgGrantAllowance": {
-    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
-    name: "MsgGrantAllowance",
-  },
-  "/cosmos.feegrant.v1beta1.MsgRevokeAllowance": {
-    path: "./protobuf_stuff/cosmos/feegrant/v1beta1/tx",
-    name: "MsgRevokeAllowance",
-  },
-  "/cosmos.gov.v1beta1.MsgSubmitProposal": {
-    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
-    name: "MsgSubmitProposal",
-  },
-  "/cosmos.gov.v1beta1.MsgVote": {
-    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
-    name: "MsgVote",
-  },
-  "/cosmos.gov.v1beta1.MsgVoteWeighted": {
-    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
-    name: "MsgVoteWeighted",
-  },
-  "/cosmos.gov.v1beta1.MsgDeposit": {
-    path: "./protobuf_stuff/cosmos/gov/v1beta1/tx",
-    name: "MsgDeposit",
-  },
-  "/cosmos.slashing.v1beta1.MsgUnjail": {
-    path: "./protobuf_stuff/cosmos/slashing/v1beta1/tx",
-    name: "MsgUnjail",
-  },
-  "/cosmos.staking.v1beta1.MsgCreateValidator": {
-    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
-    name: "MsgCreateValidator",
-  },
-  "/cosmos.staking.v1beta1.MsgEditValidator": {
-    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
-    name: "MsgEditValidator",
-  },
-  "/cosmos.staking.v1beta1.MsgDelegate": {
-    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
-    name: "MsgDelegate",
-  },
-  "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
-    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
-    name: "MsgBeginRedelegate",
-  },
-  "/cosmos.staking.v1beta1.MsgUndelegate": {
-    path: "./protobuf_stuff/cosmos/staking/v1beta1/tx",
-    name: "MsgUndelegate",
-  },
-  "/ibc.applications.transfer.v1.MsgTransfer": {
-    path: "./protobuf_stuff/ibc/applications/transfer/v1/tx",
-    name: "MsgTransfer",
-  },
-  "/ibc.core.channel.v1.MsgChannelOpenInit": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelOpenInit",
-  },
-  "/ibc.core.channel.v1.MsgChannelOpenTry": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelOpenTry",
-  },
-  "/ibc.core.channel.v1.MsgChannelOpenAck": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelOpenAck",
-  },
-  "/ibc.core.channel.v1.MsgChannelOpenConfirm": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelOpenConfirm",
-  },
-  "/ibc.core.channel.v1.MsgChannelCloseInit": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelCloseInit",
-  },
-  "/ibc.core.channel.v1.MsgChannelCloseConfirm": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgChannelCloseConfirm",
-  },
-  "/ibc.core.channel.v1.MsgRecvPacket": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgRecvPacket",
-  },
-  "/ibc.core.channel.v1.MsgTimeout": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgTimeout",
-  },
-  "/ibc.core.channel.v1.MsgTimeoutOnClose": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgTimeoutOnClose",
-  },
-  "/ibc.core.channel.v1.MsgAcknowledgement": {
-    path: "./protobuf_stuff/ibc/core/channel/v1/tx",
-    name: "MsgAcknowledgement",
-  },
-  "/ibc.core.client.v1.MsgCreateClient": {
-    path: "./protobuf_stuff/ibc/core/client/v1/tx",
-    name: "MsgCreateClient",
-  },
-  "/ibc.core.client.v1.MsgUpdateClient": {
-    path: "./protobuf_stuff/ibc/core/client/v1/tx",
-    name: "MsgUpdateClient",
-  },
-  "/ibc.core.client.v1.MsgUpgradeClient": {
-    path: "./protobuf_stuff/ibc/core/client/v1/tx",
-    name: "MsgUpgradeClient",
-  },
-  "/ibc.core.client.v1.MsgSubmitMisbehaviour": {
-    path: "./protobuf_stuff/ibc/core/client/v1/tx",
-    name: "MsgSubmitMisbehaviour",
-  },
-  "/ibc.core.connection.v1.MsgConnectionOpenInit": {
-    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
-    name: "MsgConnectionOpenInit",
-  },
-  "/ibc.core.connection.v1.MsgConnectionOpenTry": {
-    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
-    name: "MsgConnectionOpenTry",
-  },
-  "/ibc.core.connection.v1.MsgConnectionOpenAck": {
-    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
-    name: "MsgConnectionOpenAck",
-  },
-  "/ibc.core.connection.v1.MsgConnectionOpenConfirm": {
-    path: "./protobuf_stuff/ibc/core/connection/v1/tx",
-    name: "MsgConnectionOpenConfirm",
-  },
-  "/secret.compute.v1beta1.MsgStoreCode": {
-    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
-    name: "MsgStoreCode",
-  },
-  "/secret.compute.v1beta1.MsgInstantiateContract": {
-    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
-    name: "MsgInstantiateContract",
-  },
-  "/secret.compute.v1beta1.MsgExecuteContract": {
-    path: "./protobuf_stuff/secret/compute/v1beta1/msg",
-    name: "MsgExecuteContract",
-  },
-  "/secret.registration.v1beta1.RaAuthenticate": {
-    path: "./protobuf_stuff/secret/registration/v1beta1/msg",
-    name: "RaAuthenticate",
-  },
-};

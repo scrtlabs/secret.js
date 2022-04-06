@@ -353,18 +353,17 @@ describe("tx.bank", () => {
 
     const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.15);
 
-    const tx = await secretjs.tx.bank.send(
-      {
-        fromAddress: accounts[0].address,
-        toAddress: accounts[2].address,
-        amount: [{ denom: "uscrt", amount: "1" }],
-      },
-      {
-        gasLimit: gasLimit,
-      },
-    );
+    const msg = {
+      fromAddress: accounts[0].address,
+      toAddress: accounts[2].address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    };
+    const tx = await secretjs.tx.bank.send(msg, {
+      gasLimit: gasLimit,
+    });
 
     expect(tx.code).toBe(0);
+    expect(tx.tx.body.messages[0].value).toStrictEqual(msg);
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
     const cAfter = await getBalance(secretjs, accounts[2].address);
@@ -611,6 +610,9 @@ describe("tx.compute", () => {
     });
 
     expect(txInit.code).toBe(0);
+    expect(txInit.tx.body.messages[0].value.initMsg).toStrictEqual(
+      initInput.initMsg,
+    );
 
     const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
 
@@ -656,6 +658,10 @@ describe("tx.compute", () => {
     });
 
     expect(tx.code).toBe(0);
+    expect(tx.tx.body.messages.map((m) => m.value.msg)).toStrictEqual([
+      addMinterMsg.msg,
+      mintMsg.msg,
+    ]);
 
     expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("execute");
     expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
