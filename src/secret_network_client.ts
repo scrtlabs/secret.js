@@ -306,6 +306,10 @@ export interface Tx {
   /** Return value (if there's any) for each input message */
   readonly data: Array<Uint8Array>;
   /**
+   * Decoded transaction input.
+   */
+  readonly tx: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").Tx;
+  /**
    * Raw transaction bytes stored in Tendermint.
    *
    * If you hash this, you get the transaction hash (= transaction ID):
@@ -317,7 +321,7 @@ export interface Tx {
    * const transactionHash = toHex(sha256(indexTx.tx)).toUpperCase();
    * ```
    */
-  readonly tx: Uint8Array;
+  readonly txBytes: Uint8Array;
   readonly gasUsed: number;
   readonly gasWanted: number;
 }
@@ -878,13 +882,14 @@ export class SecretNetworkClient {
           }
         }
 
-        const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+        const { Tx } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
 
         return {
           height: Number(tx.height),
           transactionHash: tx.txhash,
           code: tx.code,
-          tx: Any.encode(tx.tx!).finish(),
+          tx: Tx.decode(tx.tx!.value),
+          txBytes: tx.tx!.value,
           rawLog,
           jsonLog,
           arrayLog,
@@ -1551,7 +1556,7 @@ export enum TxResultCode {
   ErrPanic = 111222,
 }
 
-const typeUrlToImportData: {
+export const typeUrlToImportData: {
   [typeUrl: string]: { name: string; path: string };
 } = {
   "/cosmos.authz.v1beta1.MsgGrant": {
