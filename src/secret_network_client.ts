@@ -729,6 +729,10 @@ export class SecretNetworkClient {
     this.query.getTx = (hash) => this.getTx(hash);
     this.query.txsQuery = (query) => this.txsQuery(query);
 
+    if (options.wallet && options.walletAddress === undefined) {
+      throw new Error(`Must also use "walletAddress" when passing "wallet"`);
+    }
+
     this.wallet = options.wallet ?? new ReadonlySigner();
     this.address = options.walletAddress ?? "";
     this.chainId = options.chainId;
