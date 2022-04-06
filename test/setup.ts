@@ -13,6 +13,7 @@ import { toBase64 } from "@cosmjs/encoding";
   // const accountIdToName = ["a", "b", "c", "d"];
   // const { stdout: dockerLogsStdout } = await exec(
   //   "docker logs secretjs-testnet",
+  //   { maxBuffer: 10 * 1024 * 1024 /* 10 MiB */ },
   // );
   // const logs = String(dockerLogsStdout);
   // for (const accountId of [0, 1, 2, 3]) {
