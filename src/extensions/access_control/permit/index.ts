@@ -191,6 +191,9 @@ export const validatePermit = (
   try {
     sigIsValid = _validate_sig(permit);
   } catch (e) {
+    if (!exceptions) {
+      return false;
+    }
     // validation can fail if signature is malformed
     throw new SignatureInvalid(
       permit.signature.signature,
@@ -223,5 +226,9 @@ const _validate_sig = (permit: Permit): boolean => {
     fromBase64(permit.signature.signature),
   );
 
-  return secp256k1.verify(sig, messageHash, permit.signature.pub_key.value);
+  return secp256k1.verify(
+    sig,
+    messageHash,
+    fromBase64(permit.signature.pub_key.value),
+  );
 };

@@ -294,16 +294,38 @@ describe("permit", () => {
     permit.signature = permit2.signature;
 
     try {
-      secretjs.utils.accessControl.permit.verify(
+      let res = secretjs.utils.accessControl.permit.verify(
         permit,
-        accounts[1].address,
+        accounts[0].address,
         "abcdef",
         ["owner"],
       );
+      console.log(`result: ${res}`);
     } catch (e: any) {
       expect(e?.type).toBe("PermitError");
       return;
     }
     expect("This should have failed already").toBe("Not here");
+  });
+
+  test("validatePermit", async () => {
+    const { secretjs } = accounts[0];
+    const secretjs2 = accounts[1].secretjs;
+
+    let permit = await secretjs.utils.accessControl.permit.sign(
+      accounts[0].address,
+      "secret-2",
+      "test",
+      ["abcdef"],
+      ["owner", "balance"],
+    );
+
+    let result = secretjs.utils.accessControl.permit.verifyNoExcept(
+      permit,
+      accounts[0].address,
+      "abcdef",
+      ["owner"],
+    );
+    expect(result).toBeTruthy();
   });
 });
