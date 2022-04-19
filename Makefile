@@ -12,8 +12,3 @@ publish-beta: build
 publish-minor: build
 	npm version minor
 	npm publish
-
-start-testnet: # CTRL+C to stop
-	docker run -it --rm \
-		-p 26657:26657 \
-		--name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1
