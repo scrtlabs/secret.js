@@ -48,7 +48,7 @@ export async function waitForTx(txhash: string): Promise<any> {
   while (true) {
     try {
       const { stdout } = await exec(
-        `docker exec -i secretjs-testnet secretd q tx ${txhash}`,
+        `docker exec -i localsecret secretd q tx ${txhash}`,
       );
 
       if (Number(JSON.parse(stdout)?.code) === 0) {
@@ -67,11 +67,11 @@ export async function secretcliStore(
   account: Account,
 ): Promise<number> {
   const { stdout: cp_wasm, stderr } = await exec(
-    `docker cp "${wasmPath}" secretjs-testnet:/wasm-file`,
+    `docker cp "${wasmPath}" localsecret:/wasm-file`,
   );
 
   const { stdout: secretcli_store } = await exec(
-    `docker exec -i secretjs-testnet secretd tx compute store /wasm-file --from "${account.name}" --gas 10000000 -y`,
+    `docker exec -i localsecret secretd tx compute store /wasm-file --from "${account.name}" --gas 10000000 -y`,
   );
   const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
 
@@ -91,7 +91,7 @@ export async function secretcliInit(
   account: Account,
 ): Promise<string> {
   const { stdout: secretcli_store } = await exec(
-    `docker exec -i secretjs-testnet secretd tx compute instantiate ${codeId} '${JSON.stringify(
+    `docker exec -i localsecret secretd tx compute instantiate ${codeId} '${JSON.stringify(
       initMsg,
     )}' --label "${label}" --from "${account.name}" --gas 500000 -y`,
   );

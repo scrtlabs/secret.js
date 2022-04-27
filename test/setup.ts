@@ -1,8 +1,3 @@
-import { Account, exec, getMnemonicRegexForAccountName } from "./utils";
-import { SecretNetworkClient, Tx, Wallet } from "../src";
-import { AminoWallet } from "../src/wallet_amino";
-import { toBase64 } from "@cosmjs/encoding";
-
 // don't know why this doesn't work... fu jest
 (async () => {
   console.warn = () => {};
@@ -12,7 +7,7 @@ import { toBase64 } from "@cosmjs/encoding";
   // // Extract genesis accounts from logs
   // const accountIdToName = ["a", "b", "c", "d"];
   // const { stdout: dockerLogsStdout } = await exec(
-  //   "docker logs secretjs-testnet",
+  //   "docker logs localsecret",
   //   { maxBuffer: 10 * 1024 * 1024 /* 10 MiB */ },
   // );
   // const logs = String(dockerLogsStdout);
@@ -85,7 +80,7 @@ import { toBase64 } from "@cosmjs/encoding";
   //       })),
   //     },
   //     {
-  //       gasLimit: 200_000,
+  //       broadcastCheckIntervalMs: 100, gasLimit: 200_000,
   //     },
   //   );
   // } catch (e) {

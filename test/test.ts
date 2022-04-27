@@ -34,10 +34,9 @@ beforeAll(async () => {
 
   // Extract genesis accounts from logs
   const accountIdToName = ["a", "b", "c", "d"];
-  const { stdout: dockerLogsStdout } = await exec(
-    "docker logs secretjs-testnet",
-    { maxBuffer: 10 * 1024 * 1024 /* 10 MiB */ },
-  );
+  const { stdout: dockerLogsStdout } = await exec("docker logs localsecret", {
+    maxBuffer: 10 * 1024 * 1024 /* 10 MiB */,
+  });
   const logs = String(dockerLogsStdout);
   for (const accountId of [0, 1, 2, 3]) {
     if (!accounts[accountId]) {
@@ -107,6 +106,7 @@ beforeAll(async () => {
         })),
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 200_000,
       },
     );
@@ -360,6 +360,7 @@ describe("tx.bank", () => {
       amount: [{ denom: "uscrt", amount: "1" }],
     };
     const tx = await secretjs.tx.bank.send(msg, {
+      broadcastCheckIntervalMs: 100,
       gasLimit: gasLimit,
     });
 
@@ -402,6 +403,7 @@ describe("tx.bank", () => {
         ],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: gasLimit,
       },
     );
@@ -432,6 +434,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -455,6 +458,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -494,6 +498,7 @@ describe("tx.compute", () => {
         initFunds: [],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -519,6 +524,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -543,6 +549,7 @@ describe("tx.compute", () => {
         initFunds: [],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -570,6 +577,7 @@ describe("tx.compute", () => {
     const simStore = await secretjs.tx.compute.storeCode.simulate(storeInput);
 
     const txStore = await secretjs.tx.compute.storeCode(storeInput, {
+      broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.1),
     });
 
@@ -607,6 +615,7 @@ describe("tx.compute", () => {
     );
 
     const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
+      broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.1),
     });
 
@@ -655,6 +664,7 @@ describe("tx.compute", () => {
     const simExec = await secretjs.tx.simulate([addMinterMsg, mintMsg]);
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+      broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.1),
     });
 
@@ -687,6 +697,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -726,6 +737,7 @@ describe("tx.compute", () => {
         initFunds: [],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -753,6 +765,7 @@ describe("tx.compute", () => {
         },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -778,6 +791,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -817,6 +831,7 @@ describe("tx.compute", () => {
         initFunds: [],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -846,6 +861,7 @@ describe("tx.compute", () => {
         },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -868,6 +884,7 @@ describe("tx.compute", () => {
         builder: "",
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -902,6 +919,7 @@ describe("tx.compute", () => {
         initFunds: [],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -929,6 +947,7 @@ describe("tx.compute", () => {
     });
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+      broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });
 
@@ -972,6 +991,7 @@ describe("tx.gov", () => {
           },
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1009,6 +1029,7 @@ describe("tx.gov", () => {
           },
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1046,6 +1067,7 @@ describe("tx.gov", () => {
           },
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1088,6 +1110,7 @@ describe("tx.gov", () => {
           },
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1122,6 +1145,7 @@ describe("tx.gov", () => {
           },
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1155,6 +1179,7 @@ describe("tx.gov", () => {
         },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1172,6 +1197,7 @@ describe("tx.gov", () => {
         option: VoteOption.VOTE_OPTION_YES,
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1200,6 +1226,7 @@ describe("tx.gov", () => {
         },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1222,6 +1249,7 @@ describe("tx.gov", () => {
         ],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1250,6 +1278,7 @@ describe("tx.gov", () => {
         },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1267,6 +1296,7 @@ describe("tx.gov", () => {
         amount: [{ amount: "1", denom: "uscrt" }],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1297,6 +1327,7 @@ describe("tx.staking", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1324,6 +1355,7 @@ describe("tx.staking", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1341,6 +1373,7 @@ describe("tx.staking", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1378,6 +1411,7 @@ describe("tx.staking", () => {
         initialDelegation: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1413,6 +1447,7 @@ describe("tx.staking", () => {
         initialDelegation: { amount: "3", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1437,6 +1472,7 @@ describe("tx.staking", () => {
         // commissionRate: 0.04, // commission cannot be changed more than once in 24h
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1483,6 +1519,7 @@ describe("tx.staking", () => {
         initialDelegation: { amount: "3", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1500,6 +1537,7 @@ describe("tx.staking", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1514,6 +1552,7 @@ describe("tx.staking", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1546,6 +1585,7 @@ describe("tx.slashing", () => {
         initialDelegation: { amount: "3", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1562,6 +1602,7 @@ describe("tx.slashing", () => {
         validatorAddr,
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1584,6 +1625,7 @@ describe("tx.distribution", () => {
         amount: [{ amount: "1", denom: "uscrt" }],
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1605,6 +1647,7 @@ describe("tx.distribution", () => {
         amount: { amount: "1", denom: "uscrt" },
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1617,6 +1660,7 @@ describe("tx.distribution", () => {
         validatorAddress,
       },
       {
+        broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       },
     );
@@ -1645,6 +1689,7 @@ describe("tx.distribution", () => {
           validatorAddress: onlineValidator.operatorAddress,
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );
@@ -1677,6 +1722,7 @@ describe("tx.distribution", () => {
           withdrawAddress: notSelfDelegatorAccount.address,
         },
         {
+          broadcastCheckIntervalMs: 100,
           gasLimit: 5_000_000,
         },
       );

@@ -1,17 +1,16 @@
 import { SecretNetworkClient } from "../src";
-import { Account, exec, sleep } from "./utils";
+import { exec, sleep } from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 
 module.exports = async () => {
-  let accounts: Account[] = [];
-
-  // init testnet
-  console.log("Setting up a local testnet...");
-  await exec("docker rm -f secretjs-testnet || true");
+  // init localsecret
+  console.log("Setting up LocalSecret...");
+  await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 9091:9091 --name secretjs-testnet enigmampc/secret-network-sw-dev:v1.2.2-1",
+    "docker run -it -d -p 9091:9091 --name localsecret ghcr.io/scrtlabs/localsecret:v1.2.2",
   );
+
   // console.log("stdout (testnet container id?):", stdout);
   if (stderr) {
     console.error("stderr:", stderr);
@@ -20,10 +19,22 @@ module.exports = async () => {
   // Wait for the network to start (i.e. block number >= 1)
   console.log("Waiting for the network to start...");
 
-  // const timeout = Date.now() + 30_000;
-  while (true) {
-    // expect(Date.now()).toBeLessThan(timeout);
+  await waitForBlocks();
 
+  // set block time to 200ms
+  await exec(
+    "docker exec localsecret sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml",
+  );
+  await exec("docker stop localsecret");
+  await exec("docker start localsecret");
+
+  await waitForBlocks();
+
+  console.log(`LocalSecret is running`);
+};
+
+async function waitForBlocks() {
+  while (true) {
     const secretjs = await SecretNetworkClient.create({
       grpcWebUrl: "http://localhost:9091",
       chainId: "secretdev-1",
@@ -40,6 +51,4 @@ module.exports = async () => {
     }
     await sleep(250);
   }
-
-  console.log(`Local testnet is running`);
-};
+}

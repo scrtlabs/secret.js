@@ -8,7 +8,7 @@ module.exports = async () => {
   try {
     console.log("Tearing down local testnet...");
     //@ts-ignore
-    const { stdout, stderr } = await exec("docker rm -f secretjs-testnet");
+    const { stdout, stderr } = await exec("docker rm -f localsecret");
     // console.log("stdout (testnet container name?):", stdout);
     if (stderr) {
       console.error("stderr:", stderr);
