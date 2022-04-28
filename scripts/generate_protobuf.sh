@@ -4,7 +4,7 @@ set -o errexit -o nounset -o pipefail
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 rm -rf "${SCRIPT_PATH}/SecretNetwork"
-git clone --depth 1 --branch v1.2.6 https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
+git clone --depth 1 --branch backport-cw-crypto-apis-to-v0.10 https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
 
 OUT_DIR="${SCRIPT_PATH}/../src/protobuf_stuff"
 mkdir -p "$OUT_DIR"

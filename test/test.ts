@@ -135,10 +135,15 @@ describe("query.auth", () => {
 
     const result = await secretjs.query.auth.accounts({});
 
-    // 20 accounts with a balance and 27 module accounts
-    expect(result.length).toBe(47);
-    expect(result.filter((x) => x?.type === "ModuleAccount").length).toBe(7);
-    expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(20);
+    // 20 accounts with a balance and 7? module accounts - ordering of tests can affect this.
+    // it's more robust to check eq&gt rather than flat equality
+    expect(result.length).toBeGreaterThanOrEqual(27);
+    expect(
+      result.filter((x) => x?.type === "ModuleAccount").length,
+    ).toBeGreaterThanOrEqual(7);
+    expect(
+      result.filter((x) => x?.type === "BaseAccount").length,
+    ).toBeGreaterThanOrEqual(20);
     expect(
       result.filter((x) => {
         if (x?.type !== "BaseAccount") {
