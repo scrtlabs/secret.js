@@ -5,10 +5,7 @@ import { AminoWallet } from "../src/wallet_amino";
 export const exec = util.promisify(require("child_process").exec);
 
 export type Account = {
-  name: string;
-  type: string;
   address: string;
-  pubkey: string;
   mnemonic: string;
   walletAmino: AminoWallet;
   walletProto: Wallet;
@@ -71,7 +68,7 @@ export async function secretcliStore(
   );
 
   const { stdout: secretcli_store } = await exec(
-    `docker exec -i localsecret secretd tx compute store /wasm-file --from "${account.name}" --gas 10000000 -y`,
+    `docker exec -i localsecret secretd tx compute store /wasm-file --from "${account.address}" --gas 10000000 -y`,
   );
   const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
 
@@ -93,7 +90,7 @@ export async function secretcliInit(
   const { stdout: secretcli_store } = await exec(
     `docker exec -i localsecret secretd tx compute instantiate ${codeId} '${JSON.stringify(
       initMsg,
-    )}' --label "${label}" --from "${account.name}" --gas 500000 -y`,
+    )}' --label "${label}" --from "${account.address}" --gas 500000 -y`,
   );
   const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
 

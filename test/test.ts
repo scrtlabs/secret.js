@@ -19,7 +19,6 @@ import {
   Account,
   exec,
   getBalance,
-  getMnemonicRegexForAccountName,
   getValueFromRawLog,
   secretcliInit,
   secretcliStore,
@@ -32,46 +31,39 @@ beforeAll(async () => {
   // @ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
-  // Extract genesis accounts from logs
-  const accountIdToName = ["a", "b", "c", "d"];
-  const { stdout: dockerLogsStdout } = await exec("docker logs localsecret", {
-    maxBuffer: 10 * 1024 * 1024 /* 10 MiB */,
-  });
-  const logs = String(dockerLogsStdout);
-  for (const accountId of [0, 1, 2, 3]) {
-    if (!accounts[accountId]) {
-      const match = logs.match(
-        getMnemonicRegexForAccountName(accountIdToName[accountId]),
-      );
-      if (match) {
-        const parsedAccount = JSON.parse(match[0]) as Account;
-        parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
-        parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
-        parsedAccount.secretjs = await SecretNetworkClient.create({
-          grpcWebUrl: "http://localhost:9091",
-          wallet: parsedAccount.walletAmino,
-          walletAddress: parsedAccount.address,
-          chainId: "secretdev-1",
-        });
-        accounts[accountId] = parsedAccount as Account;
-      }
-    }
+  // Initialize genesis accounts
+  const mnemonics = [
+    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow",
+    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge",
+    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
+  ];
+
+  for (let i = 0; i < mnemonics.length; i++) {
+    const mnemonic = mnemonics[i];
+    const walletAmino = new AminoWallet(mnemonic);
+    accounts[i] = {
+      address: walletAmino.address,
+      mnemonic: mnemonic,
+      walletAmino,
+      walletProto: new Wallet(mnemonic),
+      secretjs: await SecretNetworkClient.create({
+        grpcWebUrl: "http://localhost:9091",
+        wallet: walletAmino,
+        walletAddress: walletAmino.address,
+        chainId: "secretdev-1",
+      }),
+    };
   }
 
   // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
   for (let i = 4; i <= 19; i++) {
     const wallet = new AminoWallet();
-    const [{ address, pubkey }] = await wallet.getAccounts();
+    const [{ address }] = await wallet.getAccounts();
     const walletProto = new Wallet(wallet.mnemonic);
 
     accounts[i] = {
-      name: String(i),
-      type: "generated for fun",
       address: address,
-      pubkey: JSON.stringify({
-        "@type": "cosmos.crypto.secp256k1.PubKey",
-        key: toBase64(pubkey),
-      }),
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
@@ -83,8 +75,6 @@ beforeAll(async () => {
       }),
     };
   }
-
-  // expect(accounts.length).toBe(20);
 
   // Send 100k SCRT from account 0 to each of accounts 1-19
 
@@ -145,8 +135,8 @@ describe("query.auth", () => {
 
     const result = await secretjs.query.auth.accounts({});
 
-    // 20 accounts with a balance and 7 module accounts
-    expect(result.length).toBe(27);
+    // 20 accounts with a balance and 27 module accounts
+    expect(result.length).toBe(47);
     expect(result.filter((x) => x?.type === "ModuleAccount").length).toBe(7);
     expect(result.filter((x) => x?.type === "BaseAccount").length).toBe(20);
     expect(
