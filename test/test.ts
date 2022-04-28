@@ -229,9 +229,9 @@ describe("query.compute", () => {
   test("queryContract()", async () => {
     const { secretjs } = accounts[0];
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(1);
+    // const {
+    //   codeInfo: { codeHash },
+    // } = await secretjs.query.compute.code(1);
 
     type Result = {
       token_info: {
@@ -244,7 +244,7 @@ describe("query.compute", () => {
 
     const result = (await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      codeHash,
+      //codeHash,
       query: { token_info: {} },
     })) as Result;
 
@@ -261,13 +261,13 @@ describe("query.compute", () => {
   test("queryContract() StdError", async () => {
     const { secretjs } = accounts[0];
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(1);
+    // const {
+    //   codeInfo: { codeHash },
+    // } = await secretjs.query.compute.code(1);
 
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      codeHash,
+      // codeHash,
       query: {
         balance: {
           address: accounts[0].address,
@@ -286,13 +286,13 @@ describe("query.compute", () => {
   test("queryContract() VmError", async () => {
     const { secretjs } = accounts[0];
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(1);
+    // const {
+    //   codeInfo: { codeHash },
+    // } = await secretjs.query.compute.code(1);
 
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      codeHash,
+      // codeHash,
       query: {
         non_existent_query: {},
       },

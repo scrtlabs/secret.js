@@ -275,11 +275,16 @@ describe("tx.snip721", () => {
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
-    const addMinterMsg = await secretjs.tx.snip721.addMinter({
-      contractAddress,
-      msg: { add_minters: { minters: [accounts[0].address] } },
-      sender: accounts[0].address,
-    });
+    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+      {
+        contractAddress,
+        msg: { add_minters: { minters: [accounts[0].address] } },
+        sender: accounts[0].address,
+      },
+      {
+        gasLimit: 100_000,
+      },
+    );
 
     expect(fromUtf8(addMinterMsg.data[0])).toContain(
       '{"add_minters":{"status":"success"}}',
@@ -348,11 +353,16 @@ describe("tx.snip721", () => {
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
-    const addMinterMsg = await secretjs.tx.snip721.addMinter({
-      contractAddress,
-      msg: { add_minters: { minters: [accounts[0].address] } },
-      sender: accounts[0].address,
-    });
+    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+      {
+        contractAddress,
+        msg: { add_minters: { minters: [accounts[0].address] } },
+        sender: accounts[0].address,
+      },
+      {
+        gasLimit: 100_000,
+      },
+    );
 
     expect(fromUtf8(addMinterMsg.data[0])).toContain(
       '{"add_minters":{"status":"success"}}',
@@ -442,21 +452,31 @@ describe("query.snip721", () => {
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
-    await secretjs.tx.snip721.setViewingKey({
-      contractAddress,
-      sender: accounts[0].address,
-      msg: {
-        set_viewing_key: {
-          key: "hello",
+    await secretjs.tx.snip721.setViewingKey(
+      {
+        contractAddress,
+        sender: accounts[0].address,
+        msg: {
+          set_viewing_key: {
+            key: "hello",
+          },
         },
       },
-    });
+      {
+        gasLimit: 100_000,
+      },
+    );
 
-    await secretjs.tx.snip721.addMinter({
-      contractAddress,
-      msg: { add_minters: { minters: [accounts[0].address] } },
-      sender: accounts[0].address,
-    });
+    await secretjs.tx.snip721.addMinter(
+      {
+        contractAddress,
+        msg: { add_minters: { minters: [accounts[0].address] } },
+        sender: accounts[0].address,
+      },
+      {
+        gasLimit: 100_000,
+      },
+    );
 
     await secretjs.tx.snip721.mint(
       {
