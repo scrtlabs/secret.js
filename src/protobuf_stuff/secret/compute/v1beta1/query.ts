@@ -1,11 +1,11 @@
 /* eslint-disable */
-import { grpc } from "@improbable-eng/grpc-web";
-import { BrowserHeaders } from "browser-headers";
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
-import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
-import { Empty } from "../../../google/protobuf/empty";
 import { ContractInfo } from "../../../secret/compute/v1beta1/types";
+import { Empty } from "../../../google/protobuf/empty";
+import { BrowserHeaders } from "browser-headers";
+import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 
 export const protobufPackage = "secret.compute.v1beta1";
 
