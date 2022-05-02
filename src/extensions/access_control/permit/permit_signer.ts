@@ -39,7 +39,7 @@ export class PermitSigner {
    * @param permitName
    * @param allowedContracts
    * @param permissions
-   *
+   * @param keplr - are we signing with keplr or not?
    * @returns Permit
    */
   sign(
@@ -48,6 +48,7 @@ export class PermitSigner {
     permitName: string,
     allowedContracts: string[],
     permissions: Permission[],
+    keplr: boolean = true,
   ): Promise<Permit> {
     this._checkSigner();
 
@@ -59,6 +60,7 @@ export class PermitSigner {
       permitName,
       allowedContracts,
       permissions,
+      keplr
     );
   }
 

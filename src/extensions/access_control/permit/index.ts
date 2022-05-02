@@ -119,11 +119,53 @@ export const newPermit = async (
   permitName: string,
   allowedTokens: string[],
   permissions: Permission[],
+  keplr: boolean,
 ): Promise<Permit> => {
-  const { signature } = await signer.signAmino(
-    owner,
-    newSignDoc(chainId, permitName, allowedTokens, permissions),
-  );
+
+  let signature;
+  if (!keplr) {
+    signature = (await signer.signAmino(
+        owner,
+        newSignDoc(chainId, permitName, allowedTokens, permissions),
+    )).signature;
+  }
+  //@ts-ignore
+  else if (!window?.keplr) {
+    throw new Error("Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode")
+  } else {
+    //@ts-ignore
+    signature = (await window.keplr.signAmino(
+        chainId,
+        owner,
+        {
+          chain_id: chainId,
+          account_number: "0", // Must be 0
+          sequence: "0", // Must be 0
+          fee: {
+            amount: [{ denom: "uscrt", amount: "0" }], // Must be 0 uscrt
+            gas: "1", // Must be 1
+          },
+          msgs: [
+            {
+              type: "query_permit", // Must be "query_permit"
+              value: {
+                permit_name: permitName,
+                allowed_tokens: allowedTokens,
+                permissions: permissions,
+              },
+            },
+          ],
+          memo: "", // Must be empty
+        },
+        {
+          preferNoSetFee: true, // Fee must be 0, so hide it from the user
+          preferNoSetMemo: true, // Memo must be empty, so hide it from the user
+        }
+    )).signature;
+  }
+
+
+
 
   return {
     params: {
