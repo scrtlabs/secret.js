@@ -109,6 +109,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import {RaAuthenticate} from "./tx/registration";
 
 export type CreateClientOptions = {
   /** A gRPC-web url, by default on port 9091 */
@@ -582,6 +583,9 @@ export type TxSender = {
      */
     transfer: SingleMsgTx<MsgTransferParams>;
   };
+  registration: {
+    register: SingleMsgTx<RaAuthenticate>;
+  };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
     unjail: SingleMsgTx<MsgUnjailParams>;
@@ -813,6 +817,9 @@ export class SecretNetworkClient {
       ibc: {
         transfer: doMsg(MsgTransfer),
       },
+      registration: {
+        register: doMsg(RaAuthenticate),
+      },
       slashing: {
         unjail: doMsg(MsgUnjail),
       },
@@ -822,7 +829,7 @@ export class SecretNetworkClient {
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),
         undelegate: doMsg(MsgUndelegate),
-      },
+      }
     };
 
     if (options.encryptionUtils) {
