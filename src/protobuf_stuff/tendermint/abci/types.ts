@@ -276,6 +276,7 @@ export interface ResponseDeliverTx {
   info: string;
   gasWanted: string;
   gasUsed: string;
+  /** nondeterministic */
   events: Event[];
   codespace: string;
 }

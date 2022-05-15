@@ -4,6 +4,8 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "cosmos.crypto.secp256r1";
 
+/** Since: cosmos-sdk 0.43 */
+
 /** PubKey defines a secp256r1 ECDSA public key. */
 export interface PubKey {
   /**

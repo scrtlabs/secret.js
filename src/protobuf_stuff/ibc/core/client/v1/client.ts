@@ -41,11 +41,9 @@ export interface ClientConsensusStates {
 
 /**
  * ClientUpdateProposal is a governance proposal. If it passes, the substitute
- * client's consensus states starting from the 'initial height' are copied over
- * to the subjects client state. The proposal handler may fail if the subject
- * and the substitute do not match in client and chain parameters (with
- * exception to latest height, frozen height, and chain-id). The updated client
- * must also be valid (cannot be expired).
+ * client's latest consensus state is copied over to the subject client. The proposal
+ * handler may fail if the subject and the substitute do not match in client and
+ * chain parameters (with exception to latest height, frozen height, and chain-id).
  */
 export interface ClientUpdateProposal {
   /** the title of the update proposal */
@@ -59,11 +57,6 @@ export interface ClientUpdateProposal {
    * client
    */
   substituteClientId: string;
-  /**
-   * the intital height to copy consensus states from the substitute to the
-   * subject
-   */
-  initialHeight?: Height;
 }
 
 /**
@@ -349,7 +342,6 @@ function createBaseClientUpdateProposal(): ClientUpdateProposal {
     description: "",
     subjectClientId: "",
     substituteClientId: "",
-    initialHeight: undefined,
   };
 }
 
@@ -369,9 +361,6 @@ export const ClientUpdateProposal = {
     }
     if (message.substituteClientId !== "") {
       writer.uint32(34).string(message.substituteClientId);
-    }
-    if (message.initialHeight !== undefined) {
-      Height.encode(message.initialHeight, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -398,9 +387,6 @@ export const ClientUpdateProposal = {
         case 4:
           message.substituteClientId = reader.string();
           break;
-        case 5:
-          message.initialHeight = Height.decode(reader, reader.uint32());
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -419,9 +405,6 @@ export const ClientUpdateProposal = {
       substituteClientId: isSet(object.substituteClientId)
         ? String(object.substituteClientId)
         : "",
-      initialHeight: isSet(object.initialHeight)
-        ? Height.fromJSON(object.initialHeight)
-        : undefined,
     };
   },
 
@@ -434,10 +417,6 @@ export const ClientUpdateProposal = {
       (obj.subjectClientId = message.subjectClientId);
     message.substituteClientId !== undefined &&
       (obj.substituteClientId = message.substituteClientId);
-    message.initialHeight !== undefined &&
-      (obj.initialHeight = message.initialHeight
-        ? Height.toJSON(message.initialHeight)
-        : undefined);
     return obj;
   },
 
@@ -449,10 +428,6 @@ export const ClientUpdateProposal = {
     message.description = object.description ?? "";
     message.subjectClientId = object.subjectClientId ?? "";
     message.substituteClientId = object.substituteClientId ?? "";
-    message.initialHeight =
-      object.initialHeight !== undefined && object.initialHeight !== null
-        ? Height.fromPartial(object.initialHeight)
-        : undefined;
     return message;
   },
 };

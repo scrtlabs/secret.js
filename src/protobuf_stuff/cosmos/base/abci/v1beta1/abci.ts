@@ -42,6 +42,15 @@ export interface TxResponse {
    * it's genesis time.
    */
   timestamp: string;
+  /**
+   * Events defines all the events emitted by processing a transaction. Note,
+   * these events include those emitted by processing all the messages and those
+   * emitted from the ante handler. Whereas Logs contains the events, with
+   * additional metadata, emitted only by processing the messages.
+   *
+   * Since: cosmos-sdk 0.42.11, 0.44.5, 0.45
+   */
+  events: Event[];
 }
 
 /** ABCIMessageLog defines a structure containing an indexed tx ABCI message log. */
@@ -153,6 +162,7 @@ function createBaseTxResponse(): TxResponse {
     gasUsed: "0",
     tx: undefined,
     timestamp: "",
+    events: [],
   };
 }
 
@@ -196,6 +206,9 @@ export const TxResponse = {
     }
     if (message.timestamp !== "") {
       writer.uint32(98).string(message.timestamp);
+    }
+    for (const v of message.events) {
+      Event.encode(v!, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -243,6 +256,9 @@ export const TxResponse = {
         case 12:
           message.timestamp = reader.string();
           break;
+        case 13:
+          message.events.push(Event.decode(reader, reader.uint32()));
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -267,6 +283,9 @@ export const TxResponse = {
       gasUsed: isSet(object.gasUsed) ? String(object.gasUsed) : "0",
       tx: isSet(object.tx) ? Any.fromJSON(object.tx) : undefined,
       timestamp: isSet(object.timestamp) ? String(object.timestamp) : "",
+      events: Array.isArray(object?.events)
+        ? object.events.map((e: any) => Event.fromJSON(e))
+        : [],
     };
   },
 
@@ -291,6 +310,11 @@ export const TxResponse = {
     message.tx !== undefined &&
       (obj.tx = message.tx ? Any.toJSON(message.tx) : undefined);
     message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    if (message.events) {
+      obj.events = message.events.map((e) => (e ? Event.toJSON(e) : undefined));
+    } else {
+      obj.events = [];
+    }
     return obj;
   },
 
@@ -313,6 +337,7 @@ export const TxResponse = {
         ? Any.fromPartial(object.tx)
         : undefined;
     message.timestamp = object.timestamp ?? "";
+    message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
     return message;
   },
 };

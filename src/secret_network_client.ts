@@ -98,6 +98,7 @@ import {
   MsgParams,
   ProtoMsg,
 } from "./tx";
+import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
   AminoSigner,
@@ -363,6 +364,18 @@ export type Tx = {
   readonly jsonLog?: JsonLog;
   /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
   readonly arrayLog?: ArrayLog;
+
+  /**
+   * Events defines all the events emitted by processing a transaction. Note,
+   * these events include those emitted by processing all the messages and those
+   * emitted from the ante handler. Whereas Logs contains the events, with
+   * additional metadata, emitted only by processing the messages.
+   *
+   * Note: events are not decrypted.
+   */
+  readonly events: Array<
+    import("./protobuf_stuff/tendermint/abci/types").Event
+  >;
   /** Return value (if there's any) for each input message */
   readonly data: Array<Uint8Array>;
   /**
@@ -598,6 +611,10 @@ export type TxSender = {
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: SingleMsgTx<MsgUndelegateParams>;
   };
+  vesting: {
+    /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
+    createVestingAccount: SingleMsgTx<MsgCreateVestingAccount>;
+  };
 };
 
 type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
@@ -823,6 +840,9 @@ export class SecretNetworkClient {
         editValidator: doMsg(MsgEditValidator),
         undelegate: doMsg(MsgUndelegate),
       },
+      vesting: {
+        createVestingAccount: doMsg(MsgCreateVestingAccount),
+      },
     };
 
     if (options.encryptionUtils) {
@@ -1027,6 +1047,7 @@ export class SecretNetworkClient {
           rawLog,
           jsonLog,
           arrayLog,
+          events: tx.events,
           data,
           gasUsed: Number(tx.gasUsed),
           gasWanted: Number(tx.gasWanted),

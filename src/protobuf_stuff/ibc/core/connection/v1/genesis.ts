@@ -2,6 +2,7 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import {
+  Params,
   IdentifiedConnection,
   ConnectionPaths,
 } from "../../../../ibc/core/connection/v1/connection";
@@ -14,6 +15,7 @@ export interface GenesisState {
   clientConnectionPaths: ConnectionPaths[];
   /** the sequence for the next generated connection identifier */
   nextConnectionSequence: string;
+  params?: Params;
 }
 
 function createBaseGenesisState(): GenesisState {
@@ -21,6 +23,7 @@ function createBaseGenesisState(): GenesisState {
     connections: [],
     clientConnectionPaths: [],
     nextConnectionSequence: "0",
+    params: undefined,
   };
 }
 
@@ -37,6 +40,9 @@ export const GenesisState = {
     }
     if (message.nextConnectionSequence !== "0") {
       writer.uint32(24).uint64(message.nextConnectionSequence);
+    }
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -63,6 +69,9 @@ export const GenesisState = {
             reader.uint64() as Long,
           );
           break;
+        case 4:
+          message.params = Params.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -84,6 +93,7 @@ export const GenesisState = {
       nextConnectionSequence: isSet(object.nextConnectionSequence)
         ? String(object.nextConnectionSequence)
         : "0",
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
     };
   },
 
@@ -105,6 +115,8 @@ export const GenesisState = {
     }
     message.nextConnectionSequence !== undefined &&
       (obj.nextConnectionSequence = message.nextConnectionSequence);
+    message.params !== undefined &&
+      (obj.params = message.params ? Params.toJSON(message.params) : undefined);
     return obj;
   },
 
@@ -119,6 +131,10 @@ export const GenesisState = {
         ConnectionPaths.fromPartial(e),
       ) || [];
     message.nextConnectionSequence = object.nextConnectionSequence ?? "0";
+    message.params =
+      object.params !== undefined && object.params !== null
+        ? Params.fromPartial(object.params)
+        : undefined;
     return message;
   },
 };
