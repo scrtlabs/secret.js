@@ -39,6 +39,9 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     if (!seed) {
       this.seed = EncryptionUtilsImpl.GenerateNewSeed();
     } else {
+      if (seed.length !== 32) {
+        throw new Error("encryptionSeed must be a Uint8Array of length 32");
+      }
       this.seed = seed;
     }
 

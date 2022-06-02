@@ -120,7 +120,7 @@ export type CreateClientOptions = {
   wallet?: Signer;
   /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
   walletAddress?: string;
-  /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
+  /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. Must be 32 bytes. */
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
   encryptionUtils?: EncryptionUtils;
