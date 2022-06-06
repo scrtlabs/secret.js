@@ -349,7 +349,12 @@ export type TxContent = {
 
 /** A transaction that is indexed as part of the transaction history */
 export type Tx = {
+  /** Block height in which the tx was committed on-chain */
   readonly height: number;
+  /** An RFC 3339 timestamp of when the tx was committed on-chain.
+   * The format is `{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z`.
+   */
+  readonly timestamp: string;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
   /** Transaction execution error code. 0 on success. See {@link TxResultCode}. */
@@ -1040,6 +1045,7 @@ export class SecretNetworkClient {
 
         return {
           height: Number(tx.height),
+          timestamp: tx.timestamp,
           transactionHash: tx.txhash,
           code: tx.code,
           tx: decodedTx,
