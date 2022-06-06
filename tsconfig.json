@@ -1,7 +1,7 @@
 {
   /* Visit https://aka.ms/tsconfig.json to read more about this file */
   "compilerOptions": {
-    "target": "ES2016",
+    "target": "ES2015",
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
