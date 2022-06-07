@@ -3,6 +3,8 @@
 // 1. Proxy the auto-generated QueryClientImpl from "src/protobuf_stuff/cosmos/auth/v1beta1/query.tx" (See the "scripts/generate_protobuf.sh" script)
 // 2. Convert the "account: Any" in the underlying types to the acctual account type
 
+import { grpc } from "@improbable-eng/grpc-web";
+
 type AccountData = {
   type: "BaseAccount" | "ModuleAccount" | "BaseVestingAccount";
   account:
@@ -44,28 +46,34 @@ export class AuthQuerier {
   /** returns all the existing accounts */
   async accounts(
     request: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryAccountsRequest,
+    metadata?: grpc.Metadata,
   ): Promise<Account[]> {
     await this.init();
 
-    const response = await this.client!.accounts(request);
+    const response = await this.client!.accounts(request, metadata);
     return Promise.all(response.accounts.map((a) => accountFromAny(a)));
   }
   /** returns account details based on address. */
-  async account({
-    address,
-  }: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryAccountRequest): Promise<Account> {
+  async account(
+    {
+      address,
+    }: import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryAccountRequest,
+    metadata?: grpc.Metadata,
+  ): Promise<Account> {
     await this.init();
 
-    const response = await this.client!.account({ address });
+    const response = await this.client!.account({ address }, metadata);
     return response.account ? accountFromAny(response.account) : null;
   }
   /** queries all parameters. */
-  async params(): Promise<
+  async params(
+    metadata?: grpc.Metadata,
+  ): Promise<
     import("../protobuf_stuff/cosmos/auth/v1beta1/query").QueryParamsResponse
   > {
     await this.init();
 
-    return await this.client!.params({});
+    return await this.client!.params({}, metadata);
   }
 }
 

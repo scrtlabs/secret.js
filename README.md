@@ -79,7 +79,7 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ## Sending Queries
 
 ```ts
-import { SecretNetworkClient } from "secretjs";
+import { SecretNetworkClient, grpc } from "secretjs";
 
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
@@ -89,10 +89,15 @@ const secretjs = await SecretNetworkClient.create({
 
 const {
   balance: { amount },
-} = await secretjs.query.bank.balance({
-  address: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
-  denom: "uscrt",
-});
+} = await secretjs.query.bank.balance(
+  {
+    address: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
+    denom: "uscrt",
+  } /*,
+  // optional: query at a specific height (using an archive node) 
+  new grpc.Metadata({"x-cosmos-block-height": "2000000"})
+  */,
+);
 
 console.log(`I have ${Number(amount) / 1e6} SCRT!`);
 

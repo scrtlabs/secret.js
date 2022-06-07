@@ -5,6 +5,7 @@
 // 3. Add Secret Network encryption
 
 import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
+import { grpc } from "@improbable-eng/grpc-web";
 import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
@@ -116,13 +117,16 @@ export class ComputeQuerier {
   }
 
   /** Get codeHash of a Secret Contract */
-  async contractCodeHash(address: string): Promise<string> {
+  async contractCodeHash(
+    address: string,
+    metadata?: grpc.Metadata,
+  ): Promise<string> {
     await this.init();
 
     let codeHash = this.codeHashCache.get(address);
     if (!codeHash) {
-      const { ContractInfo } = await this.contractInfo(address);
-      codeHash = (await this.codeHash(Number(ContractInfo.codeId)))
+      const { ContractInfo } = await this.contractInfo(address, metadata);
+      codeHash = (await this.codeHash(Number(ContractInfo.codeId), metadata))
         .replace("0x", "")
         .toLowerCase();
       this.codeHashCache.set(address, codeHash);
@@ -132,12 +136,12 @@ export class ComputeQuerier {
   }
 
   /** Get codeHash from a code id */
-  async codeHash(codeId: number): Promise<string> {
+  async codeHash(codeId: number, metadata?: grpc.Metadata): Promise<string> {
     await this.init();
 
     let codeHash = this.codeHashCache.get(codeId);
     if (!codeHash) {
-      const { codeInfo } = await this.code(codeId);
+      const { codeInfo } = await this.code(codeId, metadata);
       codeHash = codeInfo.codeHash;
       this.codeHashCache.set(codeId, codeHash);
     }
@@ -146,12 +150,18 @@ export class ComputeQuerier {
   }
 
   /** Get metadata of a Secret Contract */
-  async contractInfo(address: string): Promise<QueryContractInfoResponse> {
+  async contractInfo(
+    address: string,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryContractInfoResponse> {
     await this.init();
 
-    const response = await this.client!.contractInfo({
-      address: addressToBytes(address),
-    });
+    const response = await this.client!.contractInfo(
+      {
+        address: addressToBytes(address),
+      },
+      metadata,
+    );
 
     return {
       address: bytesToAddress(response.address),
@@ -160,12 +170,18 @@ export class ComputeQuerier {
   }
 
   /** Get all contracts that were instantiated from a code id */
-  async contractsByCode(codeId: number): Promise<QueryContractsByCodeResponse> {
+  async contractsByCode(
+    codeId: number,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryContractsByCodeResponse> {
     await this.init();
 
-    const response = await this.client!.contractsByCode({
-      codeId: String(codeId),
-    });
+    const response = await this.client!.contractsByCode(
+      {
+        codeId: String(codeId),
+      },
+      metadata,
+    );
 
     return {
       contractInfos: response.contractInfos.map((x) => ({
@@ -178,11 +194,10 @@ export class ComputeQuerier {
   }
 
   /** Query a Secret Contract */
-  async queryContract<T extends object, R extends object>({
-    contractAddress,
-    codeHash,
-    query,
-  }: QueryContractRequest<T>): Promise<R> {
+  async queryContract<T extends object, R extends object>(
+    { contractAddress, codeHash, query }: QueryContractRequest<T>,
+    metadata?: grpc.Metadata,
+  ): Promise<R> {
     await this.init();
 
     if (!codeHash) {
@@ -195,10 +210,13 @@ export class ComputeQuerier {
     const nonce = encryptedQuery.slice(0, 32);
 
     try {
-      const { data: encryptedResult } = await this.client!.smartContractState({
-        address: addressToBytes(contractAddress),
-        queryData: encryptedQuery,
-      });
+      const { data: encryptedResult } = await this.client!.smartContractState(
+        {
+          address: addressToBytes(contractAddress),
+          queryData: encryptedQuery,
+        },
+        metadata,
+      );
 
       const decryptedBase64Result = await this.encryption!.decrypt(
         encryptedResult,
@@ -240,10 +258,16 @@ export class ComputeQuerier {
   }
 
   /** Get WASM bytecode and metadata for a code id */
-  async code(codeId: number): Promise<QueryCodeResponse> {
+  async code(
+    codeId: number,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryCodeResponse> {
     await this.init();
 
-    const response = await this.client!.code({ codeId: String(codeId) });
+    const response = await this.client!.code(
+      { codeId: String(codeId) },
+      metadata,
+    );
     const codeInfo = codeInfoResponseFromProtobuf(response.codeInfo);
 
     this.codeHashCache.set(
@@ -257,10 +281,10 @@ export class ComputeQuerier {
     };
   }
 
-  async codes(): Promise<CodeInfoResponse[]> {
+  async codes(metadata?: grpc.Metadata): Promise<CodeInfoResponse[]> {
     await this.init();
 
-    const response = await this.client!.codes({});
+    const response = await this.client!.codes({}, metadata);
 
     return response.codeInfos.map((codeInfo) =>
       codeInfoResponseFromProtobuf(codeInfo),
