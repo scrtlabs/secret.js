@@ -74,6 +74,8 @@ yarn add secretjs@beta
 
 # Usage Examples
 
+Note: Public gRPC-web endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
+
 For a lot more usage examples [refer to the tests](./test/test.ts).
 
 ## Sending Queries
@@ -81,9 +83,11 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ```ts
 import { SecretNetworkClient, grpc } from "secretjs";
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
 });
 
@@ -125,9 +129,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -169,8 +175,10 @@ await window.keplr.enable(CHAIN_ID);
 const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
@@ -283,10 +291,12 @@ A querier client can only send queries and get chain information. Access to all 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
   chainId: "secret-4",
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
 });
 ```
 
@@ -304,9 +314,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client you must also pass in `wallet`, `walletAddress` and `chainId`
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -835,9 +847,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
