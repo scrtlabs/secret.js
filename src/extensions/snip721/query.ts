@@ -120,14 +120,16 @@ export class Snip721Querier extends ComputeQuerier {
       return await this.queryContract<
         Snip721GetTokensRequestWithPermit,
         Snip721GetTokensResponse
-      >({
+        >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           with_permit: {
             permit: auth.permit,
-            tokens: {
-              owner,
+            query: {
+              tokens: {
+                owner,
+              },
             },
           },
         },
