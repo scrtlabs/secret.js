@@ -500,5 +500,15 @@ describe("query.snip721", () => {
     });
 
     expect(tokens.token_list.tokens.length).toEqual(1);
+
+    let permit = await secretjs.utils.accessControl.permit.sign(accounts[0].address, "secretdev-1", "Test", [contractAddress], ["owner"])
+
+    let tokens2 = await secretjs.query.snip721.GetOwnedTokens({
+      contract: { address: contractAddress, codeHash },
+      owner: accounts[0].address,
+      auth: { permit: permit },
+    });
+
+    expect(tokens2.token_list.tokens.length).toEqual(1);
   });
 });
