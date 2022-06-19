@@ -109,20 +109,20 @@ beforeAll(async () => {
     throw new Error("Failed to multisend coins to initial accounts");
   }
 
-  for (let accountId = 0; accountId < 20; accountId++) {
-    console.log(
-      `account[${accountId}]:\n${JSON.stringify(
-        {
-          ...accounts[accountId],
-          walletAmino: undefined, // don't flood the screen with wallet object internals
-          walletProto: undefined, // don't flood the screen with wallet object internals
-          secretjs: undefined, // don't flood the screen with secretjs object internals
-        },
-        null,
-        2,
-      )}`,
-    );
-  }
+  // for (let accountId = 0; accountId < 20; accountId++) {
+  //   console.log(
+  //     `account[${accountId}]:\n${JSON.stringify(
+  //       {
+  //         ...accounts[accountId],
+  //         walletAmino: undefined, // don't flood the screen with wallet object internals
+  //         walletProto: undefined, // don't flood the screen with wallet object internals
+  //         secretjs: undefined, // don't flood the screen with secretjs object internals
+  //       },
+  //       null,
+  //       2,
+  //     )}`,
+  //   );
+  // }
 
   // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
   // @ts-ignore
