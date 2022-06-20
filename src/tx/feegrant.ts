@@ -3,7 +3,19 @@ import { AllowedMsgAllowance, BasicAllowance, PeriodicAllowance } from "../proto
 import { Any } from "../protobuf_stuff/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
+type BasicAllowanceParams = BasicAllowance;
+
+type PeriodicAllowanceParams = PeriodicAllowance;
+
+type AllowedMsgAllowanceParams = {
+  [K in keyof AllowedMsgAllowance]: K extends 'allowance'
+    ? BasicAllowance | PeriodicAllowance
+    : AllowedMsgAllowance[K];
+};
+
 type AllowanceType = BasicAllowance | PeriodicAllowance | AllowedMsgAllowance;
+
+type AllowanceParams = BasicAllowanceParams | PeriodicAllowanceParams | AllowedMsgAllowanceParams;
 
 export interface MsgGrantAllowanceParams extends MsgParams {
   /** granter is the address of the user granting an allowance of their funds. */
@@ -11,51 +23,72 @@ export interface MsgGrantAllowanceParams extends MsgParams {
   /** grantee is the address of the user being granted an allowance of another user's funds. */
   grantee: string;
   /** allowance can be any of basic and filtered fee allowance. */
-  allowance: AllowanceType;
+  allowance: AllowanceParams;
 }
 
-function isBasicAllowance(allowanceParams: AllowanceType): allowanceParams is BasicAllowance {
-  return "spendLimit" in allowanceParams;
+function isBasicAllowance(allowance: AllowanceParams | AllowanceType): allowance is (BasicAllowance | BasicAllowanceParams) {
+  return "spendLimit" in allowance;
 }
 
-function isPeriodicAllowance(allowanceParams: AllowanceType): allowanceParams is PeriodicAllowance {
-  return "periodSpendLimit" in allowanceParams;
+function isPeriodicAllowance(allowance: AllowanceParams | AllowanceType): allowance is PeriodicAllowance | PeriodicAllowanceParams {
+  return "periodSpendLimit" in allowance;
 }
 
-function isAllowedMsgAllowance(allowanceParams: AllowanceType): allowanceParams is AllowedMsgAllowance {
-  return "allowedMessages" in allowanceParams;
+function isAllowedMsgAllowance(allowance: AllowanceParams | AllowanceType): allowance is AllowedMsgAllowance | AllowedMsgAllowanceParams {
+  return "allowedMessages" in allowance;
 }
 
-function normalizeAllowance(allowanceParams: AllowanceType): [AllowanceType, Any] {
-  let allowance: AllowanceType;
-  let allowanceMsg: Any;
-
+function normalizeAllowance(allowanceParams: AllowanceParams, blockAllowedType=false): AllowanceType {
   if(isBasicAllowance(allowanceParams)) {
-    allowance = BasicAllowance.fromPartial(allowanceParams);
-    allowanceMsg = {
+    return BasicAllowance.fromPartial(allowanceParams);
+  }
+  else if(isPeriodicAllowance(allowanceParams)) {
+    return PeriodicAllowance.fromPartial(allowanceParams);
+  }
+  else if(isAllowedMsgAllowance(allowanceParams)) {
+    if(blockAllowedType) {
+      throw new Error("Refusing to accept nested AllowedMsgAllowance");
+    }
+
+    return AllowedMsgAllowance.fromPartial({
+      ...allowanceParams,
+      allowance: allowanceParams.allowance && normalizeAllowance(allowanceParams.allowance, true),
+    });
+  }
+  else {
+    throw new Error("Invalid allowance type specific for MsgGrantAllowance");
+  }
+}
+
+function encodeAllowance(allowanceParams: AllowanceParams, blockAllowedType=false): Any {
+  if(isBasicAllowance(allowanceParams)) {
+    return {
       typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
-      value: BasicAllowance.encode(allowance).finish(),
+      value: BasicAllowance.encode(BasicAllowance.fromPartial(allowanceParams)).finish(),
     };
   }
   else if(isPeriodicAllowance(allowanceParams)) {
-    allowance = PeriodicAllowance.fromPartial(allowanceParams);
-    allowanceMsg = {
+    return {
       typeUrl: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
-      value: PeriodicAllowance.encode(allowance).finish(),
+      value: PeriodicAllowance.encode(PeriodicAllowance.fromPartial(allowanceParams)).finish(),
     };
   }
   else if(isAllowedMsgAllowance(allowanceParams)) {
-    allowance = AllowedMsgAllowance.fromPartial(allowanceParams);
-    allowanceMsg = {
+    if(blockAllowedType) {
+      throw new Error("Refusing to accept nested AllowedMsgAllowance");
+    }
+
+    return {
       typeUrl: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
-      value: AllowedMsgAllowance.encode(allowance).finish(),
+      value: AllowedMsgAllowance.encode({
+        ...AllowedMsgAllowance.fromPartial(allowanceParams),
+        allowance: allowanceParams.allowance && encodeAllowance(allowanceParams.allowance, true),
+      }).finish(),
     };
   }
   else {
     throw new Error("Invalid allowance type specific for MsgGrantAllowance");
   }
-
-  return [allowance, allowanceMsg];
 }
 
 /**
@@ -63,25 +96,21 @@ function normalizeAllowance(allowanceParams: AllowanceType): [AllowanceType, Any
  * of fees from the account of Granter.
  */
 export class MsgGrantAllowance implements Msg {
-  protected allowanceMsg?: Any;
-
-  constructor(public params: MsgGrantAllowanceParams) {
-    if(params.allowance) {
-      [params.allowance, this.allowanceMsg] = normalizeAllowance(params.allowance);
-    }
-  }
+  constructor(public params: MsgGrantAllowanceParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
-      value: this.params,
+      value: {
+        ...this.params,
+        allowance: normalizeAllowance(this.params.allowance),
+      },
       encode: async () =>
         (
           await import("../protobuf_stuff/cosmos/feegrant/v1beta1/tx")
         ).MsgGrantAllowance.encode({
-          grantee: this.params.grantee,
-          granter: this.params.granter,
-          allowance: this.allowanceMsg,
+          ...this.params,
+          allowance: encodeAllowance(this.params.allowance),
         }).finish(),
     };
   }
