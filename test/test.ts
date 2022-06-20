@@ -956,6 +956,78 @@ describe("tx.compute", () => {
   });
 });
 
+describe("tx.feegrant", () => {
+  describe("MsgGrantAllowance", () => {
+    test("BasicAllowance", async () => {
+      const { secretjs } = accounts[0];
+
+      const tx = await secretjs.tx.feegrant.grantAllowance(
+        {
+          grantee: '',
+          granter: '',
+          allowance: {
+            spendLimit: [],
+          },
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+
+      expect(tx.code).toBe(0);
+    });
+
+    test("PeriodicAllowance", async () => {
+      const { secretjs } = accounts[0];
+
+      const tx = await secretjs.tx.feegrant.grantAllowance(
+        {
+          grantee: '',
+          granter: '',
+          allowance: {
+            periodCanSpend: [{ amount: "10000000", denom: "uscrt" }],
+            periodSpendLimit: [{ amount: "10000000", denom: "uscrt" }],
+          },
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+
+      expect(tx.code).toBe(0);
+    });
+
+    test("AllowedMsgAllowance BasicAllowance", async () => {
+      const { secretjs } = accounts[0];
+
+      const tx = await secretjs.tx.feegrant.grantAllowance(
+        {
+          grantee: '',
+          granter: '',
+          allowance: {
+            allowance: {
+              spendLimit: [],
+            },
+            allowedMessages: ["MsgSend"],
+          },
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+
+      expect(tx.code).toBe(0);
+    });
+  });
+
+  describe("MsgRevokeAllowance", () => {
+
+  });
+});
+
 describe("tx.gov", () => {
   async function getAllProposals(
     secretjs: SecretNetworkClient,
