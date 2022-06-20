@@ -40,7 +40,7 @@ function normalizeAllowance(allowanceParams: AllowanceType): [AllowanceType, Any
   else if(isPeriodicAllowance(allowanceParams)) {
     allowance = PeriodicAllowance.fromPartial(allowanceParams);
     allowanceMsg = {
-      typeUrl = "/cosmos.feegrant.v1beta1.PeriodicAllowance",
+      typeUrl: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
       value: PeriodicAllowance.encode(allowance).finish(),
     };
   }
