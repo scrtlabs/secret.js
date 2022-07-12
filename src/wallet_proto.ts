@@ -10,7 +10,7 @@ import {
  * Wallet is a wallet capable of signing on transactions.
  *
  * `Wallet` can just extend `AminoWallet` and be a valid `DirectSigner` because
- * `SecretNetworkClient` checks first for the existance of `signDirect` function
+ * `SecretNetworkClient` checks first for the existence of `signDirect` function
  * before checking for `signAmino` function.
  */
 

@@ -118,7 +118,7 @@ export type CreateClientOptions = {
   chainId: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
-  /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
+  /** walletAddress is the specific account address in the wallet that is permitted to sign transactions & permits. */
   walletAddress?: string;
   /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. Must be 32 bytes. */
   encryptionSeed?: Uint8Array;
@@ -176,7 +176,7 @@ export type TxOptions = {
   /**
    * When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks.
    *
-   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize.
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize.
    *
    * Defaults to `6_000`. Ignored if `waitForCommit = false`.
    */
@@ -193,7 +193,7 @@ export type TxOptions = {
   broadcastMode?: BroadcastMode;
   /**
    * explicitSignerData can be used to override `chainId`, `accountNumber` & `accountSequence`.
-   * This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs
+   * This is useful when using {@link BroadcastMode.Async} or when you don't want secretjs
    * to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    */
   explicitSignerData?: SignerData;
@@ -415,9 +415,9 @@ export type TxSender = {
    * @param {String} [options.memo=""]
    * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
    * @param {Number} [options.broadcastTimeoutMs=60_000] How much time (in milliseconds) to wait for tx to commit on-chain. Ignored if `waitForCommit = false`.
-   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize. Ignored if `waitForCommit = false`.
+   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize. Ignored if `waitForCommit = false`.
    * @param {BroadcastMode} [options.broadcastMode=BroadcastMode.Sync] If {@link BroadcastMode.Sync} - Broadcast transaction to mempool and wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync. If {@link BroadcastMode.Async} Broadcast transaction to mempool and do not wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async.
-   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
+   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is useful when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    * @param {Number} [options.explicitSignerData.accountNumber]
    * @param {Number} [options.explicitSignerData.sequence]
    * @param {String} [options.explicitSignerData.chainId]
@@ -1590,7 +1590,7 @@ function makeSignDocAmino(
 }
 
 export enum TxResultCode {
-  /** Success is returned if the transaction executed successfuly */
+  /** Success is returned if the transaction executed successfully */
   Success = 0,
 
   /** ErrInternal should never be exposed, but we reserve this code for non-specified errors */

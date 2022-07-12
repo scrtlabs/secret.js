@@ -22,7 +22,7 @@ export type WalletOptions = {
  * supported in the chain, but is phased out slowly.
  *
  * In secret.js AminoWallet is mainly used for testing and should not be used
- * for anyhting else. The reason is that some Msg types don't support Amino
+ * for anything else. The reason is that some Msg types don't support Amino
  * encoding anymore and thus won't work with this wallet (and Ledger).
  * Msgs that do support Amino encoding also must encode with Protobuf,
  * so if a Msg is working as intended with AminoWallet, it'll also work with {@link Wallet}.
@@ -50,7 +50,7 @@ export class AminoWallet {
   /**
    * @param {String} mnemonic Import mnemonic or generate random if empty
    * @param {Number} [options.hdAccountIndex] The account index in the HD derivation path. Defaults to `0`.
-   * @param {Number} [options.coinType] The coin type in the HD derivation path. Defalts to Secret's `529`.
+   * @param {Number} [options.coinType] The coin type in the HD derivation path. Defaults to Secret's `529`.
    * @param {String} [options.bech32Prefix] The bech32 prefix for the account's address. Defaults tp `"secret"`
    */
   constructor(mnemonic: string = "", options: WalletOptions = {}) {
@@ -71,7 +71,7 @@ export class AminoWallet {
     const privateKey = secretHD.privateKey;
 
     if (!privateKey) {
-      throw new Error("Failed to derive keypair");
+      throw new Error("Failed to derive key pair");
     }
 
     this.privateKey = new Uint8Array(privateKey);
