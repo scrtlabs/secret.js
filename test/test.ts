@@ -20,8 +20,8 @@ import {
   exec,
   getBalance,
   getValueFromRawLog,
-  secretcliInit,
-  secretcliStore,
+  initContract,
+  storeContract,
 } from "./utils";
 
 // @ts-ignore
@@ -198,12 +198,12 @@ describe("query.compute", () => {
   let sSCRT: string;
 
   beforeAll(async () => {
-    const codeId = await secretcliStore(
+    const codeId = await storeContract(
       `${__dirname}/snip20-ibc.wasm.gz`,
       accounts[0],
     );
 
-    sSCRT = await secretcliInit(
+    sSCRT = await initContract(
       codeId,
       {
         name: "Secret SCRT",
@@ -221,17 +221,12 @@ describe("query.compute", () => {
         },
         supported_denoms: ["uscrt"],
       },
-      "sSCRT",
       accounts[0],
     );
   });
 
   test("queryContract()", async () => {
     const { secretjs } = accounts[0];
-
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
 
     type Result = {
       token_info: {
@@ -261,13 +256,8 @@ describe("query.compute", () => {
   test("queryContract() StdError", async () => {
     const { secretjs } = accounts[0];
 
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
-
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      // codeHash,
       query: {
         balance: {
           address: accounts[0].address,
@@ -286,13 +276,8 @@ describe("query.compute", () => {
   test("queryContract() VmError", async () => {
     const { secretjs } = accounts[0];
 
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
-
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      // codeHash,
       query: {
         non_existent_query: {},
       },
