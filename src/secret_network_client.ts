@@ -864,24 +864,79 @@ export class SecretNetworkClient {
     this.query.compute = new ComputeQuerier(grpc, this.encryptionUtils);
   }
 
-  private async getTx(
-    hash: string,
-    nonces: ComputeMsgToNonce = {},
-  ): Promise<Tx | null> {
-    const results = await this.txsQuery(`tx.hash='${hash}'`, nonces);
+  private async getTx(hash: string): Promise<Tx | null> {
+    const results = await this.txsQuery(`tx.hash='${hash}'`);
     return results[0] ?? null;
   }
 
-  private async txsQuery(
-    query: string,
-    nonces: ComputeMsgToNonce = {},
-  ): Promise<Tx[]> {
+  private async txsQuery(query: string): Promise<Tx[]> {
     const { txResponses } = await this.txService.getTxsEvent({
       events: query.split(" AND ").map((q) => q.trim()),
     });
 
+    let nonces: ComputeMsgToNonce = [];
+
     return await Promise.all(
-      txResponses.map(async (tx) => {
+      txResponses.map(async (tx, i) => {
+        // Decode input tx
+        const decodedTx = (
+          await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+        ).Tx.decode(tx.tx!.value) as TxContent;
+
+        // Decoded input tx messages
+        for (let i = 0; i < decodedTx.body!.messages.length; i++) {
+          const { typeUrl: msgType, value: msgBytes } =
+            decodedTx.body!.messages[i];
+
+          const msgDecoder = this.msgDecoderRegistry.get(msgType);
+          if (!msgDecoder) {
+            continue;
+          }
+
+          const msg = {
+            typeUrl: msgType,
+            value: msgDecoder.decode(msgBytes as Uint8Array),
+          };
+
+          // Check if the message needs decryption
+          let contractInputMsgFieldName = "";
+          if (
+            msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
+          ) {
+            contractInputMsgFieldName = "initMsg";
+          } else if (
+            msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
+            contractInputMsgFieldName = "msg";
+          }
+
+          if (contractInputMsgFieldName !== "") {
+            // Encrypted, try to decrypt
+            try {
+              const contractInputMsgBytes: Uint8Array =
+                msg.value[contractInputMsgFieldName];
+
+              const nonce = contractInputMsgBytes.slice(0, 32);
+              const accountPubkey = contractInputMsgBytes.slice(32, 64); // unused in decryption
+              const ciphertext = contractInputMsgBytes.slice(64);
+
+              const plaintext = await this.encryptionUtils.decrypt(
+                ciphertext,
+                nonce,
+              );
+              msg.value[contractInputMsgFieldName] = JSON.parse(
+                fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
+              );
+
+              nonces[i] = nonce; // Fill nonces array to later use it in output decryption
+            } catch (decryptionError) {
+              // Not encrypted or can't decrypt because not original sender
+            }
+          }
+
+          decodedTx.body!.messages[i] = msg;
+        }
+
         let rawLog: string = tx.rawLog;
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
@@ -986,63 +1041,6 @@ export class SecretNetworkClient {
           }
         }
 
-        // Decode input tx
-        const decodedTx = (
-          await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-        ).Tx.decode(tx.tx!.value) as TxContent;
-
-        // Decoded input tx messages
-        for (let i = 0; i < decodedTx.body!.messages.length; i++) {
-          const { typeUrl: msgType, value: msgBytes } =
-            decodedTx.body!.messages[i];
-
-          const msgDecoder = this.msgDecoderRegistry.get(msgType);
-          if (!msgDecoder) {
-            continue;
-          }
-
-          const msg = {
-            typeUrl: msgType,
-            value: msgDecoder.decode(msgBytes as Uint8Array),
-          };
-
-          // Check if the message needs decryption
-          let contractInputMsgFieldName = "";
-          if (
-            msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
-          ) {
-            contractInputMsgFieldName = "initMsg";
-          } else if (
-            msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
-          ) {
-            contractInputMsgFieldName = "msg";
-          }
-
-          if (contractInputMsgFieldName !== "") {
-            // Encrypted, try to decrypt
-            try {
-              const contractInputMsgBytes: Uint8Array =
-                msg.value[contractInputMsgFieldName];
-
-              const nonce = contractInputMsgBytes.slice(0, 32);
-              const accountPubkey = contractInputMsgBytes.slice(32, 64); // unused in decryption
-              const ciphertext = contractInputMsgBytes.slice(64);
-
-              const plaintext = await this.encryptionUtils.decrypt(
-                ciphertext,
-                nonce,
-              );
-              msg.value[contractInputMsgFieldName] = JSON.parse(
-                fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
-              );
-            } catch (decryptionError) {
-              // Not encrypted or can't decrypt because not original sender
-            }
-          }
-
-          decodedTx.body!.messages[i] = msg;
-        }
-
         return {
           height: Number(tx.height),
           timestamp: tx.timestamp,
@@ -1125,7 +1123,7 @@ export class SecretNetworkClient {
       // sleep first because there's no point in checking right after broadcasting
       await sleep(checkIntervalMs);
 
-      const result = await this.getTx(txhash, nonces);
+      const result = await this.getTx(txhash);
 
       if (result) {
         return result;

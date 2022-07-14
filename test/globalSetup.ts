@@ -5,7 +5,7 @@ require("ts-node").register({ transpileOnly: true });
 
 module.exports = async () => {
   // init localsecret
-  console.log("Setting up LocalSecret...");
+  console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
     "docker run -it -d -p 9091:9091 --name localsecret ghcr.io/scrtlabs/localsecret:v1.3.1",

@@ -20,8 +20,9 @@ import {
   exec,
   getBalance,
   getValueFromRawLog,
-  secretcliInit,
-  secretcliStore,
+  initContract,
+  sleep,
+  storeContract,
 } from "./utils";
 
 // @ts-ignore
@@ -129,6 +130,209 @@ beforeAll(async () => {
   // global.__SCRT_TEST_ACCOUNTS__ = accounts;
 });
 
+describe("query", () => {
+  test("query.getTx", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgExecuteContract({
+          sender: secretjs.address,
+          contractAddress,
+          msg: {
+            create_viewing_key: {
+              entropy: "bla bla",
+            },
+          },
+          codeHash,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    let txExec = await secretjs.query.getTx(tx.transactionHash);
+    while (txExec === null) {
+      sleep(100);
+      txExec = await secretjs.query.getTx(tx.transactionHash);
+    }
+
+    expect(fromUtf8(txExec.data[0])).toContain(
+      '{"create_viewing_key":{"key":"',
+    );
+  });
+
+  test("query.getTx error", async () => {
+    const { secretjs } = accounts[0];
+
+    const txStore = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasmByteCode: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txStore.code).toBe(0);
+
+    const codeId = Number(
+      getValueFromRawLog(txStore.rawLog, "message.code_id"),
+    );
+
+    const {
+      codeInfo: { codeHash },
+    } = await secretjs.query.compute.code(codeId);
+
+    const txInit = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        codeId,
+        codeHash,
+        initMsg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        initFunds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(txInit.code).toBe(0);
+
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
+    const contractAddress = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgExecuteContract({
+          sender: accounts[0].address,
+          contractAddress: contractAddress,
+          codeHash,
+          msg: {
+            transfer: {
+              recipient: accounts[1].address,
+              amount: "2",
+            },
+          },
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    let txExec = await secretjs.query.getTx(tx.transactionHash);
+    while (txExec === null) {
+      sleep(100);
+      txExec = await secretjs.query.getTx(tx.transactionHash);
+    }
+
+    expect(txExec.rawLog).toContain(
+      "failed to execute message; message index: 0",
+    );
+    expect(txExec.jsonLog).toStrictEqual({
+      generic_err: { msg: "insufficient funds: balance=1, required=2" },
+    });
+  });
+});
+
 describe("query.auth", () => {
   test("accounts()", async () => {
     const { secretjs } = accounts[0];
@@ -198,12 +402,12 @@ describe("query.compute", () => {
   let sSCRT: string;
 
   beforeAll(async () => {
-    const codeId = await secretcliStore(
+    const codeId = await storeContract(
       `${__dirname}/snip20-ibc.wasm.gz`,
       accounts[0],
     );
 
-    sSCRT = await secretcliInit(
+    sSCRT = await initContract(
       codeId,
       {
         name: "Secret SCRT",
@@ -221,17 +425,12 @@ describe("query.compute", () => {
         },
         supported_denoms: ["uscrt"],
       },
-      "sSCRT",
       accounts[0],
     );
   });
 
   test("queryContract()", async () => {
     const { secretjs } = accounts[0];
-
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
 
     type Result = {
       token_info: {
@@ -261,13 +460,8 @@ describe("query.compute", () => {
   test("queryContract() StdError", async () => {
     const { secretjs } = accounts[0];
 
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
-
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      // codeHash,
       query: {
         balance: {
           address: accounts[0].address,
@@ -286,13 +480,8 @@ describe("query.compute", () => {
   test("queryContract() VmError", async () => {
     const { secretjs } = accounts[0];
 
-    // const {
-    //   codeInfo: { codeHash },
-    // } = await secretjs.query.compute.code(1);
-
     const result = await secretjs.query.compute.queryContract({
       contractAddress: sSCRT,
-      // codeHash,
       query: {
         non_existent_query: {},
       },
