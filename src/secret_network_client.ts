@@ -1077,7 +1077,6 @@ export class SecretNetworkClient {
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
-    nonces: ComputeMsgToNonce,
   ): Promise<Tx> {
     const start = Date.now();
 
@@ -1140,7 +1139,7 @@ export class SecretNetworkClient {
   private async prepareAndSign(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<[Uint8Array, ComputeMsgToNonce]> {
+  ): Promise<Uint8Array> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
@@ -1148,7 +1147,7 @@ export class SecretNetworkClient {
 
     const explicitSignerData = txOptions?.explicitSignerData;
 
-    const [txRaw, nonces] = await this.sign(
+    const txRaw = await this.sign(
       messages,
       {
         gas: String(gasLimit),
@@ -1167,7 +1166,7 @@ export class SecretNetworkClient {
       await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
     ).TxRaw.encode(txRaw).finish();
 
-    return [txBytes, nonces];
+    return txBytes;
   }
 
   private async signAndBroadcast(
@@ -1180,7 +1179,7 @@ export class SecretNetworkClient {
       txOptions?.broadcastCheckIntervalMs ?? 6_000;
     const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
 
-    const [txBytes, nonces] = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions);
 
     return this.broadcastTx(
       txBytes,
@@ -1188,7 +1187,6 @@ export class SecretNetworkClient {
       broadcastCheckIntervalMs,
       broadcastMode,
       waitForCommit,
-      nonces,
     );
   }
 
@@ -1198,7 +1196,7 @@ export class SecretNetworkClient {
   ): Promise<
     import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
   > {
-    const [txBytes] = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions);
     return this.txService.simulate({ txBytes });
   }
 
@@ -1217,9 +1215,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
     const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === this.address,
     );
@@ -1268,9 +1264,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
     if (isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected AminoSigner.");
     }
@@ -1296,7 +1290,6 @@ export class SecretNetworkClient {
       account.address,
       signDoc,
     );
-    const encryptionNonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -1304,7 +1297,6 @@ export class SecretNetworkClient {
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -1322,16 +1314,13 @@ export class SecretNetworkClient {
       signedGasLimit,
       signMode,
     );
-    return [
-      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
-        {
-          bodyBytes: txBodyBytes,
-          authInfoBytes: signedAuthInfoBytes,
-          signatures: [fromBase64(signature.signature)],
-        },
-      ),
-      encryptionNonces,
-    ];
+    return (
+      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+    ).TxRaw.fromPartial({
+      bodyBytes: txBodyBytes,
+      authInfoBytes: signedAuthInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
   }
 
   private async populateCodeHash(msg: Msg) {
@@ -1382,14 +1371,11 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
     if (!isOfflineDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 
-    const encryptionNonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -1397,7 +1383,6 @@ export class SecretNetworkClient {
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -1423,16 +1408,13 @@ export class SecretNetworkClient {
       account.address,
       signDoc,
     );
-    return [
-      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
-        {
-          bodyBytes: signed.bodyBytes,
-          authInfoBytes: signed.authInfoBytes,
-          signatures: [fromBase64(signature.signature)],
-        },
-      ),
-      encryptionNonces,
-    ];
+    return (
+      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+    ).TxRaw.fromPartial({
+      bodyBytes: signed.bodyBytes,
+      authInfoBytes: signed.authInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
   }
 }
 
