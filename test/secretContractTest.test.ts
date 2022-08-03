@@ -8,13 +8,7 @@ import { Account, getValueFromRawLog } from "./utils";
 let accounts: Account[];
 
 // @ts-ignore
-let v010CodeID: number;
-
-// @ts-ignore
 let v1CodeID: number;
-
-// @ts-ignore
-let v010ContractHash: string;
 
 // @ts-ignore
 let v1ContractHash: string;
@@ -86,20 +80,6 @@ beforeAll(async () => {
     throw new Error("Failed to multisend coins to initial accounts");
   }
 
-  const txStoreV010 = await secretjs.tx.compute.storeCode(
-    {
-      sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
-        `${__dirname}/test_contract_v010.wasm`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    },
-    {
-      gasLimit: 5_000_000,
-    },
-  );
-
   const txStoreV1 = await secretjs.tx.compute.storeCode(
     {
       sender: accounts[0].address,
@@ -114,16 +94,8 @@ beforeAll(async () => {
     },
   );
 
-  expect(txStoreV010.code).toBe(0);
   expect(txStoreV1.code).toBe(0);
 
-  v010CodeID = Number(
-    getValueFromRawLog(txStoreV010.rawLog, "message.code_id"),
-  );
-  v1CodeID = Number(getValueFromRawLog(txStoreV1.rawLog, "message.code_id"));
-
-  v010ContractHash = (await secretjs.query.compute.code(v010CodeID)).codeInfo
-    .codeHash;
   v1ContractHash = (await secretjs.query.compute.code(v1CodeID)).codeInfo
     .codeHash;
 });
