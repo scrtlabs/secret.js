@@ -1,3 +1,4 @@
+// Note: the order of exports is important here
 export * from "@cosmjs/encoding";
 export * from "./encryption";
 export * from "./query";
@@ -9,6 +10,7 @@ export {
   WalletOptions,
 } from "./wallet_amino";
 export { Wallet } from "./wallet_proto";
+export { MetaMaskSigner } from "./metamask_signer";
 
 export * from "./extensions/snip20";
 export * from "./extensions/snip721";
