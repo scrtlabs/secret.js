@@ -37,8 +37,8 @@ export class MetaMaskSigner {
     const sigResult: string = await window.ethereum.request({
       method: "eth_signTypedData_v1",
       params: [
-        this.ethAddress,
         [{ type: "string", name: "Transaction to Sign:", value: message }],
+        this.ethAddress,
       ],
     });
 
