@@ -1,10 +1,11 @@
-import { sha256 } from "@noble/hashes/sha256";
-import { fromHex, toHex } from ".";
+import { fromHex, fromUtf8 } from ".";
 import {
   AccountData,
+  AminoSignResponse,
   encodeSecp256k1Signature,
   pubkeyToAddress,
-  StdSignature,
+  serializeStdSignDoc,
+  StdSignDoc,
 } from "./wallet_amino";
 
 /**
@@ -24,19 +25,21 @@ export class MetaMaskSigner {
     ];
   }
 
-  public async signDirect(
+  public async signAmino(
     address: string,
-    signDoc: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc,
-  ): Promise<DirectSignResponse> {
+    signDoc: StdSignDoc,
+  ): Promise<AminoSignResponse> {
     if (address !== pubkeyToAddress(this.publicKey)) {
       throw new Error(`Address ${address} not found in wallet`);
     }
-
-    const messageHash = sha256(await serializeSignDoc(signDoc));
+    const message = fromUtf8(await serializeStdSignDoc(signDoc));
     // @ts-ignore
     const sigResult: string = await window.ethereum.request({
-      method: "eth_sign",
-      params: [this.ethAddress, "0x" + toHex(messageHash)],
+      method: "eth_signTypedData_v1",
+      params: [
+        this.ethAddress,
+        [{ type: "string", name: "Transaction to Sign:", value: message }],
+      ],
     });
 
     const signature = fromHex(sigResult.slice(2, -2));
@@ -46,30 +49,4 @@ export class MetaMaskSigner {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
-}
-
-type DirectSignResponse = {
-  /**
-   * The sign doc that was signed.
-   * This may be different from the input signDoc when the signer modifies it as part of the signing process.
-   */
-  readonly signed: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc;
-  readonly signature: StdSignature;
-};
-
-async function serializeSignDoc({
-  accountNumber,
-  authInfoBytes,
-  bodyBytes,
-  chainId,
-}: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc): Promise<Uint8Array> {
-  const { SignDoc } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
-  return SignDoc.encode(
-    SignDoc.fromPartial({
-      accountNumber: accountNumber,
-      authInfoBytes: authInfoBytes,
-      bodyBytes: bodyBytes,
-      chainId: chainId,
-    }),
-  ).finish();
 }
