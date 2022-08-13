@@ -1,5 +1,4 @@
 import { sha256 } from "@noble/hashes/sha256";
-import { sha3_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, toHex } from ".";
 import {
@@ -48,9 +47,7 @@ export class MetaMaskSigner {
 
     const publicKeyHex = localStorage.getItem(localStorageKey);
     if (publicKeyHex) {
-      console.log(ethAddress);
-      console.log(sha3_256(fromHex(publicKeyHex)));
-
+      // TODO verify that ethAddress can be derived from publicKeyHex
       return new MetaMaskSigner(ethProvider, ethAddress, fromHex(publicKeyHex));
     }
 
