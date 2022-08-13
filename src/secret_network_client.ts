@@ -159,7 +159,7 @@ export enum BroadcastMode {
 export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
-  /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
+  /** E.g. gasPriceInFeeDenom=0.1 & feeDenom="uscrt" => Total fee for tx is `0.1 * gasLimit`uscrt. Defaults to `0.1`. */
   gasPriceInFeeDenom?: number;
   /** Defaults to `"uscrt"`. */
   feeDenom?: string;
@@ -410,7 +410,7 @@ export type TxSender = {
    *
    * @param {TxOptions} [options] Options for signing and broadcasting
    * @param {Number} [options.gasLimit=25_000]
-   * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
+   * @param {Number} [options.gasPriceInFeeDenom=0.1] E.g. gasPriceInFeeDenom=0.1 & feeDenom="uscrt" => Total fee for tx is `0.1 * gasLimit`uscrt.
    * @param {String} [options.feeDenom="uscrt"]
    * @param {String} [options.memo=""]
    * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
@@ -1136,12 +1136,12 @@ export class SecretNetworkClient {
     }
   }
 
-  private async prepareAndSign(
+  public async prepareAndSign(
     messages: Msg[],
     txOptions?: TxOptions,
   ): Promise<Uint8Array> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
-    const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
+    const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.1;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
     const memo = txOptions?.memo ?? "";
 
@@ -1173,20 +1173,14 @@ export class SecretNetworkClient {
     messages: Msg[],
     txOptions?: TxOptions,
   ): Promise<Tx> {
-    const waitForCommit = txOptions?.waitForCommit ?? true;
-    const broadcastTimeoutMs = txOptions?.broadcastTimeoutMs ?? 60_000;
-    const broadcastCheckIntervalMs =
-      txOptions?.broadcastCheckIntervalMs ?? 6_000;
-    const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
-
     const txBytes = await this.prepareAndSign(messages, txOptions);
 
     return this.broadcastTx(
       txBytes,
-      broadcastTimeoutMs,
-      broadcastCheckIntervalMs,
-      broadcastMode,
-      waitForCommit,
+      txOptions?.broadcastTimeoutMs ?? 60_000,
+      txOptions?.broadcastCheckIntervalMs ?? 6_000,
+      txOptions?.broadcastMode ?? BroadcastMode.Sync,
+      txOptions?.waitForCommit ?? true,
     );
   }
 

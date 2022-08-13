@@ -554,7 +554,7 @@ describe("tx.bank", () => {
     const aAfter = await getBalance(secretjs, accounts[0].address);
     const cAfter = await getBalance(secretjs, accounts[2].address);
 
-    expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(gasLimit, 0.25)));
+    expect(aBefore - aAfter).toBe(BigInt(1) + BigInt(gasToFee(gasLimit, 0.1)));
     expect(cAfter - cBefore).toBe(BigInt(1));
   });
 
@@ -598,7 +598,7 @@ describe("tx.bank", () => {
     const bAfter = await getBalance(secretjs, accounts[1].address);
     const cAfter = await getBalance(secretjs, accounts[2].address);
 
-    expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.25)));
+    expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.1)));
     expect(bAfter - bBefore).toBe(BigInt(1));
     expect(cAfter - cBefore).toBe(BigInt(1));
   });
