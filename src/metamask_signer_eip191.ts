@@ -14,11 +14,16 @@ import {
  * MetaMaskSigner is a signer capable of signing on transactions using MetaMask.
  */
 export class MetaMaskTextSigner {
+  /** The account's secret address, derived from `publicKey` */
+  public readonly address: string;
+
   private constructor(
     public ethProvider: any,
     public ethAddress: string,
     public publicKey: Uint8Array,
-  ) {}
+  ) {
+    this.address = pubkeyToAddress(this.publicKey);
+  }
 
   static async create(
     ethProvider: any,
@@ -36,7 +41,8 @@ export class MetaMaskTextSigner {
       );
     }
 
-    const msgToSign = `0x${toHex(toUtf8("Get secret address"))}`;
+    const rawMsg = toUtf8("Get secret address");
+    const msgToSign = `0x${toHex(rawMsg)}`;
 
     const sigResult: string = await ethProvider.request({
       method: "personal_sign",
@@ -47,8 +53,13 @@ export class MetaMaskTextSigner {
     const sig = fromHex(sigResult.slice(2, -2));
     const recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
 
+    const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
+    const rawMsgLength = toUtf8(String(rawMsg.length));
+
     const publicKey = secp256k1.recoverPublicKey(
-      sha3_256(msgToSign),
+      sha3_256(
+        new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
+      ),
       sig,
       recoveryId,
       true,
@@ -62,7 +73,7 @@ export class MetaMaskTextSigner {
   public async getAccounts(): Promise<readonly AccountData[]> {
     return [
       {
-        address: pubkeyToAddress(this.publicKey),
+        address: this.address,
         algo: "secp256k1",
         pubkey: this.publicKey,
       },

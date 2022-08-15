@@ -14,11 +14,16 @@ import {
  * MetaMaskSigner is a signer capable of signing on transactions using MetaMask.
  */
 export class MetaMaskSigner {
+  /** The account's secret address, derived from `publicKey` */
+  public readonly address: string;
+
   private constructor(
     public ethProvider: any,
     public ethAddress: string,
     public publicKey: Uint8Array,
-  ) {}
+  ) {
+    this.address = pubkeyToAddress(this.publicKey);
+  }
 
   static async create(
     ethProvider: any,
@@ -58,7 +63,7 @@ export class MetaMaskSigner {
   public async getAccounts(): Promise<readonly AccountData[]> {
     return [
       {
-        address: pubkeyToAddress(this.publicKey),
+        address: this.address,
         algo: "secp256k1",
         pubkey: this.publicKey,
       },
