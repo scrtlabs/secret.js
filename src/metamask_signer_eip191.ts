@@ -1,4 +1,3 @@
-import { keccak256 } from "@ethersproject/keccak256";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, toHex, toUtf8 } from ".";
 import {
