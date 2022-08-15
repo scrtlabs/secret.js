@@ -1,3 +1,4 @@
+import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, toHex, toUtf8 } from ".";
 import {
@@ -58,9 +59,9 @@ export class MetaMaskTextSigner {
     const rawMsgLength = toUtf8(String(rawMsg.length));
 
     const publicKey = secp256k1.recoverPublicKey(
-      keccak256(
+      keccak_256(
         new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
-      ).slice(2),
+      ),
       sig,
       recoveryId,
       true,
