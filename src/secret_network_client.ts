@@ -1,6 +1,7 @@
-import { fromBase64, fromHex, fromUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8, toHex } from "@cosmjs/encoding";
 import { grpc } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
+import { sha256 } from "@noble/hashes/sha256";
 import {
   Coin,
   MsgBeginRedelegate,
@@ -144,6 +145,12 @@ export type SingleMsgTx<T> = {
 };
 
 export enum BroadcastMode {
+  /**
+   * Broadcast transaction to mempool and wait for DeliverTx response.
+   *
+   * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_commit
+   */
+  Block = "Block",
   /**
    * Broadcast transaction to mempool and wait for CheckTx response.
    *
@@ -876,14 +883,21 @@ export class SecretNetworkClient {
       events: query.split(" AND ").map((q) => q.trim()),
     });
 
+    return this.decodeTxResponses(txResponses);
+  }
+
+  private async decodeTxResponses(
+    txResponses: import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse[],
+  ): Promise<Tx[]> {
     let nonces: ComputeMsgToNonce = [];
 
     return await Promise.all(
-      txResponses.map(async (tx, i) => {
+      txResponses.map(async (txResp) => {
         // Decode input tx
+
         const decodedTx = (
           await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-        ).Tx.decode(tx.tx!.value) as TxContent;
+        ).Tx.decode(txResp.tx!.value) as TxContent;
 
         // Decoded input tx messages
         for (let i = 0; i < decodedTx.body!.messages.length; i++) {
@@ -939,10 +953,10 @@ export class SecretNetworkClient {
           decodedTx.body!.messages[i] = msg;
         }
 
-        let rawLog: string = tx.rawLog;
+        let rawLog: string = txResp.rawLog;
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
-        if (tx.code === 0 && rawLog !== "") {
+        if (txResp.code === 0 && rawLog !== "") {
           jsonLog = JSON.parse(rawLog) as JsonLog;
 
           arrayLog = [];
@@ -987,7 +1001,7 @@ export class SecretNetworkClient {
               }
             }
           }
-        } else if (tx.code !== 0 && rawLog !== "") {
+        } else if (txResp.code !== 0 && rawLog !== "") {
           try {
             const errorMessageRgx =
               /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
@@ -1021,7 +1035,7 @@ export class SecretNetworkClient {
           "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
         );
 
-        const txMsgData = TxMsgData.decode(fromHex(tx.data));
+        const txMsgData = TxMsgData.decode(fromHex(txResp.data));
         const data = new Array<Uint8Array>(txMsgData.data.length);
 
         for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
@@ -1044,19 +1058,19 @@ export class SecretNetworkClient {
         }
 
         return {
-          height: Number(tx.height),
-          timestamp: tx.timestamp,
-          transactionHash: tx.txhash,
-          code: tx.code,
+          height: Number(txResp.height),
+          timestamp: txResp.timestamp,
+          transactionHash: txResp.txhash,
+          code: txResp.code,
           tx: decodedTx,
-          txBytes: tx.tx!.value,
+          txBytes: txResp.tx!.value,
           rawLog,
           jsonLog,
           arrayLog,
-          events: tx.events,
+          events: txResp.events,
           data,
-          gasUsed: Number(tx.gasUsed),
-          gasWanted: Number(tx.gasWanted),
+          gasUsed: Number(txResp.gasUsed),
+          gasWanted: Number(txResp.gasWanted),
         };
       }),
     );
@@ -1082,36 +1096,74 @@ export class SecretNetworkClient {
   ): Promise<Tx> {
     const start = Date.now();
 
-    let txhash: string;
+    const txhash = toHex(sha256(tx)).toUpperCase();
 
-    if (mode === BroadcastMode.Sync) {
+    if (mode === BroadcastMode.Block) {
+      waitForCommit = true;
+
       const { BroadcastMode } = await import(
         "./protobuf_stuff/cosmos/tx/v1beta1/service"
       );
+
+      let txResponse:
+        | import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse
+        | undefined;
+
+      let isBroadcastTimedOut = false;
+      try {
+        ({ txResponse } = await this.txService.broadcastTx({
+          txBytes: tx,
+          mode: BroadcastMode.BROADCAST_MODE_BLOCK,
+        }));
+      } catch (e) {
+        console.log(JSON.stringify(e));
+        if (
+          JSON.stringify(e).includes(
+            "timed out waiting for tx to be included in a block",
+          )
+        ) {
+          isBroadcastTimedOut = true;
+        }
+      }
+
+      if (!isBroadcastTimedOut) {
+        txResponse!.tx = {
+          typeUrl: "TxContent", // not sure, not used in decodeTxResponses anyway
+          value: tx,
+        };
+        return (await this.decodeTxResponses([txResponse!]))[0];
+      }
+    } else if (mode === BroadcastMode.Sync) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+
       const { txResponse } = await this.txService.broadcastTx({
         txBytes: tx,
         mode: BroadcastMode.BROADCAST_MODE_SYNC,
       });
-      if (txResponse?.code) {
+
+      if (txResponse?.code !== 0) {
         throw new Error(
           `Broadcasting transaction failed with code ${txResponse?.code} (codespace: ${txResponse?.codespace}). Log: ${txResponse?.rawLog}`,
         );
       }
-      txhash = txResponse!.txhash;
     } else if (mode === BroadcastMode.Async) {
       const { BroadcastMode } = await import(
         "./protobuf_stuff/cosmos/tx/v1beta1/service"
       );
-      const { txResponse } = await this.txService.broadcastTx({
+
+      this.txService.broadcastTx({
         txBytes: tx,
         mode: BroadcastMode.BROADCAST_MODE_ASYNC,
       });
-      txhash = txResponse!.txhash;
     } else {
       throw new Error(
         `Unknown broadcast mode "${String(mode)}", must be either "${String(
-          BroadcastMode.Sync,
-        )}" or "${String(BroadcastMode.Async)}".`,
+          BroadcastMode.Block,
+        )}", "${String(BroadcastMode.Sync)}" or "${String(
+          BroadcastMode.Async,
+        )}".`,
       );
     }
 
@@ -1120,10 +1172,10 @@ export class SecretNetworkClient {
       return { transactionHash: txhash };
     }
 
-    while (true) {
-      // sleep first because there's no point in checking right after broadcasting
-      await sleep(checkIntervalMs);
+    // sleep first because there's no point in checking right after broadcasting
+    await sleep(checkIntervalMs / 2);
 
+    while (true) {
       const result = await this.getTx(txhash);
 
       if (result) {
@@ -1132,9 +1184,11 @@ export class SecretNetworkClient {
 
       if (start + timeoutMs < Date.now()) {
         throw new Error(
-          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
+          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later or increase broadcastTimeoutMs from '${timeoutMs}'.`,
         );
       }
+
+      await sleep(checkIntervalMs);
     }
   }
 
@@ -1181,7 +1235,7 @@ export class SecretNetworkClient {
       txBytes,
       txOptions?.broadcastTimeoutMs ?? 60_000,
       txOptions?.broadcastCheckIntervalMs ?? 6_000,
-      txOptions?.broadcastMode ?? BroadcastMode.Sync,
+      txOptions?.broadcastMode ?? BroadcastMode.Block,
       txOptions?.waitForCommit ?? true,
     );
   }
