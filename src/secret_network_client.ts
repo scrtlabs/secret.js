@@ -1303,13 +1303,13 @@ export class SecretNetworkClient {
 
     let signature: StdSignature;
     let signed: StdSignDoc;
-    if (!isAminoEip191Signer(this.wallet)) {
-      ({ signature, signed } = await this.wallet.signAmino(
+    if (isAminoEip191Signer(this.wallet)) {
+      ({ signature, signed } = await this.wallet.signAminoEip191(
         account.address,
         signDoc,
       ));
     } else {
-      ({ signature, signed } = await this.wallet.signAminoEip191(
+      ({ signature, signed } = await this.wallet.signAmino(
         account.address,
         signDoc,
       ));
