@@ -49,8 +49,6 @@ export class MetaMaskTextSigner {
       params: [msgToSign, ethAddress],
     }))!.toString();
 
-    console.log(sigResult);
-
     // strip leading 0x and extract recovery id
     const sig = fromHex(sigResult.slice(2, -2));
     const recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
