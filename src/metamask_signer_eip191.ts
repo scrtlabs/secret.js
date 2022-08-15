@@ -79,7 +79,7 @@ export class MetaMaskTextSigner {
 
     const msgToSign = `0x${toHex(serializeStdSignDoc(signDoc))}`;
     const sigResult: string = await this.ethProvider.request({
-      method: "eth_sign",
+      method: "personal_sign",
       params: [msgToSign, this.ethAddress],
     });
 
