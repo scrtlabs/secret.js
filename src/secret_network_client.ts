@@ -59,6 +59,7 @@ import {
   MsgWithdrawDelegatorRewardParams,
   MsgWithdrawValidatorCommission,
   MsgWithdrawValidatorCommissionParams,
+  StdSignature,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
@@ -104,7 +105,8 @@ import {
   AminoSigner,
   AminoSignResponse,
   encodeSecp256k1Pubkey,
-  isOfflineDirectSigner,
+  isAminoEip191Signer,
+  isDirectSigner,
   Pubkey,
   Signer,
   StdFee,
@@ -1247,9 +1249,19 @@ export class SecretNetworkClient {
       };
     }
 
-    return isOfflineDirectSigner(this.wallet)
-      ? this.signDirect(accountFromSigner, messages, fee, memo, signerData)
-      : this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+    if (isDirectSigner(this.wallet)) {
+      return this.signDirect(
+        accountFromSigner,
+        messages,
+        fee,
+        memo,
+        signerData,
+      );
+    } else if (isAminoEip191Signer(this.wallet)) {
+      return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+    } else {
+      return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+    }
   }
 
   private async signAmino(
@@ -1259,13 +1271,21 @@ export class SecretNetworkClient {
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
   ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
-    if (isOfflineDirectSigner(this.wallet)) {
-      throw new Error("Wrong signer type! Expected AminoSigner.");
+    if (isDirectSigner(this.wallet)) {
+      throw new Error(
+        "Wrong signer type! Expected AminoSigner or AminoEip191Signer.",
+      );
     }
 
-    const signMode = (
+    let signMode = (
       await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
+    if (isAminoEip191Signer(this.wallet)) {
+      signMode = (
+        await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
+      ).SignMode.SIGN_MODE_EIP_191;
+    }
+
     const msgs = await Promise.all(
       messages.map(async (msg) => {
         await this.populateCodeHash(msg);
@@ -1280,10 +1300,21 @@ export class SecretNetworkClient {
       accountNumber,
       sequence,
     );
-    const { signature, signed } = await this.wallet.signAmino(
-      account.address,
-      signDoc,
-    );
+
+    let signature: StdSignature;
+    let signed: StdSignDoc;
+    if (!isAminoEip191Signer(this.wallet)) {
+      ({ signature, signed } = await this.wallet.signAmino(
+        account.address,
+        signDoc,
+      ));
+    } else {
+      ({ signature, signed } = await this.wallet.signAminoEip191(
+        account.address,
+        signDoc,
+      ));
+    }
+
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -1366,7 +1397,7 @@ export class SecretNetworkClient {
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
   ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
-    if (!isOfflineDirectSigner(this.wallet)) {
+    if (!isDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 

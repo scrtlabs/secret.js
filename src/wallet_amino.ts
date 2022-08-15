@@ -269,10 +269,16 @@ export type DirectSignResponse = {
   readonly signature: StdSignature;
 };
 
-export type Signer = AminoSigner | DirectSigner;
+export type Signer = AminoSigner | DirectSigner | AminoEip191Signer;
 
-export function isOfflineDirectSigner(signer: Signer): signer is DirectSigner {
+export function isDirectSigner(signer: Signer): signer is DirectSigner {
   return (signer as DirectSigner).signDirect !== undefined;
+}
+
+export function isAminoEip191Signer(
+  signer: Signer,
+): signer is AminoEip191Signer {
+  return (signer as AminoEip191Signer).signAminoEip191 !== undefined;
 }
 
 export interface AminoSigner {
@@ -291,6 +297,14 @@ export interface AminoSigner {
    * @param signDoc The content that should be signed
    */
   readonly signAmino: (
+    signerAddress: string,
+    signDoc: StdSignDoc,
+  ) => Promise<AminoSignResponse>;
+}
+
+export interface AminoEip191Signer {
+  readonly getAccounts: () => Promise<readonly AccountData[]>;
+  readonly signAminoEip191: (
     signerAddress: string,
     signDoc: StdSignDoc,
   ) => Promise<AminoSignResponse>;

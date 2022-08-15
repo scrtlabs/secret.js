@@ -1,6 +1,6 @@
-import { sha256 } from "@noble/hashes/sha256";
+import { sha3_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
-import { fromHex, toHex } from ".";
+import { fromHex, toHex, toUtf8 } from ".";
 import {
   AccountData,
   AminoSignResponse,
@@ -13,7 +13,7 @@ import {
 /**
  * MetaMaskSigner is a signer capable of signing on transactions using MetaMask.
  */
-export class MetaMaskSigner {
+export class MetaMaskTextSigner {
   private constructor(
     public ethProvider: any,
     public ethAddress: string,
@@ -23,36 +23,40 @@ export class MetaMaskSigner {
   static async create(
     ethProvider: any,
     ethAddress: string,
-  ): Promise<MetaMaskSigner> {
+  ): Promise<MetaMaskTextSigner> {
     const localStorageKey = `secretjs_${ethAddress}_pubkey`;
 
     const publicKeyHex = localStorage.getItem(localStorageKey);
     if (publicKeyHex) {
       // TODO verify that ethAddress can be derived from publicKeyHex
-      return new MetaMaskSigner(ethProvider, ethAddress, fromHex(publicKeyHex));
+      return new MetaMaskTextSigner(
+        ethProvider,
+        ethAddress,
+        fromHex(publicKeyHex),
+      );
     }
 
-    const msgHash = sha256("Get secret address");
+    const msgToSign = `0x${toHex(toUtf8("Get secret address"))}`;
 
     const sigResult: string = await ethProvider.request({
-      method: "eth_sign",
-      params: [ethAddress, "0x" + toHex(msgHash)],
+      method: "personal_sign",
+      params: [msgToSign, ethAddress],
     });
 
     // strip leading 0x and extract recovery id
     const sig = fromHex(sigResult.slice(2, -2));
-    const recoveryBit = parseInt(sigResult.slice(-2), 16) - 27;
+    const recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
 
     const publicKey = secp256k1.recoverPublicKey(
-      msgHash,
+      sha3_256(msgToSign),
       sig,
-      recoveryBit,
+      recoveryId,
       true,
     );
 
     localStorage.setItem(localStorageKey, toHex(publicKey));
 
-    return new MetaMaskSigner(ethProvider, ethAddress, publicKey);
+    return new MetaMaskTextSigner(ethProvider, ethAddress, publicKey);
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {
@@ -65,7 +69,7 @@ export class MetaMaskSigner {
     ];
   }
 
-  public async signAmino(
+  public async signAminoEip191(
     address: string,
     signDoc: StdSignDoc,
   ): Promise<AminoSignResponse> {
@@ -73,10 +77,10 @@ export class MetaMaskSigner {
       throw new Error(`Address ${address} not found in wallet`);
     }
 
-    const messageHash = sha256(serializeStdSignDoc(signDoc));
+    const msgToSign = `0x${toHex(serializeStdSignDoc(signDoc))}`;
     const sigResult: string = await this.ethProvider.request({
       method: "eth_sign",
-      params: [this.ethAddress, "0x" + toHex(messageHash)],
+      params: [msgToSign, this.ethAddress],
     });
 
     // strip leading 0x and trailing recovery id
