@@ -1,4 +1,4 @@
-import { sha3_256 } from "@noble/hashes/sha3";
+import { keccak256 } from "@ethersproject/keccak256";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, toHex, toUtf8 } from ".";
 import {
@@ -44,10 +44,12 @@ export class MetaMaskTextSigner {
     const rawMsg = toUtf8("Get secret address");
     const msgToSign = `0x${toHex(rawMsg)}`;
 
-    const sigResult: string = await ethProvider.request({
+    const sigResult: string = (await ethProvider.request({
       method: "personal_sign",
       params: [msgToSign, ethAddress],
-    });
+    }))!.toString();
+
+    console.log(sigResult);
 
     // strip leading 0x and extract recovery id
     const sig = fromHex(sigResult.slice(2, -2));
@@ -57,9 +59,9 @@ export class MetaMaskTextSigner {
     const rawMsgLength = toUtf8(String(rawMsg.length));
 
     const publicKey = secp256k1.recoverPublicKey(
-      sha3_256(
+      keccak256(
         new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
-      ),
+      ).slice(2),
       sig,
       recoveryId,
       true,
