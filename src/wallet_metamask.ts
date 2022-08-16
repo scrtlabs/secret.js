@@ -1,4 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
+import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, toHex } from ".";
 import {
@@ -11,9 +12,9 @@ import {
 } from "./wallet_amino";
 
 /**
- * MetaMaskSigner is a signer capable of signing on transactions using MetaMask.
+ * MetaMaskWallet is a wallet capable of signing on transactions using MetaMask.
  */
-export class MetaMaskSigner {
+export class MetaMaskWallet {
   /** The account's secret address, derived from `publicKey` */
   public readonly address: string;
 
@@ -28,13 +29,30 @@ export class MetaMaskSigner {
   static async create(
     ethProvider: any,
     ethAddress: string,
-  ): Promise<MetaMaskSigner> {
+  ): Promise<MetaMaskWallet> {
+    // use localStorage to cache the publicKey to prevent signing request on every MetaMaskWallet.create()
+    // if MetaMask is used we assume that there's localStorage in the environment
     const localStorageKey = `secretjs_${ethAddress}_pubkey`;
-
     const publicKeyHex = localStorage.getItem(localStorageKey);
+
     if (publicKeyHex) {
-      // TODO verify that ethAddress can be derived from publicKeyHex
-      return new MetaMaskSigner(ethProvider, ethAddress, fromHex(publicKeyHex));
+      // verify that ethAddress can be derived from publicKeyHex
+      // this prevents reading wrong/corrupted data from localStorage
+
+      const ethAddressBytes = ethAddress.slice(2).toLocaleLowerCase();
+      const derivedEthAddressBytes = toHex(
+        keccak_256(decompressSecp256k1PublicKey(publicKeyHex).slice(1)).slice(
+          -20,
+        ),
+      ).toLocaleLowerCase();
+
+      if (derivedEthAddressBytes === ethAddressBytes) {
+        return new MetaMaskWallet(
+          ethProvider,
+          ethAddress,
+          fromHex(publicKeyHex),
+        );
+      }
     }
 
     const msgHash = sha256("Get secret address");
@@ -57,7 +75,7 @@ export class MetaMaskSigner {
 
     localStorage.setItem(localStorageKey, toHex(publicKey));
 
-    return new MetaMaskSigner(ethProvider, ethAddress, publicKey);
+    return new MetaMaskWallet(ethProvider, ethAddress, publicKey);
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {
@@ -92,4 +110,11 @@ export class MetaMaskSigner {
       signature: encodeSecp256k1Signature(this.publicKey, sig),
     };
   }
+}
+
+function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
+  const point = secp256k1.Point.fromHex(publicKeyHex);
+  const x = point.toRawBytes(false);
+  console.log(x);
+  return x;
 }
