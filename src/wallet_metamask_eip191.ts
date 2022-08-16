@@ -127,7 +127,5 @@ export class MetaMaskTextWallet {
 
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
   const point = secp256k1.Point.fromHex(publicKeyHex);
-  const x = point.toRawBytes(false);
-  console.log(x);
-  return x;
+  return point.toRawBytes(false);
 }
