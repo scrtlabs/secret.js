@@ -52,8 +52,15 @@ export class MetaMaskWallet {
           ethAddress,
           fromHex(publicKeyHex),
         );
+      } else {
+        localStorage.removeItem(localStorageKey);
       }
     }
+
+    // On ETHland pubkeys are recovered from signatures, so we're going to:
+    // 1. sign something
+    // 2. recover the pubkey from the signature
+    // 3. derive a secret address from the the pubkey
 
     const msgHash = sha256("Get secret address");
 
