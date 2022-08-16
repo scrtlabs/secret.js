@@ -180,7 +180,7 @@ Notes:
 4. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
 5. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
 
-<img src="./media/metamask-eth_sign-warning.png" width="35%" style="border-radius: 10px;" />
+<img src="./media/metamask-eth_sign-warning.png" width="65%%" style="border-radius: 10px;" />
 
 ## Keplr Wallet
 
