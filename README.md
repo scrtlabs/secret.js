@@ -176,7 +176,7 @@ Notes:
 
 1. MetaMask supports mobile!
 2. MetaMask supports Ledger.
-3. Currently MetaMask doesn't support clear-text signing of transactions, meaning users will not see what they're signing on and MetaMask will show them a scary warning when signing (see image). This will be solved on Shockwave Delta upgrade (September 2022). Until then you might want to "explain" this to users on your UI.
+3. Currently MetaMask doesn't support clear-text signing of transactions, meaning users will not see what they're signing on and MetaMask will show them a scary warning when signing (see image). This will be solved on Shockwave Delta upgrade (September 2022). Until then you might want to indicate this to users on your UI somehow.
 4. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
 5. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
 
