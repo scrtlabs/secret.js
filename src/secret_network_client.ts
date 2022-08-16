@@ -1116,7 +1116,6 @@ export class SecretNetworkClient {
           mode: BroadcastMode.BROADCAST_MODE_BLOCK,
         }));
       } catch (e) {
-        console.log(JSON.stringify(e));
         if (
           JSON.stringify(e).includes(
             "timed out waiting for tx to be included in a block",
