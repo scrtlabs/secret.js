@@ -663,7 +663,10 @@ export class SecretNetworkClient {
         transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
         // debug: true,
       });
-    } else if (navigator?.product === "ReactNative") {
+    } else if (
+      typeof navigator !== "undefined" &&
+      navigator.product === "ReactNative"
+    ) {
       // react-native
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
         transport: NodeHttpTransport(),
