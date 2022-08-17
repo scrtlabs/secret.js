@@ -657,16 +657,22 @@ export class SecretNetworkClient {
 
     options.grpcWebUrl = options.grpcWebUrl.replace(/\/*$/, ""); // remove trailing slash
 
-    if (typeof window === "undefined") {
-      // node.js
+    if (typeof document !== "undefined") {
+      // browser
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+        // debug: true,
+      });
+    } else if (navigator?.product === "ReactNative") {
+      // react-native
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
         transport: NodeHttpTransport(),
         // debug: true,
       });
     } else {
-      // browser
+      // node.js
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+        transport: NodeHttpTransport(),
         // debug: true,
       });
     }
