@@ -27,12 +27,12 @@
 - [Usage Examples](#usage-examples)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
-  - [MetaMask](#metamask)
-  - [Keplr Wallet](#keplr-wallet)
+  - [MetaMask Integration](#metamask-integration)
+  - [Keplr Integration](#keplr-integration)
     - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
     - [`getOfflineSigner()`](#getofflinesigner)
     - [`getOfflineSignerAuto()`](#getofflinesignerauto)
-- [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
+- [Migrating from secret.js v0.17.x](#migrating-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
     - [Importing account from mnemonic](#importing-account-from-mnemonic)
@@ -154,7 +154,7 @@ const tx = await secretjs.tx.broadcast([msg], {
 });
 ```
 
-## MetaMask
+## MetaMask Integration
 
 ```ts
 // @ts-ignore
@@ -182,7 +182,7 @@ Notes:
 
 <img src="./media/metamask-eth_sign-warning.png" width="65%%" style="border-radius: 10px;" />
 
-## Keplr Wallet
+## Keplr Integration
 
 The recommended way to integrate Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
 
@@ -278,7 +278,7 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 
 Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
 
-# Migrating from Secret.js v0.17.x
+# Migrating from secret.js v0.17.x
 
 - `v0.9.x` through `v0.16.x` supported `secret-2` & `secret-3`
 - `v0.17.x` supports `secret-4`
