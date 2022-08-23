@@ -487,7 +487,7 @@ describe("query.compute", () => {
       },
     });
 
-    expect(result).toStrictEqual({
+    expect(JSON.parse(result as string)).toStrictEqual({
       parse_err: {
         msg: "unknown variant `non_existent_query`, expected one of `token_info`, `token_config`, `contract_status`, `exchange_rate`, `allowance`, `balance`, `transfer_history`, `transaction_history`, `minters`, `with_permit`",
         target: "snip20_reference_impl::msg::QueryMsg",
