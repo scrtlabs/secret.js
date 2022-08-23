@@ -158,13 +158,13 @@ export class ComputeQuerier {
 
     const response = await this.client!.contractInfo(
       {
-        address: address,
+        address: addressToBytes(address),
       },
       metadata,
     );
 
     return {
-      address: response.address,
+      address: bytesToAddress(response.address),
       ContractInfo: contractInfoFromProtobuf(response.ContractInfo!),
     };
   }
@@ -185,7 +185,7 @@ export class ComputeQuerier {
 
     return {
       contractInfos: response.contractInfos.map((x) => ({
-        address: x.address,
+        address: bytesToAddress(x.address),
         ContractInfo: x.ContractInfo
           ? contractInfoFromProtobuf(x.ContractInfo)
           : undefined,
@@ -215,7 +215,7 @@ export class ComputeQuerier {
     try {
       const { data: encryptedResult } = await this.client!.smartContractState(
         {
-          address: contractAddress,
+          address: addressToBytes(contractAddress),
           queryData: encryptedQuery,
         },
         metadata,
@@ -313,7 +313,7 @@ function contractInfoFromProtobuf(
 ): ContractInfo {
   return {
     codeId: contractInfo.codeId,
-    creator: String(contractInfo.creator),
+    creator: bytesToAddress(contractInfo.creator),
     label: contractInfo.label,
     created: contractInfo.created,
   };
@@ -325,7 +325,7 @@ function codeInfoResponseFromProtobuf(
   return codeInfo
     ? {
         codeId: codeInfo.codeId,
-        creator: codeInfo.creator,
+        creator: bytesToAddress(codeInfo.creator),
         codeHash: toHex(codeInfo.dataHash).replace("0x", "").toLowerCase(),
         source: codeInfo.source,
         builder: codeInfo.builder,
