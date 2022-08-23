@@ -193,7 +193,10 @@ export class ComputeQuerier {
     };
   }
 
-  /** Query a Secret Contract */
+  /**
+   * Query a Secret Contract.
+   * May return a string on error.
+   */
   async queryContract<T extends object, R extends object>(
     { contractAddress, codeHash, query }: QueryContractRequest<T>,
     metadata?: grpc.Metadata,
@@ -241,12 +244,14 @@ export class ComputeQuerier {
         );
 
         try {
-          return JSON.parse(
-            fromUtf8(fromBase64(fromUtf8(decryptedBase64Error))),
-          );
+          // @ts-ignore
+          // return the error string
+          return fromUtf8(fromBase64(fromUtf8(decryptedBase64Error)));
         } catch (parseError) {
           if (parseError.message === "Invalid base64 string format") {
-            return JSON.parse(fromUtf8(decryptedBase64Error));
+            // @ts-ignore
+            // return the error string
+            return fromUtf8(decryptedBase64Error);
           } else {
             throw err;
           }
