@@ -269,19 +269,20 @@ export type DirectSignResponse = {
   readonly signature: StdSignature;
 };
 
-export type Signer = AminoSigner | DirectSigner | AminoEip191Signer;
+export type Signer = AminoSigner | DirectSigner;
 
 export function isDirectSigner(signer: Signer): signer is DirectSigner {
   return (signer as DirectSigner).signDirect !== undefined;
 }
 
-export function isAminoEip191Signer(
-  signer: Signer,
-): signer is AminoEip191Signer {
-  return (signer as AminoEip191Signer).signAminoEip191 !== undefined;
-}
-
 export interface AminoSigner {
+  /**
+   * Get SignMode for signing a tx.
+   */
+  readonly getSignMode?: () => Promise<
+    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+  >;
+
   /**
    * Get AccountData array from wallet. Rejects if not enabled.
    */

@@ -60,7 +60,6 @@ import {
   MsgWithdrawDelegatorRewardParams,
   MsgWithdrawValidatorCommission,
   MsgWithdrawValidatorCommissionParams,
-  StdSignature,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
@@ -106,7 +105,6 @@ import {
   AminoSigner,
   AminoSignResponse,
   encodeSecp256k1Pubkey,
-  isAminoEip191Signer,
   isDirectSigner,
   Pubkey,
   Signer,
@@ -1319,8 +1317,6 @@ export class SecretNetworkClient {
         memo,
         signerData,
       );
-    } else if (isAminoEip191Signer(this.wallet)) {
-      return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
     } else {
       return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
     }
@@ -1342,10 +1338,8 @@ export class SecretNetworkClient {
     let signMode = (
       await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
-    if (isAminoEip191Signer(this.wallet)) {
-      signMode = (
-        await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
-      ).SignMode.SIGN_MODE_EIP_191;
+    if (typeof this.wallet.getSignMode === "function") {
+      signMode = await this.wallet.getSignMode();
     }
 
     const msgs = await Promise.all(
@@ -1363,19 +1357,10 @@ export class SecretNetworkClient {
       sequence,
     );
 
-    let signature: StdSignature;
-    let signed: StdSignDoc;
-    if (isAminoEip191Signer(this.wallet)) {
-      ({ signature, signed } = await this.wallet.signAminoEip191(
-        account.address,
-        signDoc,
-      ));
-    } else {
-      ({ signature, signed } = await this.wallet.signAmino(
-        account.address,
-        signDoc,
-      ));
-    }
+    const { signature, signed } = await this.wallet.signAmino(
+      account.address,
+      signDoc,
+    );
 
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",

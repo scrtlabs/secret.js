@@ -101,7 +101,14 @@ export class MetaMaskTextWallet {
     ];
   }
 
-  public async signAminoEip191(
+  public async getSignMode(): Promise<
+    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+  > {
+    return (await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing"))
+      .SignMode.SIGN_MODE_EIP_191;
+  }
+
+  public async signAmino(
     address: string,
     signDoc: StdSignDoc,
   ): Promise<AminoSignResponse> {
