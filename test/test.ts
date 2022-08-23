@@ -470,7 +470,7 @@ describe("query.compute", () => {
       },
     });
 
-    expect(result).toStrictEqual({
+    expect(JSON.parse(result as string)).toStrictEqual({
       viewing_key_error: {
         msg: "Wrong viewing key for this address or viewing key not set",
       },
