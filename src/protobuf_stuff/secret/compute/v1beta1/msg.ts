@@ -6,6 +6,7 @@ import { Coin } from "../../../cosmos/base/v1beta1/coin";
 export const protobufPackage = "secret.compute.v1beta1";
 
 export interface MsgStoreCode {
+  /** sender is the canonical address of the sender */
   sender: Uint8Array;
   /** WASMByteCode can be raw or gzip compressed */
   wasmByteCode: Uint8Array;
@@ -16,25 +17,26 @@ export interface MsgStoreCode {
 }
 
 export interface MsgInstantiateContract {
+  /** sender is the canonical address of the sender */
   sender: Uint8Array;
-  /**
-   * Admin is an optional address that can execute migrations
-   *  bytes admin = 2 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"];
-   */
   callbackCodeHash: string;
   codeId: string;
   label: string;
   initMsg: Uint8Array;
   initFunds: Coin[];
+  /** used internally for encryption, should always be empty in a signed transaction */
   callbackSig: Uint8Array;
 }
 
 export interface MsgExecuteContract {
+  /** sender is the canonical address of the sender */
   sender: Uint8Array;
+  /** contract is the canonical address of the contract */
   contract: Uint8Array;
   msg: Uint8Array;
   callbackCodeHash: string;
   sentFunds: Coin[];
+  /** used internally for encryption, should always be empty in a signed transaction */
   callbackSig: Uint8Array;
 }
 
