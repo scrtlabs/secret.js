@@ -27,7 +27,6 @@ export interface Code {
 
 /** Contract struct encompasses ContractAddress, ContractInfo, and ContractState */
 export interface Contract {
-  /** contract_address is the canonical address of the contract */
   contractAddress: Uint8Array;
   contractInfo?: ContractInfo;
   contractState: Model[];

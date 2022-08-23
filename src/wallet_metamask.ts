@@ -73,11 +73,12 @@ export class MetaMaskWallet {
     const sig = fromHex(sigResult.slice(2, -2));
     const recoveryBit = parseInt(sigResult.slice(-2), 16) - 27;
 
-    const publicKey = secp256k1.recoverPublicKey(msgHash, sig, recoveryBit);
-
-    if (typeof publicKey === "undefined") {
-      throw new Error(`Public key is undefined`);
-    }
+    const publicKey = secp256k1.recoverPublicKey(
+      msgHash,
+      sig,
+      recoveryBit,
+      true,
+    );
 
     localStorage.setItem(localStorageKey, toHex(publicKey));
 
