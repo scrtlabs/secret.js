@@ -57,7 +57,6 @@ export interface CodeInfo {
   codeHash: Uint8Array;
   creator: Uint8Array;
   source: string;
-  /** AccessConfig instantiate_config = 5 [(gogoproto.nullable) = false]; */
   builder: string;
 }
 
@@ -70,7 +69,6 @@ export interface ContractCustomInfo {
 export interface ContractInfo {
   codeId: string;
   creator: Uint8Array;
-  /** bytes admin = 3 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"]; */
   label: string;
   /**
    * never show this in query results, just use for sorting
