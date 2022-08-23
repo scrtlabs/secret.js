@@ -470,7 +470,7 @@ describe("query.compute", () => {
       },
     });
 
-    expect(JSON.parse(result as string)).toStrictEqual({
+    expect(result).toStrictEqual({
       viewing_key_error: {
         msg: "Wrong viewing key for this address or viewing key not set",
       },
@@ -487,12 +487,9 @@ describe("query.compute", () => {
       },
     });
 
-    expect(JSON.parse(result as string)).toStrictEqual({
-      parse_err: {
-        msg: "unknown variant `non_existent_query`, expected one of `token_info`, `token_config`, `contract_status`, `exchange_rate`, `allowance`, `balance`, `transfer_history`, `transaction_history`, `minters`, `with_permit`",
-        target: "snip20_reference_impl::msg::QueryMsg",
-      },
-    });
+    expect(result).toEqual(
+      '{"parse_err":{"msg":"unknown variant `non_existent_query`, expected one of `token_info`, `token_config`, `contract_status`, `exchange_rate`, `allowance`, `balance`, `transfer_history`, `transaction_history`, `minters`, `with_permit`","target":"snip20_reference_impl::msg::QueryMsg"}}',
+    );
   });
 
   test("queryContract() without codeHash", async () => {
