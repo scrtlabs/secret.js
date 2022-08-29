@@ -515,11 +515,14 @@ describe("query.snip20", () => {
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
-    const txExec = await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    const txExec = await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 50000 },
+    );
 
     const txQuery = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
