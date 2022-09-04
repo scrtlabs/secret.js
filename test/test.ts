@@ -193,7 +193,7 @@ describe("query", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
+      "wasm.contract_address",
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -287,7 +287,7 @@ describe("query", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
+      "wasm.contract_address",
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -677,10 +677,7 @@ describe("tx.compute", () => {
 
     expect(tx.code).toBe(0);
 
-    expect(
-      getValueFromRawLog(tx.rawLog, "message.action").toLowerCase(),
-    ).toContain("instantiate");
-    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toContain(
       "secret1",
     );
   });
@@ -848,7 +845,6 @@ describe("tx.compute", () => {
       mintMsg.msg,
     ]);
 
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("execute");
     expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
       contract,
     );
@@ -920,7 +916,7 @@ describe("tx.compute", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
+      "wasm.contract_address",
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1011,7 +1007,7 @@ describe("tx.compute", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
+      "wasm.contract_address",
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
