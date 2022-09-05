@@ -116,7 +116,7 @@ export async function initContract(
     "/secret.compute.v1beta1.MsgInstantiateContract",
   );
 
-  return getValueFromRawLog(txInit.rawLog, "message.conract_address");
+  return getValueFromRawLog(txInit.rawLog, "message.contract_address");
 }
 
 export async function getBalance(
