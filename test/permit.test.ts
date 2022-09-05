@@ -106,10 +106,10 @@ describe("permit", () => {
       },
     );
 
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),

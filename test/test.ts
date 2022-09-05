@@ -11,6 +11,7 @@ import {
   ProposalType,
   SecretNetworkClient,
   Tx,
+  TxResultCode,
   VoteOption,
   Wallet,
 } from "../src";
@@ -152,10 +153,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -194,10 +195,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
@@ -256,10 +257,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -298,10 +299,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
@@ -556,10 +557,10 @@ describe("tx.bank", () => {
       broadcastCheckIntervalMs: 100,
       gasLimit: gasLimit,
     });
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(tx.tx.body.messages[0].value).toStrictEqual(msg);
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
@@ -602,10 +603,10 @@ describe("tx.bank", () => {
         gasLimit: gasLimit,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
     const bAfter = await getBalance(secretjs, accounts[1].address);
@@ -635,10 +636,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(
       Number(getValueFromRawLog(tx.rawLog, "message.code_id")),
     ).toBeGreaterThan(0);
@@ -661,10 +662,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -703,10 +704,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
@@ -733,10 +734,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -787,10 +788,10 @@ describe("tx.compute", () => {
       broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.1),
     });
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -827,10 +828,10 @@ describe("tx.compute", () => {
       broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.1),
     });
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
     expect(txInit.tx.body.messages[0].value.initMsg).toStrictEqual(
       initInput.initMsg,
     );
@@ -881,10 +882,10 @@ describe("tx.compute", () => {
       broadcastCheckIntervalMs: 100,
       gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.1),
     });
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(tx.tx.body.messages.map((m) => m.value.msg)).toStrictEqual([
       addMinterMsg.msg,
       mintMsg.msg,
@@ -916,10 +917,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -958,10 +959,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
@@ -1014,10 +1015,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -1056,10 +1057,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
@@ -1111,10 +1112,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -1148,10 +1149,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contract = getValueFromRawLog(
       txInit.rawLog,
@@ -1225,10 +1226,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code != 0) {
+      if (tx.code !== TxResultCode.Success) {
         console.error(tx.rawLog);
       }
-      expect(tx.code).toBe(0);
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1265,10 +1266,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code != 0) {
+      if (tx.code !== TxResultCode.Success) {
         console.error(tx.rawLog);
       }
-      expect(tx.code).toBe(0);
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1305,10 +1306,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code != 0) {
+      if (tx.code !== TxResultCode.Success) {
         console.error(tx.rawLog);
       }
-      expect(tx.code).toBe(0);
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1350,10 +1351,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code != 0) {
+      if (tx.code !== TxResultCode.Success) {
         console.error(tx.rawLog);
       }
-      expect(tx.code).toBe(0);
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1387,10 +1388,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code != 0) {
+      if (tx.code !== TxResultCode.Success) {
         console.error(tx.rawLog);
       }
-      expect(tx.code).toBe(0);
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1423,10 +1424,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txSubmit.code != 0) {
+    if (txSubmit.code !== TxResultCode.Success) {
       console.error(txSubmit.rawLog);
     }
-    expect(txSubmit.code).toBe(0);
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1443,10 +1444,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
       proposalId,
@@ -1474,10 +1475,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txSubmit.code != 0) {
+    if (txSubmit.code !== TxResultCode.Success) {
       console.error(txSubmit.rawLog);
     }
-    expect(txSubmit.code).toBe(0);
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1499,10 +1500,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
       proposalId,
@@ -1530,10 +1531,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txSubmit.code != 0) {
+    if (txSubmit.code !== TxResultCode.Success) {
       console.error(txSubmit.rawLog);
     }
-    expect(txSubmit.code).toBe(0);
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1550,10 +1551,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { deposit } = await secretjs.query.gov.deposit({
       depositor: accounts[0].address,
@@ -1583,10 +1584,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const {
       validators: [{ tokens: tokensAfter }],
@@ -1613,10 +1614,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txDelegate.code != 0) {
+    if (txDelegate.code !== TxResultCode.Success) {
       console.error(txDelegate.rawLog);
     }
-    expect(txDelegate.code).toBe(0);
+    expect(txDelegate.code).toBe(TxResultCode.Success);
     const {
       validators: [{ tokens: tokensAfterDelegate }],
     } = await secretjs.query.staking.validators({ status: "" });
@@ -1633,10 +1634,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
     const {
       validators: [{ tokens: tokensAfterUndelegate }],
     } = await secretjs.query.staking.validators({ status: "" });
@@ -1673,10 +1674,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { validators: validatorsAfter } =
       await secretjs.query.staking.validators({ status: "" });
@@ -1711,10 +1712,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txCreateValidator.code != 0) {
+    if (txCreateValidator.code !== TxResultCode.Success) {
       console.error(txCreateValidator.rawLog);
     }
-    expect(txCreateValidator.code).toBe(0);
+    expect(txCreateValidator.code).toBe(TxResultCode.Success);
     const validatorAddress = getValueFromRawLog(
       txCreateValidator.rawLog,
       "create_validator.validator",
@@ -1738,10 +1739,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { validators } = await secretjs.query.staking.validators({
       status: "",
@@ -1787,10 +1788,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txCreate.code != 0) {
+    if (txCreate.code !== TxResultCode.Success) {
       console.error(txCreate.rawLog);
     }
-    expect(txCreate.code).toBe(0);
+    expect(txCreate.code).toBe(TxResultCode.Success);
 
     const { validators } = await accounts[3].secretjs.query.staking.validators({
       status: "",
@@ -1807,10 +1808,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txDelegate.code != 0) {
+    if (txDelegate.code !== TxResultCode.Success) {
       console.error(txDelegate.rawLog);
     }
-    expect(txDelegate.code).toBe(0);
+    expect(txDelegate.code).toBe(TxResultCode.Success);
 
     const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
@@ -1824,10 +1825,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 });
 
@@ -1859,10 +1860,10 @@ describe("tx.slashing", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txCreateValidator.code != 0) {
+    if (txCreateValidator.code !== TxResultCode.Success) {
       console.error(txCreateValidator.rawLog);
     }
-    expect(txCreateValidator.code).toBe(0);
+    expect(txCreateValidator.code).toBe(TxResultCode.Success);
 
     const validatorAddr = getValueFromRawLog(
       txCreateValidator.rawLog,
@@ -1901,10 +1902,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgWithdrawDelegatorReward", async () => {
@@ -1925,10 +1926,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txDelegate.code != 0) {
+    if (txDelegate.code !== TxResultCode.Success) {
       console.error(txDelegate.rawLog);
     }
-    expect(txDelegate.code).toBe(0);
+    expect(txDelegate.code).toBe(TxResultCode.Success);
 
     const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
       {
@@ -1940,10 +1941,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgWithdrawValidatorCommission", async () => {
@@ -1971,10 +1972,10 @@ describe("tx.distribution", () => {
           gasLimit: 5_000_000,
         },
       );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgSetWithdrawAddress", async () => {
@@ -2006,10 +2007,10 @@ describe("tx.distribution", () => {
           gasLimit: 5_000_000,
         },
       );
-    if (tx.code != 0) {
+    if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toBe(0);
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 });
 
