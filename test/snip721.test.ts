@@ -1,4 +1,5 @@
 import { fromUtf8 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
 import fs from "fs";
 import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
@@ -148,6 +149,10 @@ describe("tx.snip721", () => {
       "wasm.contract_address",
     );
 
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
       contractAddress,
@@ -266,6 +271,10 @@ describe("tx.snip721", () => {
       "wasm.contract_address",
     );
 
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
@@ -338,6 +347,10 @@ describe("tx.snip721", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "wasm.contract_address",
+    );
+
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
@@ -435,6 +448,10 @@ describe("query.snip721", () => {
       "wasm.contract_address",
     );
 
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+    );
+
     await secretjs.tx.snip721.setViewingKey(
       {
         contractAddress,
@@ -484,14 +501,7 @@ describe("query.snip721", () => {
 
     expect(tokens.token_list.tokens.length).toEqual(1);
 
-    let permit = await secretjs.utils.accessControl.permit.sign(
-      accounts[0].address,
-      "secretdev-1",
-      "Test",
-      [contractAddress],
-      ["owner"],
-      false,
-    );
+    let permit = await secretjs.utils.accessControl.permit.sign(accounts[0].address, "secretdev-1", "Test", [contractAddress], ["owner"], false)
 
     let tokens2 = await secretjs.query.snip721.GetOwnedTokens({
       contract: { address: contractAddress, codeHash },

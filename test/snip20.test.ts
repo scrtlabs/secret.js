@@ -1,4 +1,5 @@
 import { fromUtf8 } from "@cosmjs/encoding";
+import { bech32 } from "bech32";
 import fs from "fs";
 import { SecretNetworkClient, Tx, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
@@ -148,9 +149,15 @@ describe("tx.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const txExec = await secretjs.tx.snip20.transfer(
@@ -227,9 +234,15 @@ describe("tx.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const txExec = await secretjs.tx.snip20.send(
@@ -304,9 +317,15 @@ describe("tx.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -383,9 +402,15 @@ describe("tx.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -479,9 +504,15 @@ describe("query.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const txExec = await secretjs.tx.snip20.setViewingKey({
@@ -557,9 +588,15 @@ describe("query.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
@@ -634,9 +671,15 @@ describe("query.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     await secretjs.tx.snip20.increaseAllowance(
@@ -731,9 +774,15 @@ describe("query.snip20", () => {
 
     expect(txInit.code).toBe(0);
 
+    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+      "instantiate",
+    );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
+    );
+    expect(contractAddress).toBe(
+      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     await secretjs.tx.snip20.setViewingKey({
