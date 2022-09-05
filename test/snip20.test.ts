@@ -108,6 +108,9 @@ describe("tx.snip20", () => {
       },
     );
 
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -147,6 +150,9 @@ describe("tx.snip20", () => {
       },
     );
 
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -187,6 +193,9 @@ describe("tx.snip20", () => {
       },
     );
 
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -226,6 +235,9 @@ describe("tx.snip20", () => {
       },
     );
 
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -266,6 +278,9 @@ describe("tx.snip20", () => {
       },
     );
 
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -304,7 +319,9 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -346,7 +363,9 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -385,7 +404,9 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -446,7 +467,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -485,7 +508,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -524,7 +549,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -563,7 +590,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -601,7 +630,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -640,7 +671,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -698,7 +731,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -737,7 +772,9 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(

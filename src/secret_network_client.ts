@@ -1046,20 +1046,55 @@ export class SecretNetworkClient {
         const data = new Array<Uint8Array>(txMsgData.data.length);
 
         for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+          data[msgIndex] = txMsgData.data[msgIndex].data;
+
           const nonce = nonces[msgIndex];
           if (nonce && nonce.length === 32) {
+            // Check if the message needs decryption
+
             try {
-              data[msgIndex] = fromBase64(
-                fromUtf8(
-                  await this.encryptionUtils.decrypt(
-                    txMsgData.data[msgIndex].data,
-                    nonce,
+              const { typeUrl } = decodedTx.body!.messages[msgIndex];
+
+              if (
+                typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
                   ),
-                ),
-              );
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.encode({
+                  address: decoded.address,
+                  data: decrypted,
+                }).finish();
+              } else if (
+                typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
+                  ),
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.encode({
+                  data: decrypted,
+                }).finish();
+              }
             } catch (decryptionError) {
               // Not encrypted or can't decrypt because not original sender
-              data[msgIndex] = txMsgData.data[msgIndex].data;
             }
           }
         }

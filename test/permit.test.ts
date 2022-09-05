@@ -106,6 +106,9 @@ describe("permit", () => {
       },
     );
 
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
