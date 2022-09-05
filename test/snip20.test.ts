@@ -108,10 +108,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -150,10 +150,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -193,10 +193,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -235,10 +235,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -278,10 +278,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -319,10 +319,10 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -363,10 +363,10 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -404,10 +404,10 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -467,10 +467,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -508,10 +508,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -549,10 +549,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -590,10 +590,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -630,10 +630,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -671,10 +671,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -731,10 +731,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txStore.code != 0) {
+    if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
-    expect(txStore.code).toBe(0);
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -772,10 +772,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (txInit.code != 0) {
+    if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
-    expect(txInit.code).toBe(0);
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
