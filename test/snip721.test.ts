@@ -1,7 +1,13 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
-import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
+import {
+  MsgExecuteContract,
+  SecretNetworkClient,
+  Tx,
+  TxResultCode,
+  Wallet,
+} from "../src";
 import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
