@@ -2,6 +2,7 @@ import { fromUtf8 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
 import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
+import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -208,9 +209,9 @@ describe("tx.snip721", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"send_nft":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"send_nft":{"status":"success"}}');
   });
 
   test("Add Minters", async () => {
@@ -286,12 +287,12 @@ describe("tx.snip721", () => {
       },
     );
 
-    expect(fromUtf8(addMinterMsg.data[0])).toContain(
-      '{"add_minters":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data),
+    ).toContain('{"add_minters":{"status":"success"}}');
   });
 
-  test("Mint", async () => {
+  test.only("Mint", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -363,10 +364,8 @@ describe("tx.snip721", () => {
         gasLimit: 100_000,
       },
     );
-
-    expect(fromUtf8(addMinterMsg.data[0])).toContain(
-      '{"add_minters":{"status":"success"}}',
-    );
+    const x = MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data;
+    expect(fromUtf8(x)).toContain('{"add_minters":{"status":"success"}}');
 
     const mintMsg = await secretjs.tx.snip721.mint(
       {
@@ -383,9 +382,9 @@ describe("tx.snip721", () => {
       },
     );
 
-    expect(fromUtf8(mintMsg.data[0])).toContain(
-      '{"mint_nft":{"token_id":"1"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(mintMsg.data[0]).data),
+    ).toContain('{"mint_nft":{"token_id":"1"}}');
   });
 });
 

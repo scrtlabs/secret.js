@@ -14,6 +14,7 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
+import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
@@ -192,14 +193,11 @@ describe("query", () => {
     expect(txInit.code).toBe(0);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -226,9 +224,9 @@ describe("query", () => {
       txExec = await secretjs.query.getTx(tx.transactionHash);
     }
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"create_viewing_key":{"key":"',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"create_viewing_key":{"key":"');
   });
 
   test("query.getTx error", async () => {
@@ -292,7 +290,7 @@ describe("query", () => {
     expect(txInit.code).toBe(0);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -686,8 +684,10 @@ describe("tx.compute", () => {
 
     expect(tx.code).toBe(0);
 
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("instantiate");
-    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
+      "/secret.compute.v1beta1.MsgInstantiateContract",
+    );
+    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toContain(
       "secret1",
     );
   });
@@ -926,7 +926,7 @@ describe("tx.compute", () => {
     expect(txInit.code).toBe(0);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -1020,14 +1020,11 @@ describe("tx.compute", () => {
     expect(txInit.code).toBe(0);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1047,9 +1044,9 @@ describe("tx.compute", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"create_viewing_key":{"key":"',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"create_viewing_key":{"key":"');
   });
 
   test("MsgExecuteContract VmError", async () => {
