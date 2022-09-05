@@ -227,29 +227,29 @@ export type AccountData = {
   readonly pubkey: Uint8Array;
 };
 
-function sortedObject(obj: any): any {
+export function sortObject(obj: any): any {
   if (typeof obj !== "object" || obj === null) {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return obj.map(sortedObject);
+    return obj.map(sortObject);
   }
   const sortedKeys = Object.keys(obj).sort();
   const result: Record<string, any> = {};
   // NOTE: Use forEach instead of reduce for performance with large objects eg Wasm code
   sortedKeys.forEach((key) => {
-    result[key] = sortedObject(obj[key]);
+    result[key] = sortObject(obj[key]);
   });
   return result;
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-function JsonSortedStringify(obj: any): string {
-  return JSON.stringify(sortedObject(obj));
+function jsonSortedStringify(obj: any): string {
+  return JSON.stringify(sortObject(obj));
 }
 
 export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
-  return toUtf8(JsonSortedStringify(signDoc));
+  return toUtf8(jsonSortedStringify(signDoc));
 }
 
 export type DirectSigner = {
