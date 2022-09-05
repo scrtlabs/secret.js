@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 
 export const protobufPackage = "secret.compute.v1beta1";
@@ -13,6 +15,12 @@ export interface MsgStoreCode {
   source: string;
   /** Builder is a valid docker image name with tag, optional */
   builder: string;
+}
+
+/** MsgStoreCodeResponse returns store result data. */
+export interface MsgStoreCodeResponse {
+  /** CodeID is the reference to the stored WASM code */
+  codeId: string;
 }
 
 export interface MsgInstantiateContract {
@@ -29,6 +37,14 @@ export interface MsgInstantiateContract {
   callbackSig: Uint8Array;
 }
 
+/** MsgInstantiateContractResponse return instantiation result data */
+export interface MsgInstantiateContractResponse {
+  /** Address is the bech32 address of the new contract instance. */
+  address: string;
+  /** Data contains base64-encoded bytes to returned from the contract */
+  data: Uint8Array;
+}
+
 export interface MsgExecuteContract {
   sender: Uint8Array;
   contract: Uint8Array;
@@ -36,6 +52,12 @@ export interface MsgExecuteContract {
   callbackCodeHash: string;
   sentFunds: Coin[];
   callbackSig: Uint8Array;
+}
+
+/** MsgExecuteContractResponse returns execution result data. */
+export interface MsgExecuteContractResponse {
+  /** Data contains base64-encoded bytes to returned from the contract */
+  data: Uint8Array;
 }
 
 function createBaseMsgStoreCode(): MsgStoreCode {
@@ -132,6 +154,63 @@ export const MsgStoreCode = {
     message.wasmByteCode = object.wasmByteCode ?? new Uint8Array();
     message.source = object.source ?? "";
     message.builder = object.builder ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgStoreCodeResponse(): MsgStoreCodeResponse {
+  return { codeId: "0" };
+}
+
+export const MsgStoreCodeResponse = {
+  encode(
+    message: MsgStoreCodeResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.codeId !== "0") {
+      writer.uint32(8).uint64(message.codeId);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgStoreCodeResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgStoreCodeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.codeId = longToString(reader.uint64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgStoreCodeResponse {
+    return {
+      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
+    };
+  },
+
+  toJSON(message: MsgStoreCodeResponse): unknown {
+    const obj: any = {};
+    message.codeId !== undefined && (obj.codeId = message.codeId);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgStoreCodeResponse>, I>>(
+    object: I,
+  ): MsgStoreCodeResponse {
+    const message = createBaseMsgStoreCodeResponse();
+    message.codeId = object.codeId ?? "0";
     return message;
   },
 };
@@ -283,6 +362,77 @@ export const MsgInstantiateContract = {
   },
 };
 
+function createBaseMsgInstantiateContractResponse(): MsgInstantiateContractResponse {
+  return { address: "", data: new Uint8Array() };
+}
+
+export const MsgInstantiateContractResponse = {
+  encode(
+    message: MsgInstantiateContractResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.data.length !== 0) {
+      writer.uint32(18).bytes(message.data);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgInstantiateContractResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgInstantiateContractResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.address = reader.string();
+          break;
+        case 2:
+          message.data = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgInstantiateContractResponse {
+    return {
+      address: isSet(object.address) ? String(object.address) : "",
+      data: isSet(object.data)
+        ? bytesFromBase64(object.data)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: MsgInstantiateContractResponse): unknown {
+    const obj: any = {};
+    message.address !== undefined && (obj.address = message.address);
+    message.data !== undefined &&
+      (obj.data = base64FromBytes(
+        message.data !== undefined ? message.data : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgInstantiateContractResponse>, I>>(
+    object: I,
+  ): MsgInstantiateContractResponse {
+    const message = createBaseMsgInstantiateContractResponse();
+    message.address = object.address ?? "";
+    message.data = object.data ?? new Uint8Array();
+    return message;
+  },
+};
+
 function createBaseMsgExecuteContract(): MsgExecuteContract {
   return {
     sender: new Uint8Array(),
@@ -419,6 +569,274 @@ export const MsgExecuteContract = {
     return message;
   },
 };
+
+function createBaseMsgExecuteContractResponse(): MsgExecuteContractResponse {
+  return { data: new Uint8Array() };
+}
+
+export const MsgExecuteContractResponse = {
+  encode(
+    message: MsgExecuteContractResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.data.length !== 0) {
+      writer.uint32(10).bytes(message.data);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgExecuteContractResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgExecuteContractResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.data = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgExecuteContractResponse {
+    return {
+      data: isSet(object.data)
+        ? bytesFromBase64(object.data)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: MsgExecuteContractResponse): unknown {
+    const obj: any = {};
+    message.data !== undefined &&
+      (obj.data = base64FromBytes(
+        message.data !== undefined ? message.data : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgExecuteContractResponse>, I>>(
+    object: I,
+  ): MsgExecuteContractResponse {
+    const message = createBaseMsgExecuteContractResponse();
+    message.data = object.data ?? new Uint8Array();
+    return message;
+  },
+};
+
+/** Msg defines the wasm Msg service. */
+export interface Msg {
+  /** StoreCode to submit Wasm code to the system */
+  storeCode(
+    request: DeepPartial<MsgStoreCode>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgStoreCodeResponse>;
+  /** Instantiate creates a new smart contract instance for the given code id. */
+  instantiateContract(
+    request: DeepPartial<MsgInstantiateContract>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgInstantiateContractResponse>;
+  /** Execute submits the given message data to a smart contract */
+  executeContract(
+    request: DeepPartial<MsgExecuteContract>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgExecuteContractResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.storeCode = this.storeCode.bind(this);
+    this.instantiateContract = this.instantiateContract.bind(this);
+    this.executeContract = this.executeContract.bind(this);
+  }
+
+  storeCode(
+    request: DeepPartial<MsgStoreCode>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgStoreCodeResponse> {
+    return this.rpc.unary(
+      MsgStoreCodeDesc,
+      MsgStoreCode.fromPartial(request),
+      metadata,
+    );
+  }
+
+  instantiateContract(
+    request: DeepPartial<MsgInstantiateContract>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgInstantiateContractResponse> {
+    return this.rpc.unary(
+      MsgInstantiateContractDesc,
+      MsgInstantiateContract.fromPartial(request),
+      metadata,
+    );
+  }
+
+  executeContract(
+    request: DeepPartial<MsgExecuteContract>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgExecuteContractResponse> {
+    return this.rpc.unary(
+      MsgExecuteContractDesc,
+      MsgExecuteContract.fromPartial(request),
+      metadata,
+    );
+  }
+}
+
+export const MsgDesc = {
+  serviceName: "secret.compute.v1beta1.Msg",
+};
+
+export const MsgStoreCodeDesc: UnaryMethodDefinitionish = {
+  methodName: "StoreCode",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgStoreCode.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgStoreCodeResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgInstantiateContractDesc: UnaryMethodDefinitionish = {
+  methodName: "InstantiateContract",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgInstantiateContract.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgInstantiateContractResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgExecuteContractDesc: UnaryMethodDefinitionish = {
+  methodName: "ExecuteContract",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgExecuteContract.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...MsgExecuteContractResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
+interface Rpc {
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
+}
 
 declare var self: any | undefined;
 declare var window: any | undefined;

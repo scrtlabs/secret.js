@@ -109,10 +109,10 @@ export async function initContract(
 
   expect(txInit.code).toBe(0);
   expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-    "instantiate",
+    "/secret.compute.v1beta1.MsgInstantiateContract",
   );
 
-  return getValueFromRawLog(txInit.rawLog, "message.contract_address");
+  return getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
 }
 
 export async function getBalance(

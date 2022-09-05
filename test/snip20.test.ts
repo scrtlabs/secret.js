@@ -1,6 +1,7 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import fs from "fs";
 import { SecretNetworkClient, Tx, Wallet } from "../src";
+import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -164,9 +165,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"transfer":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"transfer":{"status":"success"}}');
   });
 
   test("send", async () => {
@@ -243,7 +244,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain('{"send":{"status":"success"}}');
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"send":{"status":"success"}}');
   });
 
   test("increase allowance", async () => {
@@ -322,7 +325,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("increase_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("increase_allowance");
   });
 
   test("decrease allowance", async () => {
@@ -401,7 +406,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("increase_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("increase_allowance");
 
     txExec = await secretjs.tx.snip20.decreaseAllowance(
       {
@@ -416,7 +423,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("decrease_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("decrease_allowance");
   });
 });
 
