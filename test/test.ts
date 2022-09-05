@@ -205,7 +205,7 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
@@ -309,7 +309,7 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -712,7 +712,7 @@ describe("tx.compute", () => {
     expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    expect(getValueFromRawLog(tx.rawLog, "message.conract_address")).toContain(
+    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
       "secret1",
     );
   });
@@ -838,7 +838,7 @@ describe("tx.compute", () => {
 
     const contract = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
 
     const addMinterMsg = new MsgExecuteContract({
@@ -891,7 +891,7 @@ describe("tx.compute", () => {
       mintMsg.msg,
     ]);
 
-    expect(getValueFromRawLog(tx.rawLog, "message.conract_address")).toBe(
+    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toBe(
       contract,
     );
 
@@ -969,7 +969,7 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1067,7 +1067,7 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
@@ -1156,7 +1156,7 @@ describe("tx.compute", () => {
 
     const contract = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
 
     const addMinterMsg = new MsgExecuteContract({

@@ -160,7 +160,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
@@ -289,8 +289,9 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
+
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
@@ -374,7 +375,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
@@ -480,7 +481,7 @@ describe("query.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.conract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
