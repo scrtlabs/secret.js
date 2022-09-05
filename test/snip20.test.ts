@@ -1,7 +1,10 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import fs from "fs";
 import { SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
-import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -159,6 +162,9 @@ describe("tx.snip20", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const txExec = await secretjs.tx.snip20.transfer(
       {
@@ -244,6 +250,9 @@ describe("tx.snip20", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const txExec = await secretjs.tx.snip20.send(
       {
@@ -327,6 +336,9 @@ describe("tx.snip20", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -412,6 +424,9 @@ describe("tx.snip20", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -517,6 +532,9 @@ describe("query.snip20", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const txExec = await secretjs.tx.snip20.setViewingKey({
       sender: secretjs.address,
@@ -599,6 +617,9 @@ describe("query.snip20", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
       contract: { address: contractAddress, codeHash: codeHash },
@@ -679,6 +700,9 @@ describe("query.snip20", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     await secretjs.tx.snip20.increaseAllowance(
@@ -780,6 +804,9 @@ describe("query.snip20", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     await secretjs.tx.snip20.setViewingKey({

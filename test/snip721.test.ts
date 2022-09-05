@@ -7,7 +7,10 @@ import {
   TxResultCode,
   Wallet,
 } from "../src";
-import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -158,6 +161,9 @@ describe("tx.snip721", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
@@ -280,6 +286,9 @@ describe("tx.snip721", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
       {
@@ -357,6 +366,9 @@ describe("tx.snip721", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
@@ -456,6 +468,9 @@ describe("query.snip721", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     await secretjs.tx.snip721.setViewingKey(
