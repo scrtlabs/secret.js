@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Permit, SecretNetworkClient, Tx, Wallet } from "../src";
+import { Permit, SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
