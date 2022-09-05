@@ -149,7 +149,7 @@ describe("permit", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
     let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,

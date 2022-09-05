@@ -151,7 +151,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     expect(contractAddress).toBe(
@@ -277,7 +277,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     expect(contractAddress).toBe(
@@ -359,7 +359,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     expect(contractAddress).toBe(
@@ -462,7 +462,7 @@ describe("query.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     expect(contractAddress).toBe(

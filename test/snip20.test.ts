@@ -1,5 +1,4 @@
 import { fromUtf8 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
 import fs from "fs";
 import { SecretNetworkClient, Tx, Wallet } from "../src";
 import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
@@ -161,10 +160,7 @@ describe("tx.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     const txExec = await secretjs.tx.snip20.transfer(
@@ -252,10 +248,7 @@ describe("tx.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     const txExec = await secretjs.tx.snip20.send(
@@ -342,10 +335,7 @@ describe("tx.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -433,10 +423,7 @@ describe("tx.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -543,10 +530,7 @@ describe("query.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     const txExec = await secretjs.tx.snip20.setViewingKey({
@@ -631,10 +615,7 @@ describe("query.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
@@ -718,10 +699,7 @@ describe("query.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     await secretjs.tx.snip20.increaseAllowance(
@@ -825,10 +803,7 @@ describe("query.snip20", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "message.contract_address",
-    );
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      "message.conract_address",
     );
 
     await secretjs.tx.snip20.setViewingKey({
