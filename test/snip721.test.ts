@@ -8,7 +8,10 @@ import {
   TxResultCode,
   Wallet,
 } from "../src";
-import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -159,6 +162,9 @@ describe("tx.snip721", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     expect(contractAddress).toBe(
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
@@ -285,6 +291,9 @@ describe("tx.snip721", () => {
       txInit.rawLog,
       "message.conract_address",
     );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
+    );
 
     expect(contractAddress).toBe(
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
@@ -366,6 +375,9 @@ describe("tx.snip721", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     expect(contractAddress).toBe(
@@ -469,6 +481,9 @@ describe("query.snip721", () => {
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     expect(contractAddress).toBe(
