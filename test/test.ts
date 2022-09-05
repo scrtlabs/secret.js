@@ -14,7 +14,10 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
-import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
@@ -132,7 +135,7 @@ beforeAll(async () => {
 });
 
 describe("query", () => {
-  test.only("query.getTx", async () => {
+  test("query.getTx", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -201,7 +204,10 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -302,7 +308,7 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -705,7 +711,7 @@ describe("tx.compute", () => {
     expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toContain(
+    expect(getValueFromRawLog(tx.rawLog, "message.conract_address")).toContain(
       "secret1",
     );
   });
@@ -829,7 +835,10 @@ describe("tx.compute", () => {
       initInput.initMsg,
     );
 
-    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+    const contract = getValueFromRawLog(
+      txInit.rawLog,
+      "message.conract_address",
+    );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
@@ -881,7 +890,7 @@ describe("tx.compute", () => {
       mintMsg.msg,
     ]);
 
-    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
+    expect(getValueFromRawLog(tx.rawLog, "message.conract_address")).toBe(
       contract,
     );
 
@@ -959,7 +968,7 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1057,7 +1066,10 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
+    );
+    expect(contractAddress).toBe(
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1141,7 +1153,10 @@ describe("tx.compute", () => {
     }
     expect(txInit.code).toBe(0);
 
-    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+    const contract = getValueFromRawLog(
+      txInit.rawLog,
+      "message.conract_address",
+    );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,

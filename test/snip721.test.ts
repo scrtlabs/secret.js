@@ -150,7 +150,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     const addMinterMsg = new MsgExecuteContract({
@@ -272,7 +272,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
@@ -350,7 +350,7 @@ describe("tx.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     const addMinterMsg = await secretjs.tx.snip721.addMinter(
@@ -449,7 +449,7 @@ describe("query.snip721", () => {
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.conract_address",
     );
 
     await secretjs.tx.snip721.setViewingKey(
