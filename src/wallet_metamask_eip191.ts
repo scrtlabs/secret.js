@@ -6,7 +6,7 @@ import {
   AminoSignResponse,
   encodeSecp256k1Signature,
   pubkeyToAddress,
-  serializeStdSignDoc,
+  sortObject,
   StdSignDoc,
 } from "./wallet_amino";
 
@@ -116,7 +116,7 @@ export class MetaMaskTextWallet {
       throw new Error(`Address ${address} not found in wallet`);
     }
 
-    const msgToSign = `0x${toHex(serializeStdSignDoc(signDoc))}`;
+    const msgToSign = `0x${toHex(prettySerializeStdSignDoc(signDoc))}`;
     const sigResult: string = await this.ethProvider.request({
       method: "personal_sign",
       params: [msgToSign, this.ethAddress],
@@ -135,4 +135,13 @@ export class MetaMaskTextWallet {
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
   const point = secp256k1.Point.fromHex(publicKeyHex);
   return point.toRawBytes(false);
+}
+
+/** Returns a JSON string with objects sorted by key, used for pretty Amino EIP191 signing */
+function prettyJsonSortedStringify(obj: any): string {
+  return JSON.stringify(sortObject(obj), null, 4);
+}
+
+function prettySerializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
+  return toUtf8(prettyJsonSortedStringify(signDoc));
 }
