@@ -76,7 +76,9 @@ export async function storeContract(
       gasLimit: 5_000_000,
     },
   );
-
+  if (txStore.code != 0) {
+    console.error(txStore.rawLog);
+  }
   expect(txStore.code).toBe(0);
 
   return Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
@@ -106,7 +108,9 @@ export async function initContract(
       gasLimit: 5_000_000,
     },
   );
-
+  if (txInit.code != 0) {
+    console.error(txInit.rawLog);
+  }
   expect(txInit.code).toBe(0);
   expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
     "/secret.compute.v1beta1.MsgInstantiateContract",

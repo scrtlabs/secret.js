@@ -108,7 +108,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -142,7 +144,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -230,7 +234,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -264,7 +270,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -292,7 +300,7 @@ describe("tx.snip721", () => {
     ).toContain('{"add_minters":{"status":"success"}}');
   });
 
-  test.only("Mint", async () => {
+  test("Mint", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -308,7 +316,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -342,7 +352,9 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
@@ -364,8 +376,10 @@ describe("tx.snip721", () => {
         gasLimit: 100_000,
       },
     );
-    const x = MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data;
-    expect(fromUtf8(x)).toContain('{"add_minters":{"status":"success"}}');
+
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data),
+    ).toContain('{"add_minters":{"status":"success"}}');
 
     const mintMsg = await secretjs.tx.snip721.mint(
       {
@@ -405,7 +419,9 @@ describe("query.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txStore.code != 0) {
+      console.error(txStore.rawLog);
+    }
     expect(txStore.code).toBe(0);
 
     const codeId = Number(
@@ -439,7 +455,9 @@ describe("query.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
+    if (txInit.code != 0) {
+      console.error(txInit.rawLog);
+    }
     expect(txInit.code).toBe(0);
 
     const contractAddress = getValueFromRawLog(
