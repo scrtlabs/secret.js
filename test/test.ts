@@ -196,7 +196,7 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
@@ -296,7 +296,7 @@ describe("query", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -855,6 +855,7 @@ describe("tx.compute", () => {
       mintMsg.msg,
     ]);
 
+    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("execute");
     expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
       contract,
     );
@@ -929,7 +930,7 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1023,7 +1024,7 @@ describe("tx.compute", () => {
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
     expect(contractAddress).toBe(
       bech32.encode("secret", bech32.toWords(txInit.data[0])),
