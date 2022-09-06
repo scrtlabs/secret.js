@@ -4,7 +4,7 @@
 // 2. Abstract "address: Uint8Array" in the underlying types as "address: string".
 // 3. Add Secret Network encryption
 
-import { fromBase64, fromUtf8, toHex } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
 import { grpc } from "@improbable-eng/grpc-web";
 import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
@@ -28,7 +28,7 @@ export type ContractInfo = {
   codeId: string;
   creator: string;
   label: string;
-  created?: AbsoluteTxPosition;
+  ibcPortId: string;
 };
 
 /** AbsoluteTxPosition can be used to sort contracts */
@@ -116,6 +116,20 @@ export class ComputeQuerier {
     }
   }
 
+  /* 
+    TODO expose all of these while making sure codeHashCache is efficient
+    
+    contractInfo
+    contractsByCodeID
+    querySecretContract
+    code
+    codes
+    codeHashByContractAddress
+    codeHashByCodeID
+    labelByAddress
+    addressByLabel
+  */
+
   /** Get codeHash of a Secret Contract */
   async contractCodeHash(
     address: string,
@@ -158,13 +172,13 @@ export class ComputeQuerier {
 
     const response = await this.client!.contractInfo(
       {
-        address: addressToBytes(address),
+        contractAddress: address,
       },
       metadata,
     );
 
     return {
-      address: bytesToAddress(response.address),
+      address: response.contractAddress,
       ContractInfo: contractInfoFromProtobuf(response.ContractInfo!),
     };
   }
@@ -176,7 +190,7 @@ export class ComputeQuerier {
   ): Promise<QueryContractsByCodeResponse> {
     await this.init();
 
-    const response = await this.client!.contractsByCode(
+    const response = await this.client!.contractsByCodeID(
       {
         codeId: String(codeId),
       },
@@ -185,7 +199,7 @@ export class ComputeQuerier {
 
     return {
       contractInfos: response.contractInfos.map((x) => ({
-        address: bytesToAddress(x.address),
+        address: x.contractAddress,
         ContractInfo: x.ContractInfo
           ? contractInfoFromProtobuf(x.ContractInfo)
           : undefined,
@@ -213,10 +227,10 @@ export class ComputeQuerier {
     const nonce = encryptedQuery.slice(0, 32);
 
     try {
-      const { data: encryptedResult } = await this.client!.smartContractState(
+      const { data: encryptedResult } = await this.client!.querySecretContract(
         {
-          address: addressToBytes(contractAddress),
-          queryData: encryptedQuery,
+          contractAddress,
+          query: encryptedQuery,
         },
         metadata,
       );
@@ -282,7 +296,7 @@ export class ComputeQuerier {
 
     return {
       codeInfo,
-      data: response.data,
+      data: response.wasm,
     };
   }
 
@@ -315,7 +329,7 @@ function contractInfoFromProtobuf(
     codeId: contractInfo.codeId,
     creator: bytesToAddress(contractInfo.creator),
     label: contractInfo.label,
-    created: contractInfo.created,
+    ibcPortId: contractInfo.ibcPortId,
   };
 }
 
@@ -325,8 +339,8 @@ function codeInfoResponseFromProtobuf(
   return codeInfo
     ? {
         codeId: codeInfo.codeId,
-        creator: bytesToAddress(codeInfo.creator),
-        codeHash: toHex(codeInfo.dataHash).replace("0x", "").toLowerCase(),
+        creator: codeInfo.creator,
+        codeHash: codeInfo.codeHash,
         source: codeInfo.source,
         builder: codeInfo.builder,
       }
