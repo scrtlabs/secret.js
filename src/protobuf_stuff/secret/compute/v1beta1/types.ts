@@ -57,7 +57,6 @@ export interface CodeInfo {
   codeHash: Uint8Array;
   creator: Uint8Array;
   source: string;
-  /** AccessConfig instantiate_config = 5 [(gogoproto.nullable) = false]; */
   builder: string;
 }
 
