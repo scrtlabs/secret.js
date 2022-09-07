@@ -303,7 +303,7 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
-Also see the <a href="https://docs.keplr.app/api" target="_blank"><strong>Leap API Docs »</strong></a>
+Also see the <a href="https://leapwallet.notion.site/leapwallet/Connect-to-Leap-on-your-dApp-035d49182fad432da4c3194bc891a746" target="_blank"><strong>Leap API Docs »</strong></a>
 
 # Migrating from secret.js v0.17.x
 
