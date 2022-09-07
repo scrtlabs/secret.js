@@ -28,10 +28,12 @@
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
   - [MetaMask Integration](#metamask-integration)
-  - [Keplr Integration](#keplr-integration)
+  - [Keplr Wallet Integration](#keplr-wallet-integration)
     - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
     - [`getOfflineSigner()`](#getofflinesigner)
     - [`getOfflineSignerAuto()`](#getofflinesignerauto)
+  - [Fina Wallet Integration](#fina-wallet-integration)
+  - [Leap Cosmos Wallet Integration](#leap-cosmos-wallet-integration)
 - [Migrating from secret.js v0.17.x](#migrating-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
@@ -182,9 +184,9 @@ Notes:
 
 <img src="./media/metamask-eth_sign-warning.png" width="65%%" style="border-radius: 10px;" />
 
-## Keplr Integration
+## Keplr Wallet Integration
 
-The recommended way to integrate Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
+The recommended way of integrating Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
 
 ```ts
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -220,6 +222,8 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
+Also see the <a href="https://docs.keplr.app/api" target="_blank"><strong>Keplr API Docs »</strong></a>
+
 Notes:
 
 1. No mobile support yet.
@@ -232,33 +236,10 @@ Although this is the legacy way of signing transactions on cosmos-sdk, it's stil
 
 - 🟩 Looks good on Keplr
 - 🟩 Supports users signing with Ledger
-- 🟥 Doesn't support signing transactions with these Msgs:
-  - [authz/MsgExec](https://secretjs.scrt.network/classes/MsgExec)
-  - [authz/MsgGrant](https://secretjs.scrt.network/classes/MsgGrant)
-  - [authz/MsgRevoke](https://secretjs.scrt.network/classes/MsgRevoke)
-  - [feegrant/MsgGrantAllowance](https://secretjs.scrt.network/classes/MsgGrantAllowance)
-  - [feegrant/MsgRevokeAllowance](https://secretjs.scrt.network/classes/MsgRevokeAllowance)
-  - All IBC relayer Msgs:
-    - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
-    - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
-    - [ibc_channel/MsgAcknowledgement](https://secretjs.scrt.network/classes/MsgAcknowledgement)
-    - [ibc_channel/MsgChannelCloseConfirm](https://secretjs.scrt.network/classes/MsgChannelCloseConfirm)
-    - [ibc_channel/MsgChannelCloseInit](https://secretjs.scrt.network/classes/MsgChannelCloseInit)
-    - [ibc_channel/MsgChannelOpenAck](https://secretjs.scrt.network/classes/MsgChannelOpenAck)
-    - [ibc_channel/MsgChannelOpenConfirm](https://secretjs.scrt.network/classes/MsgChannelOpenConfirm)
-    - [ibc_channel/MsgChannelOpenInit](https://secretjs.scrt.network/classes/MsgChannelOpenInit)
-    - [ibc_channel/MsgChannelOpenTry](https://secretjs.scrt.network/classes/MsgChannelOpenTry)
-    - [ibc_channel/MsgRecvPacket](https://secretjs.scrt.network/classes/MsgRecvPacket)
-    - [ibc_channel/MsgTimeout](https://secretjs.scrt.network/classes/MsgTimeout)
-    - [ibc_channel/MsgTimeoutOnClose](https://secretjs.scrt.network/classes/MsgTimeoutOnClose)
-    - [ibc_client/MsgCreateClient](https://secretjs.scrt.network/classes/MsgCreateClient)
-    - [ibc_client/MsgSubmitMisbehaviour](https://secretjs.scrt.network/classes/MsgSubmitMisbehaviour)
-    - [ibc_client/MsgUpdateClient](https://secretjs.scrt.network/classes/MsgUpdateClient)
-    - [ibc_client/MsgUpgradeClient](https://secretjs.scrt.network/classes/MsgUpgradeClient)
-    - [ibc_connection/MsgConnectionOpenAck](https://secretjs.scrt.network/classes/MsgConnectionOpenAck)
-    - [ibc_connection/MsgConnectionOpenConfirm](https://secretjs.scrt.network/classes/MsgConnectionOpenConfirm)
-    - [ibc_connection/MsgConnectionOpenInit](https://secretjs.scrt.network/classes/MsgConnectionOpenInit)
-    - [ibc_connection/MsgConnectionOpenTry](https://secretjs.scrt.network/classes/MsgConnectionOpenTry)
+- 🟥 Doesn't support signing these transactions:
+  - Every tx type under `ibc_client`, `ibc_connection` and `ibc_channel` (meaning IBC relaying, for example with [ts-relayer](https://github.com/confio/ts-relayer))
+  - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
+  - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
 
 Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC **is** supported.
 
@@ -277,6 +258,52 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 ### `getOfflineSignerAuto()`
 
 Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
+
+## Fina Wallet Integration
+
+Leap implements the Keplr API, so the above Keplr docs applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
+
+## Leap Cosmos Wallet Integration
+
+Leap implements the Keplr API, so the above Keplr docs applies.
+
+The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
+
+```ts
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+while (
+  !window.leap ||
+  !window.leap.getEnigmaUtils ||
+  !window.leap.getOfflineSignerOnlyAmino
+) {
+  await sleep(100);
+}
+
+const CHAIN_ID = "secret-4";
+
+await window.leap.enable(CHAIN_ID);
+
+const leapOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const [{ address: myAddress }] = await leapOfflineSigner.getAccounts();
+
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
+const secretjs = await SecretNetworkClient.create({
+  grpcWebUrl,
+  chainId: CHAIN_ID,
+  wallet: leapOfflineSigner,
+  walletAddress: myAddress,
+  encryptionUtils: window.leap.getEnigmaUtils(CHAIN_ID),
+});
+
+// Note: Using `window.leap.getEnigmaUtils()` is optional, it will allow
+// Leap to use the same encryption seed across sessions for the account.
+// The benefit of this is that `secretjs.query.getTx()` will be able to decrypt
+// the response across sessions.
+```
+
+Also see the <a href="https://docs.keplr.app/api" target="_blank"><strong>Leap API Docs »</strong></a>
 
 # Migrating from secret.js v0.17.x
 
