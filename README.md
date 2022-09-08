@@ -261,7 +261,7 @@ Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the
 
 ## Fina Wallet Integration
 
-Leap implements the Keplr API, so the above Keplr docs applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
+Fina implements the Keplr API, so the above Keplr docs applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
 
 ## Leap Cosmos Wallet Integration
 
