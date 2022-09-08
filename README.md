@@ -242,9 +242,9 @@ Links:
 
 TLDR:
 
-- `getOfflineSignerOnlyAmino()`: The recommended way. Supports Ledger, has a nice UI.
-- `getOfflineSigner()`: No Ledger support, ugly UI, can send IBC relayer txs and submit IBC gov proposals.
-- `getOfflineSignerAuto()`: Alias for `getOfflineSigner()`.
+- [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
+- [`getOfflineSigner()`](#getofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
+- [`getOfflineSignerAuto()`](#getofflinesignerauto): Alias for `getOfflineSigner()`.
 
 #### `getOfflineSignerOnlyAmino()`
 
