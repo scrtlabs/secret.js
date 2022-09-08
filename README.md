@@ -160,6 +160,8 @@ const tx = await secretjs.tx.broadcast([msg], {
 ## MetaMask
 
 ```ts
+import { SecretNetworkClient, MetaMaskWallet } from "secretjs";
+
 // @ts-ignore
 const [ethAddress] = await window.ethereum.request({
   method: "eth_requestAccounts",
@@ -190,6 +192,8 @@ Notes:
 The recommended way of integrating Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
 
 ```ts
+import { SecretNetworkClient } from "secretjs";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 while (
@@ -197,7 +201,7 @@ while (
   !window.getEnigmaUtils ||
   !window.getOfflineSignerOnlyAmino
 ) {
-  await sleep(100);
+  await sleep(50);
 }
 
 const CHAIN_ID = "secret-4";
@@ -286,6 +290,8 @@ Leap implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies.
 The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
 
 ```ts
+import { SecretNetworkClient } from "secretjs";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 while (
@@ -293,7 +299,7 @@ while (
   !window.leap.getEnigmaUtils ||
   !window.leap.getOfflineSignerOnlyAmino
 ) {
-  await sleep(100);
+  await sleep(50);
 }
 
 const CHAIN_ID = "secret-4";
