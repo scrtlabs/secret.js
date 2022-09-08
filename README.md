@@ -27,13 +27,12 @@
 - [Usage Examples](#usage-examples)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
-  - [MetaMask Integration](#metamask-integration)
-  - [Keplr Wallet Integration](#keplr-wallet-integration)
-    - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
-    - [`getOfflineSigner()`](#getofflinesigner)
-    - [`getOfflineSignerAuto()`](#getofflinesignerauto)
-  - [Fina Wallet Integration](#fina-wallet-integration)
-  - [Leap Cosmos Wallet Integration](#leap-cosmos-wallet-integration)
+- [Integrations](#integrations)
+  - [MetaMask](#metamask)
+  - [Keplr Wallet](#keplr-wallet)
+    - [`SignerOnlyAmino` vs `Signer` vs `SignerAuto`](#signeronlyamino-vs-signer-vs-signerauto)
+  - [Fina Wallet](#fina-wallet)
+  - [Leap Cosmos Wallet](#leap-cosmos-wallet)
 - [Migrating from secret.js v0.17.x](#migrating-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
@@ -156,7 +155,9 @@ const tx = await secretjs.tx.broadcast([msg], {
 });
 ```
 
-## MetaMask Integration
+# Integrations
+
+## MetaMask
 
 ```ts
 // @ts-ignore
@@ -184,7 +185,7 @@ Notes:
 
 <img src="./media/metamask-eth_sign-warning.png" width="65%%" style="border-radius: 10px;" />
 
-## Keplr Wallet Integration
+## Keplr Wallet
 
 The recommended way of integrating Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
 
@@ -222,15 +223,26 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
-Also see the <a href="https://docs.keplr.app/api" target="_blank"><strong>Keplr API Docs »</strong></a>
-
 Notes:
 
 1. No mobile support yet.
 2. Keplr supports Ledger.
 3. By using `encryptionUtils` you let Keplr handle user encryption keys for you, which allows you to easily decrypt transactions across sessions.
 
-### `getOfflineSignerOnlyAmino()`
+Links:
+
+- <a href="https://www.keplr.app" target="_blank"><strong>Official Keplr Website »</strong></a>
+- <a href="https://docs.keplr.app/api" target="_blank"><strong>Keplr API Docs »</strong></a>
+
+### `SignerOnlyAmino` vs `Signer` vs `SignerAuto`
+
+TLDR:
+
+- `getOfflineSignerOnlyAmino()`: The recommended way. Supports Ledger, has a nice UI.
+- `getOfflineSigner()`: No Ledger support, ugly UI, can send IBC relayer txs and submit IBC gov proposals.
+- `getOfflineSignerAuto()`: Alias for `getOfflineSigner()`.
+
+#### `getOfflineSignerOnlyAmino()`
 
 Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended for connecting to Keplr due to Ledger support & better UI on Keplr.
 
@@ -245,7 +257,7 @@ Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTr
 
 <img src="./media/keplr-amino.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-### `getOfflineSigner()`
+#### `getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
 
@@ -255,17 +267,21 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 
 <img src="./media/keplr-proto.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-### `getOfflineSignerAuto()`
+#### `getOfflineSignerAuto()`
 
 Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
 
-## Fina Wallet Integration
+## Fina Wallet
 
-Fina implements the Keplr API, so the above Keplr docs applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
+Fina implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
 
-## Leap Cosmos Wallet Integration
+Links:
 
-Leap implements the Keplr API, so the above Keplr docs applies.
+- <a href="https://fina.cash" target="_blank"><strong>Official Fina Website »</strong></a>
+
+## Leap Cosmos Wallet
+
+Leap implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies.
 
 The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
 
@@ -303,7 +319,10 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
-Also see the <a href="https://leapwallet.notion.site/leapwallet/Connect-to-Leap-on-your-dApp-035d49182fad432da4c3194bc891a746" target="_blank"><strong>Leap API Docs »</strong></a>
+Links:
+
+- <a href="https://www.leapwallet.io/cosmos" target="_blank"><strong>Official Leap Website »</strong></a>
+- <a href="https://leapwallet.notion.site/leapwallet/Connect-to-Leap-on-your-dApp-035d49182fad432da4c3194bc891a746" target="_blank"><strong>Leap API Docs »</strong></a>
 
 # Migrating from secret.js v0.17.x
 
