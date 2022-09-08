@@ -208,6 +208,10 @@ describe("tx.snip721", () => {
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       gasLimit: 5_000_000,
     });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const txExec = await secretjs.tx.snip721.send(
       {
@@ -221,9 +225,13 @@ describe("tx.snip721", () => {
         },
       },
       {
-        gasLimit: 50_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
 
     expect(
       fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
@@ -296,23 +304,23 @@ describe("tx.snip721", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
-    );
-
-    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (addMinterTx.code !== TxResultCode.Success) {
+      console.error(addMinterTx.rawLog);
+    }
+    expect(addMinterTx.code).toBe(TxResultCode.Success);
 
     expect(
-      fromUtf8(MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data),
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterTx.data[0]).data),
     ).toContain('{"add_minters":{"status":"success"}}');
   });
 
@@ -381,26 +389,26 @@ describe("tx.snip721", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
-    );
-
-    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (addMinterTx.code !== TxResultCode.Success) {
+      console.error(addMinterTx.rawLog);
+    }
+    expect(addMinterTx.code).toBe(TxResultCode.Success);
 
     expect(
-      fromUtf8(MsgExecuteContractResponse.decode(addMinterMsg.data[0]).data),
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterTx.data[0]).data),
     ).toContain('{"add_minters":{"status":"success"}}');
 
-    const mintMsg = await secretjs.tx.snip721.mint(
+    const mintTx = await secretjs.tx.snip721.mint(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -411,12 +419,16 @@ describe("tx.snip721", () => {
         },
       },
       {
-        gasLimit: 200_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (mintTx.code !== TxResultCode.Success) {
+      console.error(mintTx.rawLog);
+    }
+    expect(mintTx.code).toBe(TxResultCode.Success);
 
     expect(
-      fromUtf8(MsgExecuteContractResponse.decode(mintMsg.data[0]).data),
+      fromUtf8(MsgExecuteContractResponse.decode(mintTx.data[0]).data),
     ).toContain('{"mint_nft":{"token_id":"1"}}');
   });
 });
@@ -487,11 +499,7 @@ describe("query.snip721", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
-    );
-
-    await secretjs.tx.snip721.setViewingKey(
+    let tx = await secretjs.tx.snip721.setViewingKey(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -502,22 +510,30 @@ describe("query.snip721", () => {
         },
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    await secretjs.tx.snip721.addMinter(
+    tx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    await secretjs.tx.snip721.mint(
+    tx = await secretjs.tx.snip721.mint(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -528,11 +544,15 @@ describe("query.snip721", () => {
         },
       },
       {
-        gasLimit: 200_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    let tokens = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens = await secretjs.query.snip721.GetOwnedTokens({
       contract: { address: contractAddress, codeHash },
       owner: accounts[0].address,
       auth: { viewer: { viewing_key: "hello", address: accounts[0].address } },
@@ -540,9 +560,16 @@ describe("query.snip721", () => {
 
     expect(tokens.token_list.tokens.length).toEqual(1);
 
-    let permit = await secretjs.utils.accessControl.permit.sign(accounts[0].address, "secretdev-1", "Test", [contractAddress], ["owner"], false)
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      accounts[0].address,
+      "secretdev-1",
+      "Test",
+      [contractAddress],
+      ["owner"],
+      false,
+    );
 
-    let tokens2 = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens2 = await secretjs.query.snip721.GetOwnedTokens({
       contract: { address: contractAddress, codeHash },
       owner: accounts[0].address,
       auth: { permit: permit },

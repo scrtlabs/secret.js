@@ -551,11 +551,18 @@ describe("query.snip20", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txExec = await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    const txExec = await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
 
     const txQuery = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
@@ -739,11 +746,16 @@ describe("query.snip20", () => {
       },
     );
 
-    await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     const txQuery = await secretjs.query.snip20.GetAllowance({
       contract: { address: contractAddress, codeHash: codeHash },
@@ -833,11 +845,16 @@ describe("query.snip20", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     await secretjs.tx.snip20.transfer(
       {

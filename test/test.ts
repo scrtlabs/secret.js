@@ -546,7 +546,7 @@ describe("tx.bank", () => {
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
-    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.15);
+    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.25);
 
     const msg = {
       fromAddress: accounts[0].address,
@@ -786,7 +786,7 @@ describe("tx.compute", () => {
 
     const txStore = await secretjs.tx.compute.storeCode(storeInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.25),
     });
     if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
@@ -826,7 +826,7 @@ describe("tx.compute", () => {
 
     const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.25),
     });
     if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
@@ -880,7 +880,7 @@ describe("tx.compute", () => {
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.25),
     });
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
