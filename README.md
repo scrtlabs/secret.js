@@ -306,7 +306,7 @@ const CHAIN_ID = "secret-4";
 
 await window.leap.enable(CHAIN_ID);
 
-const leapOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const leapOfflineSigner = window.leap.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await leapOfflineSigner.getAccounts();
 
 const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
