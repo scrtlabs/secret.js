@@ -1011,10 +1011,10 @@ export class SecretNetworkClient {
         } else if (txResp.code !== 0 && rawLog !== "") {
           try {
             const errorMessageRgx =
-              /; message index: (\d+):( dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+              /; message index: (\d+):(?: dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
             const rgxMatches = errorMessageRgx.exec(rawLog);
-            if (rgxMatches?.length === 4) {
-              const encryptedError = fromBase64(rgxMatches[3]);
+            if (rgxMatches?.length === 3) {
+              const encryptedError = fromBase64(rgxMatches[2]);
               const msgIndex = Number(rgxMatches[1]);
 
               const decryptedBase64Error = await this.encryptionUtils.decrypt(
@@ -1025,7 +1025,7 @@ export class SecretNetworkClient {
               const decryptedError = fromUtf8(decryptedBase64Error);
 
               rawLog = rawLog.replace(
-                `encrypted: ${rgxMatches[3]}`,
+                `encrypted: ${rgxMatches[2]}`,
                 decryptedError,
               );
 
