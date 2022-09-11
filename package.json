@@ -1,7 +1,7 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.4.0-alpha.3",
+  "version": "1.4.0-alpha.4",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
