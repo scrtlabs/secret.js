@@ -1011,7 +1011,7 @@ export class SecretNetworkClient {
         } else if (txResp.code !== 0 && rawLog !== "") {
           try {
             const errorMessageRgx =
-              /; message index: (\d+):( dispatch: submessages:)? encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+              /; message index: (\d+):( dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
             const rgxMatches = errorMessageRgx.exec(rawLog);
             if (rgxMatches?.length === 4) {
               const encryptedError = fromBase64(rgxMatches[3]);
