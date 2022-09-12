@@ -208,7 +208,7 @@ const CHAIN_ID = "secret-4";
 
 await window.keplr.enable(CHAIN_ID);
 
-const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const keplrOfflineSigner = window.keplr.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
 const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
@@ -218,7 +218,7 @@ const secretjs = await SecretNetworkClient.create({
   chainId: CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
-  encryptionUtils: window.getEnigmaUtils(CHAIN_ID),
+  encryptionUtils: window.keplr.getEnigmaUtils(CHAIN_ID),
 });
 
 // Note: Using `window.getEnigmaUtils` is optional, it will allow
@@ -244,9 +244,9 @@ TLDR:
 
 - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
 - [`getOfflineSigner()`](#getofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
-- [`getOfflineSignerAuto()`](#getofflinesignerauto): Alias for `getOfflineSigner()`.
+- [`getOfflineSignerAuto()`](#getofflinesignerauto): If Ledger alias for `getOfflineSignerOnlyAmino()`, otherwise alias for `getOfflineSigner()`.
 
-#### `getOfflineSignerOnlyAmino()`
+#### `window.keplr.getOfflineSignerOnlyAmino()`
 
 Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended for connecting to Keplr due to Ledger support & better UI on Keplr.
 
@@ -261,7 +261,7 @@ Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTr
 
 <img src="./media/keplr-amino.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-#### `getOfflineSigner()`
+#### `window.keplr.getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
 
@@ -271,9 +271,10 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 
 <img src="./media/keplr-proto.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-#### `getOfflineSignerAuto()`
+#### `window.keplr.getOfflineSignerAuto()`
 
-Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
+If the connected Keplr account uses Ledger, returns `window.keplr.getOfflineSignerOnlyAmino()`.  
+Otherwise returns `window.keplr.getOfflineSigner()`.
 
 ## Fina Wallet
 
@@ -335,6 +336,8 @@ Links:
 - `v0.9.x` through `v0.16.x` supported `secret-2` & `secret-3`
 - `v0.17.x` supports `secret-4`
 - `v1.2.x` supports `secret-4`, corresponds to [`v1.2.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.2.0)
+- `v1.3.x` supports `secret-4`, corresponds to [`v1.3.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.3.0)
+- `v1.4.x` supports `secret-4`, corresponds to [`v1.4.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.4.0)
 
 TODO
 
