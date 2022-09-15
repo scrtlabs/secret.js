@@ -1323,7 +1323,7 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    test.skip("SoftwareUpgradeProposal", async () => {
+    test("SoftwareUpgradeProposal", async () => {
       // TODO make this work
       // https://discord.com/channels/669268347736686612/680435043570941973/938352848905863178
 

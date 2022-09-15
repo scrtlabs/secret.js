@@ -236,8 +236,8 @@ export class MsgSubmitProposal implements Msg {
         content = {
           ...content,
           plan: {
-            type: "cosmos-sdk/Plan",
-            value: { ...content.plan },
+            ...content.plan,
+            time: "0001-01-01T00:00:00Z",
           },
         };
       }
