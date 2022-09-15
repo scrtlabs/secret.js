@@ -170,6 +170,8 @@ export type TxOptions = {
   gasPriceInFeeDenom?: number;
   /** Defaults to `"uscrt"`. */
   feeDenom?: string;
+  /** Address of the fee granter from which to charge gas fees. */
+  feeGranter?: string;
   /** Defaults to `""`. */
   memo?: string;
   /** If `false` returns immediately with only the `transactionHash` field set. Defaults to `true`. */
@@ -1241,6 +1243,7 @@ export class SecretNetworkClient {
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.1;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
     const memo = txOptions?.memo ?? "";
+    const feeGranter = txOptions?.feeGranter;
 
     const explicitSignerData = txOptions?.explicitSignerData;
 
@@ -1254,6 +1257,7 @@ export class SecretNetworkClient {
             denom: feeDenom,
           },
         ],
+        granter: feeGranter,
       },
       memo,
       explicitSignerData,
@@ -1419,6 +1423,7 @@ export class SecretNetworkClient {
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      signed.fee.granter,
       signMode,
     );
     return (
@@ -1504,6 +1509,7 @@ export class SecretNetworkClient {
       [{ pubkey, sequence }],
       fee.amount,
       gasLimit,
+      fee.granter,
     );
     const signDoc = makeSignDocProto(
       txBodyBytes,
@@ -1555,6 +1561,7 @@ async function makeAuthInfoBytes(
   }>,
   feeAmount: readonly Coin[],
   gasLimit: number,
+  feeGranter?: string,
   signMode?: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
 ): Promise<Uint8Array> {
   if (!signMode) {
@@ -1568,6 +1575,7 @@ async function makeAuthInfoBytes(
     fee: {
       amount: [...feeAmount],
       gasLimit: String(gasLimit),
+      granter: feeGranter,
     },
   };
 

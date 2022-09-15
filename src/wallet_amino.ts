@@ -203,6 +203,7 @@ export type StdSignDoc = {
 export type StdFee = {
   readonly amount: readonly Coin[];
   readonly gas: string;
+  readonly granter?: string;
 };
 
 export type StdSignature = {

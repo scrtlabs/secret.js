@@ -2041,3 +2041,83 @@ describe("sanity", () => {
 
   test.skip("All queries are implemented", async () => {});
 });
+
+describe("tx.feegrant", () => {
+  test("MsgGrantAllowance", async () => {
+    const { secretjs } = accounts[0];
+    const newWallet = new AminoWallet(); // this tests both amino & protobuf
+
+    let tx = await secretjs.tx.feegrant.grantAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+      allowance: {
+        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+      },
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const secretjsGrantee = await SecretNetworkClient.create({
+      grpcWebUrl: "http://localhost:9091",
+      chainId: "secretdev-1",
+      wallet: newWallet,
+      walletAddress: newWallet.address,
+    });
+
+    // Send a tx without any balance
+    const newWalletBalance = await getBalance(secretjs, newWallet.address);
+    expect(newWalletBalance).toBe(BigInt(0));
+
+    tx = await secretjsGrantee.tx.gov.submitProposal(
+      {
+        proposer: secretjsGrantee.address,
+        type: ProposalType.TextProposal,
+        initialDeposit: [],
+        content: {
+          title: "Test Feegrant",
+          description: "YOLO",
+        },
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+        feeGranter: secretjs.address,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgRevokeAllowance", async () => {
+    const { secretjs } = accounts[0];
+    const newWallet = new AminoWallet(); // this tests both amino & protobuf
+
+    let tx = await secretjs.tx.feegrant.grantAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+      allowance: {
+        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+      },
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    tx = await secretjs.tx.feegrant.revokeAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+});

@@ -2,6 +2,7 @@ import { EncryptionUtils } from "..";
 
 export interface ProtoMsg {
   typeUrl: string;
+  // value is used in x/compute
   value: any;
   encode(): Promise<Uint8Array>;
 }
