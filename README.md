@@ -1288,9 +1288,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
-Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-DelegatorRewardParams)
+Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
@@ -1312,9 +1310,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
-Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-ValidatorCommissionParams)
+Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
@@ -1366,6 +1362,41 @@ MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees f
 
 Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
+```ts
+const newWallet = new Wallet();
+
+const txGranter = await secretjs.tx.feegrant.grantAllowance({
+  granter: secretjs.address,
+  grantee: newWallet.address,
+  allowance: {
+    spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+  },
+});
+
+const secretjsGrantee = await SecretNetworkClient.create({
+  grpcWebUrl: "http://localhost:9091",
+  chainId: "secretdev-1",
+  wallet: newWallet,
+  walletAddress: newWallet.address,
+});
+
+// Send a tx from newWallet with secretjs.address as the fee payer
+cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
+  {
+    proposer: secretjsGrantee.address,
+    type: ProposalType.TextProposal,
+    initialDeposit: [],
+    content: {
+      title: "Send a tx without any balance",
+      description: `Thanks ${secretjs.address}!`,
+    },
+  },
+  {
+    feeGranter: secretjs.address,
+  },
+);
+```
+
 ##### `secretjs.tx.feegrant.grantAllowance.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
@@ -1375,6 +1406,13 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+
+```ts
+const tx = await secretjs.tx.feegrant.revokeAllowance({
+  granter: secretjs.address,
+  grantee: newWallet.address,
+});
+```
 
 ##### `secretjs.tx.feegrant.revokeAllowance.simulate()`
 
