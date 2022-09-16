@@ -1310,8 +1310,8 @@ Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGra
 ```ts
 const newWallet = new Wallet();
 
-const txGranter = await secretjs.tx.feegrant.grantAllowance({
-  granter: secretjs.address,
+const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
+  granter: secretjsGranter.address,
   grantee: newWallet.address,
   allowance: {
     spendLimit: [{ denom: "uscrt", amount: "1000000" }],
@@ -1333,11 +1333,11 @@ cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
     initialDeposit: [],
     content: {
       title: "Send a tx without any balance",
-      description: `Thanks ${secretjs.address}!`,
+      description: `Thanks ${secretjsGranter.address}!`,
     },
   },
   {
-    feeGranter: secretjs.address,
+    feeGranter: secretjsGranter.address,
   },
 );
 ```
