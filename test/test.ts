@@ -10,6 +10,7 @@ import {
   ProposalStatus,
   ProposalType,
   SecretNetworkClient,
+  StakeAuthorizationType,
   Tx,
   TxResultCode,
   VoteOption,
@@ -30,11 +31,11 @@ import {
   storeContract,
 } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
@@ -131,7 +132,7 @@ beforeAll(async () => {
   // }
 
   // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
-  // @ts-ignore
+  //@ts-ignore
   // global.__SCRT_TEST_ACCOUNTS__ = accounts;
 });
 
@@ -2119,5 +2120,40 @@ describe("tx.feegrant", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
+  });
+});
+
+describe("tx.authz", () => {
+  describe("MsgGrant", () => {
+    test.only("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[4];
+      const { secretjs: secretjsGrantee } = accounts[5];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
   });
 });

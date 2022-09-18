@@ -162,7 +162,7 @@ const tx = await secretjs.tx.broadcast([msg], {
 ```ts
 import { SecretNetworkClient, MetaMaskWallet } from "secretjs";
 
-// @ts-ignore
+//@ts-ignore
 const [ethAddress] = await window.ethereum.request({
   method: "eth_requestAccounts",
 });

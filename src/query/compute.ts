@@ -258,12 +258,12 @@ export class ComputeQuerier {
         );
 
         try {
-          // @ts-ignore
+          //@ts-ignore
           // return the error string
           return fromUtf8(fromBase64(fromUtf8(decryptedBase64Error)));
         } catch (parseError) {
           if (parseError.message === "Invalid base64 string format") {
-            // @ts-ignore
+            //@ts-ignore
             // return the error string
             return fromUtf8(decryptedBase64Error);
           } else {

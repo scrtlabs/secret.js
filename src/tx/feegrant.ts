@@ -28,15 +28,15 @@ export interface AllowedMsgAllowance {
 }
 
 function isBasicAllowance(obj: any): obj is BasicAllowance {
-  return typeof obj.spendLimit !== "undefined";
+  return "spendLimit" in obj;
 }
 
 function isPeriodicAllowance(obj: any): obj is PeriodicAllowance {
-  return typeof obj.periodSpendLimit !== "undefined";
+  return "periodSpendLimit" in obj;
 }
 
 function isAllowedMsgAllowance(obj: any): obj is AllowedMsgAllowanceProto {
-  return typeof obj.allowedMessages !== "undefined";
+  return "allowedMessages" in obj;
 }
 
 /**

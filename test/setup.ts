@@ -109,6 +109,6 @@
   // }
   //
   // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
-  // // @ts-ignore
+  // //@ts-ignore
   // global.__SCRT_TEST_ACCOUNTS__ = accounts;
 })();
