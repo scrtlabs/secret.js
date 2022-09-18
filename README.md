@@ -157,7 +157,7 @@ const tx = await secretjs.tx.broadcast([msg], {
 ## MetaMask Integration
 
 ```ts
-// @ts-ignore
+//@ts-ignore
 const [ethAddress] = await window.ethereum.request({
   method: "eth_requestAccounts",
 });

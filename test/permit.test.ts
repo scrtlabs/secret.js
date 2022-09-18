@@ -3,11 +3,11 @@ import { Permit, SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
