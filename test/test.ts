@@ -2125,7 +2125,7 @@ describe("tx.feegrant", () => {
 
 describe("tx.authz", () => {
   describe("MsgGrant", () => {
-    test.only("StakeAuthorization", async () => {
+    test.skip("StakeAuthorization", async () => {
       const { secretjs: secretjsGranter } = accounts[4];
       const { secretjs: secretjsGrantee } = accounts[5];
 
