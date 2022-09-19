@@ -1142,7 +1142,7 @@ export class SecretNetworkClient {
 
     const txhash = toHex(sha256(tx)).toUpperCase();
 
-    if (!waittForCommit && mode == BroadcastMode.Block) {
+    if (!waitForCommit && mode == BroadcastMode.Block) {
       mode = BroadcastMode.Sync;
     }
 
