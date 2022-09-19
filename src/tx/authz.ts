@@ -10,7 +10,11 @@ import {
   MsgRevoke as MsgRevokeProto,
 } from "../protobuf_stuff/cosmos/authz/v1beta1/tx";
 import { SendAuthorization as SendAuthorizationProto } from "../protobuf_stuff/cosmos/bank/v1beta1/authz";
-import { StakeAuthorization as StakeAuthorizationProto } from "../protobuf_stuff/cosmos/staking/v1beta1/authz";
+import {
+  StakeAuthorization as StakeAuthorizationProto,
+  StakeAuthorization_Validators,
+} from "../protobuf_stuff/cosmos/staking/v1beta1/authz";
+import { Any } from "../protobuf_stuff/google/protobuf/any";
 
 export enum MsgGrantAuthorization {
   MsgAcknowledgement = "/ibc.core.channel.v1.MsgAcknowledgement",
@@ -151,14 +155,22 @@ export class MsgGrant implements Msg {
         expiration,
       };
     } else if (isStakeAuthorization(this.params.authorization)) {
+      let allowList: StakeAuthorization_Validators | undefined = undefined;
+      let denyList: StakeAuthorization_Validators | undefined = undefined;
+
+      if (this.params.authorization.allowList?.length > 0) {
+        allowList = { address: this.params.authorization.allowList };
+      } else if (this.params.authorization.denyList?.length > 0) {
+        denyList = { address: this.params.authorization.denyList };
+      }
+
       grant = {
         authorization: {
           typeUrl: "/cosmos.staking.v1beta1.StakeAuthorization",
           value: StakeAuthorizationProto.encode({
             maxTokens: this.params.authorization.maxTokens,
-
-            allowList: { address: this.params.authorization.allowList },
-            denyList: { address: this.params.authorization.denyList },
+            allowList,
+            denyList,
             authorizationType: Number(
               this.params.authorization.authorizationType,
             ),
@@ -211,8 +223,10 @@ export class MsgGrant implements Msg {
         grantee: this.params.grantee,
         grant: {
           //@ts-ignore
-          authorization: {},
-          expiration: new Date(this.params.expiration * 1000).toISOString(),
+          authorization: {}, // override later
+          expiration: new Date(Math.floor(this.params.expiration) * 1000)
+            .toISOString()
+            .replace(/\.\d+Z/, "Z"),
         },
       },
     };
@@ -289,11 +303,18 @@ export class MsgExec implements Msg {
   constructor(public params: MsgExecParams) {}
 
   async toProto(encryptionUtils: EncryptionUtils): Promise<ProtoMsg> {
+    const msgs: Any[] = [];
+    for (const m of this.params.msgs) {
+      const asProto = await m.toProto(encryptionUtils);
+      msgs.push({
+        typeUrl: asProto.typeUrl,
+        value: await asProto.encode(),
+      });
+    }
+
     const msgContent = {
       grantee: this.params.grantee,
-      msgs: await Promise.all(
-        this.params.msgs.map((m) => m.toProto(encryptionUtils)),
-      ),
+      msgs,
     };
 
     return {
@@ -308,11 +329,9 @@ export class MsgExec implements Msg {
       type: "cosmos-sdk/MsgExec",
       value: {
         grantee: this.params.grantee,
-        msgs: (
-          await Promise.all(
-            this.params.msgs.map((m) => m.toAmino(encryptionUtils)),
-          )
-        ).map((m) => m.value), // in amino it only uses the values \o/
+        msgs: await Promise.all(
+          this.params.msgs.map((m) => m.toAmino(encryptionUtils)),
+        ),
       },
     };
   }
