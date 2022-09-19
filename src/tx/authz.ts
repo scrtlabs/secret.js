@@ -228,12 +228,20 @@ export class MsgGrant implements Msg {
       if (this.params.authorization.allowList?.length > 0) {
         Validators = {
           type: "cosmos-sdk/StakeAuthorization/AllowList",
-          value: this.params.authorization.allowList,
+          value: {
+            allow_list: {
+              address: this.params.authorization.allowList,
+            },
+          },
         };
       } else if (this.params.authorization.denyList?.length > 0) {
         Validators = {
           type: "cosmos-sdk/StakeAuthorization/DenyList",
-          value: this.params.authorization.denyList,
+          value: {
+            deny_list: {
+              address: this.params.authorization.denyList,
+            },
+          },
         };
       } else {
         throw new Error("Must pass in allowList or denyList.");
