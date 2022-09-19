@@ -5,7 +5,10 @@ import {
   BaseAccount,
   BondStatus,
   gasToFee,
+  MsgDelegate,
   MsgExecuteContract,
+  MsgGrantAuthorization,
+  MsgSend,
   Proposal,
   ProposalStatus,
   ProposalType,
@@ -2125,7 +2128,88 @@ describe("tx.feegrant", () => {
 
 describe("tx.authz", () => {
   describe("MsgGrant", () => {
-    test.skip("StakeAuthorization", async () => {
+    test("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[1];
+      const { secretjs: secretjsGrantee } = accounts[2];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[2];
+      const { secretjs: secretjsGrantee } = accounts[3];
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[3];
+      const { secretjs: secretjsGrantee } = accounts[4];
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+  });
+
+  describe("MsgExec", () => {
+    test("StakeAuthorization", async () => {
       const { secretjs: secretjsGranter } = accounts[4];
       const { secretjs: secretjsGrantee } = accounts[5];
 
@@ -2154,6 +2238,335 @@ describe("tx.authz", () => {
         console.error(tx.rawLog);
       }
       expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgDelegate({
+              amount: {
+                amount: "1",
+                denom: "uscrt",
+              },
+              delegatorAddress: secretjsGranter.address,
+              validatorAddress,
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[5];
+      const { secretjs: secretjsGrantee } = accounts[6];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[6];
+      const { secretjs: secretjsGrantee } = accounts[7];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+  });
+
+  describe("MsgRevoke", () => {
+    test("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[7];
+      const { secretjs: secretjsGrantee } = accounts[8];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgDelegate,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgDelegate({
+              amount: {
+                amount: "1",
+                denom: "uscrt",
+              },
+              delegatorAddress: secretjsGranter.address,
+              validatorAddress,
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[8];
+      const { secretjs: secretjsGrantee } = accounts[9];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgSend,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[9];
+      const { secretjs: secretjsGrantee } = accounts[10];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgSend,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
     });
   });
 });
