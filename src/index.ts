@@ -1,3 +1,7 @@
+if (typeof BigInt === "undefined") {
+  global.BigInt = require("big-integer");
+}
+
 // Note: the order of exports is important here
 export * from "@cosmjs/encoding";
 export * from "./encryption";
