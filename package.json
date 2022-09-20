@@ -8,7 +8,13 @@
     "url": "https://github.com/scrtabs/secret.js/issues"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "yarn.lock",
+    "README.md",
+    "LICENSE",
+    "LICENSE.cosmjs"
   ],
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
