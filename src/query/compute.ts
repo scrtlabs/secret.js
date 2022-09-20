@@ -211,7 +211,7 @@ export class ComputeQuerier {
    * Query a Secret Contract.
    * May return a string on error.
    */
-  async queryContract<T extends object, R extends unknown>(
+  async queryContract<T extends object, R extends any>(
     { contractAddress, codeHash, query }: QueryContractRequest<T>,
     metadata?: grpc.Metadata,
   ): Promise<R> {
