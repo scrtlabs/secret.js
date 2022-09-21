@@ -57,7 +57,6 @@ export interface CodeInfo {
   codeHash: Uint8Array;
   creator: Uint8Array;
   source: string;
-  /** AccessConfig instantiate_config = 5 [(gogoproto.nullable) = false]; */
   builder: string;
 }
 
@@ -70,13 +69,13 @@ export interface ContractCustomInfo {
 export interface ContractInfo {
   codeId: string;
   creator: Uint8Array;
-  /** bytes admin = 3 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"]; */
   label: string;
   /**
    * never show this in query results, just use for sorting
    * (Note: when using json tag "-" amino refused to serialize it...)
    */
   created?: AbsoluteTxPosition;
+  ibcPortId: string;
 }
 
 /** AbsoluteTxPosition can be used to sort contracts */
@@ -320,6 +319,7 @@ function createBaseContractInfo(): ContractInfo {
     creator: new Uint8Array(),
     label: "",
     created: undefined,
+    ibcPortId: "",
   };
 }
 
@@ -343,6 +343,9 @@ export const ContractInfo = {
         writer.uint32(42).fork(),
       ).ldelim();
     }
+    if (message.ibcPortId !== "") {
+      writer.uint32(50).string(message.ibcPortId);
+    }
     return writer;
   },
 
@@ -365,6 +368,9 @@ export const ContractInfo = {
         case 5:
           message.created = AbsoluteTxPosition.decode(reader, reader.uint32());
           break;
+        case 6:
+          message.ibcPortId = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -383,6 +389,7 @@ export const ContractInfo = {
       created: isSet(object.created)
         ? AbsoluteTxPosition.fromJSON(object.created)
         : undefined,
+      ibcPortId: isSet(object.ibcPortId) ? String(object.ibcPortId) : "",
     };
   },
 
@@ -398,6 +405,7 @@ export const ContractInfo = {
       (obj.created = message.created
         ? AbsoluteTxPosition.toJSON(message.created)
         : undefined);
+    message.ibcPortId !== undefined && (obj.ibcPortId = message.ibcPortId);
     return obj;
   },
 
@@ -412,6 +420,7 @@ export const ContractInfo = {
       object.created !== undefined && object.created !== null
         ? AbsoluteTxPosition.fromPartial(object.created)
         : undefined;
+    message.ibcPortId = object.ibcPortId ?? "";
     return message;
   },
 };

@@ -1,13 +1,12 @@
-import { sha256 } from "@noble/hashes/sha256";
 import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
-import { fromHex, toHex } from ".";
+import { fromHex, toHex, toUtf8 } from ".";
 import {
   AccountData,
   AminoSignResponse,
   encodeSecp256k1Signature,
   pubkeyToAddress,
-  serializeStdSignDoc,
+  sortObject,
   StdSignDoc,
 } from "./wallet_amino";
 
@@ -62,21 +61,27 @@ export class MetaMaskWallet {
     // 2. recover the pubkey from the signature
     // 3. derive a secret address from the the pubkey
 
-    const msgHash = sha256("Get secret address");
+    const rawMsg = toUtf8("Get secret address");
+    const msgToSign = `0x${toHex(rawMsg)}`;
 
-    const sigResult: string = await ethProvider.request({
-      method: "eth_sign",
-      params: [ethAddress, "0x" + toHex(msgHash)],
-    });
+    const sigResult: string = (await ethProvider.request({
+      method: "personal_sign",
+      params: [msgToSign, ethAddress],
+    }))!.toString();
 
     // strip leading 0x and extract recovery id
     const sig = fromHex(sigResult.slice(2, -2));
-    const recoveryBit = parseInt(sigResult.slice(-2), 16) - 27;
+    const recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
+
+    const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
+    const rawMsgLength = toUtf8(String(rawMsg.length));
 
     const publicKey = secp256k1.recoverPublicKey(
-      msgHash,
+      keccak_256(
+        new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
+      ),
       sig,
-      recoveryBit,
+      recoveryId,
       true,
     );
 
@@ -95,6 +100,13 @@ export class MetaMaskWallet {
     ];
   }
 
+  public async getSignMode(): Promise<
+    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+  > {
+    return (await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing"))
+      .SignMode.SIGN_MODE_EIP_191;
+  }
+
   public async signAmino(
     address: string,
     signDoc: StdSignDoc,
@@ -103,10 +115,10 @@ export class MetaMaskWallet {
       throw new Error(`Address ${address} not found in wallet`);
     }
 
-    const messageHash = sha256(serializeStdSignDoc(signDoc));
+    const msgToSign = `0x${toHex(prettySerializeStdSignDoc(signDoc))}`;
     const sigResult: string = await this.ethProvider.request({
-      method: "eth_sign",
-      params: [this.ethAddress, "0x" + toHex(messageHash)],
+      method: "personal_sign",
+      params: [msgToSign, this.ethAddress],
     });
 
     // strip leading 0x and trailing recovery id
@@ -122,4 +134,13 @@ export class MetaMaskWallet {
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
   const point = secp256k1.Point.fromHex(publicKeyHex);
   return point.toRawBytes(false);
+}
+
+/** Returns a JSON string with objects sorted by key, used for pretty Amino EIP191 signing */
+function prettyJsonSortedStringify(obj: any): string {
+  return JSON.stringify(sortObject(obj), null, 4);
+}
+
+function prettySerializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
+  return toUtf8(prettyJsonSortedStringify(signDoc));
 }

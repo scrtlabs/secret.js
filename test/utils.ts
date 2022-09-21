@@ -1,6 +1,6 @@
 import fs from "fs";
 import util from "util";
-import { SecretNetworkClient, Wallet } from "../src";
+import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -76,8 +76,10 @@ export async function storeContract(
       gasLimit: 5_000_000,
     },
   );
-
-  expect(txStore.code).toBe(0);
+  if (txStore.code !== TxResultCode.Success) {
+    console.error(txStore.rawLog);
+  }
+  expect(txStore.code).toBe(TxResultCode.Success);
 
   return Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 }
@@ -106,10 +108,12 @@ export async function initContract(
       gasLimit: 5_000_000,
     },
   );
-
-  expect(txInit.code).toBe(0);
+  if (txInit.code !== TxResultCode.Success) {
+    console.error(txInit.rawLog);
+  }
+  expect(txInit.code).toBe(TxResultCode.Success);
   expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-    "instantiate",
+    "/secret.compute.v1beta1.MsgInstantiateContract",
   );
 
   return getValueFromRawLog(txInit.rawLog, "message.contract_address");
