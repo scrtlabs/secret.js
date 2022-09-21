@@ -9,7 +9,7 @@ jobs:
         with:
           node-version: "17"
       - name: "Pull docker testnet image"
-        run: docker pull ghcr.io/scrtlabs/localsecret:v1.3.1
+        run: docker pull ghcr.io/scrtlabs/localsecret:v1.4.0-beta.6
       - name: Install npm dependencies
         run: yarn
       - name: Run tests

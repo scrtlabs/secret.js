@@ -1,15 +1,18 @@
 import { fromUtf8 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
 import fs from "fs";
-import { SecretNetworkClient, Tx, Wallet } from "../src";
+import { SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
@@ -108,7 +111,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -147,17 +153,20 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.snip20.transfer(
@@ -171,9 +180,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"transfer":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"transfer":{"status":"success"}}');
   });
 
   test("send", async () => {
@@ -193,7 +202,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -232,17 +244,20 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.snip20.send(
@@ -256,7 +271,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain('{"send":{"status":"success"}}');
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"send":{"status":"success"}}');
   });
 
   test("increase allowance", async () => {
@@ -276,7 +293,10 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -314,18 +334,20 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -341,7 +363,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("increase_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("increase_allowance");
   });
 
   test("decrease allowance", async () => {
@@ -360,8 +384,10 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -399,18 +425,20 @@ describe("tx.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     let txExec = await secretjs.tx.snip20.increaseAllowance(
@@ -426,7 +454,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("increase_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("increase_allowance");
 
     txExec = await secretjs.tx.snip20.decreaseAllowance(
       {
@@ -441,7 +471,9 @@ describe("tx.snip20", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain("decrease_allowance");
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain("decrease_allowance");
   });
 });
 
@@ -462,8 +494,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -501,25 +535,34 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txExec = await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    const txExec = await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
 
     const txQuery = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
@@ -546,8 +589,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -585,18 +630,20 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
@@ -629,8 +676,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -668,18 +717,20 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     await secretjs.tx.snip20.increaseAllowance(
@@ -695,11 +746,16 @@ describe("query.snip20", () => {
       },
     );
 
-    await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     const txQuery = await secretjs.query.snip20.GetAllowance({
       contract: { address: contractAddress, codeHash: codeHash },
@@ -732,8 +788,10 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -771,25 +829,32 @@ describe("query.snip20", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    await secretjs.tx.snip20.setViewingKey({
-      sender: secretjs.address,
-      contractAddress,
-      msg: { set_viewing_key: { key: "hello" } },
-    });
+    await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
 
     await secretjs.tx.snip20.transfer(
       {

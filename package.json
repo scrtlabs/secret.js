@@ -1,14 +1,20 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.3.0-beta.25",
+  "version": "1.4.0",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
     "url": "https://github.com/scrtabs/secret.js/issues"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "yarn.lock",
+    "README.md",
+    "LICENSE",
+    "LICENSE.cosmjs"
   ],
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
@@ -27,6 +33,7 @@
     "@noble/secp256k1": "1.6.3",
     "@osmonauts/helpers": "0.3.8",
     "bech32": "2.0.0",
+    "big-integer": "1.6.51",
     "bignumber.js": "9.0.2",
     "bip32": "2.0.6",
     "bip39": "3.0.4",

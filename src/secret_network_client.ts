@@ -170,6 +170,8 @@ export type TxOptions = {
   gasPriceInFeeDenom?: number;
   /** Defaults to `"uscrt"`. */
   feeDenom?: string;
+  /** Address of the fee granter from which to charge gas fees. */
+  feeGranter?: string;
   /** Defaults to `""`. */
   memo?: string;
   /** If `false` returns immediately with only the `transactionHash` field set. Defaults to `true`. */
@@ -1011,7 +1013,7 @@ export class SecretNetworkClient {
         } else if (txResp.code !== 0 && rawLog !== "") {
           try {
             const errorMessageRgx =
-              /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+              /; message index: (\d+):(?: dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
             const rgxMatches = errorMessageRgx.exec(rawLog);
             if (rgxMatches?.length === 3) {
               const encryptedError = fromBase64(rgxMatches[2]);
@@ -1046,20 +1048,55 @@ export class SecretNetworkClient {
         const data = new Array<Uint8Array>(txMsgData.data.length);
 
         for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+          data[msgIndex] = txMsgData.data[msgIndex].data;
+
           const nonce = nonces[msgIndex];
           if (nonce && nonce.length === 32) {
+            // Check if the message needs decryption
+
             try {
-              data[msgIndex] = fromBase64(
-                fromUtf8(
-                  await this.encryptionUtils.decrypt(
-                    txMsgData.data[msgIndex].data,
-                    nonce,
+              const { typeUrl } = decodedTx.body!.messages[msgIndex];
+
+              if (
+                typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
                   ),
-                ),
-              );
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.encode({
+                  address: decoded.address,
+                  data: decrypted,
+                }).finish();
+              } else if (
+                typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
+                  ),
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.encode({
+                  data: decrypted,
+                }).finish();
+              }
             } catch (decryptionError) {
               // Not encrypted or can't decrypt because not original sender
-              data[msgIndex] = txMsgData.data[msgIndex].data;
             }
           }
         }
@@ -1104,6 +1141,10 @@ export class SecretNetworkClient {
     const start = Date.now();
 
     const txhash = toHex(sha256(tx)).toUpperCase();
+
+    if (!waitForCommit && mode == BroadcastMode.Block) {
+      mode = BroadcastMode.Sync;
+    }
 
     if (mode === BroadcastMode.Block) {
       waitForCommit = true;
@@ -1206,6 +1247,7 @@ export class SecretNetworkClient {
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.1;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
     const memo = txOptions?.memo ?? "";
+    const feeGranter = txOptions?.feeGranter;
 
     const explicitSignerData = txOptions?.explicitSignerData;
 
@@ -1219,6 +1261,7 @@ export class SecretNetworkClient {
             denom: feeDenom,
           },
         ],
+        granter: feeGranter,
       },
       memo,
       explicitSignerData,
@@ -1384,6 +1427,7 @@ export class SecretNetworkClient {
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      signed.fee.granter,
       signMode,
     );
     return (
@@ -1469,6 +1513,7 @@ export class SecretNetworkClient {
       [{ pubkey, sequence }],
       fee.amount,
       gasLimit,
+      fee.granter,
     );
     const signDoc = makeSignDocProto(
       txBodyBytes,
@@ -1520,6 +1565,7 @@ async function makeAuthInfoBytes(
   }>,
   feeAmount: readonly Coin[],
   gasLimit: number,
+  feeGranter?: string,
   signMode?: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
 ): Promise<Uint8Array> {
   if (!signMode) {
@@ -1533,6 +1579,7 @@ async function makeAuthInfoBytes(
     fee: {
       amount: [...feeAmount],
       gasLimit: String(gasLimit),
+      granter: feeGranter,
     },
   };
 

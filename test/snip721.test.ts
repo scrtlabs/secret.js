@@ -1,15 +1,25 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
-import { MsgExecuteContract, SecretNetworkClient, Tx, Wallet } from "../src";
+import {
+  MsgExecuteContract,
+  SecretNetworkClient,
+  Tx,
+  TxResultCode,
+  Wallet,
+} from "../src";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
@@ -107,8 +117,10 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -141,16 +153,17 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
-
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const addMinterMsg = new MsgExecuteContract({
@@ -191,6 +204,10 @@ describe("tx.snip721", () => {
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       gasLimit: 5_000_000,
     });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const txExec = await secretjs.tx.snip721.send(
       {
@@ -204,13 +221,17 @@ describe("tx.snip721", () => {
         },
       },
       {
-        gasLimit: 50_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"send_nft":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"send_nft":{"status":"success"}}');
   });
 
   test("Add Minters", async () => {
@@ -229,8 +250,10 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -263,32 +286,38 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
 
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (addMinterTx.code !== TxResultCode.Success) {
+      console.error(addMinterTx.rawLog);
+    }
+    expect(addMinterTx.code).toBe(TxResultCode.Success);
 
-    expect(fromUtf8(addMinterMsg.data[0])).toContain(
-      '{"add_minters":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterTx.data[0]).data),
+    ).toContain('{"add_minters":{"status":"success"}}');
   });
 
   test("Mint", async () => {
@@ -307,8 +336,10 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -341,34 +372,39 @@ describe("tx.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
-
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const addMinterMsg = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (addMinterTx.code !== TxResultCode.Success) {
+      console.error(addMinterTx.rawLog);
+    }
+    expect(addMinterTx.code).toBe(TxResultCode.Success);
 
-    expect(fromUtf8(addMinterMsg.data[0])).toContain(
-      '{"add_minters":{"status":"success"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(addMinterTx.data[0]).data),
+    ).toContain('{"add_minters":{"status":"success"}}');
 
-    const mintMsg = await secretjs.tx.snip721.mint(
+    const mintTx = await secretjs.tx.snip721.mint(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -379,13 +415,17 @@ describe("tx.snip721", () => {
         },
       },
       {
-        gasLimit: 200_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (mintTx.code !== TxResultCode.Success) {
+      console.error(mintTx.rawLog);
+    }
+    expect(mintTx.code).toBe(TxResultCode.Success);
 
-    expect(fromUtf8(mintMsg.data[0])).toContain(
-      '{"mint_nft":{"token_id":"1"}}',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(mintTx.data[0]).data),
+    ).toContain('{"mint_nft":{"token_id":"1"}}');
   });
 });
 
@@ -406,8 +446,10 @@ describe("query.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -440,19 +482,20 @@ describe("query.snip721", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
-      "wasm.contract_address",
+      "message.contract_address",
     );
-
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    await secretjs.tx.snip721.setViewingKey(
+    let tx = await secretjs.tx.snip721.setViewingKey(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -463,22 +506,30 @@ describe("query.snip721", () => {
         },
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    await secretjs.tx.snip721.addMinter(
+    tx = await secretjs.tx.snip721.addMinter(
       {
         contractAddress,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
       {
-        gasLimit: 100_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    await secretjs.tx.snip721.mint(
+    tx = await secretjs.tx.snip721.mint(
       {
         contractAddress,
         sender: accounts[0].address,
@@ -489,11 +540,15 @@ describe("query.snip721", () => {
         },
       },
       {
-        gasLimit: 200_000,
+        gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    let tokens = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens = await secretjs.query.snip721.GetOwnedTokens({
       contract: { address: contractAddress, codeHash },
       owner: accounts[0].address,
       auth: { viewer: { viewing_key: "hello", address: accounts[0].address } },
@@ -501,9 +556,16 @@ describe("query.snip721", () => {
 
     expect(tokens.token_list.tokens.length).toEqual(1);
 
-    let permit = await secretjs.utils.accessControl.permit.sign(accounts[0].address, "secretdev-1", "Test", [contractAddress], ["owner"], false)
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      accounts[0].address,
+      "secretdev-1",
+      "Test",
+      [contractAddress],
+      ["owner"],
+      false,
+    );
 
-    let tokens2 = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens2 = await secretjs.query.snip721.GetOwnedTokens({
       contract: { address: contractAddress, codeHash },
       owner: accounts[0].address,
       auth: { permit: permit },
