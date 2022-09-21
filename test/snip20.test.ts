@@ -159,7 +159,7 @@ describe("tx.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -250,7 +250,7 @@ describe("tx.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -340,7 +340,7 @@ describe("tx.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -431,7 +431,7 @@ describe("tx.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -541,7 +541,7 @@ describe("query.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -636,7 +636,7 @@ describe("query.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -723,7 +723,7 @@ describe("query.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -835,7 +835,7 @@ describe("query.snip20", () => {
     expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,

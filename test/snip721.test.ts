@@ -166,10 +166,6 @@ describe("tx.snip721", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
-    );
-
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
       contractAddress,
