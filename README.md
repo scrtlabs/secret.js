@@ -65,13 +65,13 @@ See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list o
 # Installation
 
 ```bash
-npm install secretjs@beta
+npm install secretjs
 ```
 
 or
 
 ```bash
-yarn add secretjs@beta
+yarn add secretjs
 ```
 
 # Usage Examples
