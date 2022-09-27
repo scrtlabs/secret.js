@@ -74,31 +74,33 @@ import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 import {
   MsgCreateViewingKey,
-  MsgSetViewingKey,
+  MsgSetViewingKey
 } from "./extensions/access_control/viewing_key/msgs";
 import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   CreateViewingKeyContractParams,
-  SetViewingKeyContractParams,
+  SetViewingKeyContractParams
 } from "./extensions/access_control/viewing_key/params";
+import { MsgSnip1155CurateTokens, MsgSnip1155Mint, MsgSnip1155Send, MsgSnip1155Transfer, MsgSnipAddMinter } from "./extensions/snip1155/tx";
+import { Snip1155AddMinterOptions, Snip1155CurateTokensOptions, Snip1155MintTokensOptions, Snip1155SendOptions, Snip1155TransferOptions } from "./extensions/snip1155/types";
 import {
   MsgSnip20DecreaseAllowance,
   MsgSnip20IncreaseAllowance,
   MsgSnip20Send,
   MsgSnip20Transfer,
-  Snip20Querier,
+  Snip20Querier
 } from "./extensions/snip20";
 import {
   Snip20DecreaseAllowanceOptions,
   Snip20IncreaseAllowanceOptions,
   Snip20SendOptions,
-  Snip20TransferOptions,
+  Snip20TransferOptions
 } from "./extensions/snip20/types";
 import { MsgSnip721Send, Snip721Querier } from "./extensions/snip721";
 import {
   Snip721AddMinterOptions,
   Snip721MintOptions,
-  Snip721SendOptions,
+  Snip721SendOptions
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import {
@@ -147,7 +149,7 @@ import {
   Pubkey,
   Signer,
   StdFee,
-  StdSignDoc,
+  StdSignDoc
 } from "./wallet_amino";
 import {RaAuthenticate} from "./tx/registration";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
@@ -502,6 +504,16 @@ export type TxSender = {
     createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
 
+  snip1155: {
+    send: SingleMsgTx<MsgExecuteContractParams<Snip1155SendOptions>>;
+    transfer: SingleMsgTx<MsgExecuteContractParams<Snip1155TransferOptions>>;
+    mint:SingleMsgTx<MsgExecuteContractParams<Snip1155MintTokensOptions>>;
+    addMinter: SingleMsgTx<MsgExecuteContractParams<Snip1155AddMinterOptions>>;
+    curate:SingleMsgTx<MsgExecuteContractParams<Snip1155CurateTokensOptions>>;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
+  };
+
   authz: {
     /**
      * MsgExec attempts to execute the provided messages using
@@ -710,6 +722,16 @@ export class SecretNetworkClient {
         send: doMsg(MsgSnip721Send),
         mint: doMsg(MsgSnip721Mint),
         addMinter: doMsg(MsgSnip721AddMinter),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
+      },
+
+      snip1155: {
+        send: doMsg(MsgSnip1155Send),
+        mint: doMsg(MsgSnip1155Mint),
+        addMinter: doMsg(MsgSnipAddMinter),
+        curate: doMsg(MsgSnip1155CurateTokens),
+        transfer: doMsg(MsgSnip1155Transfer),
         setViewingKey: doMsg(MsgSetViewingKey),
         createViewingKey: doMsg(MsgCreateViewingKey),
       },
