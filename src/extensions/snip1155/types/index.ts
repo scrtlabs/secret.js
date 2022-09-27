@@ -6,4 +6,3 @@ export * from "./minters";
 export * from "./misc";
 export * from "./send";
 export * from "./transfer";
-

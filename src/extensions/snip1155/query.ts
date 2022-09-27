@@ -1,11 +1,27 @@
-import { ComputeQuerier } from "../../query"
-import { Permit, ViewingKey } from "../access_control"
-import { QueryAllBalancesResponse, QueryAllBalancesWithPermit, QueryAllBalancesWithViewingKey, QueryBalanceResponse, QueryBalanceWithPermit, QueryBalanceWithViewingKey } from "./msg/getBalance"
-import { QueryPrivateTokenInfoResponse, QueryPrivateTokenInfoWithPermit, QueryPrivateTokenInfoWithViewingKey } from "./msg/getPrivateTokenInfo"
-import { QueryTokenIdPublicInfo, QueryTokenIdPublicInfoResponse } from "./msg/getPublicTokenInfo"
-import { QueryTransactionHistoryResponse, QueryTransactionHistoryWithPermit, QueryTransactionHistoryWithViewingKey } from "./msg/getTransactionHistory"
-
-
+import { ComputeQuerier } from "../../query";
+import { Permit, ViewingKey } from "../access_control";
+import {
+  QueryAllBalancesResponse,
+  QueryAllBalancesWithPermit,
+  QueryAllBalancesWithViewingKey,
+  QueryBalanceResponse,
+  QueryBalanceWithPermit,
+  QueryBalanceWithViewingKey,
+} from "./msg/getBalance";
+import {
+  QueryPrivateTokenInfoResponse,
+  QueryPrivateTokenInfoWithPermit,
+  QueryPrivateTokenInfoWithViewingKey,
+} from "./msg/getPrivateTokenInfo";
+import {
+  QueryTokenIdPublicInfo,
+  QueryTokenIdPublicInfoResponse,
+} from "./msg/getPublicTokenInfo";
+import {
+  QueryTransactionHistoryResponse,
+  QueryTransactionHistoryWithPermit,
+  QueryTransactionHistoryWithViewingKey,
+} from "./msg/getTransactionHistory";
 
 interface Auth {
   permit?: Permit;
@@ -15,7 +31,6 @@ interface Auth {
   };
 }
 
-
 interface SecretContract {
   address: string;
   // switch this to optional after we enable automatic code hash
@@ -23,23 +38,23 @@ interface SecretContract {
 }
 
 export class Snip1155Querier extends ComputeQuerier {
-  getBalance = async({
+  getBalance = async ({
     contract,
     token_id,
     owner,
     auth,
-  }:{
+  }: {
     contract: SecretContract;
     token_id: string;
-    address:string;
-    owner:string;
-      auth: Auth;
-
+    address: string;
+    owner: string;
+    auth: Auth;
   }): Promise<QueryBalanceResponse> => {
-
     if (auth.viewer) {
-
-      return await this.queryContract<QueryBalanceWithViewingKey, QueryBalanceResponse>({
+      return await this.queryContract<
+        QueryBalanceWithViewingKey,
+        QueryBalanceResponse
+      >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
@@ -47,15 +62,14 @@ export class Snip1155Querier extends ComputeQuerier {
             token_id,
             owner,
             viewer: auth.viewer.address,
-            key: auth.viewer.viewing_key
-          }
-        }
-      })
+            key: auth.viewer.viewing_key,
+          },
+        },
+      });
     } else if (auth.permit) {
-
       return await this.queryContract<
-      QueryBalanceWithPermit,
-      QueryBalanceResponse
+        QueryBalanceWithPermit,
+        QueryBalanceResponse
       >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
@@ -65,19 +79,15 @@ export class Snip1155Querier extends ComputeQuerier {
             query: {
               balance: {
                 token_id,
-                owner
-              }
-            }
-
-          }
-        }
-
+                owner,
+              },
+            },
+          },
+        },
       });
     }
     throw new Error("Empty auth parameter for authenticated query: GetBalance");
-
   };
-
 
   getAllBalances = async ({
     contract,
@@ -85,29 +95,34 @@ export class Snip1155Querier extends ComputeQuerier {
     owner,
     tx_history_page,
     tx_history_page_size,
-  }:{
+  }: {
     contract: SecretContract;
-      auth: Auth;
-      owner?:string;
-      tx_history_page?: number;
-      tx_history_page_size?: number;
+    auth: Auth;
+    owner?: string;
+    tx_history_page?: number;
+    tx_history_page_size?: number;
   }): Promise<QueryAllBalancesResponse> => {
-
-    if (auth.viewer && owner)
-    {
-      return await this.queryContract<QueryAllBalancesWithViewingKey, QueryAllBalancesResponse>({
+    if (auth.viewer && owner) {
+      return await this.queryContract<
+        QueryAllBalancesWithViewingKey,
+        QueryAllBalancesResponse
+      >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           all_balances: {
-            owner, key: auth.viewer.address,
-            tx_history_page, tx_history_page_size
-          }
-        }
-      })
-    }
-    else if (auth.permit) {
-      return await this.queryContract<QueryAllBalancesWithPermit, QueryAllBalancesResponse>({
+            owner,
+            key: auth.viewer.address,
+            tx_history_page,
+            tx_history_page_size,
+          },
+        },
+      });
+    } else if (auth.permit) {
+      return await this.queryContract<
+        QueryAllBalancesWithPermit,
+        QueryAllBalancesResponse
+      >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
@@ -115,115 +130,121 @@ export class Snip1155Querier extends ComputeQuerier {
             permit: auth.permit,
             query: {
               all_balances: {
-                tx_history_page, tx_history_page_size
-              }
-
-            }
-          }
-      
-        }
-
-      })
+                tx_history_page,
+                tx_history_page_size,
+              },
+            },
+          },
+        },
+      });
     }
-    throw new Error("Empty auth parameter for authenticated query: GetAllBalances");
-  }
+    throw new Error(
+      "Empty auth parameter for authenticated query: GetAllBalances",
+    );
+  };
 
-
-  getTransactionHistory = async({
+  getTransactionHistory = async ({
     contract,
     auth,
     page_size,
-    page
+    page,
   }: {
     contract: SecretContract;
-    auth: Auth,
+    auth: Auth;
     page_size: number;
     page?: number;
-
-    }): Promise<QueryTransactionHistoryResponse> => {
-    
+  }): Promise<QueryTransactionHistoryResponse> => {
     if (auth.viewer) {
-      return this.queryContract<QueryTransactionHistoryWithViewingKey, QueryTransactionHistoryResponse>({
+      return this.queryContract<
+        QueryTransactionHistoryWithViewingKey,
+        QueryTransactionHistoryResponse
+      >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
           transaction_history: {
-            key: auth.viewer.viewing_key, address: auth.viewer.address, page_size, page
-          }
-        }
-      })
+            key: auth.viewer.viewing_key,
+            address: auth.viewer.address,
+            page_size,
+            page,
+          },
+        },
+      });
+    } else if (auth.permit) {
+      return this.queryContract<
+        QueryTransactionHistoryWithPermit,
+        QueryTransactionHistoryResponse
+      >({
+        contractAddress: contract.address,
+        codeHash: contract.codeHash,
+        query: {
+          with_permit: {
+            permit: auth.permit,
+            query: {
+              transaction_history: {
+                page_size,
+                page,
+              },
+            },
+          },
+        },
+      });
     }
-    else if (auth.permit) {
-    return this.queryContract<QueryTransactionHistoryWithPermit, QueryTransactionHistoryResponse>({
-      contractAddress: contract.address,
-      codeHash: contract.codeHash,
-      query: {
-        with_permit: {
-          permit: auth.permit,
-          query: {
-            transaction_history: {
-              page_size, page
-            }
-          }
-        }
-      }
-    })
-    }
-    throw new Error("Empty auth parameter for authenticated query: getTransactionHistory");
-  }
+    throw new Error(
+      "Empty auth parameter for authenticated query: getTransactionHistory",
+    );
+  };
 
-
-
-  getPublicTokenInfo = async({
-    contract,token_id
-
+  getPublicTokenInfo = async ({
+    contract,
+    token_id,
   }: {
     contract: SecretContract;
-    token_id: string,
+    token_id: string;
   }): Promise<QueryTokenIdPublicInfoResponse> => {
     return await this.queryContract<
-    QueryTokenIdPublicInfo, QueryTokenIdPublicInfoResponse>({
+      QueryTokenIdPublicInfo,
+      QueryTokenIdPublicInfoResponse
+    >({
       contractAddress: contract.address,
       codeHash: contract.codeHash,
       query: {
         token_id_public_info: {
-          token_id
-        }
-      }
-    })
-  }
+          token_id,
+        },
+      },
+    });
+  };
 
-  getPrivateTokenInfo = async({
+  getPrivateTokenInfo = async ({
     contract,
-    token_id, auth
+    token_id,
+    auth,
   }: {
     contract: SecretContract;
     token_id: string;
     auth: Auth;
   }): Promise<QueryPrivateTokenInfoResponse> => {
-
     if (auth.viewer) {
-
-        return await this.queryContract<QueryPrivateTokenInfoWithViewingKey, QueryPrivateTokenInfoResponse>({
-
-          contractAddress: contract.address,
-          codeHash: contract.codeHash,
-          query: {
-            token_id_private_info: {
-              token_id, address: auth.viewer.address,
-              key: auth.viewer.viewing_key
-            }
-          }
-      
-
-        })
-
-
-    }
-    else if (auth.permit) {
-
-      return await this.queryContract<QueryPrivateTokenInfoWithPermit, QueryPrivateTokenInfoResponse>({
-
+      return await this.queryContract<
+        QueryPrivateTokenInfoWithViewingKey,
+        QueryPrivateTokenInfoResponse
+      >({
+        contractAddress: contract.address,
+        codeHash: contract.codeHash,
+        query: {
+          token_id_private_info: {
+            token_id,
+            address: auth.viewer.address,
+            key: auth.viewer.viewing_key,
+          },
+        },
+      });
+    } else if (auth.permit) {
+      return await this.queryContract<
+        QueryPrivateTokenInfoWithPermit,
+        QueryPrivateTokenInfoResponse
+      >({
         contractAddress: contract.address,
         codeHash: contract.codeHash,
         query: {
@@ -231,28 +252,16 @@ export class Snip1155Querier extends ComputeQuerier {
             permit: auth.permit,
             query: {
               token_id_private_info: {
-                token_id
-              }
-            }
-          
-          }
-      
-        }
-    
-
-      })
-
-
+                token_id,
+              },
+            },
+          },
+        },
+      });
     }
 
-    throw new Error("Empty auth parameter for authenticated query: getTransactionHistory");
-
-  }
-
-
-  }
-
-
-
-
-
+    throw new Error(
+      "Empty auth parameter for authenticated query: getTransactionHistory",
+    );
+  };
+}
