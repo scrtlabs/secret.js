@@ -1170,12 +1170,18 @@ export class SecretNetworkClient {
           )
         ) {
           isBroadcastTimedOut = true;
+        } else {
+          throw new Error(
+            `Failed to broadcast transaction ID ${txhash}: '${JSON.stringify(
+              e,
+            )}'.`,
+          );
         }
       }
 
       if (!isBroadcastTimedOut) {
         txResponse!.tx = {
-          typeUrl: "TxContent", // not sure, not used in decodeTxResponses anyway
+          typeUrl: "/cosmos.tx.v1beta1.Tx", // not sure, not used in decodeTxResponses anyway
           value: tx,
         };
         return (await this.decodeTxResponses([txResponse!]))[0];
