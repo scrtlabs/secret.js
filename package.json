@@ -5,7 +5,10 @@
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
-    "url": "https://github.com/scrtabs/secret.js/issues"
+    "url": "https://github.com/scrtlabs/secret.js/issues"
+  },
+  "repository": {
+    "url": "https://github.com/scrtlabs/secret.js"
   },
   "files": [
     "dist",
