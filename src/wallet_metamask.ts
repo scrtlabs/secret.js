@@ -44,15 +44,11 @@ export class MetaMaskWallet {
         ),
       ).toLocaleLowerCase();
 
-      if (derivedEthAddressBytes === ethAddressBytes) {
-        return new MetaMaskWallet(
-          ethProvider,
-          ethAddress,
-          fromHex(publicKeyHex),
-        );
-      } else {
+      if (derivedEthAddressBytes !== ethAddressBytes) {
         localStorage.removeItem(localStorageKey);
       }
+
+      return new MetaMaskWallet(ethProvider, ethAddress, fromHex(publicKeyHex));
     }
 
     // On ETHland pubkeys are recovered from signatures, so we're going to:
