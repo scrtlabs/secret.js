@@ -1,11 +1,10 @@
 import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
-import { fromHex, toHex, toUtf8 } from ".";
+import { fromHex, pubkeyToAddress, toHex, toUtf8 } from ".";
 import {
   AccountData,
   AminoSignResponse,
   encodeSecp256k1Signature,
-  pubkeyToAddress,
   sortObject,
   StdSignDoc,
 } from "./wallet_amino";

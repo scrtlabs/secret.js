@@ -1,7 +1,9 @@
-import { fromUtf8, toBase64 } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import fs from "fs";
 import {
+  base64PubkeyToAddress,
+  base64TendermintPubkeyToValconsAddress,
   BaseAccount,
   BondStatus,
   gasToFee,
@@ -12,10 +14,14 @@ import {
   Proposal,
   ProposalStatus,
   ProposalType,
+  pubkeyToAddress,
   SecretNetworkClient,
+  selfDelegatorAddressToValidatorAddress,
   StakeAuthorizationType,
+  tendermintPubkeyToValconsAddress,
   Tx,
   TxResultCode,
+  validatorAddressToSelfDelegatorAddress,
   VoteOption,
   Wallet,
 } from "../src";
@@ -2568,5 +2574,53 @@ describe("tx.authz", () => {
       }
       expect(tx.rawLog).toContain("authorization not found");
     });
+  });
+});
+
+describe("utils", () => {
+  test("pubkeyToAddress", async () => {
+    expect(
+      pubkeyToAddress(
+        fromBase64("AorghQCGoNZ8wzxuAsw85sSrqOAay19PaaewNZ7+I2ST"),
+      ),
+    ).toBe("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v");
+  });
+
+  test("base64PubkeyToAddress", async () => {
+    expect(
+      base64PubkeyToAddress("AorghQCGoNZ8wzxuAsw85sSrqOAay19PaaewNZ7+I2ST"),
+    ).toBe("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v");
+  });
+
+  test("selfDelegatorAddressToValidatorAddress", async () => {
+    expect(
+      selfDelegatorAddressToValidatorAddress(
+        "secret1hscf4cjrhzsea5an5smt4z9aezhh4sf5r4dam5",
+      ),
+    ).toBe("secretvaloper1hscf4cjrhzsea5an5smt4z9aezhh4sf5jjrqka");
+  });
+
+  test("validatorAddressToSelfDelegatorAddress", async () => {
+    expect(
+      validatorAddressToSelfDelegatorAddress(
+        "secretvaloper1hscf4cjrhzsea5an5smt4z9aezhh4sf5jjrqka",
+      ),
+    ).toBe("secret1hscf4cjrhzsea5an5smt4z9aezhh4sf5r4dam5");
+  });
+
+  test("tendermintPubkeyToValconsAddress", async () => {
+    expect(
+      tendermintPubkeyToValconsAddress(
+        fromBase64("KgnRkdlLhDJT/9zxTl3YwUfXevNgYorFV7NjAflVkAg="),
+      ),
+    ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
+  });
+
+  test("base64TendermintPubkeyToValconsAddress", async () => {
+    expect(
+      base64TendermintPubkeyToValconsAddress(
+        "KgnRkdlLhDJT/9zxTl3YwUfXevNgYorFV7NjAflVkAg=",
+      ),
+    ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
   });
 });

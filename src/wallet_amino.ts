@@ -1,11 +1,9 @@
-import { fromBase64, toBase64, toUtf8 } from "@cosmjs/encoding";
-import { ripemd160 } from "@noble/hashes/ripemd160";
+import { toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
-import { bech32 } from "bech32";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
-import { AminoMsg, Coin } from ".";
+import { AminoMsg, Coin, pubkeyToAddress } from ".";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -110,37 +108,6 @@ export class AminoWallet {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
-}
-
-/**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function pubkeyToAddress(
-  pubkey: Uint8Array,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
-}
-
-/**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function base64PubkeyToAddress(
-  pubkey: string,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(
-    prefix,
-    bech32.toWords(ripemd160(sha256(fromBase64(pubkey)))),
-  );
 }
 
 /**
