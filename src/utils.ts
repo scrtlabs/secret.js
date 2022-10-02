@@ -34,7 +34,7 @@ export function base64PubkeyToAddress(
 /**
  * Convert self delegator address to validator address
  *
- * @param {string} selfDelegator The self delegator bech32 encoded address
+ * @param {String} selfDelegator The self delegator bech32 encoded address
  * @param {String} [prefix="secret"] The self delegator address' bech32 prefix. Defaults to `"secret"`.
  * @returns the account's address
  */
@@ -48,7 +48,7 @@ export function selfDelegatorAddressToValidatorAddress(
 /**
  * Convert self delegator address to validator address
  *
- * @param {string} validator The validator bech32 encoded address
+ * @param {String} validator The validator bech32 encoded address
  * @param {String} [prefix="secret"] The self delegator address' bech32 prefix. Defaults to `"secret"`.
  * @returns the account's address
  */
