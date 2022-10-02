@@ -85,7 +85,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     }
 
     const { key } = await this.registrationQuerier.txKey({});
-    this.consensusIoPubKey = extractPubkey(key);
+    this.consensusIoPubKey = extractConsensusIoPubkey(key);
 
     return this.consensusIoPubKey;
   }
@@ -152,7 +152,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
 }
 
 // extractPubkey ported from https://github.com/enigmampc/SecretNetwork/blob/8ab20a273570bfb3d55d67e0300ecbdc67e0e739/x/registration/remote_attestation/remote_attestation.go#L25
-function extractPubkey(cert: Uint8Array): Uint8Array {
+export function extractConsensusIoPubkey(cert: Uint8Array): Uint8Array {
   const nsCmtOid = new Uint8Array([
     0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x86, 0xf8, 0x42, 0x01, 0x0d,
   ]); // Netscape Comment OID
