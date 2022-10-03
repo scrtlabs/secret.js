@@ -409,7 +409,13 @@ export type Tx = {
    * ```
    */
   readonly txBytes: Uint8Array;
+  /**
+   * Amount of gas that was actually used by the transaction.
+   */
   readonly gasUsed: number;
+  /**
+   * Gas limit that was originaly set by the transaction.
+   */
   readonly gasWanted: number;
 };
 
