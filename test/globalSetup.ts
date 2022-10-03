@@ -8,7 +8,7 @@ module.exports = async () => {
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 9091:9091 --name localsecret ghcr.io/scrtlabs/localsecret:v1.4.0",
+    "docker run -it -d -p 9091:9091 -p 26657:26657 --name localsecret ghcr.io/scrtlabs/localsecret:v1.4.0",
   );
 
   // console.log("stdout (testnet container id?):", stdout);
@@ -33,11 +33,14 @@ module.exports = async () => {
   console.log(`LocalSecret is running`);
 };
 
-async function waitForBlocks() {
+async function waitForBlocks(options?: {
+  grpcWebUrl?: string;
+  chainId?: string;
+}) {
   while (true) {
     const secretjs = await SecretNetworkClient.create({
-      grpcWebUrl: "http://localhost:9091",
-      chainId: "secretdev-1",
+      grpcWebUrl: options?.grpcWebUrl ?? "http://localhost:9091",
+      chainId: options?.chainId ?? "secretdev-1",
     });
 
     try {

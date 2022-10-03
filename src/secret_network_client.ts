@@ -417,6 +417,8 @@ export type Tx = {
    * Gas limit that was originaly set by the transaction.
    */
   readonly gasWanted: number;
+  /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
+  readonly ibcAckTxs: Array<Promise<Tx>>;
 };
 
 export type TxSender = {
@@ -1121,6 +1123,7 @@ export class SecretNetworkClient {
           data,
           gasUsed: Number(txResp.gasUsed),
           gasWanted: Number(txResp.gasWanted),
+          ibcAckTxs: [], // TODO
         };
       }),
     );
