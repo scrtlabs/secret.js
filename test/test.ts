@@ -1,19 +1,46 @@
-import { fromUtf8, toBase64 } from "@cosmjs/encoding";
+import {
+  fromBase64,
+  fromHex,
+  fromUtf8,
+  toBase64,
+  toHex,
+  toUtf8,
+} from "@cosmjs/encoding";
+import * as secp256k1 from "@noble/secp256k1";
+
+import { keccak_256 } from "@noble/hashes/sha3";
 import { bech32 } from "bech32";
 import fs from "fs";
 import {
+  base64PubkeyToAddress,
+  base64TendermintPubkeyToValconsAddress,
   BaseAccount,
   BondStatus,
   gasToFee,
+  MetaMaskWallet,
+  MsgDelegate,
   MsgExecuteContract,
+  MsgGrantAuthorization,
+  MsgSend,
   Proposal,
   ProposalStatus,
   ProposalType,
+  pubkeyToAddress,
   SecretNetworkClient,
+  selfDelegatorAddressToValidatorAddress,
+  StakeAuthorizationType,
+  tendermintPubkeyToValconsAddress,
   Tx,
+  TxResultCode,
+  validatorAddressToSelfDelegatorAddress,
   VoteOption,
   Wallet,
 } from "../src";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+  MsgStoreCodeResponse,
+} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
@@ -25,11 +52,11 @@ import {
   storeContract,
 } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
@@ -126,7 +153,7 @@ beforeAll(async () => {
   // }
 
   // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
-  // @ts-ignore
+  //@ts-ignore
   // global.__SCRT_TEST_ACCOUNTS__ = accounts;
 });
 
@@ -148,8 +175,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -188,18 +217,20 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const tx = await secretjs.tx.broadcast(
@@ -226,9 +257,9 @@ describe("query", () => {
       txExec = await secretjs.query.getTx(tx.transactionHash);
     }
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"create_viewing_key":{"key":"',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"create_viewing_key":{"key":"');
   });
 
   test("query.getTx error", async () => {
@@ -248,8 +279,10 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -288,11 +321,13 @@ describe("query", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -533,7 +568,7 @@ describe("tx.bank", () => {
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
-    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.15);
+    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.25);
 
     const msg = {
       fromAddress: accounts[0].address,
@@ -544,8 +579,10 @@ describe("tx.bank", () => {
       broadcastCheckIntervalMs: 100,
       gasLimit: gasLimit,
     });
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(tx.tx.body.messages[0].value).toStrictEqual(msg);
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
@@ -588,8 +625,10 @@ describe("tx.bank", () => {
         gasLimit: gasLimit,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
     const bAfter = await getBalance(secretjs, accounts[1].address);
@@ -619,8 +658,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(
       Number(getValueFromRawLog(tx.rawLog, "message.code_id")),
     ).toBeGreaterThan(0);
@@ -643,8 +684,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -683,10 +726,14 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    expect(tx.code).toBe(0);
-
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("instantiate");
+    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
+      "/secret.compute.v1beta1.MsgInstantiateContract",
+    );
     expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
       "secret1",
     );
@@ -709,8 +756,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -759,10 +808,12 @@ describe("tx.compute", () => {
 
     const txStore = await secretjs.tx.compute.storeCode(storeInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.25),
     });
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -797,15 +848,20 @@ describe("tx.compute", () => {
 
     const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.25),
     });
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
     expect(txInit.tx.body.messages[0].value.initMsg).toStrictEqual(
       initInput.initMsg,
     );
 
-    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+    const contract = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
@@ -846,17 +902,18 @@ describe("tx.compute", () => {
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.1),
+      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.25),
     });
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
     expect(tx.tx.body.messages.map((m) => m.value.msg)).toStrictEqual([
       addMinterMsg.msg,
       mintMsg.msg,
     ]);
 
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe("execute");
-    expect(getValueFromRawLog(tx.rawLog, "wasm.contract_address")).toBe(
+    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toBe(
       contract,
     );
 
@@ -882,8 +939,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -922,11 +981,13 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
@@ -976,8 +1037,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -1016,18 +1079,20 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txInit.code).toBe(0);
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
-      "instantiate",
+      "/secret.compute.v1beta1.MsgInstantiateContract",
     );
     const contractAddress = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
-      bech32.encode("secret", bech32.toWords(txInit.data[0])),
+      MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
@@ -1047,9 +1112,9 @@ describe("tx.compute", () => {
       },
     );
 
-    expect(fromUtf8(txExec.data[0])).toContain(
-      '{"create_viewing_key":{"key":"',
-    );
+    expect(
+      fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
+    ).toContain('{"create_viewing_key":{"key":"');
   });
 
   test("MsgExecuteContract VmError", async () => {
@@ -1069,8 +1134,10 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -1104,10 +1171,15 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
+    if (txInit.code !== TxResultCode.Success) {
+      console.error(txInit.rawLog);
+    }
+    expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(txInit.code).toBe(0);
-
-    const contract = getValueFromRawLog(txInit.rawLog, "wasm.contract_address");
+    const contract = getValueFromRawLog(
+      txInit.rawLog,
+      "message.contract_address",
+    );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
@@ -1176,8 +1248,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-
-      expect(tx.code).toBe(0);
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1214,8 +1288,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-
-      expect(tx.code).toBe(0);
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1252,8 +1328,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-
-      expect(tx.code).toBe(0);
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1267,7 +1345,7 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    test.skip("SoftwareUpgradeProposal", async () => {
+    test("SoftwareUpgradeProposal", async () => {
       // TODO make this work
       // https://discord.com/channels/669268347736686612/680435043570941973/938352848905863178
 
@@ -1295,8 +1373,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-
-      expect(tx.code).toBe(0);
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1330,8 +1410,10 @@ describe("tx.gov", () => {
           gasLimit: 5_000_000,
         },
       );
-
-      expect(tx.code).toBe(0);
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
@@ -1364,8 +1446,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txSubmit.code).toBe(0);
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1382,8 +1466,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
       proposalId,
@@ -1411,8 +1497,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txSubmit.code).toBe(0);
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1434,8 +1522,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
       proposalId,
@@ -1463,8 +1553,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txSubmit.code).toBe(0);
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
     const proposalId = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
@@ -1481,8 +1573,10 @@ describe("tx.gov", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { deposit } = await secretjs.query.gov.deposit({
       depositor: accounts[0].address,
@@ -1512,8 +1606,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const {
       validators: [{ tokens: tokensAfter }],
@@ -1540,8 +1636,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txDelegate.code).toBe(0);
+    if (txDelegate.code !== TxResultCode.Success) {
+      console.error(txDelegate.rawLog);
+    }
+    expect(txDelegate.code).toBe(TxResultCode.Success);
     const {
       validators: [{ tokens: tokensAfterDelegate }],
     } = await secretjs.query.staking.validators({ status: "" });
@@ -1558,8 +1656,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
     const {
       validators: [{ tokens: tokensAfterUndelegate }],
     } = await secretjs.query.staking.validators({ status: "" });
@@ -1596,8 +1696,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { validators: validatorsAfter } =
       await secretjs.query.staking.validators({ status: "" });
@@ -1632,8 +1734,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txCreateValidator.code).toBe(0);
+    if (txCreateValidator.code !== TxResultCode.Success) {
+      console.error(txCreateValidator.rawLog);
+    }
+    expect(txCreateValidator.code).toBe(TxResultCode.Success);
     const validatorAddress = getValueFromRawLog(
       txCreateValidator.rawLog,
       "create_validator.validator",
@@ -1657,8 +1761,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     const { validators } = await secretjs.query.staking.validators({
       status: "",
@@ -1704,8 +1810,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txCreate.code).toBe(0);
+    if (txCreate.code !== TxResultCode.Success) {
+      console.error(txCreate.rawLog);
+    }
+    expect(txCreate.code).toBe(TxResultCode.Success);
 
     const { validators } = await accounts[3].secretjs.query.staking.validators({
       status: "",
@@ -1722,8 +1830,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txDelegate.code).toBe(0);
+    if (txDelegate.code !== TxResultCode.Success) {
+      console.error(txDelegate.rawLog);
+    }
+    expect(txDelegate.code).toBe(TxResultCode.Success);
 
     const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
@@ -1737,8 +1847,10 @@ describe("tx.staking", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 });
 
@@ -1770,8 +1882,10 @@ describe("tx.slashing", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txCreateValidator.code).toBe(0);
+    if (txCreateValidator.code !== TxResultCode.Success) {
+      console.error(txCreateValidator.rawLog);
+    }
+    expect(txCreateValidator.code).toBe(TxResultCode.Success);
 
     const validatorAddr = getValueFromRawLog(
       txCreateValidator.rawLog,
@@ -1810,8 +1924,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgWithdrawDelegatorReward", async () => {
@@ -1832,8 +1948,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(txDelegate.code).toBe(0);
+    if (txDelegate.code !== TxResultCode.Success) {
+      console.error(txDelegate.rawLog);
+    }
+    expect(txDelegate.code).toBe(TxResultCode.Success);
 
     const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
       {
@@ -1845,8 +1963,10 @@ describe("tx.distribution", () => {
         gasLimit: 5_000_000,
       },
     );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgWithdrawValidatorCommission", async () => {
@@ -1874,8 +1994,10 @@ describe("tx.distribution", () => {
           gasLimit: 5_000_000,
         },
       );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 
   test("MsgSetWithdrawAddress", async () => {
@@ -1907,8 +2029,10 @@ describe("tx.distribution", () => {
           gasLimit: 5_000_000,
         },
       );
-
-    expect(tx.code).toBe(0);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 });
 
@@ -1938,4 +2062,692 @@ describe("sanity", () => {
   });
 
   test.skip("All queries are implemented", async () => {});
+});
+
+describe("tx.feegrant", () => {
+  test("MsgGrantAllowance", async () => {
+    const { secretjs } = accounts[0];
+    const newWallet = new AminoWallet(); // this tests both amino & protobuf
+
+    let tx = await secretjs.tx.feegrant.grantAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+      allowance: {
+        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+      },
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const secretjsGrantee = await SecretNetworkClient.create({
+      grpcWebUrl: "http://localhost:9091",
+      chainId: "secretdev-1",
+      wallet: newWallet,
+      walletAddress: newWallet.address,
+    });
+
+    // Send a tx without any balance
+    const newWalletBalance = await getBalance(secretjs, newWallet.address);
+    expect(newWalletBalance).toBe(BigInt(0));
+
+    tx = await secretjsGrantee.tx.gov.submitProposal(
+      {
+        proposer: secretjsGrantee.address,
+        type: ProposalType.TextProposal,
+        initialDeposit: [],
+        content: {
+          title: "Test Feegrant",
+          description: "YOLO",
+        },
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+        feeGranter: secretjs.address,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgRevokeAllowance", async () => {
+    const { secretjs } = accounts[0];
+    const newWallet = new AminoWallet(); // this tests both amino & protobuf
+
+    let tx = await secretjs.tx.feegrant.grantAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+      allowance: {
+        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+      },
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    tx = await secretjs.tx.feegrant.revokeAllowance({
+      granter: secretjs.address,
+      grantee: newWallet.address,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+});
+
+describe("tx.authz", () => {
+  describe("MsgGrant", () => {
+    test("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[1];
+      const { secretjs: secretjsGrantee } = accounts[2];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[2];
+      const { secretjs: secretjsGrantee } = accounts[3];
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[3];
+      const { secretjs: secretjsGrantee } = accounts[4];
+
+      const tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+  });
+
+  describe("MsgExec", () => {
+    test("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[4];
+      const { secretjs: secretjsGrantee } = accounts[5];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgDelegate({
+              amount: {
+                amount: "1",
+                denom: "uscrt",
+              },
+              delegatorAddress: secretjsGranter.address,
+              validatorAddress,
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[5];
+      const { secretjs: secretjsGrantee } = accounts[6];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[6];
+      const { secretjs: secretjsGrantee } = accounts[7];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+    });
+  });
+
+  describe("MsgRevoke", () => {
+    test("StakeAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[7];
+      const { secretjs: secretjsGrantee } = accounts[8];
+
+      const {
+        validators: [{ operatorAddress: validatorAddress }],
+      } = await secretjsGranter.query.staking.validators({ status: "" });
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            allowList: [validatorAddress],
+            denyList: [],
+            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorizationType: StakeAuthorizationType.Delegate,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgDelegate,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgDelegate({
+              amount: {
+                amount: "1",
+                denom: "uscrt",
+              },
+              delegatorAddress: secretjsGranter.address,
+              validatorAddress,
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
+    });
+
+    test("SendAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[8];
+      const { secretjs: secretjsGrantee } = accounts[9];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgSend,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
+    });
+
+    test("GenericAuthorization", async () => {
+      const { secretjs: secretjsGranter } = accounts[9];
+      const { secretjs: secretjsGrantee } = accounts[10];
+
+      let tx = await secretjsGranter.tx.authz.grant(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          authorization: {
+            msg: MsgGrantAuthorization.MsgSend,
+          },
+          expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGranter.tx.authz.revoke(
+        {
+          granter: secretjsGranter.address,
+          grantee: secretjsGrantee.address,
+          msg: MsgGrantAuthorization.MsgSend,
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      tx = await secretjsGrantee.tx.authz.exec(
+        {
+          grantee: secretjsGrantee.address,
+          msgs: [
+            new MsgSend({
+              fromAddress: secretjsGranter.address,
+              toAddress: secretjsGranter.address,
+              amount: [
+                {
+                  amount: "1",
+                  denom: "uscrt",
+                },
+              ],
+            }),
+          ],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.ErrUnauthorized) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.rawLog).toContain("authorization not found");
+    });
+  });
+});
+
+describe("utils", () => {
+  test("pubkeyToAddress", async () => {
+    expect(
+      pubkeyToAddress(
+        fromBase64("AorghQCGoNZ8wzxuAsw85sSrqOAay19PaaewNZ7+I2ST"),
+      ),
+    ).toBe("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v");
+  });
+
+  test("base64PubkeyToAddress", async () => {
+    expect(
+      base64PubkeyToAddress("AorghQCGoNZ8wzxuAsw85sSrqOAay19PaaewNZ7+I2ST"),
+    ).toBe("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v");
+  });
+
+  test("selfDelegatorAddressToValidatorAddress", async () => {
+    expect(
+      selfDelegatorAddressToValidatorAddress(
+        "secret1hscf4cjrhzsea5an5smt4z9aezhh4sf5r4dam5",
+      ),
+    ).toBe("secretvaloper1hscf4cjrhzsea5an5smt4z9aezhh4sf5jjrqka");
+  });
+
+  test("validatorAddressToSelfDelegatorAddress", async () => {
+    expect(
+      validatorAddressToSelfDelegatorAddress(
+        "secretvaloper1hscf4cjrhzsea5an5smt4z9aezhh4sf5jjrqka",
+      ),
+    ).toBe("secret1hscf4cjrhzsea5an5smt4z9aezhh4sf5r4dam5");
+  });
+
+  test("tendermintPubkeyToValconsAddress", async () => {
+    expect(
+      tendermintPubkeyToValconsAddress(
+        fromBase64("KgnRkdlLhDJT/9zxTl3YwUfXevNgYorFV7NjAflVkAg="),
+      ),
+    ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
+  });
+
+  test("base64TendermintPubkeyToValconsAddress", async () => {
+    expect(
+      base64TendermintPubkeyToValconsAddress(
+        "KgnRkdlLhDJT/9zxTl3YwUfXevNgYorFV7NjAflVkAg=",
+      ),
+    ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
+  });
+});
+
+test("MetaMaskWallet", async () => {
+  //@ts-ignore
+  global.localStorage = {
+    getItem: () => {
+      // pubkey of account a
+      return toHex(accounts[0].walletAmino.publicKey);
+    },
+    removeItem: () => {},
+    setItem: () => {},
+  };
+
+  const ethProvider = {
+    request: async (req: {
+      method: "personal_sign";
+      params: [string /* msgToSign */, string /* ethAddress */];
+    }) => {
+      const msgData = fromUtf8(fromHex(req.params[0].slice(2)));
+      const length = msgData.length;
+      const eip191MessagePrefix = "\x19Ethereum Signed Message:\n";
+
+      const msgToSign = eip191MessagePrefix + length + msgData;
+
+      const msgHash = keccak_256(toUtf8(msgToSign));
+
+      const privkey = accounts[0].walletAmino.privateKey;
+
+      const signature = await secp256k1.sign(msgHash, privkey, {
+        extraEntropy: true,
+        der: false,
+      });
+
+      // add dummy leading 0x and trailing recovery id
+      return `0x${toHex(signature)}00`;
+    },
+  };
+
+  const wallet = await MetaMaskWallet.create(ethProvider, "blabla");
+
+  const secretjs = await SecretNetworkClient.create({
+    grpcWebUrl: "http://localhost:9091",
+    wallet: wallet,
+    walletAddress: wallet.address,
+    chainId: "secretdev-1",
+  });
+
+  const txStore = await secretjs.tx.compute.storeCode(
+    {
+      sender: accounts[0].address,
+      wasmByteCode: fs.readFileSync(
+        `${__dirname}/snip20-ibc.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    },
+    {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    },
+  );
+  if (txStore.code !== TxResultCode.Success) {
+    console.error(txStore.rawLog);
+  }
+  expect(txStore.code).toBe(TxResultCode.Success);
+
+  const codeId = Number(MsgStoreCodeResponse.decode(txStore.data[0]).codeId);
+  expect(codeId).toBe(
+    Number(getValueFromRawLog(txStore.rawLog, "message.code_id")),
+  );
+
+  const {
+    codeInfo: { codeHash },
+  } = await secretjs.query.compute.code(codeId);
+
+  const tx = await secretjs.tx.compute.instantiateContract(
+    {
+      sender: accounts[0].address,
+      codeId,
+      codeHash,
+      initMsg: {
+        name: "Secret SCRT",
+        admin: accounts[0].address,
+        symbol: "SSCRT",
+        decimals: 6,
+        initial_balances: [{ address: accounts[0].address, amount: "1" }],
+        prng_seed: "eW8=",
+        config: {
+          public_total_supply: true,
+          enable_deposit: true,
+          enable_redeem: true,
+          enable_mint: false,
+          enable_burn: false,
+        },
+        supported_denoms: ["uscrt"],
+      },
+      label: `label-${Date.now()}`,
+      initFunds: [],
+    },
+    {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
+    "/secret.compute.v1beta1.MsgInstantiateContract",
+  );
+  expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+    "secret1",
+  );
 });

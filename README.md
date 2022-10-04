@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/secretjs/beta" />
+  <img alt="npm" src="https://img.shields.io/npm/v/secretjs" />
   <img alt="ci" style="margin-left: 0.3em" src="https://github.com/scrtlabs/secret.js/actions/workflows/test.yml/badge.svg?branch=master" />
 </p>
 
@@ -65,13 +65,13 @@ See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list o
 # Installation
 
 ```bash
-npm install secretjs@beta
+npm install secretjs
 ```
 
 or
 
 ```bash
-yarn add secretjs@beta
+yarn add secretjs
 ```
 
 # Usage Examples
@@ -162,7 +162,7 @@ const tx = await secretjs.tx.broadcast([msg], {
 ```ts
 import { SecretNetworkClient, MetaMaskWallet } from "secretjs";
 
-// @ts-ignore
+//@ts-ignore
 const [ethAddress] = await window.ethereum.request({
   method: "eth_requestAccounts",
 });
@@ -181,11 +181,10 @@ Notes:
 
 1. MetaMask supports mobile!
 2. MetaMask supports Ledger.
-3. Currently MetaMask doesn't support clear-text signing of transactions, meaning users will not see what they're signing on and MetaMask will show them a scary warning when signing (see image). This will be solved on Shockwave Delta upgrade (September 2022). Until then you might want to indicate this to users on your UI somehow.
-4. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
-5. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
+3. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
+4. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
 
-<img src="./media/metamask-eth_sign-warning.png" width="65%%" style="border-radius: 10px;" />
+<img src="./media/metamask-signing-example.jpg" width="55%" style="border-radius: 10px;" />
 
 ## Keplr Wallet
 
@@ -259,7 +258,7 @@ Although this is the legacy way of signing transactions on cosmos-sdk, it's stil
 
 Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC **is** supported.
 
-<img src="./media/keplr-amino.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
+<img src="./media/keplr-amino.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
 #### `window.keplr.getOfflineSigner()`
 
@@ -269,7 +268,7 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 - 🟥 Doesn't support users signing with Ledger
 - 🟩 Supports signing transactions with all types of Msgs
 
-<img src="./media/keplr-proto.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
+<img src="./media/keplr-proto.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
 #### `window.keplr.getOfflineSignerAuto()`
 
@@ -1288,9 +1287,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
-Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-DelegatorRewardParams)
+Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
@@ -1312,9 +1309,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
-Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-ValidatorCommissionParams)
+Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
@@ -1366,6 +1361,41 @@ MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees f
 
 Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
+```ts
+const newWallet = new Wallet();
+
+const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
+  granter: secretjsGranter.address,
+  grantee: newWallet.address,
+  allowance: {
+    spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+  },
+});
+
+const secretjsGrantee = await SecretNetworkClient.create({
+  grpcWebUrl: "http://localhost:9091",
+  chainId: "secretdev-1",
+  wallet: newWallet,
+  walletAddress: newWallet.address,
+});
+
+// Send a tx from newWallet with secretjs.address as the fee payer
+cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
+  {
+    proposer: secretjsGrantee.address,
+    type: ProposalType.TextProposal,
+    initialDeposit: [],
+    content: {
+      title: "Send a tx without any balance",
+      description: `Thanks ${secretjsGranter.address}!`,
+    },
+  },
+  {
+    feeGranter: secretjsGranter.address,
+  },
+);
+```
+
 ##### `secretjs.tx.feegrant.grantAllowance.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
@@ -1375,6 +1405,13 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+
+```ts
+const tx = await secretjs.tx.feegrant.revokeAllowance({
+  granter: secretjs.address,
+  grantee: newWallet.address,
+});
+```
 
 ##### `secretjs.tx.feegrant.revokeAllowance.simulate()`
 

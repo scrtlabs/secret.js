@@ -1,11 +1,9 @@
-import { fromBase64, toBase64, toUtf8 } from "@cosmjs/encoding";
-import { ripemd160 } from "@noble/hashes/ripemd160";
+import { toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
-import { bech32 } from "bech32";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
-import { AminoMsg, Coin } from ".";
+import { AminoMsg, Coin, pubkeyToAddress } from ".";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -113,37 +111,6 @@ export class AminoWallet {
 }
 
 /**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function pubkeyToAddress(
-  pubkey: Uint8Array,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
-}
-
-/**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function base64PubkeyToAddress(
-  pubkey: string,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(
-    prefix,
-    bech32.toWords(ripemd160(sha256(fromBase64(pubkey)))),
-  );
-}
-
-/**
  * Takes a binary pubkey and signature to create a signature object
  *
  * @param pubkey a compressed secp256k1 public key
@@ -203,6 +170,7 @@ export type StdSignDoc = {
 export type StdFee = {
   readonly amount: readonly Coin[];
   readonly gas: string;
+  readonly granter?: string;
 };
 
 export type StdSignature = {
@@ -227,29 +195,29 @@ export type AccountData = {
   readonly pubkey: Uint8Array;
 };
 
-function sortedObject(obj: any): any {
+export function sortObject(obj: any): any {
   if (typeof obj !== "object" || obj === null) {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return obj.map(sortedObject);
+    return obj.map(sortObject);
   }
   const sortedKeys = Object.keys(obj).sort();
   const result: Record<string, any> = {};
   // NOTE: Use forEach instead of reduce for performance with large objects eg Wasm code
   sortedKeys.forEach((key) => {
-    result[key] = sortedObject(obj[key]);
+    result[key] = sortObject(obj[key]);
   });
   return result;
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-function JsonSortedStringify(obj: any): string {
-  return JSON.stringify(sortedObject(obj));
+function jsonSortedStringify(obj: any): string {
+  return JSON.stringify(sortObject(obj));
 }
 
 export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
-  return toUtf8(JsonSortedStringify(signDoc));
+  return toUtf8(jsonSortedStringify(signDoc));
 }
 
 export type DirectSigner = {
