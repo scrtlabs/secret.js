@@ -1,5 +1,3 @@
-global.BigInt = require("bigint-polyfill");
-
 // Note: the order of exports is important here
 export * from "@cosmjs/encoding";
 export * from "./encryption";

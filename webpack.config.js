@@ -14,7 +14,7 @@ module.exports = {
             presets: ["@babel/preset-env", "@babel/preset-typescript"],
             plugins: [
               "@babel/plugin-syntax-bigint",
-              "babel-plugin-transform-bigint",
+              "babel-plugin-transform-bigint-to-jsbi",
             ],
           },
         },
