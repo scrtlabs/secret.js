@@ -4,9 +4,13 @@
     "target": "ES6",
     "lib": ["ES6", "DOM"],
     "module": "commonjs",
+    // Ensure that .d.ts files are created by tsc, but not .js files
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "emitDeclarationOnly": true,
+    // Ensure that Babel can safely transpile files in the TypeScript project
+    "isolatedModules": true,
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
