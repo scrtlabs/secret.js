@@ -30,5 +30,6 @@ module.exports = {
     globalObject: "this",
     path: path.resolve(__dirname, "dist"),
     filename: "browser.js",
+    publicPath: "",
   },
 };
