@@ -57,6 +57,7 @@
     "@types/protobufjs": "6.0.0",
     "@types/secure-random": "1.1.0",
     "babel-loader": "8.2.5",
+    "bigint-polyfill": "0.1.0",
     "jest": "27.4.7",
     "node-polyfill-webpack-plugin": "1.1.4",
     "prettier": "2.5.1",
