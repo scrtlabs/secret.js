@@ -1,5 +1,4 @@
 import { keccak_256 } from "@noble/hashes/sha3";
-import * as secp256k1 from "@noble/secp256k1";
 import { fromHex, pubkeyToAddress, toHex, toUtf8 } from ".";
 import {
   AccountData,
@@ -8,6 +7,9 @@ import {
   sortObject,
   StdSignDoc,
 } from "./wallet_amino";
+
+import { ec as EC } from "elliptic";
+const secp256k1 = new EC("secp256k1");
 
 /**
  * MetaMaskWallet is a wallet capable of signing on transactions using MetaMask.
@@ -71,13 +73,12 @@ export class MetaMaskWallet {
     const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
     const rawMsgLength = toUtf8(String(rawMsg.length));
 
-    const publicKey = secp256k1.recoverPublicKey(
+    const publicKey = secp256k1.recoverPubKey(
       keccak_256(
         new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
       ),
       sig,
       recoveryId,
-      true,
     );
 
     localStorage.setItem(localStorageKey, toHex(publicKey));
@@ -127,8 +128,8 @@ export class MetaMaskWallet {
 }
 
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
-  const point = secp256k1.Point.fromHex(publicKeyHex);
-  return point.toRawBytes(false);
+  const point = secp256k1.keyFromPublic(publicKeyHex, "hex");
+  return Uint8Array.from(point.getPublic(false, "array"));
 }
 
 /** Returns a JSON string with objects sorted by key, used for pretty Amino EIP191 signing */

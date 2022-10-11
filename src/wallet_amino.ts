@@ -1,9 +1,11 @@
-import { toBase64, toUtf8 } from "@cosmjs/encoding";
+import { fromHex, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
-import * as secp256k1 from "@noble/secp256k1";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
 import { AminoMsg, Coin, pubkeyToAddress } from ".";
+
+import { ec as EC } from "elliptic";
+const secp256k1 = new EC("secp256k1");
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -73,7 +75,9 @@ export class AminoWallet {
     }
 
     this.privateKey = new Uint8Array(privateKey);
-    this.publicKey = secp256k1.getPublicKey(this.privateKey, true);
+    this.publicKey = Uint8Array.from(
+      secp256k1.keyFromPrivate(this.privateKey).getPublic().encodeCompressed(),
+    );
 
     this.address = pubkeyToAddress(this.publicKey, this.bech32Prefix);
   }
@@ -98,14 +102,16 @@ export class AminoWallet {
 
     const messageHash = sha256(serializeStdSignDoc(signDoc));
 
-    const signature = await secp256k1.sign(messageHash, this.privateKey, {
-      extraEntropy: true,
-      der: false,
-    });
+    const signature = secp256k1
+      .keyFromPrivate(this.privateKey)
+      .sign(messageHash);
 
     return {
       signed: signDoc,
-      signature: encodeSecp256k1Signature(this.publicKey, signature),
+      signature: encodeSecp256k1Signature(
+        this.publicKey,
+        Uint8Array.from([...signature.r.toArray(), ...signature.s.toArray()]),
+      ),
     };
   }
 }

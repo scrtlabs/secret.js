@@ -1,10 +1,17 @@
-import { AminoSigner, StdSignDoc } from "../../../wallet_amino";
-import { AminoWallet, serializeStdSignDoc } from "../../../wallet_amino";
+import { fromBase64 } from "@cosmjs/encoding";
+import { Window as KeplrWindow } from "@keplr-wallet/types";
+import { sha256 } from "@noble/hashes/sha256";
 import { bech32 } from "bech32";
 import { base64PubkeyToAddress } from "../../../index";
-import * as secp256k1 from "@noble/secp256k1";
-import { fromBase64 } from "@cosmjs/encoding";
-import { sha256 } from "@noble/hashes/sha256";
+import { AminoSigner, serializeStdSignDoc, StdSignDoc } from "../../../wallet_amino";
+
+
+import { ec as EC } from "elliptic";
+const secp256k1 = new EC("secp256k1");
+
+declare global {
+  interface Window extends KeplrWindow {}
+}
 
 export class PermitError extends Error {
   readonly type = "PermitError";
@@ -121,20 +128,24 @@ export const newPermit = async (
   permissions: Permission[],
   keplr: boolean,
 ): Promise<Permit> => {
-
   let signature;
   if (!keplr) {
-    signature = (await signer.signAmino(
+    signature = (
+      await signer.signAmino(
         owner,
         newSignDoc(chainId, permitName, allowedTokens, permissions),
-    )).signature;
+      )
+    ).signature;
   }
   //@ts-ignore
   else if (!window?.keplr) {
-    throw new Error("Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode")
+    throw new Error(
+      "Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode",
+    );
   } else {
     //@ts-ignore
-    signature = (await window.keplr.signAmino(
+    signature = (
+      await window.keplr!.signAmino(
         chainId,
         owner,
         {
@@ -160,12 +171,10 @@ export const newPermit = async (
         {
           preferNoSetFee: true, // Fee must be 0, so hide it from the user
           preferNoSetMemo: true, // Memo must be empty, so hide it from the user
-        }
-    )).signature;
+        },
+      )
+    ).signature;
   }
-
-
-
 
   return {
     params: {
@@ -264,13 +273,10 @@ const _validate_sig = (permit: Permit): boolean => {
     permit.params.permissions,
   );
   const messageHash = sha256(serializeStdSignDoc(signDoc));
-  let sig = secp256k1.Signature.fromCompact(
-    fromBase64(permit.signature.signature),
-  );
 
   return secp256k1.verify(
-    sig,
     messageHash,
-    fromBase64(permit.signature.pub_key.value),
+    fromBase64(permit.signature.signature),
+    secp256k1.keyFromPublic(fromBase64(permit.signature.pub_key.value)),
   );
 };

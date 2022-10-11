@@ -6,7 +6,6 @@ import {
   toHex,
   toUtf8,
 } from "@cosmjs/encoding";
-import * as secp256k1 from "@noble/secp256k1";
 
 import { keccak_256 } from "@noble/hashes/sha3";
 import { bech32 } from "bech32";
@@ -51,6 +50,9 @@ import {
   sleep,
   storeContract,
 } from "./utils";
+
+import { ec as EC } from "elliptic";
+const secp256k1 = new EC("secp256k1");
 
 //@ts-ignore
 let accounts: Account[];
@@ -2663,13 +2665,12 @@ test("MetaMaskWallet", async () => {
 
       const privkey = accounts[0].walletAmino.privateKey;
 
-      const signature = await secp256k1.sign(msgHash, privkey, {
-        extraEntropy: true,
-        der: false,
-      });
+      const signature = secp256k1.keyFromPrivate(privkey).sign(msgHash);
 
       // add dummy leading 0x and trailing recovery id
-      return `0x${toHex(signature)}00`;
+      return `0x${toHex(
+        Uint8Array.from([...signature.r.toArray(), ...signature.s.toArray()]),
+      )}00`;
     },
   };
 
