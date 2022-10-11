@@ -63,6 +63,7 @@
     "babel-plugin-transform-bigint": "1.0.29",
     "bigint-polyfill": "0.1.0",
     "jest": "27.4.7",
+    "jsbi": "4.3.0",
     "node-polyfill-webpack-plugin": "1.1.4",
     "prettier": "2.5.1",
     "ts-jest": "27.1.3",
