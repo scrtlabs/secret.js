@@ -30,9 +30,9 @@ export class MsgSend implements Msg {
       typeUrl: "/cosmos.bank.v1beta1.MsgSend",
       value: msgContent,
       encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")
-        ).MsgSend.encode(msgContent).finish(),
+        (await import("../protobuf/cosmos/bank/v1beta1/tx")).MsgSend.encode(
+          msgContent,
+        ).finish(),
     };
   }
 
@@ -74,7 +74,7 @@ export class MsgMultiSend implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")
+          await import("../protobuf/cosmos/bank/v1beta1/tx")
         ).MsgMultiSend.encode(msgContent).finish(),
     };
   }

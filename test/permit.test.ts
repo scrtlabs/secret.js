@@ -1,5 +1,11 @@
 import fs from "fs";
-import { Permit, SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
+import {
+  Permit,
+  SecretNetworkClient,
+  TxResponse,
+  TxResultCode,
+  Wallet,
+} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -26,8 +32,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -46,8 +52,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -59,7 +65,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -111,18 +117,17 @@ describe("permit", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
+        codeId: code_id,
         codeHash,
         initMsg: {
           name: "Secret SCRT",
@@ -151,7 +156,7 @@ describe("permit", () => {
       txInit.rawLog,
       "message.contract_address",
     );
-    let permit = await secretjs.utils.accessControl.permit.sign(
+    const permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -160,8 +165,8 @@ describe("permit", () => {
       false,
     );
 
-    let query = await secretjs.query.snip20.getBalance({
-      contract: { address: contractAddress, codeHash },
+    const query = await secretjs.query.snip20.getBalance({
+      contract: { address: contractAddress, codeHash: codeHash! },
       address: accounts[0].address,
       auth: { permit },
     });

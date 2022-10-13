@@ -3,13 +3,13 @@ import { Coin, MsgParams } from "..";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type ProposalContent =
-  | import("../protobuf_stuff/cosmos/gov/v1beta1/gov").TextProposal
-  | import("../protobuf_stuff/cosmos/distribution/v1beta1/distribution").CommunityPoolSpendProposal
-  | import("../protobuf_stuff/cosmos/params/v1beta1/params").ParameterChangeProposal
-  | import("../protobuf_stuff/ibc/core/client/v1/client").ClientUpdateProposal
-  | import("../protobuf_stuff/ibc/core/client/v1/client").UpgradeProposal
-  | import("../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade").SoftwareUpgradeProposal
-  | import("../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade").CancelSoftwareUpgradeProposal;
+  | import("../protobuf/cosmos/gov/v1beta1/gov").TextProposal
+  | import("../protobuf/cosmos/distribution/v1beta1/distribution").CommunityPoolSpendProposal
+  | import("../protobuf/cosmos/params/v1beta1/params").ParameterChangeProposal
+  | import("../protobuf/ibc/core/client/v1/client").ClientUpdateProposal
+  | import("../protobuf/ibc/core/client/v1/client").UpgradeProposal
+  | import("../protobuf/cosmos/upgrade/v1beta1/upgrade").SoftwareUpgradeProposal
+  | import("../protobuf/cosmos/upgrade/v1beta1/upgrade").CancelSoftwareUpgradeProposal;
 
 /** VoteOption enumerates the valid vote options for a given governance proposal. */
 export enum VoteOption {
@@ -108,13 +108,13 @@ export class MsgSubmitProposal implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const { Any } = await import("../protobuf_stuff/google/protobuf/any");
-    let content: import("../protobuf_stuff/google/protobuf/any").Any;
+    const { Any } = await import("../protobuf/google/protobuf/any");
+    let content: import("../protobuf/google/protobuf/any").Any;
 
     switch (this.type) {
       case ProposalType.TextProposal:
         const { TextProposal } = await import(
-          "../protobuf_stuff/cosmos/gov/v1beta1/gov"
+          "../protobuf/cosmos/gov/v1beta1/gov"
         );
         content = Any.fromPartial({
           typeUrl: "/cosmos.gov.v1beta1.TextProposal",
@@ -126,7 +126,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.CommunityPoolSpendProposal:
         const { CommunityPoolSpendProposal } = await import(
-          "../protobuf_stuff/cosmos/distribution/v1beta1/distribution"
+          "../protobuf/cosmos/distribution/v1beta1/distribution"
         );
         content = Any.fromPartial({
           typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
@@ -138,7 +138,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.ParameterChangeProposal:
         const { ParameterChangeProposal } = await import(
-          "../protobuf_stuff/cosmos/params/v1beta1/params"
+          "../protobuf/cosmos/params/v1beta1/params"
         );
         content = Any.fromPartial({
           typeUrl: "/cosmos.params.v1beta1.ParameterChangeProposal",
@@ -150,7 +150,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.ClientUpdateProposal:
         const { ClientUpdateProposal } = await import(
-          "../protobuf_stuff/ibc/core/client/v1/client"
+          "../protobuf/ibc/core/client/v1/client"
         );
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.ClientUpdateProposal",
@@ -162,7 +162,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.UpgradeProposal:
         const { UpgradeProposal } = await import(
-          "../protobuf_stuff/ibc/core/client/v1/client"
+          "../protobuf/ibc/core/client/v1/client"
         );
         content = Any.fromPartial({
           typeUrl: "/ibc.core.client.v1.UpgradeProposal",
@@ -174,7 +174,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.SoftwareUpgradeProposal:
         const { SoftwareUpgradeProposal } = await import(
-          "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade"
+          "../protobuf/cosmos/upgrade/v1beta1/upgrade"
         );
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
@@ -186,7 +186,7 @@ export class MsgSubmitProposal implements Msg {
 
       case ProposalType.CancelSoftwareUpgradeProposal:
         const { CancelSoftwareUpgradeProposal } = await import(
-          "../protobuf_stuff/cosmos/upgrade/v1beta1/upgrade"
+          "../protobuf/cosmos/upgrade/v1beta1/upgrade"
         );
         content = Any.fromPartial({
           typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
@@ -215,7 +215,7 @@ export class MsgSubmitProposal implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+          await import("../protobuf/cosmos/gov/v1beta1/tx")
         ).MsgSubmitProposal.encode(msgContent).finish(),
     };
   }
@@ -286,9 +286,9 @@ export class MsgVote implements Msg {
       typeUrl: `/cosmos.gov.v1beta1.MsgVote`,
       value: msgContent,
       encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
-        ).MsgVote.encode(msgContent).finish(),
+        (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgVote.encode(
+          msgContent,
+        ).finish(),
     };
   }
 
@@ -345,7 +345,7 @@ export class MsgVoteWeighted implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
+          await import("../protobuf/cosmos/gov/v1beta1/tx")
         ).MsgVoteWeighted.encode(msgContent).finish(),
     };
   }
@@ -396,9 +396,9 @@ export class MsgDeposit implements Msg {
       typeUrl: `/cosmos.gov.v1beta1.MsgDeposit`,
       value: msgContent,
       encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")
-        ).MsgDeposit.encode(msgContent).finish(),
+        (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgDeposit.encode(
+          msgContent,
+        ).finish(),
     };
   }
 

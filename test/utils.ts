@@ -91,15 +91,15 @@ export async function initContract(
   label?: string,
 ): Promise<string> {
   const secretjs = account.secretjs;
-  const {
-    codeInfo: { codeHash },
-  } = await secretjs.query.compute.code(codeId);
+  const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+    code_id: String(codeId),
+  });
 
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
       sender: account.address,
       codeId,
-      codeHash,
+      codeHash: code_hash,
       initMsg,
       label: label || `label-${Date.now()}`,
       initFunds: [],
@@ -129,7 +129,7 @@ export async function getBalance(
   });
 
   if (response.balance) {
-    return BigInt(response.balance.amount);
+    return BigInt(response.balance.amount!);
   } else {
     return BigInt(0);
   }

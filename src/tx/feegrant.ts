@@ -3,12 +3,12 @@ import {
   AllowedMsgAllowance as AllowedMsgAllowanceProto,
   BasicAllowance,
   PeriodicAllowance,
-} from "../protobuf_stuff/cosmos/feegrant/v1beta1/feegrant";
+} from "../protobuf/cosmos/feegrant/v1beta1/feegrant";
 import {
   MsgGrantAllowance as MsgGrantAllowanceProto,
   MsgRevokeAllowance as MsgRevokeAllowanceProto,
-} from "../protobuf_stuff/cosmos/feegrant/v1beta1/tx";
-import { Any } from "../protobuf_stuff/google/protobuf/any";
+} from "../protobuf/cosmos/feegrant/v1beta1/tx";
+import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgGrantAllowanceParams extends MsgParams {

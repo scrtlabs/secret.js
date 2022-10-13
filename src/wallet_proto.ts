@@ -17,7 +17,7 @@ import {
 export class Wallet extends AminoWallet {
   public async signDirect(
     address: string,
-    signDoc: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc,
+    signDoc: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc,
   ): Promise<DirectSignResponse> {
     if (address !== this.address) {
       throw new Error(`Address ${address} not found in wallet`);
@@ -41,7 +41,7 @@ type DirectSignResponse = {
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
-  readonly signed: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc;
+  readonly signed: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc;
   readonly signature: StdSignature;
 };
 
@@ -50,8 +50,8 @@ async function serializeSignDoc({
   authInfoBytes,
   bodyBytes,
   chainId,
-}: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc): Promise<Uint8Array> {
-  const { SignDoc } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
+}: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc): Promise<Uint8Array> {
+  const { SignDoc } = await import("./protobuf/cosmos/tx/v1beta1/tx");
   return SignDoc.encode(
     SignDoc.fromPartial({
       accountNumber: accountNumber,

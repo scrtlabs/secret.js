@@ -19,7 +19,7 @@ export class MsgCreateVestingAccount implements Msg {
       value: this.params,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/vesting/v1beta1/tx")
+          await import("../protobuf/cosmos/vesting/v1beta1/tx")
         ).MsgCreateVestingAccount.encode(this.params).finish(),
     };
   }

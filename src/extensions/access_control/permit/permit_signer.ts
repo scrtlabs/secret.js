@@ -1,14 +1,14 @@
 import {
   AminoEip191Signer,
   AminoSigner,
-  DirectSigner,
+  DirectSigner
 } from "../../../wallet_amino";
 import {
   newPermit,
   Permission,
   Permit,
   PermitError,
-  validatePermit,
+  validatePermit
 } from "./index";
 
 export class DirectSignerUnsupported extends PermitError {

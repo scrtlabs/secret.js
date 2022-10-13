@@ -4,6 +4,8 @@ import { sha256 } from "@noble/hashes/sha256";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
 import * as miscreant from "miscreant";
 import secureRandom from "secure-random";
+import { Query } from "./grpc_gateway/secret/registration/v1beta1/query.pb";
+import { Empty } from "./protobuf/google/protobuf/empty";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 
@@ -23,19 +25,12 @@ const mainnetConsensusIoPubKey = fromHex(
 const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
 export class EncryptionUtilsImpl implements EncryptionUtils {
-  private readonly registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").Query;
   private readonly seed: Uint8Array;
   private readonly privkey: Uint8Array;
   public readonly pubkey: Uint8Array;
   private consensusIoPubKey: Uint8Array = new Uint8Array(); // cache
 
-  public constructor(
-    registrationQuerier: import("./protobuf_stuff/secret/registration/v1beta1/query").Query,
-    seed?: Uint8Array,
-    chainId?: string,
-  ) {
-    this.registrationQuerier = registrationQuerier;
-
+  public constructor(private url: string, seed?: Uint8Array, chainId?: string) {
     if (!seed) {
       this.seed = EncryptionUtilsImpl.GenerateNewSeed();
     } else {
@@ -84,8 +79,8 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
       return this.consensusIoPubKey;
     }
 
-    const { key } = await this.registrationQuerier.txKey({});
-    this.consensusIoPubKey = extractConsensusIoPubkey(key);
+    const { key } = await Query.TxKey({}, { pathPrefix: this.url });
+    this.consensusIoPubKey = extractConsensusIoPubkey(key!);
 
     return this.consensusIoPubKey;
   }

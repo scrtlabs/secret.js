@@ -1,7 +1,3 @@
-if (typeof BigInt === "undefined") {
-  global.BigInt = require("big-integer");
-}
-
 // Note: the order of exports is important here
 export * from "@cosmjs/encoding";
 export * from "./encryption";
@@ -16,4 +12,3 @@ export { MetaMaskWallet } from "./wallet_metamask";
 export * from "./extensions/snip20";
 export * from "./extensions/snip721";
 export * from "./extensions/access_control";
-export { grpc } from "@improbable-eng/grpc-web";

@@ -8,7 +8,7 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
   /** The id of the contract's WASM code */
-  codeId: number;
+  codeId: number | string;
   /** A unique label across all contracts */
   label: string;
   /** The input message to the contract's constructor */
@@ -98,7 +98,7 @@ export class MsgInstantiateContract implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgInstantiateContract.encode(msgContent).finish(),
     };
   }
@@ -211,7 +211,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgExecuteContract.encode(msgContent).finish(),
     };
   }
@@ -285,7 +285,7 @@ export class MsgStoreCode implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgStoreCode.encode(msgContent).finish(),
     };
   }

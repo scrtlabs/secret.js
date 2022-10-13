@@ -3,18 +3,18 @@ import { EncryptionUtils } from "..";
 import {
   GenericAuthorization as GenericAuthorizationProto,
   Grant,
-} from "../protobuf_stuff/cosmos/authz/v1beta1/authz";
+} from "../protobuf/cosmos/authz/v1beta1/authz";
 import {
   MsgExec as MsgExecProto,
   MsgGrant as MsgGrantProto,
   MsgRevoke as MsgRevokeProto,
-} from "../protobuf_stuff/cosmos/authz/v1beta1/tx";
-import { SendAuthorization as SendAuthorizationProto } from "../protobuf_stuff/cosmos/bank/v1beta1/authz";
+} from "../protobuf/cosmos/authz/v1beta1/tx";
+import { SendAuthorization as SendAuthorizationProto } from "../protobuf/cosmos/bank/v1beta1/authz";
 import {
   StakeAuthorization as StakeAuthorizationProto,
   StakeAuthorization_Validators,
-} from "../protobuf_stuff/cosmos/staking/v1beta1/authz";
-import { Any } from "../protobuf_stuff/google/protobuf/any";
+} from "../protobuf/cosmos/staking/v1beta1/authz";
+import { Any } from "../protobuf/google/protobuf/any";
 
 export enum MsgGrantAuthorization {
   MsgAcknowledgement = "/ibc.core.channel.v1.MsgAcknowledgement",

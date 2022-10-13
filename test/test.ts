@@ -14,23 +14,19 @@ import fs from "fs";
 import {
   base64PubkeyToAddress,
   base64TendermintPubkeyToValconsAddress,
-  BaseAccount,
-  BondStatus,
   gasToFee,
   MetaMaskWallet,
   MsgDelegate,
   MsgExecuteContract,
   MsgGrantAuthorization,
   MsgSend,
-  Proposal,
-  ProposalStatus,
   ProposalType,
   pubkeyToAddress,
   SecretNetworkClient,
   selfDelegatorAddressToValidatorAddress,
   StakeAuthorizationType,
   tendermintPubkeyToValconsAddress,
-  Tx,
+  TxResponse,
   TxResultCode,
   validatorAddressToSelfDelegatorAddress,
   VoteOption,
@@ -40,7 +36,7 @@ import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
   MsgStoreCodeResponse,
-} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+} from "../src/protobuf/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
@@ -51,6 +47,12 @@ import {
   sleep,
   storeContract,
 } from "./utils";
+import {
+  Proposal,
+  ProposalStatus,
+} from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
+import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 
 //@ts-ignore
 let accounts: Account[];
@@ -75,8 +77,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -95,8 +97,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -108,7 +110,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -132,9 +134,10 @@ beforeAll(async () => {
     throw new Error(`Failed to multisend: ${e.stack}`);
   }
 
-  if (tx.code !== 0) {
-    console.error(`failed to multisend coins`);
-    throw new Error("Failed to multisend coins to initial accounts");
+  if (tx.code !== TxResultCode.Success) {
+    throw new Error(
+      `Failed to multisend coins to initial accounts: ${tx.rawLog}`,
+    );
   }
 
   // for (let accountId = 0; accountId < 20; accountId++) {
@@ -180,13 +183,12 @@ describe("query", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -284,13 +286,12 @@ describe("query", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -372,24 +373,28 @@ describe("query.auth", () => {
   test("accounts()", async () => {
     const { secretjs } = accounts[0];
 
-    const result = await secretjs.query.auth.accounts({});
+    const response = await secretjs.query.auth.accounts({});
 
     // 20 accounts with a balance and 7? module accounts - ordering of tests can affect this.
     // it's more robust to check eq&gt rather than flat equality
-    expect(result.length).toBeGreaterThanOrEqual(27);
+    expect(response.accounts?.length).toBeGreaterThanOrEqual(27);
     expect(
-      result.filter((x) => x?.type === "ModuleAccount").length,
+      response.accounts?.filter(
+        (x) => x["@type"] === "/cosmos.auth.v1beta1.ModuleAccount",
+      ).length,
     ).toBeGreaterThanOrEqual(7);
     expect(
-      result.filter((x) => x?.type === "BaseAccount").length,
+      response.accounts?.filter(
+        (x) => x["@type"] === "/cosmos.auth.v1beta1.BaseAccount",
+      ).length,
     ).toBeGreaterThanOrEqual(20);
     expect(
-      result.filter((x) => {
-        if (x?.type !== "BaseAccount") {
+      response.accounts?.filter((x) => {
+        if (x["@type"] !== "/cosmos.auth.v1beta1.BaseAccount") {
           return false;
         }
 
-        const account = x.account as BaseAccount;
+        const account = x as BaseAccount;
 
         return (
           account.address === accounts[0].address ||
@@ -406,29 +411,29 @@ describe("query.auth", () => {
       address: accounts[1].address,
     });
 
-    if (!response) {
+    if (!response.account) {
       fail(`Account "${accounts[1].address}" should exist`);
     }
 
-    expect(response.type).toBe("BaseAccount");
+    expect(response.account["@type"]).toBe("/cosmos.auth.v1beta1.BaseAccount");
 
     const account = response.account as BaseAccount;
 
     expect(account.address).toBe(accounts[1].address);
-    expect(account.accountNumber).toBe("1");
+    expect(account.account_number).toBe("1");
     expect(account.sequence).toBe("0");
   });
 
   test("params()", async () => {
     const { secretjs } = accounts[0];
 
-    const { params } = await secretjs.query.auth.params();
+    const { params } = await secretjs.query.auth.params({});
     expect(params).toStrictEqual({
-      maxMemoCharacters: "256",
-      sigVerifyCostEd25519: "590",
-      sigVerifyCostSecp256k1: "1000",
-      txSigLimit: "7",
-      txSizeCostPerByte: "10",
+      max_memo_characters: "256",
+      sig_verify_cost_ed25519: "590",
+      sig_verify_cost_secp256k1: "1000",
+      tx_sig_limit: "7",
+      tx_size_cost_per_byte: "10",
     });
   });
 });
@@ -568,7 +573,7 @@ describe("tx.bank", () => {
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
-    const gasLimit = Math.ceil(Number(sim.gasInfo!.gasUsed) * 1.25);
+    const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
 
     const msg = {
       fromAddress: accounts[0].address,
@@ -583,7 +588,12 @@ describe("tx.bank", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
-    expect(tx.tx.body.messages[0].value).toStrictEqual(msg);
+    expect(tx.tx.body?.messages![0]).toStrictEqual({
+      "@type": "/cosmos.bank.v1beta1.MsgSend",
+      from_address: accounts[0].address,
+      to_address: accounts[2].address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    });
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
     const cAfter = await getBalance(secretjs, accounts[2].address);
@@ -689,13 +699,12 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const tx = await secretjs.tx.compute.instantiateContract(
       {
@@ -761,13 +770,12 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const tx = await secretjs.tx.compute.instantiateContract(
       {
@@ -808,20 +816,19 @@ describe("tx.compute", () => {
 
     const txStore = await secretjs.tx.compute.storeCode(storeInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simStore.gasInfo!.gasUsed) * 1.25),
+      gasLimit: Math.ceil(Number(simStore.gas_info!.gas_used) * 1.25),
     });
     if (txStore.code !== TxResultCode.Success) {
       console.error(txStore.rawLog);
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const initInput = {
       sender: accounts[0].address,
@@ -848,13 +855,14 @@ describe("tx.compute", () => {
 
     const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simInit.gasInfo!.gasUsed) * 1.25),
+      gasLimit: Math.ceil(Number(simInit.gas_info!.gas_used) * 1.25),
     });
     if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
     }
     expect(txInit.code).toBe(TxResultCode.Success);
-    expect(txInit.tx.body.messages[0].value.initMsg).toStrictEqual(
+    //@ts-ignore
+    expect(txInit.tx.body?.messages![0].initMsg).toStrictEqual(
       initInput.initMsg,
     );
 
@@ -902,13 +910,14 @@ describe("tx.compute", () => {
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simExec.gasInfo!.gasUsed) * 1.25),
+      gasLimit: Math.ceil(Number(simExec.gas_info!.gas_used) * 1.25),
     });
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
-    expect(tx.tx.body.messages.map((m) => m.value.msg)).toStrictEqual([
+    //@ts-ignore
+    expect(tx.tx.body?.messages?.map((m) => m.msg)).toStrictEqual([
       addMinterMsg.msg,
       mintMsg.msg,
     ]);
@@ -944,13 +953,12 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -1042,13 +1050,12 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -1139,13 +1146,12 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -1218,13 +1224,9 @@ describe("tx.gov", () => {
   async function getAllProposals(
     secretjs: SecretNetworkClient,
   ): Promise<Proposal[]> {
-    const { proposals } = await secretjs.query.gov.proposals({
-      proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-      voter: "",
-      depositor: "",
-    });
+    const { proposals } = await secretjs.query.gov.proposals({});
 
-    return proposals;
+    return proposals!;
   }
 
   describe("MsgSubmitProposal", () => {
@@ -1557,7 +1559,7 @@ describe("tx.gov", () => {
       console.error(txSubmit.rawLog);
     }
     expect(txSubmit.code).toBe(TxResultCode.Success);
-    const proposalId = getValueFromRawLog(
+    const proposal_id = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
     );
@@ -1565,7 +1567,7 @@ describe("tx.gov", () => {
     const tx = await secretjs.tx.gov.deposit(
       {
         depositor: accounts[0].address,
-        proposalId,
+        proposalId: proposal_id,
         amount: [{ amount: "1", denom: "uscrt" }],
       },
       {
@@ -1580,7 +1582,7 @@ describe("tx.gov", () => {
 
     const { deposit } = await secretjs.query.gov.deposit({
       depositor: accounts[0].address,
-      proposalId,
+      proposal_id,
     });
 
     expect(deposit?.amount).toStrictEqual([{ amount: "1", denom: "uscrt" }]);
@@ -1591,14 +1593,16 @@ describe("tx.staking", () => {
   test("MsgDelegate", async () => {
     const { secretjs } = accounts[0];
 
-    const {
-      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
-    } = await secretjs.query.staking.validators({ status: "" });
+    const [{ operator_address: validatorAddress, tokens: tokensBefore }] = (
+      await secretjs.query.staking.validators({
+        status: "",
+      })
+    ).validators!;
 
     const tx = await secretjs.tx.staking.delegate(
       {
         delegatorAddress: accounts[0].address,
-        validatorAddress,
+        validatorAddress: validatorAddress!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1611,24 +1615,24 @@ describe("tx.staking", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const {
-      validators: [{ tokens: tokensAfter }],
-    } = await secretjs.query.staking.validators({ status: "" });
+    const [{ tokens: tokensAfter }] = (
+      await secretjs.query.staking.validators({ status: "" })
+    ).validators!;
 
-    expect(BigInt(tokensAfter) - BigInt(tokensBefore)).toBe(BigInt(1));
+    expect(BigInt(tokensAfter!) - BigInt(tokensBefore!)).toBe(BigInt(1));
   });
 
   test("MsgUndelegate", async () => {
     const { secretjs } = accounts[0];
 
-    const {
-      validators: [{ operatorAddress: validatorAddress, tokens: tokensBefore }],
-    } = await secretjs.query.staking.validators({ status: "" });
+    const [{ operator_address: validatorAddress, tokens: tokensBefore }] = (
+      await secretjs.query.staking.validators({ status: "" })
+    ).validators!;
 
     const txDelegate = await secretjs.tx.staking.delegate(
       {
         delegatorAddress: accounts[0].address,
-        validatorAddress,
+        validatorAddress: validatorAddress!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1640,15 +1644,18 @@ describe("tx.staking", () => {
       console.error(txDelegate.rawLog);
     }
     expect(txDelegate.code).toBe(TxResultCode.Success);
-    const {
-      validators: [{ tokens: tokensAfterDelegate }],
-    } = await secretjs.query.staking.validators({ status: "" });
-    expect(BigInt(tokensAfterDelegate) - BigInt(tokensBefore)).toBe(BigInt(1));
+
+    const [{ tokens: tokensAfterDelegate }] = (
+      await secretjs.query.staking.validators({ status: "" })
+    ).validators!;
+    expect(BigInt(tokensAfterDelegate!) - BigInt(tokensBefore!)).toBe(
+      BigInt(1),
+    );
 
     const tx = await secretjs.tx.staking.undelegate(
       {
         delegatorAddress: accounts[0].address,
-        validatorAddress,
+        validatorAddress: validatorAddress!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1660,9 +1667,10 @@ describe("tx.staking", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
-    const {
-      validators: [{ tokens: tokensAfterUndelegate }],
-    } = await secretjs.query.staking.validators({ status: "" });
+
+    const [{ tokens: tokensAfterUndelegate }] = (
+      await secretjs.query.staking.validators({ status: "" })
+    ).validators!;
     expect(tokensAfterUndelegate).toBe(tokensBefore);
   });
 
@@ -1704,7 +1712,7 @@ describe("tx.staking", () => {
     const { validators: validatorsAfter } =
       await secretjs.query.staking.validators({ status: "" });
 
-    expect(validatorsAfter.length - validatorsBefore.length).toBe(1);
+    expect(validatorsAfter!.length - validatorsBefore!.length).toBe(1);
   });
 
   test("MsgEditValidator", async () => {
@@ -1770,8 +1778,8 @@ describe("tx.staking", () => {
       status: "",
     });
 
-    const validator = validators.find(
-      (v) => v.operatorAddress === validatorAddress,
+    const validator = validators!.find(
+      (v) => v.operator_address === validatorAddress,
     )!;
 
     expect(validator).toBeTruthy();
@@ -1779,10 +1787,10 @@ describe("tx.staking", () => {
       moniker: "papaya",
       identity: "banana",
       website: "com.watermelon",
-      securityContact: "as@com.com",
+      security_contact: "as@com.com",
       details: "We are the banana papaya validator yay!",
     });
-    expect(validator.minSelfDelegation).toBe("3");
+    expect(validator.min_self_delegation).toBe("3");
   });
 
   test("MsgBeginRedelegate", async () => {
@@ -1822,7 +1830,7 @@ describe("tx.staking", () => {
     const txDelegate = await accounts[0].secretjs.tx.staking.delegate(
       {
         delegatorAddress: accounts[0].address,
-        validatorAddress: validators[0].operatorAddress,
+        validatorAddress: validators![0].operator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1838,8 +1846,8 @@ describe("tx.staking", () => {
     const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
         delegatorAddress: accounts[0].address,
-        validatorSrcAddress: validators[0].operatorAddress,
-        validatorDstAddress: validators[1].operatorAddress,
+        validatorSrcAddress: validators![0].operator_address!,
+        validatorDstAddress: validators![1].operator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1933,14 +1941,14 @@ describe("tx.distribution", () => {
   test("MsgWithdrawDelegatorReward", async () => {
     const { secretjs, address: delegatorAddress } = accounts[0];
 
-    const {
-      validators: [{ operatorAddress: validatorAddress }],
-    } = await secretjs.query.staking.validators({ status: "" });
+    const [{ operator_address: validatorAddress }] = (
+      await secretjs.query.staking.validators({ status: "" })
+    ).validators!;
 
     const txDelegate = await secretjs.tx.staking.delegate(
       {
         delegatorAddress,
-        validatorAddress,
+        validatorAddress: validatorAddress!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1956,7 +1964,7 @@ describe("tx.distribution", () => {
     const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
       {
         delegatorAddress,
-        validatorAddress,
+        validatorAddress: validatorAddress!,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1973,12 +1981,12 @@ describe("tx.distribution", () => {
     const { validators } = await accounts[0].secretjs.query.staking.validators({
       status: "",
     });
-    const onlineValidator = validators.find(
+    const onlineValidator = validators!.find(
       (v) => v.status === BondStatus.BOND_STATUS_BONDED,
     )!;
     const selfDelegator = bech32.encode(
       "secret",
-      bech32.decode(onlineValidator.operatorAddress).words,
+      bech32.decode(onlineValidator.operator_address!).words,
     );
     const selfDelegatorAccount = accounts.find(
       (a) => a.address === selfDelegator,
@@ -1987,7 +1995,7 @@ describe("tx.distribution", () => {
     const tx =
       await selfDelegatorAccount.secretjs.tx.distribution.withdrawValidatorCommission(
         {
-          validatorAddress: onlineValidator.operatorAddress,
+          validatorAddress: onlineValidator.operator_address!,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2004,12 +2012,12 @@ describe("tx.distribution", () => {
     const { validators } = await accounts[0].secretjs.query.staking.validators({
       status: "",
     });
-    const onlineValidator = validators.find(
+    const onlineValidator = validators!.find(
       (v) => v.status === BondStatus.BOND_STATUS_BONDED,
     )!;
     const selfDelegator = bech32.encode(
       "secret",
-      bech32.decode(onlineValidator.operatorAddress).words,
+      bech32.decode(onlineValidator.operator_address!).words,
     );
     const selfDelegatorAccount = accounts.find(
       (a) => a.address === selfDelegator,
@@ -2041,7 +2049,7 @@ describe("sanity", () => {
     // TODO fix this test
 
     let { stdout } = await exec(
-      `find "${__dirname}/../src/protobuf_stuff" -name msg.ts -or -name tx.ts -print0 | xargs -0 -n 1 grep -Po 'export interface Msg[A-Za-z]+' | grep -Po 'Msg.+' | grep -v Response | sort -u`,
+      `find "${__dirname}/../src/protobuf" -name msg.ts -or -name tx.ts -print0 | xargs -0 -n 1 grep -Po 'export interface Msg[A-Za-z]+' | grep -Po 'Msg.+' | grep -v Response | sort -u`,
     );
 
     const msgs = String(stdout)
@@ -2082,8 +2090,8 @@ describe("tx.feegrant", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const secretjsGrantee = await SecretNetworkClient.create({
-      grpcWebUrl: "http://localhost:9091",
+    const secretjsGrantee = new SecretNetworkClient({
+      url: "http://localhost:1317",
       chainId: "secretdev-1",
       wallet: newWallet,
       walletAddress: newWallet.address,
@@ -2150,16 +2158,16 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[1];
       const { secretjs: secretjsGrantee } = accounts[2];
 
-      const {
-        validators: [{ operatorAddress: validatorAddress }],
-      } = await secretjsGranter.query.staking.validators({ status: "" });
+      const [{ operator_address: validatorAddress }] = (
+        await secretjsGranter.query.staking.validators({ status: "" })
+      ).validators!;
 
       const tx = await secretjsGranter.tx.authz.grant(
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress],
+            allowList: [validatorAddress!],
             denyList: [],
             maxTokens: { amount: String(1_000_000), denom: "uscrt" },
             authorizationType: StakeAuthorizationType.Delegate,
@@ -2231,16 +2239,16 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[4];
       const { secretjs: secretjsGrantee } = accounts[5];
 
-      const {
-        validators: [{ operatorAddress: validatorAddress }],
-      } = await secretjsGranter.query.staking.validators({ status: "" });
+      const [{ operator_address: validatorAddress }] = (
+        await secretjsGranter.query.staking.validators({ status: "" })
+      ).validators!;
 
       let tx = await secretjsGranter.tx.authz.grant(
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress],
+            allowList: [validatorAddress!],
             denyList: [],
             maxTokens: { amount: String(1_000_000), denom: "uscrt" },
             authorizationType: StakeAuthorizationType.Delegate,
@@ -2267,7 +2275,7 @@ describe("tx.authz", () => {
                 denom: "uscrt",
               },
               delegatorAddress: secretjsGranter.address,
-              validatorAddress,
+              validatorAddress: validatorAddress!,
             }),
           ],
         },
@@ -2388,16 +2396,16 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[7];
       const { secretjs: secretjsGrantee } = accounts[8];
 
-      const {
-        validators: [{ operatorAddress: validatorAddress }],
-      } = await secretjsGranter.query.staking.validators({ status: "" });
+      const [{ operator_address: validatorAddress }] = (
+        await secretjsGranter.query.staking.validators({ status: "" })
+      ).validators!;
 
       let tx = await secretjsGranter.tx.authz.grant(
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress],
+            allowList: [validatorAddress!],
             denyList: [],
             maxTokens: { amount: String(1_000_000), denom: "uscrt" },
             authorizationType: StakeAuthorizationType.Delegate,
@@ -2440,7 +2448,7 @@ describe("tx.authz", () => {
                 denom: "uscrt",
               },
               delegatorAddress: secretjsGranter.address,
-              validatorAddress,
+              validatorAddress: validatorAddress!,
             }),
           ],
         },
@@ -2675,8 +2683,8 @@ test("MetaMaskWallet", async () => {
 
   const wallet = await MetaMaskWallet.create(ethProvider, "blabla");
 
-  const secretjs = await SecretNetworkClient.create({
-    grpcWebUrl: "http://localhost:9091",
+  const secretjs = new SecretNetworkClient({
+    url: "http://localhost:1317",
     wallet: wallet,
     walletAddress: wallet.address,
     chainId: "secretdev-1",
@@ -2701,20 +2709,18 @@ test("MetaMaskWallet", async () => {
   }
   expect(txStore.code).toBe(TxResultCode.Success);
 
-  const codeId = Number(MsgStoreCodeResponse.decode(txStore.data[0]).codeId);
-  expect(codeId).toBe(
-    Number(getValueFromRawLog(txStore.rawLog, "message.code_id")),
-  );
+  const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).codeId;
+  expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 
-  const {
-    codeInfo: { codeHash },
-  } = await secretjs.query.compute.code(codeId);
+  const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+    code_id,
+  });
 
   const tx = await secretjs.tx.compute.instantiateContract(
     {
       sender: accounts[0].address,
-      codeId,
-      codeHash,
+      codeId: code_id,
+      codeHash: code_hash,
       initMsg: {
         name: "Secret SCRT",
         admin: accounts[0].address,

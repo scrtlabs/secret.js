@@ -1,10 +1,10 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import fs from "fs";
-import { SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
+import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+} from "../src/protobuf/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -31,8 +31,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -51,8 +51,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -64,7 +64,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -116,13 +116,12 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -207,13 +206,12 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -298,13 +296,12 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -389,13 +386,12 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -499,13 +495,12 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -566,7 +561,7 @@ describe("query.snip20", () => {
 
     const txQuery = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
       auth: { key: "hello" },
     });
 
@@ -594,13 +589,12 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -647,7 +641,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
     });
 
     expect(txQuery).toEqual({
@@ -681,13 +675,12 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -758,7 +751,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.GetAllowance({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
       owner: secretjs.address,
       spender: accounts[1].address,
       auth: { key: "hello" },
@@ -793,13 +786,12 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -868,7 +860,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.getTransactionHistory({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
       address: secretjs.address,
       auth: { key: "hello" },
       page_size: 10,

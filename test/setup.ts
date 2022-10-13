@@ -20,8 +20,8 @@
   //       const parsedAccount = JSON.parse(match[0]) as Account;
   //       parsedAccount.walletAmino = new AminoWallet(parsedAccount.mnemonic);
   //       parsedAccount.walletProto = new Wallet(parsedAccount.mnemonic);
-  //       parsedAccount.secretjs = await SecretNetworkClient.create({
-  //         grpcWebUrl: "http://localhost:9091",
+  //       parsedAccount.secretjs = new SecretNetworkClient({
+  //         url: "http://localhost:1317",
   //         wallet: parsedAccount.walletAmino,
   //         walletAddress: parsedAccount.address,
   //         chainId: "secretdev-1",
@@ -49,8 +49,8 @@
   //     mnemonic: wallet.mnemonic,
   //     walletAmino: wallet,
   //     walletProto: walletProto,
-  //     secretjs: await SecretNetworkClient.create({
-  //       grpcWebUrl: "http://localhost:9091",
+  //     secretjs: new SecretNetworkClient({
+  //       url: "http://localhost:1317",
   //       wallet: wallet,
   //       walletAddress: address,
   //       chainId: "secretdev-1",

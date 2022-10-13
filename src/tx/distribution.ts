@@ -33,7 +33,7 @@ export class MsgSetWithdrawAddress implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+          await import("../protobuf/cosmos/distribution/v1beta1/tx")
         ).MsgSetWithdrawAddress.encode(msgContent).finish(),
     };
   }
@@ -86,7 +86,7 @@ export class MsgWithdrawDelegatorReward implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+          await import("../protobuf/cosmos/distribution/v1beta1/tx")
         ).MsgWithdrawDelegatorReward.encode(msgContent).finish(),
     };
   }
@@ -127,7 +127,7 @@ export class MsgWithdrawValidatorCommission implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+          await import("../protobuf/cosmos/distribution/v1beta1/tx")
         ).MsgWithdrawValidatorCommission.encode(msgContent).finish(),
     };
   }
@@ -171,7 +171,7 @@ export class MsgFundCommunityPool implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx")
+          await import("../protobuf/cosmos/distribution/v1beta1/tx")
         ).MsgFundCommunityPool.encode(msgContent).finish(),
     };
   }

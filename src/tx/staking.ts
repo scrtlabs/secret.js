@@ -76,10 +76,8 @@ export class MsgCreateValidator implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    const { PubKey } = await import(
-      "../protobuf_stuff/cosmos/crypto/ed25519/keys"
-    );
-    const { Any } = await import("../protobuf_stuff/google/protobuf/any");
+    const { PubKey } = await import("../protobuf/cosmos/crypto/ed25519/keys");
+    const { Any } = await import("../protobuf/google/protobuf/any");
 
     const msgContent = {
       description: this.description,
@@ -113,7 +111,7 @@ export class MsgCreateValidator implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+          await import("../protobuf/cosmos/staking/v1beta1/tx")
         ).MsgCreateValidator.encode(msgContent).finish(),
     };
   }
@@ -178,7 +176,7 @@ export class MsgEditValidator implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     const { Description } = await import(
-      "../protobuf_stuff/cosmos/staking/v1beta1/staking"
+      "../protobuf/cosmos/staking/v1beta1/staking"
     );
 
     const msgContent = {
@@ -195,7 +193,7 @@ export class MsgEditValidator implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+          await import("../protobuf/cosmos/staking/v1beta1/tx")
         ).MsgEditValidator.encode(msgContent).finish(),
     };
   }
@@ -263,7 +261,7 @@ export class MsgDelegate implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+          await import("../protobuf/cosmos/staking/v1beta1/tx")
         ).MsgDelegate.encode(msgContent).finish(),
     };
   }
@@ -319,7 +317,7 @@ export class MsgBeginRedelegate implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+          await import("../protobuf/cosmos/staking/v1beta1/tx")
         ).MsgBeginRedelegate.encode(msgContent).finish(),
     };
   }
@@ -371,7 +369,7 @@ export class MsgUndelegate implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")
+          await import("../protobuf/cosmos/staking/v1beta1/tx")
         ).MsgUndelegate.encode(msgContent).finish(),
     };
   }

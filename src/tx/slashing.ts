@@ -23,7 +23,7 @@ export class MsgUnjail implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/slashing/v1beta1/tx")
+          await import("../protobuf/cosmos/slashing/v1beta1/tx")
         ).MsgUnjail.encode(msgContent).finish(),
     };
   }

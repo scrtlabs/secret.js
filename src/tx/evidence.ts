@@ -3,7 +3,7 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgSubmitEvidenceParams extends MsgParams {
   submitter: string;
-  evidence: import("../protobuf_stuff/google/protobuf/any").Any;
+  evidence: import("../protobuf/google/protobuf/any").Any;
 }
 
 /**

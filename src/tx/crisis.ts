@@ -17,7 +17,7 @@ export class MsgVerifyInvariant implements Msg {
       value: this.params,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/crisis/v1beta1/tx")
+          await import("../protobuf/cosmos/crisis/v1beta1/tx")
         ).MsgVerifyInvariant.encode(this.params).finish(),
     };
   }

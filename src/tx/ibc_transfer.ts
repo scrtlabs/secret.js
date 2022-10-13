@@ -69,7 +69,7 @@ export class MsgTransfer implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/ibc/applications/transfer/v1/tx")
+          await import("../protobuf/ibc/applications/transfer/v1/tx")
         ).MsgTransfer.encode(msgContent).finish(),
     };
   }

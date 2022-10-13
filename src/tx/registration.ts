@@ -23,7 +23,7 @@ export class RaAuthenticate implements Msg {
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/registration/v1beta1/msg")
+          await import("../protobuf/secret/registration/v1beta1/msg")
         ).RaAuthenticate.encode(msgContent).finish(),
     };
   }

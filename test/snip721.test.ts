@@ -1,17 +1,16 @@
 import { fromUtf8 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
 import fs from "fs";
 import {
   MsgExecuteContract,
   SecretNetworkClient,
-  Tx,
+  TxResponse,
   TxResultCode,
   Wallet,
 } from "../src";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+} from "../src/protobuf/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -38,8 +37,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -58,8 +57,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -71,7 +70,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -122,13 +121,12 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -255,13 +253,12 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -341,13 +338,12 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -451,13 +447,12 @@ describe("query.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeID({
+        code_id: codeId,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
@@ -549,7 +544,7 @@ describe("query.snip721", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     const tokens = await secretjs.query.snip721.GetOwnedTokens({
-      contract: { address: contractAddress, codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: { viewer: { viewing_key: "hello", address: accounts[0].address } },
     });
@@ -566,7 +561,7 @@ describe("query.snip721", () => {
     );
 
     const tokens2 = await secretjs.query.snip721.GetOwnedTokens({
-      contract: { address: contractAddress, codeHash },
+      contract: { address: contractAddress, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: { permit: permit },
     });

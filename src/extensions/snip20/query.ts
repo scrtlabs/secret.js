@@ -1,4 +1,5 @@
 import { ComputeQuerier } from "../../";
+import { Permit, ViewingKey } from "../access_control";
 import {
   GetAllowanceRequest,
   GetAllowanceRequestWithPermit,
@@ -15,7 +16,6 @@ import {
   TransactionHistoryResponse,
   TransferHistoryResponse,
 } from "./types";
-import { ViewingKey, Permit } from "../access_control";
 
 interface SecretContract {
   address: string;
