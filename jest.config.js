@@ -7,7 +7,6 @@ module.exports = {
   modulePathIgnorePatterns: ["dist", "scripts"],
   globalSetup: "<rootDir>/test/globalSetup.ts",
   globalTeardown: "<rootDir>/test/globalTeardown.js",
-  setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
   globals: {
     __SCRT_TEST_ACCOUNTS__: [],
   },
