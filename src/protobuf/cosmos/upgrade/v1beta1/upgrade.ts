@@ -43,7 +43,7 @@ export interface Plan {
    *
    * @deprecated
    */
-  upgradedClientState?: Any;
+  upgraded_client_state?: Any;
 }
 
 /**
@@ -83,7 +83,7 @@ function createBasePlan(): Plan {
     time: undefined,
     height: "0",
     info: "",
-    upgradedClientState: undefined,
+    upgraded_client_state: undefined,
   };
 }
 
@@ -101,9 +101,9 @@ export const Plan = {
     if (message.info !== "") {
       writer.uint32(34).string(message.info);
     }
-    if (message.upgradedClientState !== undefined) {
+    if (message.upgraded_client_state !== undefined) {
       Any.encode(
-        message.upgradedClientState,
+        message.upgraded_client_state,
         writer.uint32(42).fork(),
       ).ldelim();
     }
@@ -130,7 +130,7 @@ export const Plan = {
           message.info = reader.string();
           break;
         case 5:
-          message.upgradedClientState = Any.decode(reader, reader.uint32());
+          message.upgraded_client_state = Any.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -146,8 +146,8 @@ export const Plan = {
       time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
       height: isSet(object.height) ? String(object.height) : "0",
       info: isSet(object.info) ? String(object.info) : "",
-      upgradedClientState: isSet(object.upgradedClientState)
-        ? Any.fromJSON(object.upgradedClientState)
+      upgraded_client_state: isSet(object.upgraded_client_state)
+        ? Any.fromJSON(object.upgraded_client_state)
         : undefined,
     };
   },
@@ -159,9 +159,9 @@ export const Plan = {
       (obj.time = fromTimestamp(message.time).toISOString());
     message.height !== undefined && (obj.height = message.height);
     message.info !== undefined && (obj.info = message.info);
-    message.upgradedClientState !== undefined &&
-      (obj.upgradedClientState = message.upgradedClientState
-        ? Any.toJSON(message.upgradedClientState)
+    message.upgraded_client_state !== undefined &&
+      (obj.upgraded_client_state = message.upgraded_client_state
+        ? Any.toJSON(message.upgraded_client_state)
         : undefined);
     return obj;
   },
@@ -175,10 +175,10 @@ export const Plan = {
         : undefined;
     message.height = object.height ?? "0";
     message.info = object.info ?? "";
-    message.upgradedClientState =
-      object.upgradedClientState !== undefined &&
-      object.upgradedClientState !== null
-        ? Any.fromPartial(object.upgradedClientState)
+    message.upgraded_client_state =
+      object.upgraded_client_state !== undefined &&
+      object.upgraded_client_state !== null
+        ? Any.fromPartial(object.upgraded_client_state)
         : undefined;
     return message;
   },

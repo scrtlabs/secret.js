@@ -11,11 +11,11 @@ export const protobufPackage =
  */
 export interface Params {
   /** controller_enabled enables or disables the controller submodule. */
-  controllerEnabled: boolean;
+  controller_enabled: boolean;
 }
 
 function createBaseParams(): Params {
-  return { controllerEnabled: false };
+  return { controller_enabled: false };
 }
 
 export const Params = {
@@ -23,8 +23,8 @@ export const Params = {
     message: Params,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.controllerEnabled === true) {
-      writer.uint32(8).bool(message.controllerEnabled);
+    if (message.controller_enabled === true) {
+      writer.uint32(8).bool(message.controller_enabled);
     }
     return writer;
   },
@@ -37,7 +37,7 @@ export const Params = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.controllerEnabled = reader.bool();
+          message.controller_enabled = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -49,22 +49,22 @@ export const Params = {
 
   fromJSON(object: any): Params {
     return {
-      controllerEnabled: isSet(object.controllerEnabled)
-        ? Boolean(object.controllerEnabled)
+      controller_enabled: isSet(object.controller_enabled)
+        ? Boolean(object.controller_enabled)
         : false,
     };
   },
 
   toJSON(message: Params): unknown {
     const obj: any = {};
-    message.controllerEnabled !== undefined &&
-      (obj.controllerEnabled = message.controllerEnabled);
+    message.controller_enabled !== undefined &&
+      (obj.controller_enabled = message.controller_enabled);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
     const message = createBaseParams();
-    message.controllerEnabled = object.controllerEnabled ?? false;
+    message.controller_enabled = object.controller_enabled ?? false;
     return message;
   },
 };

@@ -12,9 +12,9 @@ export interface Metadata {
   /** version defines the ICS27 protocol version */
   version: string;
   /** controller_connection_id is the connection identifier associated with the controller chain */
-  controllerConnectionId: string;
+  controller_connection_id: string;
   /** host_connection_id is the connection identifier associated with the host chain */
-  hostConnectionId: string;
+  host_connection_id: string;
   /**
    * address defines the interchain account address to be fulfilled upon the OnChanOpenTry handshake step
    * NOTE: the address field is empty on the OnChanOpenInit handshake step
@@ -23,17 +23,17 @@ export interface Metadata {
   /** encoding defines the supported codec format */
   encoding: string;
   /** tx_type defines the type of transactions the interchain account can execute */
-  txType: string;
+  tx_type: string;
 }
 
 function createBaseMetadata(): Metadata {
   return {
     version: "",
-    controllerConnectionId: "",
-    hostConnectionId: "",
+    controller_connection_id: "",
+    host_connection_id: "",
     address: "",
     encoding: "",
-    txType: "",
+    tx_type: "",
   };
 }
 
@@ -45,11 +45,11 @@ export const Metadata = {
     if (message.version !== "") {
       writer.uint32(10).string(message.version);
     }
-    if (message.controllerConnectionId !== "") {
-      writer.uint32(18).string(message.controllerConnectionId);
+    if (message.controller_connection_id !== "") {
+      writer.uint32(18).string(message.controller_connection_id);
     }
-    if (message.hostConnectionId !== "") {
-      writer.uint32(26).string(message.hostConnectionId);
+    if (message.host_connection_id !== "") {
+      writer.uint32(26).string(message.host_connection_id);
     }
     if (message.address !== "") {
       writer.uint32(34).string(message.address);
@@ -57,8 +57,8 @@ export const Metadata = {
     if (message.encoding !== "") {
       writer.uint32(42).string(message.encoding);
     }
-    if (message.txType !== "") {
-      writer.uint32(50).string(message.txType);
+    if (message.tx_type !== "") {
+      writer.uint32(50).string(message.tx_type);
     }
     return writer;
   },
@@ -74,10 +74,10 @@ export const Metadata = {
           message.version = reader.string();
           break;
         case 2:
-          message.controllerConnectionId = reader.string();
+          message.controller_connection_id = reader.string();
           break;
         case 3:
-          message.hostConnectionId = reader.string();
+          message.host_connection_id = reader.string();
           break;
         case 4:
           message.address = reader.string();
@@ -86,7 +86,7 @@ export const Metadata = {
           message.encoding = reader.string();
           break;
         case 6:
-          message.txType = reader.string();
+          message.tx_type = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -99,39 +99,39 @@ export const Metadata = {
   fromJSON(object: any): Metadata {
     return {
       version: isSet(object.version) ? String(object.version) : "",
-      controllerConnectionId: isSet(object.controllerConnectionId)
-        ? String(object.controllerConnectionId)
+      controller_connection_id: isSet(object.controller_connection_id)
+        ? String(object.controller_connection_id)
         : "",
-      hostConnectionId: isSet(object.hostConnectionId)
-        ? String(object.hostConnectionId)
+      host_connection_id: isSet(object.host_connection_id)
+        ? String(object.host_connection_id)
         : "",
       address: isSet(object.address) ? String(object.address) : "",
       encoding: isSet(object.encoding) ? String(object.encoding) : "",
-      txType: isSet(object.txType) ? String(object.txType) : "",
+      tx_type: isSet(object.tx_type) ? String(object.tx_type) : "",
     };
   },
 
   toJSON(message: Metadata): unknown {
     const obj: any = {};
     message.version !== undefined && (obj.version = message.version);
-    message.controllerConnectionId !== undefined &&
-      (obj.controllerConnectionId = message.controllerConnectionId);
-    message.hostConnectionId !== undefined &&
-      (obj.hostConnectionId = message.hostConnectionId);
+    message.controller_connection_id !== undefined &&
+      (obj.controller_connection_id = message.controller_connection_id);
+    message.host_connection_id !== undefined &&
+      (obj.host_connection_id = message.host_connection_id);
     message.address !== undefined && (obj.address = message.address);
     message.encoding !== undefined && (obj.encoding = message.encoding);
-    message.txType !== undefined && (obj.txType = message.txType);
+    message.tx_type !== undefined && (obj.tx_type = message.tx_type);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Metadata>, I>>(object: I): Metadata {
     const message = createBaseMetadata();
     message.version = object.version ?? "";
-    message.controllerConnectionId = object.controllerConnectionId ?? "";
-    message.hostConnectionId = object.hostConnectionId ?? "";
+    message.controller_connection_id = object.controller_connection_id ?? "";
+    message.host_connection_id = object.host_connection_id ?? "";
     message.address = object.address ?? "";
     message.encoding = object.encoding ?? "";
-    message.txType = object.txType ?? "";
+    message.tx_type = object.tx_type ?? "";
     return message;
   },
 };

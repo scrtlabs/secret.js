@@ -49,7 +49,7 @@ export interface QueryUpgradedConsensusStateRequest {
    * last height of the current chain must be sent in request
    * as this is the height under which next consensus state is stored
    */
-  lastHeight: string;
+  last_height: string;
 }
 
 /**
@@ -60,7 +60,7 @@ export interface QueryUpgradedConsensusStateRequest {
  */
 export interface QueryUpgradedConsensusStateResponse {
   /** Since: cosmos-sdk 0.43 */
-  upgradedConsensusState: Uint8Array;
+  upgraded_consensus_state: Uint8Array;
 }
 
 /**
@@ -75,7 +75,7 @@ export interface QueryModuleVersionsRequest {
    * consensus version from state. Leaving this empty will
    * fetch the full list of module versions from state
    */
-  moduleName: string;
+  module_name: string;
 }
 
 /**
@@ -86,7 +86,7 @@ export interface QueryModuleVersionsRequest {
  */
 export interface QueryModuleVersionsResponse {
   /** module_versions is a list of module names with their consensus versions. */
-  moduleVersions: ModuleVersion[];
+  module_versions: ModuleVersion[];
 }
 
 function createBaseQueryCurrentPlanRequest(): QueryCurrentPlanRequest {
@@ -312,7 +312,7 @@ export const QueryAppliedPlanResponse = {
 };
 
 function createBaseQueryUpgradedConsensusStateRequest(): QueryUpgradedConsensusStateRequest {
-  return { lastHeight: "0" };
+  return { last_height: "0" };
 }
 
 export const QueryUpgradedConsensusStateRequest = {
@@ -320,8 +320,8 @@ export const QueryUpgradedConsensusStateRequest = {
     message: QueryUpgradedConsensusStateRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.lastHeight !== "0") {
-      writer.uint32(8).int64(message.lastHeight);
+    if (message.last_height !== "0") {
+      writer.uint32(8).int64(message.last_height);
     }
     return writer;
   },
@@ -337,7 +337,7 @@ export const QueryUpgradedConsensusStateRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.lastHeight = longToString(reader.int64() as Long);
+          message.last_height = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -349,13 +349,14 @@ export const QueryUpgradedConsensusStateRequest = {
 
   fromJSON(object: any): QueryUpgradedConsensusStateRequest {
     return {
-      lastHeight: isSet(object.lastHeight) ? String(object.lastHeight) : "0",
+      last_height: isSet(object.last_height) ? String(object.last_height) : "0",
     };
   },
 
   toJSON(message: QueryUpgradedConsensusStateRequest): unknown {
     const obj: any = {};
-    message.lastHeight !== undefined && (obj.lastHeight = message.lastHeight);
+    message.last_height !== undefined &&
+      (obj.last_height = message.last_height);
     return obj;
   },
 
@@ -363,13 +364,13 @@ export const QueryUpgradedConsensusStateRequest = {
     I extends Exact<DeepPartial<QueryUpgradedConsensusStateRequest>, I>,
   >(object: I): QueryUpgradedConsensusStateRequest {
     const message = createBaseQueryUpgradedConsensusStateRequest();
-    message.lastHeight = object.lastHeight ?? "0";
+    message.last_height = object.last_height ?? "0";
     return message;
   },
 };
 
 function createBaseQueryUpgradedConsensusStateResponse(): QueryUpgradedConsensusStateResponse {
-  return { upgradedConsensusState: new Uint8Array() };
+  return { upgraded_consensus_state: new Uint8Array() };
 }
 
 export const QueryUpgradedConsensusStateResponse = {
@@ -377,8 +378,8 @@ export const QueryUpgradedConsensusStateResponse = {
     message: QueryUpgradedConsensusStateResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.upgradedConsensusState.length !== 0) {
-      writer.uint32(18).bytes(message.upgradedConsensusState);
+    if (message.upgraded_consensus_state.length !== 0) {
+      writer.uint32(18).bytes(message.upgraded_consensus_state);
     }
     return writer;
   },
@@ -394,7 +395,7 @@ export const QueryUpgradedConsensusStateResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
-          message.upgradedConsensusState = reader.bytes();
+          message.upgraded_consensus_state = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -406,18 +407,18 @@ export const QueryUpgradedConsensusStateResponse = {
 
   fromJSON(object: any): QueryUpgradedConsensusStateResponse {
     return {
-      upgradedConsensusState: isSet(object.upgradedConsensusState)
-        ? bytesFromBase64(object.upgradedConsensusState)
+      upgraded_consensus_state: isSet(object.upgraded_consensus_state)
+        ? bytesFromBase64(object.upgraded_consensus_state)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: QueryUpgradedConsensusStateResponse): unknown {
     const obj: any = {};
-    message.upgradedConsensusState !== undefined &&
-      (obj.upgradedConsensusState = base64FromBytes(
-        message.upgradedConsensusState !== undefined
-          ? message.upgradedConsensusState
+    message.upgraded_consensus_state !== undefined &&
+      (obj.upgraded_consensus_state = base64FromBytes(
+        message.upgraded_consensus_state !== undefined
+          ? message.upgraded_consensus_state
           : new Uint8Array(),
       ));
     return obj;
@@ -427,14 +428,14 @@ export const QueryUpgradedConsensusStateResponse = {
     I extends Exact<DeepPartial<QueryUpgradedConsensusStateResponse>, I>,
   >(object: I): QueryUpgradedConsensusStateResponse {
     const message = createBaseQueryUpgradedConsensusStateResponse();
-    message.upgradedConsensusState =
-      object.upgradedConsensusState ?? new Uint8Array();
+    message.upgraded_consensus_state =
+      object.upgraded_consensus_state ?? new Uint8Array();
     return message;
   },
 };
 
 function createBaseQueryModuleVersionsRequest(): QueryModuleVersionsRequest {
-  return { moduleName: "" };
+  return { module_name: "" };
 }
 
 export const QueryModuleVersionsRequest = {
@@ -442,8 +443,8 @@ export const QueryModuleVersionsRequest = {
     message: QueryModuleVersionsRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.moduleName !== "") {
-      writer.uint32(10).string(message.moduleName);
+    if (message.module_name !== "") {
+      writer.uint32(10).string(message.module_name);
     }
     return writer;
   },
@@ -459,7 +460,7 @@ export const QueryModuleVersionsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.moduleName = reader.string();
+          message.module_name = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -471,13 +472,14 @@ export const QueryModuleVersionsRequest = {
 
   fromJSON(object: any): QueryModuleVersionsRequest {
     return {
-      moduleName: isSet(object.moduleName) ? String(object.moduleName) : "",
+      module_name: isSet(object.module_name) ? String(object.module_name) : "",
     };
   },
 
   toJSON(message: QueryModuleVersionsRequest): unknown {
     const obj: any = {};
-    message.moduleName !== undefined && (obj.moduleName = message.moduleName);
+    message.module_name !== undefined &&
+      (obj.module_name = message.module_name);
     return obj;
   },
 
@@ -485,13 +487,13 @@ export const QueryModuleVersionsRequest = {
     object: I,
   ): QueryModuleVersionsRequest {
     const message = createBaseQueryModuleVersionsRequest();
-    message.moduleName = object.moduleName ?? "";
+    message.module_name = object.module_name ?? "";
     return message;
   },
 };
 
 function createBaseQueryModuleVersionsResponse(): QueryModuleVersionsResponse {
-  return { moduleVersions: [] };
+  return { module_versions: [] };
 }
 
 export const QueryModuleVersionsResponse = {
@@ -499,7 +501,7 @@ export const QueryModuleVersionsResponse = {
     message: QueryModuleVersionsResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.moduleVersions) {
+    for (const v of message.module_versions) {
       ModuleVersion.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -516,7 +518,7 @@ export const QueryModuleVersionsResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.moduleVersions.push(
+          message.module_versions.push(
             ModuleVersion.decode(reader, reader.uint32()),
           );
           break;
@@ -530,20 +532,20 @@ export const QueryModuleVersionsResponse = {
 
   fromJSON(object: any): QueryModuleVersionsResponse {
     return {
-      moduleVersions: Array.isArray(object?.moduleVersions)
-        ? object.moduleVersions.map((e: any) => ModuleVersion.fromJSON(e))
+      module_versions: Array.isArray(object?.module_versions)
+        ? object.module_versions.map((e: any) => ModuleVersion.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: QueryModuleVersionsResponse): unknown {
     const obj: any = {};
-    if (message.moduleVersions) {
-      obj.moduleVersions = message.moduleVersions.map((e) =>
+    if (message.module_versions) {
+      obj.module_versions = message.module_versions.map((e) =>
         e ? ModuleVersion.toJSON(e) : undefined,
       );
     } else {
-      obj.moduleVersions = [];
+      obj.module_versions = [];
     }
     return obj;
   },
@@ -552,8 +554,8 @@ export const QueryModuleVersionsResponse = {
     object: I,
   ): QueryModuleVersionsResponse {
     const message = createBaseQueryModuleVersionsResponse();
-    message.moduleVersions =
-      object.moduleVersions?.map((e) => ModuleVersion.fromPartial(e)) || [];
+    message.module_versions =
+      object.module_versions?.map((e) => ModuleVersion.fromPartial(e)) || [];
     return message;
   },
 };
@@ -561,11 +563,11 @@ export const QueryModuleVersionsResponse = {
 /** Query defines the gRPC upgrade querier service. */
 export interface Query {
   /** CurrentPlan queries the current upgrade plan. */
-  currentPlan(
+  CurrentPlan(
     request: QueryCurrentPlanRequest,
   ): Promise<QueryCurrentPlanResponse>;
   /** AppliedPlan queries a previously applied upgrade plan by its name. */
-  appliedPlan(
+  AppliedPlan(
     request: QueryAppliedPlanRequest,
   ): Promise<QueryAppliedPlanResponse>;
   /**
@@ -578,7 +580,7 @@ export interface Query {
    *
    * @deprecated
    */
-  upgradedConsensusState(
+  UpgradedConsensusState(
     request: QueryUpgradedConsensusStateRequest,
   ): Promise<QueryUpgradedConsensusStateResponse>;
   /**
@@ -586,9 +588,83 @@ export interface Query {
    *
    * Since: cosmos-sdk 0.43
    */
-  moduleVersions(
+  ModuleVersions(
     request: QueryModuleVersionsRequest,
   ): Promise<QueryModuleVersionsResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.CurrentPlan = this.CurrentPlan.bind(this);
+    this.AppliedPlan = this.AppliedPlan.bind(this);
+    this.UpgradedConsensusState = this.UpgradedConsensusState.bind(this);
+    this.ModuleVersions = this.ModuleVersions.bind(this);
+  }
+  CurrentPlan(
+    request: QueryCurrentPlanRequest,
+  ): Promise<QueryCurrentPlanResponse> {
+    const data = QueryCurrentPlanRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.upgrade.v1beta1.Query",
+      "CurrentPlan",
+      data,
+    );
+    return promise.then((data) =>
+      QueryCurrentPlanResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  AppliedPlan(
+    request: QueryAppliedPlanRequest,
+  ): Promise<QueryAppliedPlanResponse> {
+    const data = QueryAppliedPlanRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.upgrade.v1beta1.Query",
+      "AppliedPlan",
+      data,
+    );
+    return promise.then((data) =>
+      QueryAppliedPlanResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  UpgradedConsensusState(
+    request: QueryUpgradedConsensusStateRequest,
+  ): Promise<QueryUpgradedConsensusStateResponse> {
+    const data = QueryUpgradedConsensusStateRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.upgrade.v1beta1.Query",
+      "UpgradedConsensusState",
+      data,
+    );
+    return promise.then((data) =>
+      QueryUpgradedConsensusStateResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ModuleVersions(
+    request: QueryModuleVersionsRequest,
+  ): Promise<QueryModuleVersionsResponse> {
+    const data = QueryModuleVersionsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.upgrade.v1beta1.Query",
+      "ModuleVersions",
+      data,
+    );
+    return promise.then((data) =>
+      QueryModuleVersionsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

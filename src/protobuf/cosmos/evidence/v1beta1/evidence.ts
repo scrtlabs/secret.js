@@ -13,11 +13,11 @@ export interface Equivocation {
   height: string;
   time?: Timestamp;
   power: string;
-  consensusAddress: string;
+  consensus_address: string;
 }
 
 function createBaseEquivocation(): Equivocation {
-  return { height: "0", time: undefined, power: "0", consensusAddress: "" };
+  return { height: "0", time: undefined, power: "0", consensus_address: "" };
 }
 
 export const Equivocation = {
@@ -34,8 +34,8 @@ export const Equivocation = {
     if (message.power !== "0") {
       writer.uint32(24).int64(message.power);
     }
-    if (message.consensusAddress !== "") {
-      writer.uint32(34).string(message.consensusAddress);
+    if (message.consensus_address !== "") {
+      writer.uint32(34).string(message.consensus_address);
     }
     return writer;
   },
@@ -57,7 +57,7 @@ export const Equivocation = {
           message.power = longToString(reader.int64() as Long);
           break;
         case 4:
-          message.consensusAddress = reader.string();
+          message.consensus_address = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -72,8 +72,8 @@ export const Equivocation = {
       height: isSet(object.height) ? String(object.height) : "0",
       time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
       power: isSet(object.power) ? String(object.power) : "0",
-      consensusAddress: isSet(object.consensusAddress)
-        ? String(object.consensusAddress)
+      consensus_address: isSet(object.consensus_address)
+        ? String(object.consensus_address)
         : "",
     };
   },
@@ -84,8 +84,8 @@ export const Equivocation = {
     message.time !== undefined &&
       (obj.time = fromTimestamp(message.time).toISOString());
     message.power !== undefined && (obj.power = message.power);
-    message.consensusAddress !== undefined &&
-      (obj.consensusAddress = message.consensusAddress);
+    message.consensus_address !== undefined &&
+      (obj.consensus_address = message.consensus_address);
     return obj;
   },
 
@@ -99,7 +99,7 @@ export const Equivocation = {
         ? Timestamp.fromPartial(object.time)
         : undefined;
     message.power = object.power ?? "0";
-    message.consensusAddress = object.consensusAddress ?? "";
+    message.consensus_address = object.consensus_address ?? "";
     return message;
   },
 };

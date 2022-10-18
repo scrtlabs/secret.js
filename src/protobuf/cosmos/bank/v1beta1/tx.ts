@@ -8,8 +8,8 @@ export const protobufPackage = "cosmos.bank.v1beta1";
 
 /** MsgSend represents a message to send coins from one account to another. */
 export interface MsgSend {
-  fromAddress: string;
-  toAddress: string;
+  from_address: string;
+  to_address: string;
   amount: Coin[];
 }
 
@@ -26,7 +26,7 @@ export interface MsgMultiSend {
 export interface MsgMultiSendResponse {}
 
 function createBaseMsgSend(): MsgSend {
-  return { fromAddress: "", toAddress: "", amount: [] };
+  return { from_address: "", to_address: "", amount: [] };
 }
 
 export const MsgSend = {
@@ -34,11 +34,11 @@ export const MsgSend = {
     message: MsgSend,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.fromAddress !== "") {
-      writer.uint32(10).string(message.fromAddress);
+    if (message.from_address !== "") {
+      writer.uint32(10).string(message.from_address);
     }
-    if (message.toAddress !== "") {
-      writer.uint32(18).string(message.toAddress);
+    if (message.to_address !== "") {
+      writer.uint32(18).string(message.to_address);
     }
     for (const v of message.amount) {
       Coin.encode(v!, writer.uint32(26).fork()).ldelim();
@@ -54,10 +54,10 @@ export const MsgSend = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.fromAddress = reader.string();
+          message.from_address = reader.string();
           break;
         case 2:
-          message.toAddress = reader.string();
+          message.to_address = reader.string();
           break;
         case 3:
           message.amount.push(Coin.decode(reader, reader.uint32()));
@@ -72,8 +72,10 @@ export const MsgSend = {
 
   fromJSON(object: any): MsgSend {
     return {
-      fromAddress: isSet(object.fromAddress) ? String(object.fromAddress) : "",
-      toAddress: isSet(object.toAddress) ? String(object.toAddress) : "",
+      from_address: isSet(object.from_address)
+        ? String(object.from_address)
+        : "",
+      to_address: isSet(object.to_address) ? String(object.to_address) : "",
       amount: Array.isArray(object?.amount)
         ? object.amount.map((e: any) => Coin.fromJSON(e))
         : [],
@@ -82,9 +84,9 @@ export const MsgSend = {
 
   toJSON(message: MsgSend): unknown {
     const obj: any = {};
-    message.fromAddress !== undefined &&
-      (obj.fromAddress = message.fromAddress);
-    message.toAddress !== undefined && (obj.toAddress = message.toAddress);
+    message.from_address !== undefined &&
+      (obj.from_address = message.from_address);
+    message.to_address !== undefined && (obj.to_address = message.to_address);
     if (message.amount) {
       obj.amount = message.amount.map((e) => (e ? Coin.toJSON(e) : undefined));
     } else {
@@ -95,8 +97,8 @@ export const MsgSend = {
 
   fromPartial<I extends Exact<DeepPartial<MsgSend>, I>>(object: I): MsgSend {
     const message = createBaseMsgSend();
-    message.fromAddress = object.fromAddress ?? "";
-    message.toAddress = object.toAddress ?? "";
+    message.from_address = object.from_address ?? "";
+    message.to_address = object.to_address ?? "";
     message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
@@ -273,9 +275,43 @@ export const MsgMultiSendResponse = {
 /** Msg defines the bank Msg service. */
 export interface Msg {
   /** Send defines a method for sending coins from one account to another account. */
-  send(request: MsgSend): Promise<MsgSendResponse>;
+  Send(request: MsgSend): Promise<MsgSendResponse>;
   /** MultiSend defines a method for sending coins from some accounts to other accounts. */
-  multiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse>;
+  MultiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Send = this.Send.bind(this);
+    this.MultiSend = this.MultiSend.bind(this);
+  }
+  Send(request: MsgSend): Promise<MsgSendResponse> {
+    const data = MsgSend.encode(request).finish();
+    const promise = this.rpc.request("cosmos.bank.v1beta1.Msg", "Send", data);
+    return promise.then((data) => MsgSendResponse.decode(new _m0.Reader(data)));
+  }
+
+  MultiSend(request: MsgMultiSend): Promise<MsgMultiSendResponse> {
+    const data = MsgMultiSend.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.bank.v1beta1.Msg",
+      "MultiSend",
+      data,
+    );
+    return promise.then((data) =>
+      MsgMultiSendResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

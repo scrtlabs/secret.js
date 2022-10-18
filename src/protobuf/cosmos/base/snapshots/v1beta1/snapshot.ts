@@ -16,7 +16,7 @@ export interface Snapshot {
 /** Metadata contains SDK-specific snapshot metadata. */
 export interface Metadata {
   /** SHA-256 chunk hashes */
-  chunkHashes: Uint8Array[];
+  chunk_hashes: Uint8Array[];
 }
 
 /** SnapshotItem is an item contained in a rootmulti.Store snapshot. */
@@ -24,7 +24,7 @@ export interface SnapshotItem {
   store?: SnapshotStoreItem | undefined;
   iavl?: SnapshotIAVLItem | undefined;
   extension?: SnapshotExtensionMeta | undefined;
-  extensionPayload?: SnapshotExtensionPayload | undefined;
+  extension_payload?: SnapshotExtensionPayload | undefined;
 }
 
 /** SnapshotStoreItem contains metadata about a snapshotted store. */
@@ -161,7 +161,7 @@ export const Snapshot = {
 };
 
 function createBaseMetadata(): Metadata {
-  return { chunkHashes: [] };
+  return { chunk_hashes: [] };
 }
 
 export const Metadata = {
@@ -169,7 +169,7 @@ export const Metadata = {
     message: Metadata,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.chunkHashes) {
+    for (const v of message.chunk_hashes) {
       writer.uint32(10).bytes(v!);
     }
     return writer;
@@ -183,7 +183,7 @@ export const Metadata = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.chunkHashes.push(reader.bytes());
+          message.chunk_hashes.push(reader.bytes());
           break;
         default:
           reader.skipType(tag & 7);
@@ -195,27 +195,27 @@ export const Metadata = {
 
   fromJSON(object: any): Metadata {
     return {
-      chunkHashes: Array.isArray(object?.chunkHashes)
-        ? object.chunkHashes.map((e: any) => bytesFromBase64(e))
+      chunk_hashes: Array.isArray(object?.chunk_hashes)
+        ? object.chunk_hashes.map((e: any) => bytesFromBase64(e))
         : [],
     };
   },
 
   toJSON(message: Metadata): unknown {
     const obj: any = {};
-    if (message.chunkHashes) {
-      obj.chunkHashes = message.chunkHashes.map((e) =>
+    if (message.chunk_hashes) {
+      obj.chunk_hashes = message.chunk_hashes.map((e) =>
         base64FromBytes(e !== undefined ? e : new Uint8Array()),
       );
     } else {
-      obj.chunkHashes = [];
+      obj.chunk_hashes = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Metadata>, I>>(object: I): Metadata {
     const message = createBaseMetadata();
-    message.chunkHashes = object.chunkHashes?.map((e) => e) || [];
+    message.chunk_hashes = object.chunk_hashes?.map((e) => e) || [];
     return message;
   },
 };
@@ -225,7 +225,7 @@ function createBaseSnapshotItem(): SnapshotItem {
     store: undefined,
     iavl: undefined,
     extension: undefined,
-    extensionPayload: undefined,
+    extension_payload: undefined,
   };
 }
 
@@ -249,9 +249,9 @@ export const SnapshotItem = {
         writer.uint32(26).fork(),
       ).ldelim();
     }
-    if (message.extensionPayload !== undefined) {
+    if (message.extension_payload !== undefined) {
       SnapshotExtensionPayload.encode(
-        message.extensionPayload,
+        message.extension_payload,
         writer.uint32(34).fork(),
       ).ldelim();
     }
@@ -278,7 +278,7 @@ export const SnapshotItem = {
           );
           break;
         case 4:
-          message.extensionPayload = SnapshotExtensionPayload.decode(
+          message.extension_payload = SnapshotExtensionPayload.decode(
             reader,
             reader.uint32(),
           );
@@ -302,8 +302,8 @@ export const SnapshotItem = {
       extension: isSet(object.extension)
         ? SnapshotExtensionMeta.fromJSON(object.extension)
         : undefined,
-      extensionPayload: isSet(object.extensionPayload)
-        ? SnapshotExtensionPayload.fromJSON(object.extensionPayload)
+      extension_payload: isSet(object.extension_payload)
+        ? SnapshotExtensionPayload.fromJSON(object.extension_payload)
         : undefined,
     };
   },
@@ -322,9 +322,9 @@ export const SnapshotItem = {
       (obj.extension = message.extension
         ? SnapshotExtensionMeta.toJSON(message.extension)
         : undefined);
-    message.extensionPayload !== undefined &&
-      (obj.extensionPayload = message.extensionPayload
-        ? SnapshotExtensionPayload.toJSON(message.extensionPayload)
+    message.extension_payload !== undefined &&
+      (obj.extension_payload = message.extension_payload
+        ? SnapshotExtensionPayload.toJSON(message.extension_payload)
         : undefined);
     return obj;
   },
@@ -345,9 +345,10 @@ export const SnapshotItem = {
       object.extension !== undefined && object.extension !== null
         ? SnapshotExtensionMeta.fromPartial(object.extension)
         : undefined;
-    message.extensionPayload =
-      object.extensionPayload !== undefined && object.extensionPayload !== null
-        ? SnapshotExtensionPayload.fromPartial(object.extensionPayload)
+    message.extension_payload =
+      object.extension_payload !== undefined &&
+      object.extension_payload !== null
+        ? SnapshotExtensionPayload.fromPartial(object.extension_payload)
         : undefined;
     return message;
   },

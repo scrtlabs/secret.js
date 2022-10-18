@@ -11,13 +11,13 @@ export const protobufPackage = "ibc.lightclients.localhost.v1";
  */
 export interface ClientState {
   /** self chain ID */
-  chainId: string;
+  chain_id: string;
   /** self latest block height */
   height?: Height;
 }
 
 function createBaseClientState(): ClientState {
-  return { chainId: "", height: undefined };
+  return { chain_id: "", height: undefined };
 }
 
 export const ClientState = {
@@ -25,8 +25,8 @@ export const ClientState = {
     message: ClientState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.chainId !== "") {
-      writer.uint32(10).string(message.chainId);
+    if (message.chain_id !== "") {
+      writer.uint32(10).string(message.chain_id);
     }
     if (message.height !== undefined) {
       Height.encode(message.height, writer.uint32(18).fork()).ldelim();
@@ -42,7 +42,7 @@ export const ClientState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.chainId = reader.string();
+          message.chain_id = reader.string();
           break;
         case 2:
           message.height = Height.decode(reader, reader.uint32());
@@ -57,14 +57,14 @@ export const ClientState = {
 
   fromJSON(object: any): ClientState {
     return {
-      chainId: isSet(object.chainId) ? String(object.chainId) : "",
+      chain_id: isSet(object.chain_id) ? String(object.chain_id) : "",
       height: isSet(object.height) ? Height.fromJSON(object.height) : undefined,
     };
   },
 
   toJSON(message: ClientState): unknown {
     const obj: any = {};
-    message.chainId !== undefined && (obj.chainId = message.chainId);
+    message.chain_id !== undefined && (obj.chain_id = message.chain_id);
     message.height !== undefined &&
       (obj.height = message.height ? Height.toJSON(message.height) : undefined);
     return obj;
@@ -74,7 +74,7 @@ export const ClientState = {
     object: I,
   ): ClientState {
     const message = createBaseClientState();
-    message.chainId = object.chainId ?? "";
+    message.chain_id = object.chain_id ?? "";
     message.height =
       object.height !== undefined && object.height !== null
         ? Height.fromPartial(object.height)

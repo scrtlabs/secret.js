@@ -68,7 +68,7 @@ export function stateToJSON(object: State): string {
  */
 export interface ConnectionEnd {
   /** client associated with this connection. */
-  clientId: string;
+  client_id: string;
   /**
    * IBC version which can be utilised to determine encodings or protocols for
    * channels or packets utilising this connection.
@@ -83,7 +83,7 @@ export interface ConnectionEnd {
    * packet-verification NOTE: delay period logic is only implemented by some
    * clients.
    */
-  delayPeriod: string;
+  delay_period: string;
 }
 
 /**
@@ -94,7 +94,7 @@ export interface IdentifiedConnection {
   /** connection identifier. */
   id: string;
   /** client associated with this connection. */
-  clientId: string;
+  client_id: string;
   /**
    * IBC version which can be utilised to determine encodings or protocols for
    * channels or packets utilising this connection
@@ -105,7 +105,7 @@ export interface IdentifiedConnection {
   /** counterparty chain associated with this connection. */
   counterparty?: Counterparty;
   /** delay period associated with this connection. */
-  delayPeriod: string;
+  delay_period: string;
 }
 
 /** Counterparty defines the counterparty chain associated with a connection end. */
@@ -114,12 +114,12 @@ export interface Counterparty {
    * identifies the client on the counterparty chain associated with a given
    * connection.
    */
-  clientId: string;
+  client_id: string;
   /**
    * identifies the connection end on the counterparty chain associated with a
    * given connection.
    */
-  connectionId: string;
+  connection_id: string;
   /** commitment merkle prefix of the counterparty chain. */
   prefix?: MerklePrefix;
 }
@@ -133,7 +133,7 @@ export interface ClientPaths {
 /** ConnectionPaths define all the connection paths for a given client state. */
 export interface ConnectionPaths {
   /** client state unique identifier */
-  clientId: string;
+  client_id: string;
   /** list of connection paths */
   paths: string[];
 }
@@ -156,16 +156,16 @@ export interface Params {
    * largest amount of time that the chain might reasonably take to produce the next block under normal operating
    * conditions. A safe choice is 3-5x the expected time per block.
    */
-  maxExpectedTimePerBlock: string;
+  max_expected_time_per_block: string;
 }
 
 function createBaseConnectionEnd(): ConnectionEnd {
   return {
-    clientId: "",
+    client_id: "",
     versions: [],
     state: 0,
     counterparty: undefined,
-    delayPeriod: "0",
+    delay_period: "0",
   };
 }
 
@@ -174,8 +174,8 @@ export const ConnectionEnd = {
     message: ConnectionEnd,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.clientId !== "") {
-      writer.uint32(10).string(message.clientId);
+    if (message.client_id !== "") {
+      writer.uint32(10).string(message.client_id);
     }
     for (const v of message.versions) {
       Version.encode(v!, writer.uint32(18).fork()).ldelim();
@@ -189,8 +189,8 @@ export const ConnectionEnd = {
         writer.uint32(34).fork(),
       ).ldelim();
     }
-    if (message.delayPeriod !== "0") {
-      writer.uint32(40).uint64(message.delayPeriod);
+    if (message.delay_period !== "0") {
+      writer.uint32(40).uint64(message.delay_period);
     }
     return writer;
   },
@@ -203,7 +203,7 @@ export const ConnectionEnd = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.clientId = reader.string();
+          message.client_id = reader.string();
           break;
         case 2:
           message.versions.push(Version.decode(reader, reader.uint32()));
@@ -215,7 +215,7 @@ export const ConnectionEnd = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 5:
-          message.delayPeriod = longToString(reader.uint64() as Long);
+          message.delay_period = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -227,7 +227,7 @@ export const ConnectionEnd = {
 
   fromJSON(object: any): ConnectionEnd {
     return {
-      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      client_id: isSet(object.client_id) ? String(object.client_id) : "",
       versions: Array.isArray(object?.versions)
         ? object.versions.map((e: any) => Version.fromJSON(e))
         : [],
@@ -235,13 +235,15 @@ export const ConnectionEnd = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
+      delay_period: isSet(object.delay_period)
+        ? String(object.delay_period)
+        : "0",
     };
   },
 
   toJSON(message: ConnectionEnd): unknown {
     const obj: any = {};
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.client_id !== undefined && (obj.client_id = message.client_id);
     if (message.versions) {
       obj.versions = message.versions.map((e) =>
         e ? Version.toJSON(e) : undefined,
@@ -254,8 +256,8 @@ export const ConnectionEnd = {
       (obj.counterparty = message.counterparty
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
-    message.delayPeriod !== undefined &&
-      (obj.delayPeriod = message.delayPeriod);
+    message.delay_period !== undefined &&
+      (obj.delay_period = message.delay_period);
     return obj;
   },
 
@@ -263,7 +265,7 @@ export const ConnectionEnd = {
     object: I,
   ): ConnectionEnd {
     const message = createBaseConnectionEnd();
-    message.clientId = object.clientId ?? "";
+    message.client_id = object.client_id ?? "";
     message.versions =
       object.versions?.map((e) => Version.fromPartial(e)) || [];
     message.state = object.state ?? 0;
@@ -271,7 +273,7 @@ export const ConnectionEnd = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.delayPeriod = object.delayPeriod ?? "0";
+    message.delay_period = object.delay_period ?? "0";
     return message;
   },
 };
@@ -279,11 +281,11 @@ export const ConnectionEnd = {
 function createBaseIdentifiedConnection(): IdentifiedConnection {
   return {
     id: "",
-    clientId: "",
+    client_id: "",
     versions: [],
     state: 0,
     counterparty: undefined,
-    delayPeriod: "0",
+    delay_period: "0",
   };
 }
 
@@ -295,8 +297,8 @@ export const IdentifiedConnection = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.clientId !== "") {
-      writer.uint32(18).string(message.clientId);
+    if (message.client_id !== "") {
+      writer.uint32(18).string(message.client_id);
     }
     for (const v of message.versions) {
       Version.encode(v!, writer.uint32(26).fork()).ldelim();
@@ -310,8 +312,8 @@ export const IdentifiedConnection = {
         writer.uint32(42).fork(),
       ).ldelim();
     }
-    if (message.delayPeriod !== "0") {
-      writer.uint32(48).uint64(message.delayPeriod);
+    if (message.delay_period !== "0") {
+      writer.uint32(48).uint64(message.delay_period);
     }
     return writer;
   },
@@ -330,7 +332,7 @@ export const IdentifiedConnection = {
           message.id = reader.string();
           break;
         case 2:
-          message.clientId = reader.string();
+          message.client_id = reader.string();
           break;
         case 3:
           message.versions.push(Version.decode(reader, reader.uint32()));
@@ -342,7 +344,7 @@ export const IdentifiedConnection = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 6:
-          message.delayPeriod = longToString(reader.uint64() as Long);
+          message.delay_period = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -355,7 +357,7 @@ export const IdentifiedConnection = {
   fromJSON(object: any): IdentifiedConnection {
     return {
       id: isSet(object.id) ? String(object.id) : "",
-      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      client_id: isSet(object.client_id) ? String(object.client_id) : "",
       versions: Array.isArray(object?.versions)
         ? object.versions.map((e: any) => Version.fromJSON(e))
         : [],
@@ -363,14 +365,16 @@ export const IdentifiedConnection = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      delayPeriod: isSet(object.delayPeriod) ? String(object.delayPeriod) : "0",
+      delay_period: isSet(object.delay_period)
+        ? String(object.delay_period)
+        : "0",
     };
   },
 
   toJSON(message: IdentifiedConnection): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.client_id !== undefined && (obj.client_id = message.client_id);
     if (message.versions) {
       obj.versions = message.versions.map((e) =>
         e ? Version.toJSON(e) : undefined,
@@ -383,8 +387,8 @@ export const IdentifiedConnection = {
       (obj.counterparty = message.counterparty
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
-    message.delayPeriod !== undefined &&
-      (obj.delayPeriod = message.delayPeriod);
+    message.delay_period !== undefined &&
+      (obj.delay_period = message.delay_period);
     return obj;
   },
 
@@ -393,7 +397,7 @@ export const IdentifiedConnection = {
   ): IdentifiedConnection {
     const message = createBaseIdentifiedConnection();
     message.id = object.id ?? "";
-    message.clientId = object.clientId ?? "";
+    message.client_id = object.client_id ?? "";
     message.versions =
       object.versions?.map((e) => Version.fromPartial(e)) || [];
     message.state = object.state ?? 0;
@@ -401,13 +405,13 @@ export const IdentifiedConnection = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.delayPeriod = object.delayPeriod ?? "0";
+    message.delay_period = object.delay_period ?? "0";
     return message;
   },
 };
 
 function createBaseCounterparty(): Counterparty {
-  return { clientId: "", connectionId: "", prefix: undefined };
+  return { client_id: "", connection_id: "", prefix: undefined };
 }
 
 export const Counterparty = {
@@ -415,11 +419,11 @@ export const Counterparty = {
     message: Counterparty,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.clientId !== "") {
-      writer.uint32(10).string(message.clientId);
+    if (message.client_id !== "") {
+      writer.uint32(10).string(message.client_id);
     }
-    if (message.connectionId !== "") {
-      writer.uint32(18).string(message.connectionId);
+    if (message.connection_id !== "") {
+      writer.uint32(18).string(message.connection_id);
     }
     if (message.prefix !== undefined) {
       MerklePrefix.encode(message.prefix, writer.uint32(26).fork()).ldelim();
@@ -435,10 +439,10 @@ export const Counterparty = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.clientId = reader.string();
+          message.client_id = reader.string();
           break;
         case 2:
-          message.connectionId = reader.string();
+          message.connection_id = reader.string();
           break;
         case 3:
           message.prefix = MerklePrefix.decode(reader, reader.uint32());
@@ -453,9 +457,9 @@ export const Counterparty = {
 
   fromJSON(object: any): Counterparty {
     return {
-      clientId: isSet(object.clientId) ? String(object.clientId) : "",
-      connectionId: isSet(object.connectionId)
-        ? String(object.connectionId)
+      client_id: isSet(object.client_id) ? String(object.client_id) : "",
+      connection_id: isSet(object.connection_id)
+        ? String(object.connection_id)
         : "",
       prefix: isSet(object.prefix)
         ? MerklePrefix.fromJSON(object.prefix)
@@ -465,9 +469,9 @@ export const Counterparty = {
 
   toJSON(message: Counterparty): unknown {
     const obj: any = {};
-    message.clientId !== undefined && (obj.clientId = message.clientId);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.client_id !== undefined && (obj.client_id = message.client_id);
+    message.connection_id !== undefined &&
+      (obj.connection_id = message.connection_id);
     message.prefix !== undefined &&
       (obj.prefix = message.prefix
         ? MerklePrefix.toJSON(message.prefix)
@@ -479,8 +483,8 @@ export const Counterparty = {
     object: I,
   ): Counterparty {
     const message = createBaseCounterparty();
-    message.clientId = object.clientId ?? "";
-    message.connectionId = object.connectionId ?? "";
+    message.client_id = object.client_id ?? "";
+    message.connection_id = object.connection_id ?? "";
     message.prefix =
       object.prefix !== undefined && object.prefix !== null
         ? MerklePrefix.fromPartial(object.prefix)
@@ -550,7 +554,7 @@ export const ClientPaths = {
 };
 
 function createBaseConnectionPaths(): ConnectionPaths {
-  return { clientId: "", paths: [] };
+  return { client_id: "", paths: [] };
 }
 
 export const ConnectionPaths = {
@@ -558,8 +562,8 @@ export const ConnectionPaths = {
     message: ConnectionPaths,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.clientId !== "") {
-      writer.uint32(10).string(message.clientId);
+    if (message.client_id !== "") {
+      writer.uint32(10).string(message.client_id);
     }
     for (const v of message.paths) {
       writer.uint32(18).string(v!);
@@ -575,7 +579,7 @@ export const ConnectionPaths = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.clientId = reader.string();
+          message.client_id = reader.string();
           break;
         case 2:
           message.paths.push(reader.string());
@@ -590,7 +594,7 @@ export const ConnectionPaths = {
 
   fromJSON(object: any): ConnectionPaths {
     return {
-      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      client_id: isSet(object.client_id) ? String(object.client_id) : "",
       paths: Array.isArray(object?.paths)
         ? object.paths.map((e: any) => String(e))
         : [],
@@ -599,7 +603,7 @@ export const ConnectionPaths = {
 
   toJSON(message: ConnectionPaths): unknown {
     const obj: any = {};
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.client_id !== undefined && (obj.client_id = message.client_id);
     if (message.paths) {
       obj.paths = message.paths.map((e) => e);
     } else {
@@ -612,7 +616,7 @@ export const ConnectionPaths = {
     object: I,
   ): ConnectionPaths {
     const message = createBaseConnectionPaths();
-    message.clientId = object.clientId ?? "";
+    message.client_id = object.client_id ?? "";
     message.paths = object.paths?.map((e) => e) || [];
     return message;
   },
@@ -686,7 +690,7 @@ export const Version = {
 };
 
 function createBaseParams(): Params {
-  return { maxExpectedTimePerBlock: "0" };
+  return { max_expected_time_per_block: "0" };
 }
 
 export const Params = {
@@ -694,8 +698,8 @@ export const Params = {
     message: Params,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.maxExpectedTimePerBlock !== "0") {
-      writer.uint32(8).uint64(message.maxExpectedTimePerBlock);
+    if (message.max_expected_time_per_block !== "0") {
+      writer.uint32(8).uint64(message.max_expected_time_per_block);
     }
     return writer;
   },
@@ -708,7 +712,7 @@ export const Params = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.maxExpectedTimePerBlock = longToString(
+          message.max_expected_time_per_block = longToString(
             reader.uint64() as Long,
           );
           break;
@@ -722,22 +726,23 @@ export const Params = {
 
   fromJSON(object: any): Params {
     return {
-      maxExpectedTimePerBlock: isSet(object.maxExpectedTimePerBlock)
-        ? String(object.maxExpectedTimePerBlock)
+      max_expected_time_per_block: isSet(object.max_expected_time_per_block)
+        ? String(object.max_expected_time_per_block)
         : "0",
     };
   },
 
   toJSON(message: Params): unknown {
     const obj: any = {};
-    message.maxExpectedTimePerBlock !== undefined &&
-      (obj.maxExpectedTimePerBlock = message.maxExpectedTimePerBlock);
+    message.max_expected_time_per_block !== undefined &&
+      (obj.max_expected_time_per_block = message.max_expected_time_per_block);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
     const message = createBaseParams();
-    message.maxExpectedTimePerBlock = object.maxExpectedTimePerBlock ?? "0";
+    message.max_expected_time_per_block =
+      object.max_expected_time_per_block ?? "0";
     return message;
   },
 };

@@ -21,9 +21,9 @@ export const protobufPackage = "ibc.core.channel.v1";
 /** QueryChannelRequest is the request type for the Query/Channel RPC method */
 export interface QueryChannelRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
 }
 
 /**
@@ -37,7 +37,7 @@ export interface QueryChannelResponse {
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /** QueryChannelsRequest is the request type for the Query/Channels RPC method */
@@ -86,9 +86,9 @@ export interface QueryConnectionChannelsResponse {
  */
 export interface QueryChannelClientStateRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
 }
 
 /**
@@ -97,11 +97,11 @@ export interface QueryChannelClientStateRequest {
  */
 export interface QueryChannelClientStateResponse {
   /** client state associated with the channel */
-  identifiedClientState?: IdentifiedClientState;
+  identified_client_state?: IdentifiedClientState;
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /**
@@ -110,13 +110,13 @@ export interface QueryChannelClientStateResponse {
  */
 export interface QueryChannelConsensusStateRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** revision number of the consensus state */
-  revisionNumber: string;
+  revision_number: string;
   /** revision height of the consensus state */
-  revisionHeight: string;
+  revision_height: string;
 }
 
 /**
@@ -125,13 +125,13 @@ export interface QueryChannelConsensusStateRequest {
  */
 export interface QueryChannelConsensusStateResponse {
   /** consensus state associated with the channel */
-  consensusState?: Any;
+  consensus_state?: Any;
   /** client ID associated with the consensus state */
-  clientId: string;
+  client_id: string;
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /**
@@ -140,9 +140,9 @@ export interface QueryChannelConsensusStateResponse {
  */
 export interface QueryPacketCommitmentRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** packet sequence */
   sequence: string;
 }
@@ -158,7 +158,7 @@ export interface QueryPacketCommitmentResponse {
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /**
@@ -167,9 +167,9 @@ export interface QueryPacketCommitmentResponse {
  */
 export interface QueryPacketCommitmentsRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** pagination request */
   pagination?: PageRequest;
 }
@@ -192,9 +192,9 @@ export interface QueryPacketCommitmentsResponse {
  */
 export interface QueryPacketReceiptRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** packet sequence */
   sequence: string;
 }
@@ -210,7 +210,7 @@ export interface QueryPacketReceiptResponse {
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /**
@@ -219,9 +219,9 @@ export interface QueryPacketReceiptResponse {
  */
 export interface QueryPacketAcknowledgementRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** packet sequence */
   sequence: string;
 }
@@ -237,7 +237,7 @@ export interface QueryPacketAcknowledgementResponse {
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 /**
@@ -246,13 +246,13 @@ export interface QueryPacketAcknowledgementResponse {
  */
 export interface QueryPacketAcknowledgementsRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** pagination request */
   pagination?: PageRequest;
   /** list of packet sequences */
-  packetCommitmentSequences: string[];
+  packet_commitment_sequences: string[];
 }
 
 /**
@@ -273,11 +273,11 @@ export interface QueryPacketAcknowledgementsResponse {
  */
 export interface QueryUnreceivedPacketsRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** list of packet sequences */
-  packetCommitmentSequences: string[];
+  packet_commitment_sequences: string[];
 }
 
 /**
@@ -297,11 +297,11 @@ export interface QueryUnreceivedPacketsResponse {
  */
 export interface QueryUnreceivedAcksRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
   /** list of acknowledgement sequences */
-  packetAckSequences: string[];
+  packet_ack_sequences: string[];
 }
 
 /**
@@ -321,9 +321,9 @@ export interface QueryUnreceivedAcksResponse {
  */
 export interface QueryNextSequenceReceiveRequest {
   /** port unique identifier */
-  portId: string;
+  port_id: string;
   /** channel unique identifier */
-  channelId: string;
+  channel_id: string;
 }
 
 /**
@@ -332,15 +332,15 @@ export interface QueryNextSequenceReceiveRequest {
  */
 export interface QueryNextSequenceReceiveResponse {
   /** next sequence receive number */
-  nextSequenceReceive: string;
+  next_sequence_receive: string;
   /** merkle proof of existence */
   proof: Uint8Array;
   /** height at which the proof was retrieved */
-  proofHeight?: Height;
+  proof_height?: Height;
 }
 
 function createBaseQueryChannelRequest(): QueryChannelRequest {
-  return { portId: "", channelId: "" };
+  return { port_id: "", channel_id: "" };
 }
 
 export const QueryChannelRequest = {
@@ -348,11 +348,11 @@ export const QueryChannelRequest = {
     message: QueryChannelRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     return writer;
   },
@@ -365,10 +365,10 @@ export const QueryChannelRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -380,15 +380,15 @@ export const QueryChannelRequest = {
 
   fromJSON(object: any): QueryChannelRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
   toJSON(message: QueryChannelRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -396,8 +396,8 @@ export const QueryChannelRequest = {
     object: I,
   ): QueryChannelRequest {
     const message = createBaseQueryChannelRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
@@ -406,7 +406,7 @@ function createBaseQueryChannelResponse(): QueryChannelResponse {
   return {
     channel: undefined,
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -421,8 +421,8 @@ export const QueryChannelResponse = {
     if (message.proof.length !== 0) {
       writer.uint32(18).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -444,7 +444,7 @@ export const QueryChannelResponse = {
           message.proof = reader.bytes();
           break;
         case 3:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -462,8 +462,8 @@ export const QueryChannelResponse = {
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
@@ -478,9 +478,9 @@ export const QueryChannelResponse = {
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -494,9 +494,9 @@ export const QueryChannelResponse = {
         ? Channel.fromPartial(object.channel)
         : undefined;
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
@@ -844,7 +844,7 @@ export const QueryConnectionChannelsResponse = {
 };
 
 function createBaseQueryChannelClientStateRequest(): QueryChannelClientStateRequest {
-  return { portId: "", channelId: "" };
+  return { port_id: "", channel_id: "" };
 }
 
 export const QueryChannelClientStateRequest = {
@@ -852,11 +852,11 @@ export const QueryChannelClientStateRequest = {
     message: QueryChannelClientStateRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     return writer;
   },
@@ -872,10 +872,10 @@ export const QueryChannelClientStateRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -887,15 +887,15 @@ export const QueryChannelClientStateRequest = {
 
   fromJSON(object: any): QueryChannelClientStateRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
   toJSON(message: QueryChannelClientStateRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -903,17 +903,17 @@ export const QueryChannelClientStateRequest = {
     object: I,
   ): QueryChannelClientStateRequest {
     const message = createBaseQueryChannelClientStateRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
 
 function createBaseQueryChannelClientStateResponse(): QueryChannelClientStateResponse {
   return {
-    identifiedClientState: undefined,
+    identified_client_state: undefined,
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -922,17 +922,17 @@ export const QueryChannelClientStateResponse = {
     message: QueryChannelClientStateResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.identifiedClientState !== undefined) {
+    if (message.identified_client_state !== undefined) {
       IdentifiedClientState.encode(
-        message.identifiedClientState,
+        message.identified_client_state,
         writer.uint32(10).fork(),
       ).ldelim();
     }
     if (message.proof.length !== 0) {
       writer.uint32(18).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -948,7 +948,7 @@ export const QueryChannelClientStateResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.identifiedClientState = IdentifiedClientState.decode(
+          message.identified_client_state = IdentifiedClientState.decode(
             reader,
             reader.uint32(),
           );
@@ -957,7 +957,7 @@ export const QueryChannelClientStateResponse = {
           message.proof = reader.bytes();
           break;
         case 3:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -969,31 +969,31 @@ export const QueryChannelClientStateResponse = {
 
   fromJSON(object: any): QueryChannelClientStateResponse {
     return {
-      identifiedClientState: isSet(object.identifiedClientState)
-        ? IdentifiedClientState.fromJSON(object.identifiedClientState)
+      identified_client_state: isSet(object.identified_client_state)
+        ? IdentifiedClientState.fromJSON(object.identified_client_state)
         : undefined,
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
 
   toJSON(message: QueryChannelClientStateResponse): unknown {
     const obj: any = {};
-    message.identifiedClientState !== undefined &&
-      (obj.identifiedClientState = message.identifiedClientState
-        ? IdentifiedClientState.toJSON(message.identifiedClientState)
+    message.identified_client_state !== undefined &&
+      (obj.identified_client_state = message.identified_client_state
+        ? IdentifiedClientState.toJSON(message.identified_client_state)
         : undefined);
     message.proof !== undefined &&
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -1002,15 +1002,15 @@ export const QueryChannelClientStateResponse = {
     object: I,
   ): QueryChannelClientStateResponse {
     const message = createBaseQueryChannelClientStateResponse();
-    message.identifiedClientState =
-      object.identifiedClientState !== undefined &&
-      object.identifiedClientState !== null
-        ? IdentifiedClientState.fromPartial(object.identifiedClientState)
+    message.identified_client_state =
+      object.identified_client_state !== undefined &&
+      object.identified_client_state !== null
+        ? IdentifiedClientState.fromPartial(object.identified_client_state)
         : undefined;
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
@@ -1018,10 +1018,10 @@ export const QueryChannelClientStateResponse = {
 
 function createBaseQueryChannelConsensusStateRequest(): QueryChannelConsensusStateRequest {
   return {
-    portId: "",
-    channelId: "",
-    revisionNumber: "0",
-    revisionHeight: "0",
+    port_id: "",
+    channel_id: "",
+    revision_number: "0",
+    revision_height: "0",
   };
 }
 
@@ -1030,17 +1030,17 @@ export const QueryChannelConsensusStateRequest = {
     message: QueryChannelConsensusStateRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
-    if (message.revisionNumber !== "0") {
-      writer.uint32(24).uint64(message.revisionNumber);
+    if (message.revision_number !== "0") {
+      writer.uint32(24).uint64(message.revision_number);
     }
-    if (message.revisionHeight !== "0") {
-      writer.uint32(32).uint64(message.revisionHeight);
+    if (message.revision_height !== "0") {
+      writer.uint32(32).uint64(message.revision_height);
     }
     return writer;
   },
@@ -1056,16 +1056,16 @@ export const QueryChannelConsensusStateRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
-          message.revisionNumber = longToString(reader.uint64() as Long);
+          message.revision_number = longToString(reader.uint64() as Long);
           break;
         case 4:
-          message.revisionHeight = longToString(reader.uint64() as Long);
+          message.revision_height = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -1077,25 +1077,25 @@ export const QueryChannelConsensusStateRequest = {
 
   fromJSON(object: any): QueryChannelConsensusStateRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      revisionNumber: isSet(object.revisionNumber)
-        ? String(object.revisionNumber)
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
+      revision_number: isSet(object.revision_number)
+        ? String(object.revision_number)
         : "0",
-      revisionHeight: isSet(object.revisionHeight)
-        ? String(object.revisionHeight)
+      revision_height: isSet(object.revision_height)
+        ? String(object.revision_height)
         : "0",
     };
   },
 
   toJSON(message: QueryChannelConsensusStateRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
-    message.revisionNumber !== undefined &&
-      (obj.revisionNumber = message.revisionNumber);
-    message.revisionHeight !== undefined &&
-      (obj.revisionHeight = message.revisionHeight);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
+    message.revision_number !== undefined &&
+      (obj.revision_number = message.revision_number);
+    message.revision_height !== undefined &&
+      (obj.revision_height = message.revision_height);
     return obj;
   },
 
@@ -1103,20 +1103,20 @@ export const QueryChannelConsensusStateRequest = {
     I extends Exact<DeepPartial<QueryChannelConsensusStateRequest>, I>,
   >(object: I): QueryChannelConsensusStateRequest {
     const message = createBaseQueryChannelConsensusStateRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
-    message.revisionNumber = object.revisionNumber ?? "0";
-    message.revisionHeight = object.revisionHeight ?? "0";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
+    message.revision_number = object.revision_number ?? "0";
+    message.revision_height = object.revision_height ?? "0";
     return message;
   },
 };
 
 function createBaseQueryChannelConsensusStateResponse(): QueryChannelConsensusStateResponse {
   return {
-    consensusState: undefined,
-    clientId: "",
+    consensus_state: undefined,
+    client_id: "",
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -1125,17 +1125,17 @@ export const QueryChannelConsensusStateResponse = {
     message: QueryChannelConsensusStateResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.consensusState !== undefined) {
-      Any.encode(message.consensusState, writer.uint32(10).fork()).ldelim();
+    if (message.consensus_state !== undefined) {
+      Any.encode(message.consensus_state, writer.uint32(10).fork()).ldelim();
     }
-    if (message.clientId !== "") {
-      writer.uint32(18).string(message.clientId);
+    if (message.client_id !== "") {
+      writer.uint32(18).string(message.client_id);
     }
     if (message.proof.length !== 0) {
       writer.uint32(26).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(34).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -1151,16 +1151,16 @@ export const QueryChannelConsensusStateResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.consensusState = Any.decode(reader, reader.uint32());
+          message.consensus_state = Any.decode(reader, reader.uint32());
           break;
         case 2:
-          message.clientId = reader.string();
+          message.client_id = reader.string();
           break;
         case 3:
           message.proof = reader.bytes();
           break;
         case 4:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -1172,33 +1172,33 @@ export const QueryChannelConsensusStateResponse = {
 
   fromJSON(object: any): QueryChannelConsensusStateResponse {
     return {
-      consensusState: isSet(object.consensusState)
-        ? Any.fromJSON(object.consensusState)
+      consensus_state: isSet(object.consensus_state)
+        ? Any.fromJSON(object.consensus_state)
         : undefined,
-      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      client_id: isSet(object.client_id) ? String(object.client_id) : "",
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
 
   toJSON(message: QueryChannelConsensusStateResponse): unknown {
     const obj: any = {};
-    message.consensusState !== undefined &&
-      (obj.consensusState = message.consensusState
-        ? Any.toJSON(message.consensusState)
+    message.consensus_state !== undefined &&
+      (obj.consensus_state = message.consensus_state
+        ? Any.toJSON(message.consensus_state)
         : undefined);
-    message.clientId !== undefined && (obj.clientId = message.clientId);
+    message.client_id !== undefined && (obj.client_id = message.client_id);
     message.proof !== undefined &&
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -1207,22 +1207,22 @@ export const QueryChannelConsensusStateResponse = {
     I extends Exact<DeepPartial<QueryChannelConsensusStateResponse>, I>,
   >(object: I): QueryChannelConsensusStateResponse {
     const message = createBaseQueryChannelConsensusStateResponse();
-    message.consensusState =
-      object.consensusState !== undefined && object.consensusState !== null
-        ? Any.fromPartial(object.consensusState)
+    message.consensus_state =
+      object.consensus_state !== undefined && object.consensus_state !== null
+        ? Any.fromPartial(object.consensus_state)
         : undefined;
-    message.clientId = object.clientId ?? "";
+    message.client_id = object.client_id ?? "";
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
 };
 
 function createBaseQueryPacketCommitmentRequest(): QueryPacketCommitmentRequest {
-  return { portId: "", channelId: "", sequence: "0" };
+  return { port_id: "", channel_id: "", sequence: "0" };
 }
 
 export const QueryPacketCommitmentRequest = {
@@ -1230,11 +1230,11 @@ export const QueryPacketCommitmentRequest = {
     message: QueryPacketCommitmentRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
@@ -1253,10 +1253,10 @@ export const QueryPacketCommitmentRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.sequence = longToString(reader.uint64() as Long);
@@ -1271,16 +1271,16 @@ export const QueryPacketCommitmentRequest = {
 
   fromJSON(object: any): QueryPacketCommitmentRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       sequence: isSet(object.sequence) ? String(object.sequence) : "0",
     };
   },
 
   toJSON(message: QueryPacketCommitmentRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.sequence !== undefined && (obj.sequence = message.sequence);
     return obj;
   },
@@ -1289,8 +1289,8 @@ export const QueryPacketCommitmentRequest = {
     object: I,
   ): QueryPacketCommitmentRequest {
     const message = createBaseQueryPacketCommitmentRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.sequence = object.sequence ?? "0";
     return message;
   },
@@ -1300,7 +1300,7 @@ function createBaseQueryPacketCommitmentResponse(): QueryPacketCommitmentRespons
   return {
     commitment: new Uint8Array(),
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -1315,8 +1315,8 @@ export const QueryPacketCommitmentResponse = {
     if (message.proof.length !== 0) {
       writer.uint32(18).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -1338,7 +1338,7 @@ export const QueryPacketCommitmentResponse = {
           message.proof = reader.bytes();
           break;
         case 3:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -1356,8 +1356,8 @@ export const QueryPacketCommitmentResponse = {
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
@@ -1374,9 +1374,9 @@ export const QueryPacketCommitmentResponse = {
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -1387,16 +1387,16 @@ export const QueryPacketCommitmentResponse = {
     const message = createBaseQueryPacketCommitmentResponse();
     message.commitment = object.commitment ?? new Uint8Array();
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
 };
 
 function createBaseQueryPacketCommitmentsRequest(): QueryPacketCommitmentsRequest {
-  return { portId: "", channelId: "", pagination: undefined };
+  return { port_id: "", channel_id: "", pagination: undefined };
 }
 
 export const QueryPacketCommitmentsRequest = {
@@ -1404,11 +1404,11 @@ export const QueryPacketCommitmentsRequest = {
     message: QueryPacketCommitmentsRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
@@ -1427,10 +1427,10 @@ export const QueryPacketCommitmentsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.pagination = PageRequest.decode(reader, reader.uint32());
@@ -1445,8 +1445,8 @@ export const QueryPacketCommitmentsRequest = {
 
   fromJSON(object: any): QueryPacketCommitmentsRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
@@ -1455,8 +1455,8 @@ export const QueryPacketCommitmentsRequest = {
 
   toJSON(message: QueryPacketCommitmentsRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
@@ -1468,8 +1468,8 @@ export const QueryPacketCommitmentsRequest = {
     object: I,
   ): QueryPacketCommitmentsRequest {
     const message = createBaseQueryPacketCommitmentsRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
@@ -1578,7 +1578,7 @@ export const QueryPacketCommitmentsResponse = {
 };
 
 function createBaseQueryPacketReceiptRequest(): QueryPacketReceiptRequest {
-  return { portId: "", channelId: "", sequence: "0" };
+  return { port_id: "", channel_id: "", sequence: "0" };
 }
 
 export const QueryPacketReceiptRequest = {
@@ -1586,11 +1586,11 @@ export const QueryPacketReceiptRequest = {
     message: QueryPacketReceiptRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
@@ -1609,10 +1609,10 @@ export const QueryPacketReceiptRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.sequence = longToString(reader.uint64() as Long);
@@ -1627,16 +1627,16 @@ export const QueryPacketReceiptRequest = {
 
   fromJSON(object: any): QueryPacketReceiptRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       sequence: isSet(object.sequence) ? String(object.sequence) : "0",
     };
   },
 
   toJSON(message: QueryPacketReceiptRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.sequence !== undefined && (obj.sequence = message.sequence);
     return obj;
   },
@@ -1645,15 +1645,15 @@ export const QueryPacketReceiptRequest = {
     object: I,
   ): QueryPacketReceiptRequest {
     const message = createBaseQueryPacketReceiptRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.sequence = object.sequence ?? "0";
     return message;
   },
 };
 
 function createBaseQueryPacketReceiptResponse(): QueryPacketReceiptResponse {
-  return { received: false, proof: new Uint8Array(), proofHeight: undefined };
+  return { received: false, proof: new Uint8Array(), proof_height: undefined };
 }
 
 export const QueryPacketReceiptResponse = {
@@ -1667,8 +1667,8 @@ export const QueryPacketReceiptResponse = {
     if (message.proof.length !== 0) {
       writer.uint32(26).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(34).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -1690,7 +1690,7 @@ export const QueryPacketReceiptResponse = {
           message.proof = reader.bytes();
           break;
         case 4:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -1706,8 +1706,8 @@ export const QueryPacketReceiptResponse = {
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
@@ -1719,9 +1719,9 @@ export const QueryPacketReceiptResponse = {
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -1732,16 +1732,16 @@ export const QueryPacketReceiptResponse = {
     const message = createBaseQueryPacketReceiptResponse();
     message.received = object.received ?? false;
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
 };
 
 function createBaseQueryPacketAcknowledgementRequest(): QueryPacketAcknowledgementRequest {
-  return { portId: "", channelId: "", sequence: "0" };
+  return { port_id: "", channel_id: "", sequence: "0" };
 }
 
 export const QueryPacketAcknowledgementRequest = {
@@ -1749,11 +1749,11 @@ export const QueryPacketAcknowledgementRequest = {
     message: QueryPacketAcknowledgementRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
@@ -1772,10 +1772,10 @@ export const QueryPacketAcknowledgementRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.sequence = longToString(reader.uint64() as Long);
@@ -1790,16 +1790,16 @@ export const QueryPacketAcknowledgementRequest = {
 
   fromJSON(object: any): QueryPacketAcknowledgementRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       sequence: isSet(object.sequence) ? String(object.sequence) : "0",
     };
   },
 
   toJSON(message: QueryPacketAcknowledgementRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.sequence !== undefined && (obj.sequence = message.sequence);
     return obj;
   },
@@ -1808,8 +1808,8 @@ export const QueryPacketAcknowledgementRequest = {
     I extends Exact<DeepPartial<QueryPacketAcknowledgementRequest>, I>,
   >(object: I): QueryPacketAcknowledgementRequest {
     const message = createBaseQueryPacketAcknowledgementRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.sequence = object.sequence ?? "0";
     return message;
   },
@@ -1819,7 +1819,7 @@ function createBaseQueryPacketAcknowledgementResponse(): QueryPacketAcknowledgem
   return {
     acknowledgement: new Uint8Array(),
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -1834,8 +1834,8 @@ export const QueryPacketAcknowledgementResponse = {
     if (message.proof.length !== 0) {
       writer.uint32(18).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -1857,7 +1857,7 @@ export const QueryPacketAcknowledgementResponse = {
           message.proof = reader.bytes();
           break;
         case 3:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -1875,8 +1875,8 @@ export const QueryPacketAcknowledgementResponse = {
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
@@ -1893,9 +1893,9 @@ export const QueryPacketAcknowledgementResponse = {
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -1906,9 +1906,9 @@ export const QueryPacketAcknowledgementResponse = {
     const message = createBaseQueryPacketAcknowledgementResponse();
     message.acknowledgement = object.acknowledgement ?? new Uint8Array();
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
@@ -1916,10 +1916,10 @@ export const QueryPacketAcknowledgementResponse = {
 
 function createBaseQueryPacketAcknowledgementsRequest(): QueryPacketAcknowledgementsRequest {
   return {
-    portId: "",
-    channelId: "",
+    port_id: "",
+    channel_id: "",
     pagination: undefined,
-    packetCommitmentSequences: [],
+    packet_commitment_sequences: [],
   };
 }
 
@@ -1928,17 +1928,17 @@ export const QueryPacketAcknowledgementsRequest = {
     message: QueryPacketAcknowledgementsRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
     }
     writer.uint32(34).fork();
-    for (const v of message.packetCommitmentSequences) {
+    for (const v of message.packet_commitment_sequences) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -1956,10 +1956,10 @@ export const QueryPacketAcknowledgementsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.pagination = PageRequest.decode(reader, reader.uint32());
@@ -1968,12 +1968,12 @@ export const QueryPacketAcknowledgementsRequest = {
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.packetCommitmentSequences.push(
+              message.packet_commitment_sequences.push(
                 longToString(reader.uint64() as Long),
               );
             }
           } else {
-            message.packetCommitmentSequences.push(
+            message.packet_commitment_sequences.push(
               longToString(reader.uint64() as Long),
             );
           }
@@ -1988,33 +1988,33 @@ export const QueryPacketAcknowledgementsRequest = {
 
   fromJSON(object: any): QueryPacketAcknowledgementsRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
-      packetCommitmentSequences: Array.isArray(
-        object?.packetCommitmentSequences,
+      packet_commitment_sequences: Array.isArray(
+        object?.packet_commitment_sequences,
       )
-        ? object.packetCommitmentSequences.map((e: any) => String(e))
+        ? object.packet_commitment_sequences.map((e: any) => String(e))
         : [],
     };
   },
 
   toJSON(message: QueryPacketAcknowledgementsRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
         : undefined);
-    if (message.packetCommitmentSequences) {
-      obj.packetCommitmentSequences = message.packetCommitmentSequences.map(
+    if (message.packet_commitment_sequences) {
+      obj.packet_commitment_sequences = message.packet_commitment_sequences.map(
         (e) => e,
       );
     } else {
-      obj.packetCommitmentSequences = [];
+      obj.packet_commitment_sequences = [];
     }
     return obj;
   },
@@ -2023,14 +2023,14 @@ export const QueryPacketAcknowledgementsRequest = {
     I extends Exact<DeepPartial<QueryPacketAcknowledgementsRequest>, I>,
   >(object: I): QueryPacketAcknowledgementsRequest {
     const message = createBaseQueryPacketAcknowledgementsRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
         : undefined;
-    message.packetCommitmentSequences =
-      object.packetCommitmentSequences?.map((e) => e) || [];
+    message.packet_commitment_sequences =
+      object.packet_commitment_sequences?.map((e) => e) || [];
     return message;
   },
 };
@@ -2137,7 +2137,7 @@ export const QueryPacketAcknowledgementsResponse = {
 };
 
 function createBaseQueryUnreceivedPacketsRequest(): QueryUnreceivedPacketsRequest {
-  return { portId: "", channelId: "", packetCommitmentSequences: [] };
+  return { port_id: "", channel_id: "", packet_commitment_sequences: [] };
 }
 
 export const QueryUnreceivedPacketsRequest = {
@@ -2145,14 +2145,14 @@ export const QueryUnreceivedPacketsRequest = {
     message: QueryUnreceivedPacketsRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     writer.uint32(26).fork();
-    for (const v of message.packetCommitmentSequences) {
+    for (const v of message.packet_commitment_sequences) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -2170,21 +2170,21 @@ export const QueryUnreceivedPacketsRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.packetCommitmentSequences.push(
+              message.packet_commitment_sequences.push(
                 longToString(reader.uint64() as Long),
               );
             }
           } else {
-            message.packetCommitmentSequences.push(
+            message.packet_commitment_sequences.push(
               longToString(reader.uint64() as Long),
             );
           }
@@ -2199,26 +2199,26 @@ export const QueryUnreceivedPacketsRequest = {
 
   fromJSON(object: any): QueryUnreceivedPacketsRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      packetCommitmentSequences: Array.isArray(
-        object?.packetCommitmentSequences,
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
+      packet_commitment_sequences: Array.isArray(
+        object?.packet_commitment_sequences,
       )
-        ? object.packetCommitmentSequences.map((e: any) => String(e))
+        ? object.packet_commitment_sequences.map((e: any) => String(e))
         : [],
     };
   },
 
   toJSON(message: QueryUnreceivedPacketsRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
-    if (message.packetCommitmentSequences) {
-      obj.packetCommitmentSequences = message.packetCommitmentSequences.map(
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
+    if (message.packet_commitment_sequences) {
+      obj.packet_commitment_sequences = message.packet_commitment_sequences.map(
         (e) => e,
       );
     } else {
-      obj.packetCommitmentSequences = [];
+      obj.packet_commitment_sequences = [];
     }
     return obj;
   },
@@ -2227,10 +2227,10 @@ export const QueryUnreceivedPacketsRequest = {
     object: I,
   ): QueryUnreceivedPacketsRequest {
     const message = createBaseQueryUnreceivedPacketsRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
-    message.packetCommitmentSequences =
-      object.packetCommitmentSequences?.map((e) => e) || [];
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
+    message.packet_commitment_sequences =
+      object.packet_commitment_sequences?.map((e) => e) || [];
     return message;
   },
 };
@@ -2321,7 +2321,7 @@ export const QueryUnreceivedPacketsResponse = {
 };
 
 function createBaseQueryUnreceivedAcksRequest(): QueryUnreceivedAcksRequest {
-  return { portId: "", channelId: "", packetAckSequences: [] };
+  return { port_id: "", channel_id: "", packet_ack_sequences: [] };
 }
 
 export const QueryUnreceivedAcksRequest = {
@@ -2329,14 +2329,14 @@ export const QueryUnreceivedAcksRequest = {
     message: QueryUnreceivedAcksRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     writer.uint32(26).fork();
-    for (const v of message.packetAckSequences) {
+    for (const v of message.packet_ack_sequences) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -2354,21 +2354,21 @@ export const QueryUnreceivedAcksRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.packetAckSequences.push(
+              message.packet_ack_sequences.push(
                 longToString(reader.uint64() as Long),
               );
             }
           } else {
-            message.packetAckSequences.push(
+            message.packet_ack_sequences.push(
               longToString(reader.uint64() as Long),
             );
           }
@@ -2383,22 +2383,22 @@ export const QueryUnreceivedAcksRequest = {
 
   fromJSON(object: any): QueryUnreceivedAcksRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      packetAckSequences: Array.isArray(object?.packetAckSequences)
-        ? object.packetAckSequences.map((e: any) => String(e))
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
+      packet_ack_sequences: Array.isArray(object?.packet_ack_sequences)
+        ? object.packet_ack_sequences.map((e: any) => String(e))
         : [],
     };
   },
 
   toJSON(message: QueryUnreceivedAcksRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
-    if (message.packetAckSequences) {
-      obj.packetAckSequences = message.packetAckSequences.map((e) => e);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
+    if (message.packet_ack_sequences) {
+      obj.packet_ack_sequences = message.packet_ack_sequences.map((e) => e);
     } else {
-      obj.packetAckSequences = [];
+      obj.packet_ack_sequences = [];
     }
     return obj;
   },
@@ -2407,9 +2407,10 @@ export const QueryUnreceivedAcksRequest = {
     object: I,
   ): QueryUnreceivedAcksRequest {
     const message = createBaseQueryUnreceivedAcksRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
-    message.packetAckSequences = object.packetAckSequences?.map((e) => e) || [];
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
+    message.packet_ack_sequences =
+      object.packet_ack_sequences?.map((e) => e) || [];
     return message;
   },
 };
@@ -2500,7 +2501,7 @@ export const QueryUnreceivedAcksResponse = {
 };
 
 function createBaseQueryNextSequenceReceiveRequest(): QueryNextSequenceReceiveRequest {
-  return { portId: "", channelId: "" };
+  return { port_id: "", channel_id: "" };
 }
 
 export const QueryNextSequenceReceiveRequest = {
@@ -2508,11 +2509,11 @@ export const QueryNextSequenceReceiveRequest = {
     message: QueryNextSequenceReceiveRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     return writer;
   },
@@ -2528,10 +2529,10 @@ export const QueryNextSequenceReceiveRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -2543,15 +2544,15 @@ export const QueryNextSequenceReceiveRequest = {
 
   fromJSON(object: any): QueryNextSequenceReceiveRequest {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
   toJSON(message: QueryNextSequenceReceiveRequest): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -2559,17 +2560,17 @@ export const QueryNextSequenceReceiveRequest = {
     object: I,
   ): QueryNextSequenceReceiveRequest {
     const message = createBaseQueryNextSequenceReceiveRequest();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
 
 function createBaseQueryNextSequenceReceiveResponse(): QueryNextSequenceReceiveResponse {
   return {
-    nextSequenceReceive: "0",
+    next_sequence_receive: "0",
     proof: new Uint8Array(),
-    proofHeight: undefined,
+    proof_height: undefined,
   };
 }
 
@@ -2578,14 +2579,14 @@ export const QueryNextSequenceReceiveResponse = {
     message: QueryNextSequenceReceiveResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.nextSequenceReceive !== "0") {
-      writer.uint32(8).uint64(message.nextSequenceReceive);
+    if (message.next_sequence_receive !== "0") {
+      writer.uint32(8).uint64(message.next_sequence_receive);
     }
     if (message.proof.length !== 0) {
       writer.uint32(18).bytes(message.proof);
     }
-    if (message.proofHeight !== undefined) {
-      Height.encode(message.proofHeight, writer.uint32(26).fork()).ldelim();
+    if (message.proof_height !== undefined) {
+      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -2601,13 +2602,13 @@ export const QueryNextSequenceReceiveResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.nextSequenceReceive = longToString(reader.uint64() as Long);
+          message.next_sequence_receive = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.proof = reader.bytes();
           break;
         case 3:
-          message.proofHeight = Height.decode(reader, reader.uint32());
+          message.proof_height = Height.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -2619,29 +2620,29 @@ export const QueryNextSequenceReceiveResponse = {
 
   fromJSON(object: any): QueryNextSequenceReceiveResponse {
     return {
-      nextSequenceReceive: isSet(object.nextSequenceReceive)
-        ? String(object.nextSequenceReceive)
+      next_sequence_receive: isSet(object.next_sequence_receive)
+        ? String(object.next_sequence_receive)
         : "0",
       proof: isSet(object.proof)
         ? bytesFromBase64(object.proof)
         : new Uint8Array(),
-      proofHeight: isSet(object.proofHeight)
-        ? Height.fromJSON(object.proofHeight)
+      proof_height: isSet(object.proof_height)
+        ? Height.fromJSON(object.proof_height)
         : undefined,
     };
   },
 
   toJSON(message: QueryNextSequenceReceiveResponse): unknown {
     const obj: any = {};
-    message.nextSequenceReceive !== undefined &&
-      (obj.nextSequenceReceive = message.nextSequenceReceive);
+    message.next_sequence_receive !== undefined &&
+      (obj.next_sequence_receive = message.next_sequence_receive);
     message.proof !== undefined &&
       (obj.proof = base64FromBytes(
         message.proof !== undefined ? message.proof : new Uint8Array(),
       ));
-    message.proofHeight !== undefined &&
-      (obj.proofHeight = message.proofHeight
-        ? Height.toJSON(message.proofHeight)
+    message.proof_height !== undefined &&
+      (obj.proof_height = message.proof_height
+        ? Height.toJSON(message.proof_height)
         : undefined);
     return obj;
   },
@@ -2650,11 +2651,11 @@ export const QueryNextSequenceReceiveResponse = {
     I extends Exact<DeepPartial<QueryNextSequenceReceiveResponse>, I>,
   >(object: I): QueryNextSequenceReceiveResponse {
     const message = createBaseQueryNextSequenceReceiveResponse();
-    message.nextSequenceReceive = object.nextSequenceReceive ?? "0";
+    message.next_sequence_receive = object.next_sequence_receive ?? "0";
     message.proof = object.proof ?? new Uint8Array();
-    message.proofHeight =
-      object.proofHeight !== undefined && object.proofHeight !== null
-        ? Height.fromPartial(object.proofHeight)
+    message.proof_height =
+      object.proof_height !== undefined && object.proof_height !== null
+        ? Height.fromPartial(object.proof_height)
         : undefined;
     return message;
   },
@@ -2663,77 +2664,282 @@ export const QueryNextSequenceReceiveResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Channel queries an IBC Channel. */
-  channel(request: QueryChannelRequest): Promise<QueryChannelResponse>;
+  Channel(request: QueryChannelRequest): Promise<QueryChannelResponse>;
   /** Channels queries all the IBC channels of a chain. */
-  channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse>;
+  Channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse>;
   /**
    * ConnectionChannels queries all the channels associated with a connection
    * end.
    */
-  connectionChannels(
+  ConnectionChannels(
     request: QueryConnectionChannelsRequest,
   ): Promise<QueryConnectionChannelsResponse>;
   /**
    * ChannelClientState queries for the client state for the channel associated
    * with the provided channel identifiers.
    */
-  channelClientState(
+  ChannelClientState(
     request: QueryChannelClientStateRequest,
   ): Promise<QueryChannelClientStateResponse>;
   /**
    * ChannelConsensusState queries for the consensus state for the channel
    * associated with the provided channel identifiers.
    */
-  channelConsensusState(
+  ChannelConsensusState(
     request: QueryChannelConsensusStateRequest,
   ): Promise<QueryChannelConsensusStateResponse>;
   /** PacketCommitment queries a stored packet commitment hash. */
-  packetCommitment(
+  PacketCommitment(
     request: QueryPacketCommitmentRequest,
   ): Promise<QueryPacketCommitmentResponse>;
   /**
    * PacketCommitments returns all the packet commitments hashes associated
    * with a channel.
    */
-  packetCommitments(
+  PacketCommitments(
     request: QueryPacketCommitmentsRequest,
   ): Promise<QueryPacketCommitmentsResponse>;
   /**
    * PacketReceipt queries if a given packet sequence has been received on the
    * queried chain
    */
-  packetReceipt(
+  PacketReceipt(
     request: QueryPacketReceiptRequest,
   ): Promise<QueryPacketReceiptResponse>;
   /** PacketAcknowledgement queries a stored packet acknowledgement hash. */
-  packetAcknowledgement(
+  PacketAcknowledgement(
     request: QueryPacketAcknowledgementRequest,
   ): Promise<QueryPacketAcknowledgementResponse>;
   /**
    * PacketAcknowledgements returns all the packet acknowledgements associated
    * with a channel.
    */
-  packetAcknowledgements(
+  PacketAcknowledgements(
     request: QueryPacketAcknowledgementsRequest,
   ): Promise<QueryPacketAcknowledgementsResponse>;
   /**
    * UnreceivedPackets returns all the unreceived IBC packets associated with a
    * channel and sequences.
    */
-  unreceivedPackets(
+  UnreceivedPackets(
     request: QueryUnreceivedPacketsRequest,
   ): Promise<QueryUnreceivedPacketsResponse>;
   /**
    * UnreceivedAcks returns all the unreceived IBC acknowledgements associated
    * with a channel and sequences.
    */
-  unreceivedAcks(
+  UnreceivedAcks(
     request: QueryUnreceivedAcksRequest,
   ): Promise<QueryUnreceivedAcksResponse>;
   /** NextSequenceReceive returns the next receive sequence for a given channel. */
-  nextSequenceReceive(
+  NextSequenceReceive(
     request: QueryNextSequenceReceiveRequest,
   ): Promise<QueryNextSequenceReceiveResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Channel = this.Channel.bind(this);
+    this.Channels = this.Channels.bind(this);
+    this.ConnectionChannels = this.ConnectionChannels.bind(this);
+    this.ChannelClientState = this.ChannelClientState.bind(this);
+    this.ChannelConsensusState = this.ChannelConsensusState.bind(this);
+    this.PacketCommitment = this.PacketCommitment.bind(this);
+    this.PacketCommitments = this.PacketCommitments.bind(this);
+    this.PacketReceipt = this.PacketReceipt.bind(this);
+    this.PacketAcknowledgement = this.PacketAcknowledgement.bind(this);
+    this.PacketAcknowledgements = this.PacketAcknowledgements.bind(this);
+    this.UnreceivedPackets = this.UnreceivedPackets.bind(this);
+    this.UnreceivedAcks = this.UnreceivedAcks.bind(this);
+    this.NextSequenceReceive = this.NextSequenceReceive.bind(this);
+  }
+  Channel(request: QueryChannelRequest): Promise<QueryChannelResponse> {
+    const data = QueryChannelRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "Channel",
+      data,
+    );
+    return promise.then((data) =>
+      QueryChannelResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Channels(request: QueryChannelsRequest): Promise<QueryChannelsResponse> {
+    const data = QueryChannelsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "Channels",
+      data,
+    );
+    return promise.then((data) =>
+      QueryChannelsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ConnectionChannels(
+    request: QueryConnectionChannelsRequest,
+  ): Promise<QueryConnectionChannelsResponse> {
+    const data = QueryConnectionChannelsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "ConnectionChannels",
+      data,
+    );
+    return promise.then((data) =>
+      QueryConnectionChannelsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ChannelClientState(
+    request: QueryChannelClientStateRequest,
+  ): Promise<QueryChannelClientStateResponse> {
+    const data = QueryChannelClientStateRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "ChannelClientState",
+      data,
+    );
+    return promise.then((data) =>
+      QueryChannelClientStateResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ChannelConsensusState(
+    request: QueryChannelConsensusStateRequest,
+  ): Promise<QueryChannelConsensusStateResponse> {
+    const data = QueryChannelConsensusStateRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "ChannelConsensusState",
+      data,
+    );
+    return promise.then((data) =>
+      QueryChannelConsensusStateResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  PacketCommitment(
+    request: QueryPacketCommitmentRequest,
+  ): Promise<QueryPacketCommitmentResponse> {
+    const data = QueryPacketCommitmentRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "PacketCommitment",
+      data,
+    );
+    return promise.then((data) =>
+      QueryPacketCommitmentResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  PacketCommitments(
+    request: QueryPacketCommitmentsRequest,
+  ): Promise<QueryPacketCommitmentsResponse> {
+    const data = QueryPacketCommitmentsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "PacketCommitments",
+      data,
+    );
+    return promise.then((data) =>
+      QueryPacketCommitmentsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  PacketReceipt(
+    request: QueryPacketReceiptRequest,
+  ): Promise<QueryPacketReceiptResponse> {
+    const data = QueryPacketReceiptRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "PacketReceipt",
+      data,
+    );
+    return promise.then((data) =>
+      QueryPacketReceiptResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  PacketAcknowledgement(
+    request: QueryPacketAcknowledgementRequest,
+  ): Promise<QueryPacketAcknowledgementResponse> {
+    const data = QueryPacketAcknowledgementRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "PacketAcknowledgement",
+      data,
+    );
+    return promise.then((data) =>
+      QueryPacketAcknowledgementResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  PacketAcknowledgements(
+    request: QueryPacketAcknowledgementsRequest,
+  ): Promise<QueryPacketAcknowledgementsResponse> {
+    const data = QueryPacketAcknowledgementsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "PacketAcknowledgements",
+      data,
+    );
+    return promise.then((data) =>
+      QueryPacketAcknowledgementsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  UnreceivedPackets(
+    request: QueryUnreceivedPacketsRequest,
+  ): Promise<QueryUnreceivedPacketsResponse> {
+    const data = QueryUnreceivedPacketsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "UnreceivedPackets",
+      data,
+    );
+    return promise.then((data) =>
+      QueryUnreceivedPacketsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  UnreceivedAcks(
+    request: QueryUnreceivedAcksRequest,
+  ): Promise<QueryUnreceivedAcksResponse> {
+    const data = QueryUnreceivedAcksRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "UnreceivedAcks",
+      data,
+    );
+    return promise.then((data) =>
+      QueryUnreceivedAcksResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  NextSequenceReceive(
+    request: QueryNextSequenceReceiveRequest,
+  ): Promise<QueryNextSequenceReceiveResponse> {
+    const data = QueryNextSequenceReceiveRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.core.channel.v1.Query",
+      "NextSequenceReceive",
+      data,
+    );
+    return promise.then((data) =>
+      QueryNextSequenceReceiveResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

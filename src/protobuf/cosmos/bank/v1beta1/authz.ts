@@ -12,11 +12,11 @@ export const protobufPackage = "cosmos.bank.v1beta1";
  * Since: cosmos-sdk 0.43
  */
 export interface SendAuthorization {
-  spendLimit: Coin[];
+  spend_limit: Coin[];
 }
 
 function createBaseSendAuthorization(): SendAuthorization {
-  return { spendLimit: [] };
+  return { spend_limit: [] };
 }
 
 export const SendAuthorization = {
@@ -24,7 +24,7 @@ export const SendAuthorization = {
     message: SendAuthorization,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.spendLimit) {
+    for (const v of message.spend_limit) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -38,7 +38,7 @@ export const SendAuthorization = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.spendLimit.push(Coin.decode(reader, reader.uint32()));
+          message.spend_limit.push(Coin.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -50,20 +50,20 @@ export const SendAuthorization = {
 
   fromJSON(object: any): SendAuthorization {
     return {
-      spendLimit: Array.isArray(object?.spendLimit)
-        ? object.spendLimit.map((e: any) => Coin.fromJSON(e))
+      spend_limit: Array.isArray(object?.spend_limit)
+        ? object.spend_limit.map((e: any) => Coin.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: SendAuthorization): unknown {
     const obj: any = {};
-    if (message.spendLimit) {
-      obj.spendLimit = message.spendLimit.map((e) =>
+    if (message.spend_limit) {
+      obj.spend_limit = message.spend_limit.map((e) =>
         e ? Coin.toJSON(e) : undefined,
       );
     } else {
-      obj.spendLimit = [];
+      obj.spend_limit = [];
     }
     return obj;
   },
@@ -72,8 +72,8 @@ export const SendAuthorization = {
     object: I,
   ): SendAuthorization {
     const message = createBaseSendAuthorization();
-    message.spendLimit =
-      object.spendLimit?.map((e) => Coin.fromPartial(e)) || [];
+    message.spend_limit =
+      object.spend_limit?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
 };

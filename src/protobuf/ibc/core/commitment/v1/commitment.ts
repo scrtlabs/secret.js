@@ -19,7 +19,7 @@ export interface MerkleRoot {
  * append(Path.KeyPrefix, key...))
  */
 export interface MerklePrefix {
-  keyPrefix: Uint8Array;
+  key_prefix: Uint8Array;
 }
 
 /**
@@ -28,7 +28,7 @@ export interface MerklePrefix {
  * MerklePath is represented from root-to-leaf
  */
 export interface MerklePath {
-  keyPath: string[];
+  key_path: string[];
 }
 
 /**
@@ -102,7 +102,7 @@ export const MerkleRoot = {
 };
 
 function createBaseMerklePrefix(): MerklePrefix {
-  return { keyPrefix: new Uint8Array() };
+  return { key_prefix: new Uint8Array() };
 }
 
 export const MerklePrefix = {
@@ -110,8 +110,8 @@ export const MerklePrefix = {
     message: MerklePrefix,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.keyPrefix.length !== 0) {
-      writer.uint32(10).bytes(message.keyPrefix);
+    if (message.key_prefix.length !== 0) {
+      writer.uint32(10).bytes(message.key_prefix);
     }
     return writer;
   },
@@ -124,7 +124,7 @@ export const MerklePrefix = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.keyPrefix = reader.bytes();
+          message.key_prefix = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -136,17 +136,19 @@ export const MerklePrefix = {
 
   fromJSON(object: any): MerklePrefix {
     return {
-      keyPrefix: isSet(object.keyPrefix)
-        ? bytesFromBase64(object.keyPrefix)
+      key_prefix: isSet(object.key_prefix)
+        ? bytesFromBase64(object.key_prefix)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: MerklePrefix): unknown {
     const obj: any = {};
-    message.keyPrefix !== undefined &&
-      (obj.keyPrefix = base64FromBytes(
-        message.keyPrefix !== undefined ? message.keyPrefix : new Uint8Array(),
+    message.key_prefix !== undefined &&
+      (obj.key_prefix = base64FromBytes(
+        message.key_prefix !== undefined
+          ? message.key_prefix
+          : new Uint8Array(),
       ));
     return obj;
   },
@@ -155,13 +157,13 @@ export const MerklePrefix = {
     object: I,
   ): MerklePrefix {
     const message = createBaseMerklePrefix();
-    message.keyPrefix = object.keyPrefix ?? new Uint8Array();
+    message.key_prefix = object.key_prefix ?? new Uint8Array();
     return message;
   },
 };
 
 function createBaseMerklePath(): MerklePath {
-  return { keyPath: [] };
+  return { key_path: [] };
 }
 
 export const MerklePath = {
@@ -169,7 +171,7 @@ export const MerklePath = {
     message: MerklePath,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.keyPath) {
+    for (const v of message.key_path) {
       writer.uint32(10).string(v!);
     }
     return writer;
@@ -183,7 +185,7 @@ export const MerklePath = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.keyPath.push(reader.string());
+          message.key_path.push(reader.string());
           break;
         default:
           reader.skipType(tag & 7);
@@ -195,18 +197,18 @@ export const MerklePath = {
 
   fromJSON(object: any): MerklePath {
     return {
-      keyPath: Array.isArray(object?.keyPath)
-        ? object.keyPath.map((e: any) => String(e))
+      key_path: Array.isArray(object?.key_path)
+        ? object.key_path.map((e: any) => String(e))
         : [],
     };
   },
 
   toJSON(message: MerklePath): unknown {
     const obj: any = {};
-    if (message.keyPath) {
-      obj.keyPath = message.keyPath.map((e) => e);
+    if (message.key_path) {
+      obj.key_path = message.key_path.map((e) => e);
     } else {
-      obj.keyPath = [];
+      obj.key_path = [];
     }
     return obj;
   },
@@ -215,7 +217,7 @@ export const MerklePath = {
     object: I,
   ): MerklePath {
     const message = createBaseMerklePath();
-    message.keyPath = object.keyPath?.map((e) => e) || [];
+    message.key_path = object.key_path?.map((e) => e) || [];
     return message;
   },
 };

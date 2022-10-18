@@ -131,7 +131,7 @@ export interface Channel {
    * list of connection identifiers, in order, along which packets sent on
    * this channel will travel
    */
-  connectionHops: string[];
+  connection_hops: string[];
   /** opaque channel version, which is agreed upon during the handshake */
   version: string;
 }
@@ -151,21 +151,21 @@ export interface IdentifiedChannel {
    * list of connection identifiers, in order, along which packets sent on
    * this channel will travel
    */
-  connectionHops: string[];
+  connection_hops: string[];
   /** opaque channel version, which is agreed upon during the handshake */
   version: string;
   /** port identifier */
-  portId: string;
+  port_id: string;
   /** channel identifier */
-  channelId: string;
+  channel_id: string;
 }
 
 /** Counterparty defines a channel end counterparty */
 export interface Counterparty {
   /** port on the counterparty chain which owns the other end of the channel. */
-  portId: string;
+  port_id: string;
   /** channel end on the counterparty chain */
-  channelId: string;
+  channel_id: string;
 }
 
 /** Packet defines a type that carries data across different chains through IBC */
@@ -177,19 +177,19 @@ export interface Packet {
    */
   sequence: string;
   /** identifies the port on the sending chain. */
-  sourcePort: string;
+  source_port: string;
   /** identifies the channel end on the sending chain. */
-  sourceChannel: string;
+  source_channel: string;
   /** identifies the port on the receiving chain. */
-  destinationPort: string;
+  destination_port: string;
   /** identifies the channel end on the receiving chain. */
-  destinationChannel: string;
+  destination_channel: string;
   /** actual opaque bytes transferred directly to the application module */
   data: Uint8Array;
   /** block height after which the packet times out */
-  timeoutHeight?: Height;
+  timeout_height?: Height;
   /** block timestamp (in nanoseconds) after which the packet times out */
-  timeoutTimestamp: string;
+  timeout_timestamp: string;
 }
 
 /**
@@ -200,9 +200,9 @@ export interface Packet {
  */
 export interface PacketState {
   /** channel port identifier. */
-  portId: string;
+  port_id: string;
   /** channel unique identifier. */
-  channelId: string;
+  channel_id: string;
   /** packet sequence. */
   sequence: string;
   /** embedded data that represents packet state. */
@@ -228,7 +228,7 @@ function createBaseChannel(): Channel {
     state: 0,
     ordering: 0,
     counterparty: undefined,
-    connectionHops: [],
+    connection_hops: [],
     version: "",
   };
 }
@@ -250,7 +250,7 @@ export const Channel = {
         writer.uint32(26).fork(),
       ).ldelim();
     }
-    for (const v of message.connectionHops) {
+    for (const v of message.connection_hops) {
       writer.uint32(34).string(v!);
     }
     if (message.version !== "") {
@@ -276,7 +276,7 @@ export const Channel = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 4:
-          message.connectionHops.push(reader.string());
+          message.connection_hops.push(reader.string());
           break;
         case 5:
           message.version = reader.string();
@@ -296,8 +296,8 @@ export const Channel = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      connectionHops: Array.isArray(object?.connectionHops)
-        ? object.connectionHops.map((e: any) => String(e))
+      connection_hops: Array.isArray(object?.connection_hops)
+        ? object.connection_hops.map((e: any) => String(e))
         : [],
       version: isSet(object.version) ? String(object.version) : "",
     };
@@ -312,10 +312,10 @@ export const Channel = {
       (obj.counterparty = message.counterparty
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
-    if (message.connectionHops) {
-      obj.connectionHops = message.connectionHops.map((e) => e);
+    if (message.connection_hops) {
+      obj.connection_hops = message.connection_hops.map((e) => e);
     } else {
-      obj.connectionHops = [];
+      obj.connection_hops = [];
     }
     message.version !== undefined && (obj.version = message.version);
     return obj;
@@ -329,7 +329,7 @@ export const Channel = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.connectionHops = object.connectionHops?.map((e) => e) || [];
+    message.connection_hops = object.connection_hops?.map((e) => e) || [];
     message.version = object.version ?? "";
     return message;
   },
@@ -340,10 +340,10 @@ function createBaseIdentifiedChannel(): IdentifiedChannel {
     state: 0,
     ordering: 0,
     counterparty: undefined,
-    connectionHops: [],
+    connection_hops: [],
     version: "",
-    portId: "",
-    channelId: "",
+    port_id: "",
+    channel_id: "",
   };
 }
 
@@ -364,17 +364,17 @@ export const IdentifiedChannel = {
         writer.uint32(26).fork(),
       ).ldelim();
     }
-    for (const v of message.connectionHops) {
+    for (const v of message.connection_hops) {
       writer.uint32(34).string(v!);
     }
     if (message.version !== "") {
       writer.uint32(42).string(message.version);
     }
-    if (message.portId !== "") {
-      writer.uint32(50).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(50).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(58).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(58).string(message.channel_id);
     }
     return writer;
   },
@@ -396,16 +396,16 @@ export const IdentifiedChannel = {
           message.counterparty = Counterparty.decode(reader, reader.uint32());
           break;
         case 4:
-          message.connectionHops.push(reader.string());
+          message.connection_hops.push(reader.string());
           break;
         case 5:
           message.version = reader.string();
           break;
         case 6:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 7:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -422,12 +422,12 @@ export const IdentifiedChannel = {
       counterparty: isSet(object.counterparty)
         ? Counterparty.fromJSON(object.counterparty)
         : undefined,
-      connectionHops: Array.isArray(object?.connectionHops)
-        ? object.connectionHops.map((e: any) => String(e))
+      connection_hops: Array.isArray(object?.connection_hops)
+        ? object.connection_hops.map((e: any) => String(e))
         : [],
       version: isSet(object.version) ? String(object.version) : "",
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
@@ -440,14 +440,14 @@ export const IdentifiedChannel = {
       (obj.counterparty = message.counterparty
         ? Counterparty.toJSON(message.counterparty)
         : undefined);
-    if (message.connectionHops) {
-      obj.connectionHops = message.connectionHops.map((e) => e);
+    if (message.connection_hops) {
+      obj.connection_hops = message.connection_hops.map((e) => e);
     } else {
-      obj.connectionHops = [];
+      obj.connection_hops = [];
     }
     message.version !== undefined && (obj.version = message.version);
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -461,16 +461,16 @@ export const IdentifiedChannel = {
       object.counterparty !== undefined && object.counterparty !== null
         ? Counterparty.fromPartial(object.counterparty)
         : undefined;
-    message.connectionHops = object.connectionHops?.map((e) => e) || [];
+    message.connection_hops = object.connection_hops?.map((e) => e) || [];
     message.version = object.version ?? "";
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
 
 function createBaseCounterparty(): Counterparty {
-  return { portId: "", channelId: "" };
+  return { port_id: "", channel_id: "" };
 }
 
 export const Counterparty = {
@@ -478,11 +478,11 @@ export const Counterparty = {
     message: Counterparty,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     return writer;
   },
@@ -495,10 +495,10 @@ export const Counterparty = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -510,15 +510,15 @@ export const Counterparty = {
 
   fromJSON(object: any): Counterparty {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
   toJSON(message: Counterparty): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -526,8 +526,8 @@ export const Counterparty = {
     object: I,
   ): Counterparty {
     const message = createBaseCounterparty();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
@@ -535,13 +535,13 @@ export const Counterparty = {
 function createBasePacket(): Packet {
   return {
     sequence: "0",
-    sourcePort: "",
-    sourceChannel: "",
-    destinationPort: "",
-    destinationChannel: "",
+    source_port: "",
+    source_channel: "",
+    destination_port: "",
+    destination_channel: "",
     data: new Uint8Array(),
-    timeoutHeight: undefined,
-    timeoutTimestamp: "0",
+    timeout_height: undefined,
+    timeout_timestamp: "0",
   };
 }
 
@@ -553,26 +553,26 @@ export const Packet = {
     if (message.sequence !== "0") {
       writer.uint32(8).uint64(message.sequence);
     }
-    if (message.sourcePort !== "") {
-      writer.uint32(18).string(message.sourcePort);
+    if (message.source_port !== "") {
+      writer.uint32(18).string(message.source_port);
     }
-    if (message.sourceChannel !== "") {
-      writer.uint32(26).string(message.sourceChannel);
+    if (message.source_channel !== "") {
+      writer.uint32(26).string(message.source_channel);
     }
-    if (message.destinationPort !== "") {
-      writer.uint32(34).string(message.destinationPort);
+    if (message.destination_port !== "") {
+      writer.uint32(34).string(message.destination_port);
     }
-    if (message.destinationChannel !== "") {
-      writer.uint32(42).string(message.destinationChannel);
+    if (message.destination_channel !== "") {
+      writer.uint32(42).string(message.destination_channel);
     }
     if (message.data.length !== 0) {
       writer.uint32(50).bytes(message.data);
     }
-    if (message.timeoutHeight !== undefined) {
-      Height.encode(message.timeoutHeight, writer.uint32(58).fork()).ldelim();
+    if (message.timeout_height !== undefined) {
+      Height.encode(message.timeout_height, writer.uint32(58).fork()).ldelim();
     }
-    if (message.timeoutTimestamp !== "0") {
-      writer.uint32(64).uint64(message.timeoutTimestamp);
+    if (message.timeout_timestamp !== "0") {
+      writer.uint32(64).uint64(message.timeout_timestamp);
     }
     return writer;
   },
@@ -588,25 +588,25 @@ export const Packet = {
           message.sequence = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.sourcePort = reader.string();
+          message.source_port = reader.string();
           break;
         case 3:
-          message.sourceChannel = reader.string();
+          message.source_channel = reader.string();
           break;
         case 4:
-          message.destinationPort = reader.string();
+          message.destination_port = reader.string();
           break;
         case 5:
-          message.destinationChannel = reader.string();
+          message.destination_channel = reader.string();
           break;
         case 6:
           message.data = reader.bytes();
           break;
         case 7:
-          message.timeoutHeight = Height.decode(reader, reader.uint32());
+          message.timeout_height = Height.decode(reader, reader.uint32());
           break;
         case 8:
-          message.timeoutTimestamp = longToString(reader.uint64() as Long);
+          message.timeout_timestamp = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -619,24 +619,24 @@ export const Packet = {
   fromJSON(object: any): Packet {
     return {
       sequence: isSet(object.sequence) ? String(object.sequence) : "0",
-      sourcePort: isSet(object.sourcePort) ? String(object.sourcePort) : "",
-      sourceChannel: isSet(object.sourceChannel)
-        ? String(object.sourceChannel)
+      source_port: isSet(object.source_port) ? String(object.source_port) : "",
+      source_channel: isSet(object.source_channel)
+        ? String(object.source_channel)
         : "",
-      destinationPort: isSet(object.destinationPort)
-        ? String(object.destinationPort)
+      destination_port: isSet(object.destination_port)
+        ? String(object.destination_port)
         : "",
-      destinationChannel: isSet(object.destinationChannel)
-        ? String(object.destinationChannel)
+      destination_channel: isSet(object.destination_channel)
+        ? String(object.destination_channel)
         : "",
       data: isSet(object.data)
         ? bytesFromBase64(object.data)
         : new Uint8Array(),
-      timeoutHeight: isSet(object.timeoutHeight)
-        ? Height.fromJSON(object.timeoutHeight)
+      timeout_height: isSet(object.timeout_height)
+        ? Height.fromJSON(object.timeout_height)
         : undefined,
-      timeoutTimestamp: isSet(object.timeoutTimestamp)
-        ? String(object.timeoutTimestamp)
+      timeout_timestamp: isSet(object.timeout_timestamp)
+        ? String(object.timeout_timestamp)
         : "0",
     };
   },
@@ -644,45 +644,46 @@ export const Packet = {
   toJSON(message: Packet): unknown {
     const obj: any = {};
     message.sequence !== undefined && (obj.sequence = message.sequence);
-    message.sourcePort !== undefined && (obj.sourcePort = message.sourcePort);
-    message.sourceChannel !== undefined &&
-      (obj.sourceChannel = message.sourceChannel);
-    message.destinationPort !== undefined &&
-      (obj.destinationPort = message.destinationPort);
-    message.destinationChannel !== undefined &&
-      (obj.destinationChannel = message.destinationChannel);
+    message.source_port !== undefined &&
+      (obj.source_port = message.source_port);
+    message.source_channel !== undefined &&
+      (obj.source_channel = message.source_channel);
+    message.destination_port !== undefined &&
+      (obj.destination_port = message.destination_port);
+    message.destination_channel !== undefined &&
+      (obj.destination_channel = message.destination_channel);
     message.data !== undefined &&
       (obj.data = base64FromBytes(
         message.data !== undefined ? message.data : new Uint8Array(),
       ));
-    message.timeoutHeight !== undefined &&
-      (obj.timeoutHeight = message.timeoutHeight
-        ? Height.toJSON(message.timeoutHeight)
+    message.timeout_height !== undefined &&
+      (obj.timeout_height = message.timeout_height
+        ? Height.toJSON(message.timeout_height)
         : undefined);
-    message.timeoutTimestamp !== undefined &&
-      (obj.timeoutTimestamp = message.timeoutTimestamp);
+    message.timeout_timestamp !== undefined &&
+      (obj.timeout_timestamp = message.timeout_timestamp);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Packet>, I>>(object: I): Packet {
     const message = createBasePacket();
     message.sequence = object.sequence ?? "0";
-    message.sourcePort = object.sourcePort ?? "";
-    message.sourceChannel = object.sourceChannel ?? "";
-    message.destinationPort = object.destinationPort ?? "";
-    message.destinationChannel = object.destinationChannel ?? "";
+    message.source_port = object.source_port ?? "";
+    message.source_channel = object.source_channel ?? "";
+    message.destination_port = object.destination_port ?? "";
+    message.destination_channel = object.destination_channel ?? "";
     message.data = object.data ?? new Uint8Array();
-    message.timeoutHeight =
-      object.timeoutHeight !== undefined && object.timeoutHeight !== null
-        ? Height.fromPartial(object.timeoutHeight)
+    message.timeout_height =
+      object.timeout_height !== undefined && object.timeout_height !== null
+        ? Height.fromPartial(object.timeout_height)
         : undefined;
-    message.timeoutTimestamp = object.timeoutTimestamp ?? "0";
+    message.timeout_timestamp = object.timeout_timestamp ?? "0";
     return message;
   },
 };
 
 function createBasePacketState(): PacketState {
-  return { portId: "", channelId: "", sequence: "0", data: new Uint8Array() };
+  return { port_id: "", channel_id: "", sequence: "0", data: new Uint8Array() };
 }
 
 export const PacketState = {
@@ -690,11 +691,11 @@ export const PacketState = {
     message: PacketState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.portId !== "") {
-      writer.uint32(10).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(18).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
     }
     if (message.sequence !== "0") {
       writer.uint32(24).uint64(message.sequence);
@@ -713,10 +714,10 @@ export const PacketState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 2:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         case 3:
           message.sequence = longToString(reader.uint64() as Long);
@@ -734,8 +735,8 @@ export const PacketState = {
 
   fromJSON(object: any): PacketState {
     return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
       sequence: isSet(object.sequence) ? String(object.sequence) : "0",
       data: isSet(object.data)
         ? bytesFromBase64(object.data)
@@ -745,8 +746,8 @@ export const PacketState = {
 
   toJSON(message: PacketState): unknown {
     const obj: any = {};
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     message.sequence !== undefined && (obj.sequence = message.sequence);
     message.data !== undefined &&
       (obj.data = base64FromBytes(
@@ -759,8 +760,8 @@ export const PacketState = {
     object: I,
   ): PacketState {
     const message = createBasePacketState();
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     message.sequence = object.sequence ?? "0";
     message.data = object.data ?? new Uint8Array();
     return message;

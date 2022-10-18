@@ -20,22 +20,22 @@ export interface GenesisState {
 
 /** Code struct encompasses CodeInfo and CodeBytes */
 export interface Code {
-  codeId: string;
-  codeInfo?: CodeInfo;
-  codeBytes: Uint8Array;
+  code_id: string;
+  code_info?: CodeInfo;
+  code_bytes: Uint8Array;
 }
 
 /** Contract struct encompasses ContractAddress, ContractInfo, and ContractState */
 export interface Contract {
-  contractAddress: Uint8Array;
-  contractInfo?: ContractInfo;
-  contractState: Model[];
-  contractCustomInfo?: ContractCustomInfo;
+  contract_address: Uint8Array;
+  contract_info?: ContractInfo;
+  contract_state: Model[];
+  contract_custom_info?: ContractCustomInfo;
 }
 
 /** Sequence id and value of a counter */
 export interface Sequence {
-  idKey: Uint8Array;
+  id_key: Uint8Array;
   value: string;
 }
 
@@ -136,19 +136,19 @@ export const GenesisState = {
 };
 
 function createBaseCode(): Code {
-  return { codeId: "0", codeInfo: undefined, codeBytes: new Uint8Array() };
+  return { code_id: "0", code_info: undefined, code_bytes: new Uint8Array() };
 }
 
 export const Code = {
   encode(message: Code, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.codeId !== "0") {
-      writer.uint32(8).uint64(message.codeId);
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
     }
-    if (message.codeInfo !== undefined) {
-      CodeInfo.encode(message.codeInfo, writer.uint32(18).fork()).ldelim();
+    if (message.code_info !== undefined) {
+      CodeInfo.encode(message.code_info, writer.uint32(18).fork()).ldelim();
     }
-    if (message.codeBytes.length !== 0) {
-      writer.uint32(26).bytes(message.codeBytes);
+    if (message.code_bytes.length !== 0) {
+      writer.uint32(26).bytes(message.code_bytes);
     }
     return writer;
   },
@@ -161,13 +161,13 @@ export const Code = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = longToString(reader.uint64() as Long);
+          message.code_id = longToString(reader.uint64() as Long);
           break;
         case 2:
-          message.codeInfo = CodeInfo.decode(reader, reader.uint32());
+          message.code_info = CodeInfo.decode(reader, reader.uint32());
           break;
         case 3:
-          message.codeBytes = reader.bytes();
+          message.code_bytes = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -179,48 +179,50 @@ export const Code = {
 
   fromJSON(object: any): Code {
     return {
-      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
-      codeInfo: isSet(object.codeInfo)
-        ? CodeInfo.fromJSON(object.codeInfo)
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
+      code_info: isSet(object.code_info)
+        ? CodeInfo.fromJSON(object.code_info)
         : undefined,
-      codeBytes: isSet(object.codeBytes)
-        ? bytesFromBase64(object.codeBytes)
+      code_bytes: isSet(object.code_bytes)
+        ? bytesFromBase64(object.code_bytes)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: Code): unknown {
     const obj: any = {};
-    message.codeId !== undefined && (obj.codeId = message.codeId);
-    message.codeInfo !== undefined &&
-      (obj.codeInfo = message.codeInfo
-        ? CodeInfo.toJSON(message.codeInfo)
+    message.code_id !== undefined && (obj.code_id = message.code_id);
+    message.code_info !== undefined &&
+      (obj.code_info = message.code_info
+        ? CodeInfo.toJSON(message.code_info)
         : undefined);
-    message.codeBytes !== undefined &&
-      (obj.codeBytes = base64FromBytes(
-        message.codeBytes !== undefined ? message.codeBytes : new Uint8Array(),
+    message.code_bytes !== undefined &&
+      (obj.code_bytes = base64FromBytes(
+        message.code_bytes !== undefined
+          ? message.code_bytes
+          : new Uint8Array(),
       ));
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Code>, I>>(object: I): Code {
     const message = createBaseCode();
-    message.codeId = object.codeId ?? "0";
-    message.codeInfo =
-      object.codeInfo !== undefined && object.codeInfo !== null
-        ? CodeInfo.fromPartial(object.codeInfo)
+    message.code_id = object.code_id ?? "0";
+    message.code_info =
+      object.code_info !== undefined && object.code_info !== null
+        ? CodeInfo.fromPartial(object.code_info)
         : undefined;
-    message.codeBytes = object.codeBytes ?? new Uint8Array();
+    message.code_bytes = object.code_bytes ?? new Uint8Array();
     return message;
   },
 };
 
 function createBaseContract(): Contract {
   return {
-    contractAddress: new Uint8Array(),
-    contractInfo: undefined,
-    contractState: [],
-    contractCustomInfo: undefined,
+    contract_address: new Uint8Array(),
+    contract_info: undefined,
+    contract_state: [],
+    contract_custom_info: undefined,
   };
 }
 
@@ -229,21 +231,21 @@ export const Contract = {
     message: Contract,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress.length !== 0) {
-      writer.uint32(10).bytes(message.contractAddress);
+    if (message.contract_address.length !== 0) {
+      writer.uint32(10).bytes(message.contract_address);
     }
-    if (message.contractInfo !== undefined) {
+    if (message.contract_info !== undefined) {
       ContractInfo.encode(
-        message.contractInfo,
+        message.contract_info,
         writer.uint32(18).fork(),
       ).ldelim();
     }
-    for (const v of message.contractState) {
+    for (const v of message.contract_state) {
       Model.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    if (message.contractCustomInfo !== undefined) {
+    if (message.contract_custom_info !== undefined) {
       ContractCustomInfo.encode(
-        message.contractCustomInfo,
+        message.contract_custom_info,
         writer.uint32(34).fork(),
       ).ldelim();
     }
@@ -258,16 +260,16 @@ export const Contract = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.bytes();
+          message.contract_address = reader.bytes();
           break;
         case 2:
-          message.contractInfo = ContractInfo.decode(reader, reader.uint32());
+          message.contract_info = ContractInfo.decode(reader, reader.uint32());
           break;
         case 3:
-          message.contractState.push(Model.decode(reader, reader.uint32()));
+          message.contract_state.push(Model.decode(reader, reader.uint32()));
           break;
         case 4:
-          message.contractCustomInfo = ContractCustomInfo.decode(
+          message.contract_custom_info = ContractCustomInfo.decode(
             reader,
             reader.uint32(),
           );
@@ -282,67 +284,67 @@ export const Contract = {
 
   fromJSON(object: any): Contract {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? bytesFromBase64(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? bytesFromBase64(object.contract_address)
         : new Uint8Array(),
-      contractInfo: isSet(object.contractInfo)
-        ? ContractInfo.fromJSON(object.contractInfo)
+      contract_info: isSet(object.contract_info)
+        ? ContractInfo.fromJSON(object.contract_info)
         : undefined,
-      contractState: Array.isArray(object?.contractState)
-        ? object.contractState.map((e: any) => Model.fromJSON(e))
+      contract_state: Array.isArray(object?.contract_state)
+        ? object.contract_state.map((e: any) => Model.fromJSON(e))
         : [],
-      contractCustomInfo: isSet(object.contractCustomInfo)
-        ? ContractCustomInfo.fromJSON(object.contractCustomInfo)
+      contract_custom_info: isSet(object.contract_custom_info)
+        ? ContractCustomInfo.fromJSON(object.contract_custom_info)
         : undefined,
     };
   },
 
   toJSON(message: Contract): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = base64FromBytes(
-        message.contractAddress !== undefined
-          ? message.contractAddress
+    message.contract_address !== undefined &&
+      (obj.contract_address = base64FromBytes(
+        message.contract_address !== undefined
+          ? message.contract_address
           : new Uint8Array(),
       ));
-    message.contractInfo !== undefined &&
-      (obj.contractInfo = message.contractInfo
-        ? ContractInfo.toJSON(message.contractInfo)
+    message.contract_info !== undefined &&
+      (obj.contract_info = message.contract_info
+        ? ContractInfo.toJSON(message.contract_info)
         : undefined);
-    if (message.contractState) {
-      obj.contractState = message.contractState.map((e) =>
+    if (message.contract_state) {
+      obj.contract_state = message.contract_state.map((e) =>
         e ? Model.toJSON(e) : undefined,
       );
     } else {
-      obj.contractState = [];
+      obj.contract_state = [];
     }
-    message.contractCustomInfo !== undefined &&
-      (obj.contractCustomInfo = message.contractCustomInfo
-        ? ContractCustomInfo.toJSON(message.contractCustomInfo)
+    message.contract_custom_info !== undefined &&
+      (obj.contract_custom_info = message.contract_custom_info
+        ? ContractCustomInfo.toJSON(message.contract_custom_info)
         : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Contract>, I>>(object: I): Contract {
     const message = createBaseContract();
-    message.contractAddress = object.contractAddress ?? new Uint8Array();
-    message.contractInfo =
-      object.contractInfo !== undefined && object.contractInfo !== null
-        ? ContractInfo.fromPartial(object.contractInfo)
+    message.contract_address = object.contract_address ?? new Uint8Array();
+    message.contract_info =
+      object.contract_info !== undefined && object.contract_info !== null
+        ? ContractInfo.fromPartial(object.contract_info)
         : undefined;
-    message.contractState =
-      object.contractState?.map((e) => Model.fromPartial(e)) || [];
-    message.contractCustomInfo =
-      object.contractCustomInfo !== undefined &&
-      object.contractCustomInfo !== null
-        ? ContractCustomInfo.fromPartial(object.contractCustomInfo)
+    message.contract_state =
+      object.contract_state?.map((e) => Model.fromPartial(e)) || [];
+    message.contract_custom_info =
+      object.contract_custom_info !== undefined &&
+      object.contract_custom_info !== null
+        ? ContractCustomInfo.fromPartial(object.contract_custom_info)
         : undefined;
     return message;
   },
 };
 
 function createBaseSequence(): Sequence {
-  return { idKey: new Uint8Array(), value: "0" };
+  return { id_key: new Uint8Array(), value: "0" };
 }
 
 export const Sequence = {
@@ -350,8 +352,8 @@ export const Sequence = {
     message: Sequence,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.idKey.length !== 0) {
-      writer.uint32(10).bytes(message.idKey);
+    if (message.id_key.length !== 0) {
+      writer.uint32(10).bytes(message.id_key);
     }
     if (message.value !== "0") {
       writer.uint32(16).uint64(message.value);
@@ -367,7 +369,7 @@ export const Sequence = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.idKey = reader.bytes();
+          message.id_key = reader.bytes();
           break;
         case 2:
           message.value = longToString(reader.uint64() as Long);
@@ -382,8 +384,8 @@ export const Sequence = {
 
   fromJSON(object: any): Sequence {
     return {
-      idKey: isSet(object.idKey)
-        ? bytesFromBase64(object.idKey)
+      id_key: isSet(object.id_key)
+        ? bytesFromBase64(object.id_key)
         : new Uint8Array(),
       value: isSet(object.value) ? String(object.value) : "0",
     };
@@ -391,9 +393,9 @@ export const Sequence = {
 
   toJSON(message: Sequence): unknown {
     const obj: any = {};
-    message.idKey !== undefined &&
-      (obj.idKey = base64FromBytes(
-        message.idKey !== undefined ? message.idKey : new Uint8Array(),
+    message.id_key !== undefined &&
+      (obj.id_key = base64FromBytes(
+        message.id_key !== undefined ? message.id_key : new Uint8Array(),
       ));
     message.value !== undefined && (obj.value = message.value);
     return obj;
@@ -401,7 +403,7 @@ export const Sequence = {
 
   fromPartial<I extends Exact<DeepPartial<Sequence>, I>>(object: I): Sequence {
     const message = createBaseSequence();
-    message.idKey = object.idKey ?? new Uint8Array();
+    message.id_key = object.id_key ?? new Uint8Array();
     message.value = object.value ?? "0";
     return message;
   },

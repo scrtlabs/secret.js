@@ -6,14 +6,14 @@ export const protobufPackage = "cosmos.slashing.v1beta1";
 
 /** MsgUnjail defines the Msg/Unjail request type */
 export interface MsgUnjail {
-  validatorAddr: string;
+  validator_addr: string;
 }
 
 /** MsgUnjailResponse defines the Msg/Unjail response type */
 export interface MsgUnjailResponse {}
 
 function createBaseMsgUnjail(): MsgUnjail {
-  return { validatorAddr: "" };
+  return { validator_addr: "" };
 }
 
 export const MsgUnjail = {
@@ -21,8 +21,8 @@ export const MsgUnjail = {
     message: MsgUnjail,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.validatorAddr !== "") {
-      writer.uint32(10).string(message.validatorAddr);
+    if (message.validator_addr !== "") {
+      writer.uint32(10).string(message.validator_addr);
     }
     return writer;
   },
@@ -35,7 +35,7 @@ export const MsgUnjail = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.validatorAddr = reader.string();
+          message.validator_addr = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -47,16 +47,16 @@ export const MsgUnjail = {
 
   fromJSON(object: any): MsgUnjail {
     return {
-      validatorAddr: isSet(object.validatorAddr)
-        ? String(object.validatorAddr)
+      validator_addr: isSet(object.validator_addr)
+        ? String(object.validator_addr)
         : "",
     };
   },
 
   toJSON(message: MsgUnjail): unknown {
     const obj: any = {};
-    message.validatorAddr !== undefined &&
-      (obj.validatorAddr = message.validatorAddr);
+    message.validator_addr !== undefined &&
+      (obj.validator_addr = message.validator_addr);
     return obj;
   },
 
@@ -64,7 +64,7 @@ export const MsgUnjail = {
     object: I,
   ): MsgUnjail {
     const message = createBaseMsgUnjail();
-    message.validatorAddr = object.validatorAddr ?? "";
+    message.validator_addr = object.validator_addr ?? "";
     return message;
   },
 };
@@ -120,7 +120,34 @@ export interface Msg {
    * them into the bonded validator set, so they can begin receiving provisions
    * and rewards again.
    */
-  unjail(request: MsgUnjail): Promise<MsgUnjailResponse>;
+  Unjail(request: MsgUnjail): Promise<MsgUnjailResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Unjail = this.Unjail.bind(this);
+  }
+  Unjail(request: MsgUnjail): Promise<MsgUnjailResponse> {
+    const data = MsgUnjail.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.slashing.v1beta1.Msg",
+      "Unjail",
+      data,
+    );
+    return promise.then((data) =>
+      MsgUnjailResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

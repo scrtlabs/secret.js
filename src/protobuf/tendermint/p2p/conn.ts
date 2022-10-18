@@ -10,19 +10,19 @@ export interface PacketPing {}
 export interface PacketPong {}
 
 export interface PacketMsg {
-  channelId: number;
+  channel_id: number;
   eof: boolean;
   data: Uint8Array;
 }
 
 export interface Packet {
-  packetPing?: PacketPing | undefined;
-  packetPong?: PacketPong | undefined;
-  packetMsg?: PacketMsg | undefined;
+  packet_ping?: PacketPing | undefined;
+  packet_pong?: PacketPong | undefined;
+  packet_msg?: PacketMsg | undefined;
 }
 
 export interface AuthSigMessage {
-  pubKey?: PublicKey;
+  pub_key?: PublicKey;
   sig: Uint8Array;
 }
 
@@ -105,7 +105,7 @@ export const PacketPong = {
 };
 
 function createBasePacketMsg(): PacketMsg {
-  return { channelId: 0, eof: false, data: new Uint8Array() };
+  return { channel_id: 0, eof: false, data: new Uint8Array() };
 }
 
 export const PacketMsg = {
@@ -113,8 +113,8 @@ export const PacketMsg = {
     message: PacketMsg,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.channelId !== 0) {
-      writer.uint32(8).int32(message.channelId);
+    if (message.channel_id !== 0) {
+      writer.uint32(8).int32(message.channel_id);
     }
     if (message.eof === true) {
       writer.uint32(16).bool(message.eof);
@@ -133,7 +133,7 @@ export const PacketMsg = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.channelId = reader.int32();
+          message.channel_id = reader.int32();
           break;
         case 2:
           message.eof = reader.bool();
@@ -151,7 +151,7 @@ export const PacketMsg = {
 
   fromJSON(object: any): PacketMsg {
     return {
-      channelId: isSet(object.channelId) ? Number(object.channelId) : 0,
+      channel_id: isSet(object.channel_id) ? Number(object.channel_id) : 0,
       eof: isSet(object.eof) ? Boolean(object.eof) : false,
       data: isSet(object.data)
         ? bytesFromBase64(object.data)
@@ -161,8 +161,8 @@ export const PacketMsg = {
 
   toJSON(message: PacketMsg): unknown {
     const obj: any = {};
-    message.channelId !== undefined &&
-      (obj.channelId = Math.round(message.channelId));
+    message.channel_id !== undefined &&
+      (obj.channel_id = Math.round(message.channel_id));
     message.eof !== undefined && (obj.eof = message.eof);
     message.data !== undefined &&
       (obj.data = base64FromBytes(
@@ -175,7 +175,7 @@ export const PacketMsg = {
     object: I,
   ): PacketMsg {
     const message = createBasePacketMsg();
-    message.channelId = object.channelId ?? 0;
+    message.channel_id = object.channel_id ?? 0;
     message.eof = object.eof ?? false;
     message.data = object.data ?? new Uint8Array();
     return message;
@@ -183,7 +183,11 @@ export const PacketMsg = {
 };
 
 function createBasePacket(): Packet {
-  return { packetPing: undefined, packetPong: undefined, packetMsg: undefined };
+  return {
+    packet_ping: undefined,
+    packet_pong: undefined,
+    packet_msg: undefined,
+  };
 }
 
 export const Packet = {
@@ -191,14 +195,14 @@ export const Packet = {
     message: Packet,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.packetPing !== undefined) {
-      PacketPing.encode(message.packetPing, writer.uint32(10).fork()).ldelim();
+    if (message.packet_ping !== undefined) {
+      PacketPing.encode(message.packet_ping, writer.uint32(10).fork()).ldelim();
     }
-    if (message.packetPong !== undefined) {
-      PacketPong.encode(message.packetPong, writer.uint32(18).fork()).ldelim();
+    if (message.packet_pong !== undefined) {
+      PacketPong.encode(message.packet_pong, writer.uint32(18).fork()).ldelim();
     }
-    if (message.packetMsg !== undefined) {
-      PacketMsg.encode(message.packetMsg, writer.uint32(26).fork()).ldelim();
+    if (message.packet_msg !== undefined) {
+      PacketMsg.encode(message.packet_msg, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -211,13 +215,13 @@ export const Packet = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.packetPing = PacketPing.decode(reader, reader.uint32());
+          message.packet_ping = PacketPing.decode(reader, reader.uint32());
           break;
         case 2:
-          message.packetPong = PacketPong.decode(reader, reader.uint32());
+          message.packet_pong = PacketPong.decode(reader, reader.uint32());
           break;
         case 3:
-          message.packetMsg = PacketMsg.decode(reader, reader.uint32());
+          message.packet_msg = PacketMsg.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -229,55 +233,55 @@ export const Packet = {
 
   fromJSON(object: any): Packet {
     return {
-      packetPing: isSet(object.packetPing)
-        ? PacketPing.fromJSON(object.packetPing)
+      packet_ping: isSet(object.packet_ping)
+        ? PacketPing.fromJSON(object.packet_ping)
         : undefined,
-      packetPong: isSet(object.packetPong)
-        ? PacketPong.fromJSON(object.packetPong)
+      packet_pong: isSet(object.packet_pong)
+        ? PacketPong.fromJSON(object.packet_pong)
         : undefined,
-      packetMsg: isSet(object.packetMsg)
-        ? PacketMsg.fromJSON(object.packetMsg)
+      packet_msg: isSet(object.packet_msg)
+        ? PacketMsg.fromJSON(object.packet_msg)
         : undefined,
     };
   },
 
   toJSON(message: Packet): unknown {
     const obj: any = {};
-    message.packetPing !== undefined &&
-      (obj.packetPing = message.packetPing
-        ? PacketPing.toJSON(message.packetPing)
+    message.packet_ping !== undefined &&
+      (obj.packet_ping = message.packet_ping
+        ? PacketPing.toJSON(message.packet_ping)
         : undefined);
-    message.packetPong !== undefined &&
-      (obj.packetPong = message.packetPong
-        ? PacketPong.toJSON(message.packetPong)
+    message.packet_pong !== undefined &&
+      (obj.packet_pong = message.packet_pong
+        ? PacketPong.toJSON(message.packet_pong)
         : undefined);
-    message.packetMsg !== undefined &&
-      (obj.packetMsg = message.packetMsg
-        ? PacketMsg.toJSON(message.packetMsg)
+    message.packet_msg !== undefined &&
+      (obj.packet_msg = message.packet_msg
+        ? PacketMsg.toJSON(message.packet_msg)
         : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Packet>, I>>(object: I): Packet {
     const message = createBasePacket();
-    message.packetPing =
-      object.packetPing !== undefined && object.packetPing !== null
-        ? PacketPing.fromPartial(object.packetPing)
+    message.packet_ping =
+      object.packet_ping !== undefined && object.packet_ping !== null
+        ? PacketPing.fromPartial(object.packet_ping)
         : undefined;
-    message.packetPong =
-      object.packetPong !== undefined && object.packetPong !== null
-        ? PacketPong.fromPartial(object.packetPong)
+    message.packet_pong =
+      object.packet_pong !== undefined && object.packet_pong !== null
+        ? PacketPong.fromPartial(object.packet_pong)
         : undefined;
-    message.packetMsg =
-      object.packetMsg !== undefined && object.packetMsg !== null
-        ? PacketMsg.fromPartial(object.packetMsg)
+    message.packet_msg =
+      object.packet_msg !== undefined && object.packet_msg !== null
+        ? PacketMsg.fromPartial(object.packet_msg)
         : undefined;
     return message;
   },
 };
 
 function createBaseAuthSigMessage(): AuthSigMessage {
-  return { pubKey: undefined, sig: new Uint8Array() };
+  return { pub_key: undefined, sig: new Uint8Array() };
 }
 
 export const AuthSigMessage = {
@@ -285,8 +289,8 @@ export const AuthSigMessage = {
     message: AuthSigMessage,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.pubKey !== undefined) {
-      PublicKey.encode(message.pubKey, writer.uint32(10).fork()).ldelim();
+    if (message.pub_key !== undefined) {
+      PublicKey.encode(message.pub_key, writer.uint32(10).fork()).ldelim();
     }
     if (message.sig.length !== 0) {
       writer.uint32(18).bytes(message.sig);
@@ -302,7 +306,7 @@ export const AuthSigMessage = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pubKey = PublicKey.decode(reader, reader.uint32());
+          message.pub_key = PublicKey.decode(reader, reader.uint32());
           break;
         case 2:
           message.sig = reader.bytes();
@@ -317,8 +321,8 @@ export const AuthSigMessage = {
 
   fromJSON(object: any): AuthSigMessage {
     return {
-      pubKey: isSet(object.pubKey)
-        ? PublicKey.fromJSON(object.pubKey)
+      pub_key: isSet(object.pub_key)
+        ? PublicKey.fromJSON(object.pub_key)
         : undefined,
       sig: isSet(object.sig) ? bytesFromBase64(object.sig) : new Uint8Array(),
     };
@@ -326,9 +330,9 @@ export const AuthSigMessage = {
 
   toJSON(message: AuthSigMessage): unknown {
     const obj: any = {};
-    message.pubKey !== undefined &&
-      (obj.pubKey = message.pubKey
-        ? PublicKey.toJSON(message.pubKey)
+    message.pub_key !== undefined &&
+      (obj.pub_key = message.pub_key
+        ? PublicKey.toJSON(message.pub_key)
         : undefined);
     message.sig !== undefined &&
       (obj.sig = base64FromBytes(
@@ -341,9 +345,9 @@ export const AuthSigMessage = {
     object: I,
   ): AuthSigMessage {
     const message = createBaseAuthSigMessage();
-    message.pubKey =
-      object.pubKey !== undefined && object.pubKey !== null
-        ? PublicKey.fromPartial(object.pubKey)
+    message.pub_key =
+      object.pub_key !== undefined && object.pub_key !== null
+        ? PublicKey.fromPartial(object.pub_key)
         : undefined;
     message.sig = object.sig ?? new Uint8Array();
     return message;

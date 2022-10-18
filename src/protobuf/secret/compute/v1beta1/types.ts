@@ -54,20 +54,20 @@ export interface AccessTypeParam {
 
 /** CodeInfo is data for the uploaded contract WASM code */
 export interface CodeInfo {
-  codeHash: Uint8Array;
+  code_hash: Uint8Array;
   creator: Uint8Array;
   source: string;
   builder: string;
 }
 
 export interface ContractCustomInfo {
-  enclaveKey: Uint8Array;
+  enclave_key: Uint8Array;
   label: string;
 }
 
 /** ContractInfo stores a WASM contract instance */
 export interface ContractInfo {
-  codeId: string;
+  code_id: string;
   creator: Uint8Array;
   label: string;
   /**
@@ -75,15 +75,15 @@ export interface ContractInfo {
    * (Note: when using json tag "-" amino refused to serialize it...)
    */
   created?: AbsoluteTxPosition;
-  ibcPortId: string;
+  ibc_port_id: string;
 }
 
 /** AbsoluteTxPosition can be used to sort contracts */
 export interface AbsoluteTxPosition {
   /** BlockHeight is the block the contract was created at */
-  blockHeight: string;
+  block_height: string;
   /** TxIndex is a monotonic counter within the block (actual transaction index, or gas consumed) */
-  txIndex: string;
+  tx_index: string;
 }
 
 /** Model is a struct that holds a KV pair */
@@ -151,7 +151,7 @@ export const AccessTypeParam = {
 
 function createBaseCodeInfo(): CodeInfo {
   return {
-    codeHash: new Uint8Array(),
+    code_hash: new Uint8Array(),
     creator: new Uint8Array(),
     source: "",
     builder: "",
@@ -163,8 +163,8 @@ export const CodeInfo = {
     message: CodeInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeHash.length !== 0) {
-      writer.uint32(10).bytes(message.codeHash);
+    if (message.code_hash.length !== 0) {
+      writer.uint32(10).bytes(message.code_hash);
     }
     if (message.creator.length !== 0) {
       writer.uint32(18).bytes(message.creator);
@@ -186,7 +186,7 @@ export const CodeInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeHash = reader.bytes();
+          message.code_hash = reader.bytes();
           break;
         case 2:
           message.creator = reader.bytes();
@@ -207,8 +207,8 @@ export const CodeInfo = {
 
   fromJSON(object: any): CodeInfo {
     return {
-      codeHash: isSet(object.codeHash)
-        ? bytesFromBase64(object.codeHash)
+      code_hash: isSet(object.code_hash)
+        ? bytesFromBase64(object.code_hash)
         : new Uint8Array(),
       creator: isSet(object.creator)
         ? bytesFromBase64(object.creator)
@@ -220,9 +220,9 @@ export const CodeInfo = {
 
   toJSON(message: CodeInfo): unknown {
     const obj: any = {};
-    message.codeHash !== undefined &&
-      (obj.codeHash = base64FromBytes(
-        message.codeHash !== undefined ? message.codeHash : new Uint8Array(),
+    message.code_hash !== undefined &&
+      (obj.code_hash = base64FromBytes(
+        message.code_hash !== undefined ? message.code_hash : new Uint8Array(),
       ));
     message.creator !== undefined &&
       (obj.creator = base64FromBytes(
@@ -235,7 +235,7 @@ export const CodeInfo = {
 
   fromPartial<I extends Exact<DeepPartial<CodeInfo>, I>>(object: I): CodeInfo {
     const message = createBaseCodeInfo();
-    message.codeHash = object.codeHash ?? new Uint8Array();
+    message.code_hash = object.code_hash ?? new Uint8Array();
     message.creator = object.creator ?? new Uint8Array();
     message.source = object.source ?? "";
     message.builder = object.builder ?? "";
@@ -244,7 +244,7 @@ export const CodeInfo = {
 };
 
 function createBaseContractCustomInfo(): ContractCustomInfo {
-  return { enclaveKey: new Uint8Array(), label: "" };
+  return { enclave_key: new Uint8Array(), label: "" };
 }
 
 export const ContractCustomInfo = {
@@ -252,8 +252,8 @@ export const ContractCustomInfo = {
     message: ContractCustomInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.enclaveKey.length !== 0) {
-      writer.uint32(10).bytes(message.enclaveKey);
+    if (message.enclave_key.length !== 0) {
+      writer.uint32(10).bytes(message.enclave_key);
     }
     if (message.label !== "") {
       writer.uint32(18).string(message.label);
@@ -269,7 +269,7 @@ export const ContractCustomInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.enclaveKey = reader.bytes();
+          message.enclave_key = reader.bytes();
           break;
         case 2:
           message.label = reader.string();
@@ -284,8 +284,8 @@ export const ContractCustomInfo = {
 
   fromJSON(object: any): ContractCustomInfo {
     return {
-      enclaveKey: isSet(object.enclaveKey)
-        ? bytesFromBase64(object.enclaveKey)
+      enclave_key: isSet(object.enclave_key)
+        ? bytesFromBase64(object.enclave_key)
         : new Uint8Array(),
       label: isSet(object.label) ? String(object.label) : "",
     };
@@ -293,10 +293,10 @@ export const ContractCustomInfo = {
 
   toJSON(message: ContractCustomInfo): unknown {
     const obj: any = {};
-    message.enclaveKey !== undefined &&
-      (obj.enclaveKey = base64FromBytes(
-        message.enclaveKey !== undefined
-          ? message.enclaveKey
+    message.enclave_key !== undefined &&
+      (obj.enclave_key = base64FromBytes(
+        message.enclave_key !== undefined
+          ? message.enclave_key
           : new Uint8Array(),
       ));
     message.label !== undefined && (obj.label = message.label);
@@ -307,7 +307,7 @@ export const ContractCustomInfo = {
     object: I,
   ): ContractCustomInfo {
     const message = createBaseContractCustomInfo();
-    message.enclaveKey = object.enclaveKey ?? new Uint8Array();
+    message.enclave_key = object.enclave_key ?? new Uint8Array();
     message.label = object.label ?? "";
     return message;
   },
@@ -315,11 +315,11 @@ export const ContractCustomInfo = {
 
 function createBaseContractInfo(): ContractInfo {
   return {
-    codeId: "0",
+    code_id: "0",
     creator: new Uint8Array(),
     label: "",
     created: undefined,
-    ibcPortId: "",
+    ibc_port_id: "",
   };
 }
 
@@ -328,8 +328,8 @@ export const ContractInfo = {
     message: ContractInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeId !== "0") {
-      writer.uint32(8).uint64(message.codeId);
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
     }
     if (message.creator.length !== 0) {
       writer.uint32(18).bytes(message.creator);
@@ -343,8 +343,8 @@ export const ContractInfo = {
         writer.uint32(42).fork(),
       ).ldelim();
     }
-    if (message.ibcPortId !== "") {
-      writer.uint32(50).string(message.ibcPortId);
+    if (message.ibc_port_id !== "") {
+      writer.uint32(50).string(message.ibc_port_id);
     }
     return writer;
   },
@@ -357,7 +357,7 @@ export const ContractInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = longToString(reader.uint64() as Long);
+          message.code_id = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.creator = reader.bytes();
@@ -369,7 +369,7 @@ export const ContractInfo = {
           message.created = AbsoluteTxPosition.decode(reader, reader.uint32());
           break;
         case 6:
-          message.ibcPortId = reader.string();
+          message.ibc_port_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -381,7 +381,7 @@ export const ContractInfo = {
 
   fromJSON(object: any): ContractInfo {
     return {
-      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
       creator: isSet(object.creator)
         ? bytesFromBase64(object.creator)
         : new Uint8Array(),
@@ -389,13 +389,13 @@ export const ContractInfo = {
       created: isSet(object.created)
         ? AbsoluteTxPosition.fromJSON(object.created)
         : undefined,
-      ibcPortId: isSet(object.ibcPortId) ? String(object.ibcPortId) : "",
+      ibc_port_id: isSet(object.ibc_port_id) ? String(object.ibc_port_id) : "",
     };
   },
 
   toJSON(message: ContractInfo): unknown {
     const obj: any = {};
-    message.codeId !== undefined && (obj.codeId = message.codeId);
+    message.code_id !== undefined && (obj.code_id = message.code_id);
     message.creator !== undefined &&
       (obj.creator = base64FromBytes(
         message.creator !== undefined ? message.creator : new Uint8Array(),
@@ -405,7 +405,8 @@ export const ContractInfo = {
       (obj.created = message.created
         ? AbsoluteTxPosition.toJSON(message.created)
         : undefined);
-    message.ibcPortId !== undefined && (obj.ibcPortId = message.ibcPortId);
+    message.ibc_port_id !== undefined &&
+      (obj.ibc_port_id = message.ibc_port_id);
     return obj;
   },
 
@@ -413,20 +414,20 @@ export const ContractInfo = {
     object: I,
   ): ContractInfo {
     const message = createBaseContractInfo();
-    message.codeId = object.codeId ?? "0";
+    message.code_id = object.code_id ?? "0";
     message.creator = object.creator ?? new Uint8Array();
     message.label = object.label ?? "";
     message.created =
       object.created !== undefined && object.created !== null
         ? AbsoluteTxPosition.fromPartial(object.created)
         : undefined;
-    message.ibcPortId = object.ibcPortId ?? "";
+    message.ibc_port_id = object.ibc_port_id ?? "";
     return message;
   },
 };
 
 function createBaseAbsoluteTxPosition(): AbsoluteTxPosition {
-  return { blockHeight: "0", txIndex: "0" };
+  return { block_height: "0", tx_index: "0" };
 }
 
 export const AbsoluteTxPosition = {
@@ -434,11 +435,11 @@ export const AbsoluteTxPosition = {
     message: AbsoluteTxPosition,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.blockHeight !== "0") {
-      writer.uint32(8).int64(message.blockHeight);
+    if (message.block_height !== "0") {
+      writer.uint32(8).int64(message.block_height);
     }
-    if (message.txIndex !== "0") {
-      writer.uint32(16).uint64(message.txIndex);
+    if (message.tx_index !== "0") {
+      writer.uint32(16).uint64(message.tx_index);
     }
     return writer;
   },
@@ -451,10 +452,10 @@ export const AbsoluteTxPosition = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.blockHeight = longToString(reader.int64() as Long);
+          message.block_height = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.txIndex = longToString(reader.uint64() as Long);
+          message.tx_index = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -466,16 +467,18 @@ export const AbsoluteTxPosition = {
 
   fromJSON(object: any): AbsoluteTxPosition {
     return {
-      blockHeight: isSet(object.blockHeight) ? String(object.blockHeight) : "0",
-      txIndex: isSet(object.txIndex) ? String(object.txIndex) : "0",
+      block_height: isSet(object.block_height)
+        ? String(object.block_height)
+        : "0",
+      tx_index: isSet(object.tx_index) ? String(object.tx_index) : "0",
     };
   },
 
   toJSON(message: AbsoluteTxPosition): unknown {
     const obj: any = {};
-    message.blockHeight !== undefined &&
-      (obj.blockHeight = message.blockHeight);
-    message.txIndex !== undefined && (obj.txIndex = message.txIndex);
+    message.block_height !== undefined &&
+      (obj.block_height = message.block_height);
+    message.tx_index !== undefined && (obj.tx_index = message.tx_index);
     return obj;
   },
 
@@ -483,8 +486,8 @@ export const AbsoluteTxPosition = {
     object: I,
   ): AbsoluteTxPosition {
     const message = createBaseAbsoluteTxPosition();
-    message.blockHeight = object.blockHeight ?? "0";
-    message.txIndex = object.txIndex ?? "0";
+    message.block_height = object.block_height ?? "0";
+    message.tx_index = object.tx_index ?? "0";
     return message;
   },
 };

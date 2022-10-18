@@ -120,7 +120,34 @@ export const QueryParamsResponse = {
 /** Query provides defines the gRPC querier service. */
 export interface Query {
   /** Params queries all parameters of the ICA controller submodule. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Params = this.Params.bind(this);
+  }
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+    const data = QueryParamsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.applications.interchain_accounts.controller.v1.Query",
+      "Params",
+      data,
+    );
+    return promise.then((data) =>
+      QueryParamsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

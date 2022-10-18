@@ -5,17 +5,17 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "secret.registration.v1beta1";
 
 export interface SeedConfig {
-  masterCert: string;
-  encryptedKey: string;
+  master_cert: string;
+  encrypted_key: string;
 }
 
 export interface RegistrationNodeInfo {
   certificate: Uint8Array;
-  encryptedSeed: Uint8Array;
+  encrypted_seed: Uint8Array;
 }
 
 function createBaseSeedConfig(): SeedConfig {
-  return { masterCert: "", encryptedKey: "" };
+  return { master_cert: "", encrypted_key: "" };
 }
 
 export const SeedConfig = {
@@ -23,11 +23,11 @@ export const SeedConfig = {
     message: SeedConfig,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.masterCert !== "") {
-      writer.uint32(10).string(message.masterCert);
+    if (message.master_cert !== "") {
+      writer.uint32(10).string(message.master_cert);
     }
-    if (message.encryptedKey !== "") {
-      writer.uint32(18).string(message.encryptedKey);
+    if (message.encrypted_key !== "") {
+      writer.uint32(18).string(message.encrypted_key);
     }
     return writer;
   },
@@ -40,10 +40,10 @@ export const SeedConfig = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.masterCert = reader.string();
+          message.master_cert = reader.string();
           break;
         case 2:
-          message.encryptedKey = reader.string();
+          message.encrypted_key = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -55,18 +55,19 @@ export const SeedConfig = {
 
   fromJSON(object: any): SeedConfig {
     return {
-      masterCert: isSet(object.masterCert) ? String(object.masterCert) : "",
-      encryptedKey: isSet(object.encryptedKey)
-        ? String(object.encryptedKey)
+      master_cert: isSet(object.master_cert) ? String(object.master_cert) : "",
+      encrypted_key: isSet(object.encrypted_key)
+        ? String(object.encrypted_key)
         : "",
     };
   },
 
   toJSON(message: SeedConfig): unknown {
     const obj: any = {};
-    message.masterCert !== undefined && (obj.masterCert = message.masterCert);
-    message.encryptedKey !== undefined &&
-      (obj.encryptedKey = message.encryptedKey);
+    message.master_cert !== undefined &&
+      (obj.master_cert = message.master_cert);
+    message.encrypted_key !== undefined &&
+      (obj.encrypted_key = message.encrypted_key);
     return obj;
   },
 
@@ -74,14 +75,14 @@ export const SeedConfig = {
     object: I,
   ): SeedConfig {
     const message = createBaseSeedConfig();
-    message.masterCert = object.masterCert ?? "";
-    message.encryptedKey = object.encryptedKey ?? "";
+    message.master_cert = object.master_cert ?? "";
+    message.encrypted_key = object.encrypted_key ?? "";
     return message;
   },
 };
 
 function createBaseRegistrationNodeInfo(): RegistrationNodeInfo {
-  return { certificate: new Uint8Array(), encryptedSeed: new Uint8Array() };
+  return { certificate: new Uint8Array(), encrypted_seed: new Uint8Array() };
 }
 
 export const RegistrationNodeInfo = {
@@ -92,8 +93,8 @@ export const RegistrationNodeInfo = {
     if (message.certificate.length !== 0) {
       writer.uint32(10).bytes(message.certificate);
     }
-    if (message.encryptedSeed.length !== 0) {
-      writer.uint32(18).bytes(message.encryptedSeed);
+    if (message.encrypted_seed.length !== 0) {
+      writer.uint32(18).bytes(message.encrypted_seed);
     }
     return writer;
   },
@@ -112,7 +113,7 @@ export const RegistrationNodeInfo = {
           message.certificate = reader.bytes();
           break;
         case 2:
-          message.encryptedSeed = reader.bytes();
+          message.encrypted_seed = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -127,8 +128,8 @@ export const RegistrationNodeInfo = {
       certificate: isSet(object.certificate)
         ? bytesFromBase64(object.certificate)
         : new Uint8Array(),
-      encryptedSeed: isSet(object.encryptedSeed)
-        ? bytesFromBase64(object.encryptedSeed)
+      encrypted_seed: isSet(object.encrypted_seed)
+        ? bytesFromBase64(object.encrypted_seed)
         : new Uint8Array(),
     };
   },
@@ -141,10 +142,10 @@ export const RegistrationNodeInfo = {
           ? message.certificate
           : new Uint8Array(),
       ));
-    message.encryptedSeed !== undefined &&
-      (obj.encryptedSeed = base64FromBytes(
-        message.encryptedSeed !== undefined
-          ? message.encryptedSeed
+    message.encrypted_seed !== undefined &&
+      (obj.encrypted_seed = base64FromBytes(
+        message.encrypted_seed !== undefined
+          ? message.encrypted_seed
           : new Uint8Array(),
       ));
     return obj;
@@ -155,7 +156,7 @@ export const RegistrationNodeInfo = {
   ): RegistrationNodeInfo {
     const message = createBaseRegistrationNodeInfo();
     message.certificate = object.certificate ?? new Uint8Array();
-    message.encryptedSeed = object.encryptedSeed ?? new Uint8Array();
+    message.encrypted_seed = object.encrypted_seed ?? new Uint8Array();
     return message;
   },
 };

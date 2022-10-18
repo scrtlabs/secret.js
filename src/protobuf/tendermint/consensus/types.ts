@@ -23,8 +23,8 @@ export interface NewRoundStep {
   height: string;
   round: number;
   step: number;
-  secondsSinceStartTime: string;
-  lastCommitRound: number;
+  seconds_since_start_time: string;
+  last_commit_round: number;
 }
 
 /**
@@ -35,9 +35,9 @@ export interface NewRoundStep {
 export interface NewValidBlock {
   height: string;
   round: number;
-  blockPartSetHeader?: PartSetHeader;
-  blockParts?: BitArray;
-  isCommit: boolean;
+  block_part_set_header?: PartSetHeader;
+  block_parts?: BitArray;
+  is_commit: boolean;
 }
 
 /** Proposal is sent when a new block is proposed. */
@@ -48,8 +48,8 @@ export interface Proposal {
 /** ProposalPOL is sent when a previous proposal is re-proposed. */
 export interface ProposalPOL {
   height: string;
-  proposalPolRound: number;
-  proposalPol?: BitArray;
+  proposal_pol_round: number;
+  proposal_pol?: BitArray;
 }
 
 /** BlockPart is sent when gossipping a piece of the proposed block. */
@@ -77,7 +77,7 @@ export interface VoteSetMaj23 {
   height: string;
   round: number;
   type: SignedMsgType;
-  blockId?: BlockID;
+  block_id?: BlockID;
 }
 
 /** VoteSetBits is sent to communicate the bit-array of votes seen for the BlockID. */
@@ -85,20 +85,20 @@ export interface VoteSetBits {
   height: string;
   round: number;
   type: SignedMsgType;
-  blockId?: BlockID;
+  block_id?: BlockID;
   votes?: BitArray;
 }
 
 export interface Message {
-  newRoundStep?: NewRoundStep | undefined;
-  newValidBlock?: NewValidBlock | undefined;
+  new_round_step?: NewRoundStep | undefined;
+  new_valid_block?: NewValidBlock | undefined;
   proposal?: Proposal | undefined;
-  proposalPol?: ProposalPOL | undefined;
-  blockPart?: BlockPart | undefined;
+  proposal_pol?: ProposalPOL | undefined;
+  block_part?: BlockPart | undefined;
   vote?: Vote | undefined;
-  hasVote?: HasVote | undefined;
-  voteSetMaj23?: VoteSetMaj23 | undefined;
-  voteSetBits?: VoteSetBits | undefined;
+  has_vote?: HasVote | undefined;
+  vote_set_maj23?: VoteSetMaj23 | undefined;
+  vote_set_bits?: VoteSetBits | undefined;
 }
 
 function createBaseNewRoundStep(): NewRoundStep {
@@ -106,8 +106,8 @@ function createBaseNewRoundStep(): NewRoundStep {
     height: "0",
     round: 0,
     step: 0,
-    secondsSinceStartTime: "0",
-    lastCommitRound: 0,
+    seconds_since_start_time: "0",
+    last_commit_round: 0,
   };
 }
 
@@ -125,11 +125,11 @@ export const NewRoundStep = {
     if (message.step !== 0) {
       writer.uint32(24).uint32(message.step);
     }
-    if (message.secondsSinceStartTime !== "0") {
-      writer.uint32(32).int64(message.secondsSinceStartTime);
+    if (message.seconds_since_start_time !== "0") {
+      writer.uint32(32).int64(message.seconds_since_start_time);
     }
-    if (message.lastCommitRound !== 0) {
-      writer.uint32(40).int32(message.lastCommitRound);
+    if (message.last_commit_round !== 0) {
+      writer.uint32(40).int32(message.last_commit_round);
     }
     return writer;
   },
@@ -151,10 +151,12 @@ export const NewRoundStep = {
           message.step = reader.uint32();
           break;
         case 4:
-          message.secondsSinceStartTime = longToString(reader.int64() as Long);
+          message.seconds_since_start_time = longToString(
+            reader.int64() as Long,
+          );
           break;
         case 5:
-          message.lastCommitRound = reader.int32();
+          message.last_commit_round = reader.int32();
           break;
         default:
           reader.skipType(tag & 7);
@@ -169,11 +171,11 @@ export const NewRoundStep = {
       height: isSet(object.height) ? String(object.height) : "0",
       round: isSet(object.round) ? Number(object.round) : 0,
       step: isSet(object.step) ? Number(object.step) : 0,
-      secondsSinceStartTime: isSet(object.secondsSinceStartTime)
-        ? String(object.secondsSinceStartTime)
+      seconds_since_start_time: isSet(object.seconds_since_start_time)
+        ? String(object.seconds_since_start_time)
         : "0",
-      lastCommitRound: isSet(object.lastCommitRound)
-        ? Number(object.lastCommitRound)
+      last_commit_round: isSet(object.last_commit_round)
+        ? Number(object.last_commit_round)
         : 0,
     };
   },
@@ -183,10 +185,10 @@ export const NewRoundStep = {
     message.height !== undefined && (obj.height = message.height);
     message.round !== undefined && (obj.round = Math.round(message.round));
     message.step !== undefined && (obj.step = Math.round(message.step));
-    message.secondsSinceStartTime !== undefined &&
-      (obj.secondsSinceStartTime = message.secondsSinceStartTime);
-    message.lastCommitRound !== undefined &&
-      (obj.lastCommitRound = Math.round(message.lastCommitRound));
+    message.seconds_since_start_time !== undefined &&
+      (obj.seconds_since_start_time = message.seconds_since_start_time);
+    message.last_commit_round !== undefined &&
+      (obj.last_commit_round = Math.round(message.last_commit_round));
     return obj;
   },
 
@@ -197,8 +199,8 @@ export const NewRoundStep = {
     message.height = object.height ?? "0";
     message.round = object.round ?? 0;
     message.step = object.step ?? 0;
-    message.secondsSinceStartTime = object.secondsSinceStartTime ?? "0";
-    message.lastCommitRound = object.lastCommitRound ?? 0;
+    message.seconds_since_start_time = object.seconds_since_start_time ?? "0";
+    message.last_commit_round = object.last_commit_round ?? 0;
     return message;
   },
 };
@@ -207,9 +209,9 @@ function createBaseNewValidBlock(): NewValidBlock {
   return {
     height: "0",
     round: 0,
-    blockPartSetHeader: undefined,
-    blockParts: undefined,
-    isCommit: false,
+    block_part_set_header: undefined,
+    block_parts: undefined,
+    is_commit: false,
   };
 }
 
@@ -224,17 +226,17 @@ export const NewValidBlock = {
     if (message.round !== 0) {
       writer.uint32(16).int32(message.round);
     }
-    if (message.blockPartSetHeader !== undefined) {
+    if (message.block_part_set_header !== undefined) {
       PartSetHeader.encode(
-        message.blockPartSetHeader,
+        message.block_part_set_header,
         writer.uint32(26).fork(),
       ).ldelim();
     }
-    if (message.blockParts !== undefined) {
-      BitArray.encode(message.blockParts, writer.uint32(34).fork()).ldelim();
+    if (message.block_parts !== undefined) {
+      BitArray.encode(message.block_parts, writer.uint32(34).fork()).ldelim();
     }
-    if (message.isCommit === true) {
-      writer.uint32(40).bool(message.isCommit);
+    if (message.is_commit === true) {
+      writer.uint32(40).bool(message.is_commit);
     }
     return writer;
   },
@@ -253,16 +255,16 @@ export const NewValidBlock = {
           message.round = reader.int32();
           break;
         case 3:
-          message.blockPartSetHeader = PartSetHeader.decode(
+          message.block_part_set_header = PartSetHeader.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 4:
-          message.blockParts = BitArray.decode(reader, reader.uint32());
+          message.block_parts = BitArray.decode(reader, reader.uint32());
           break;
         case 5:
-          message.isCommit = reader.bool();
+          message.is_commit = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -276,13 +278,13 @@ export const NewValidBlock = {
     return {
       height: isSet(object.height) ? String(object.height) : "0",
       round: isSet(object.round) ? Number(object.round) : 0,
-      blockPartSetHeader: isSet(object.blockPartSetHeader)
-        ? PartSetHeader.fromJSON(object.blockPartSetHeader)
+      block_part_set_header: isSet(object.block_part_set_header)
+        ? PartSetHeader.fromJSON(object.block_part_set_header)
         : undefined,
-      blockParts: isSet(object.blockParts)
-        ? BitArray.fromJSON(object.blockParts)
+      block_parts: isSet(object.block_parts)
+        ? BitArray.fromJSON(object.block_parts)
         : undefined,
-      isCommit: isSet(object.isCommit) ? Boolean(object.isCommit) : false,
+      is_commit: isSet(object.is_commit) ? Boolean(object.is_commit) : false,
     };
   },
 
@@ -290,15 +292,15 @@ export const NewValidBlock = {
     const obj: any = {};
     message.height !== undefined && (obj.height = message.height);
     message.round !== undefined && (obj.round = Math.round(message.round));
-    message.blockPartSetHeader !== undefined &&
-      (obj.blockPartSetHeader = message.blockPartSetHeader
-        ? PartSetHeader.toJSON(message.blockPartSetHeader)
+    message.block_part_set_header !== undefined &&
+      (obj.block_part_set_header = message.block_part_set_header
+        ? PartSetHeader.toJSON(message.block_part_set_header)
         : undefined);
-    message.blockParts !== undefined &&
-      (obj.blockParts = message.blockParts
-        ? BitArray.toJSON(message.blockParts)
+    message.block_parts !== undefined &&
+      (obj.block_parts = message.block_parts
+        ? BitArray.toJSON(message.block_parts)
         : undefined);
-    message.isCommit !== undefined && (obj.isCommit = message.isCommit);
+    message.is_commit !== undefined && (obj.is_commit = message.is_commit);
     return obj;
   },
 
@@ -308,16 +310,16 @@ export const NewValidBlock = {
     const message = createBaseNewValidBlock();
     message.height = object.height ?? "0";
     message.round = object.round ?? 0;
-    message.blockPartSetHeader =
-      object.blockPartSetHeader !== undefined &&
-      object.blockPartSetHeader !== null
-        ? PartSetHeader.fromPartial(object.blockPartSetHeader)
+    message.block_part_set_header =
+      object.block_part_set_header !== undefined &&
+      object.block_part_set_header !== null
+        ? PartSetHeader.fromPartial(object.block_part_set_header)
         : undefined;
-    message.blockParts =
-      object.blockParts !== undefined && object.blockParts !== null
-        ? BitArray.fromPartial(object.blockParts)
+    message.block_parts =
+      object.block_parts !== undefined && object.block_parts !== null
+        ? BitArray.fromPartial(object.block_parts)
         : undefined;
-    message.isCommit = object.isCommit ?? false;
+    message.is_commit = object.is_commit ?? false;
     return message;
   },
 };
@@ -383,7 +385,7 @@ export const Proposal = {
 };
 
 function createBaseProposalPOL(): ProposalPOL {
-  return { height: "0", proposalPolRound: 0, proposalPol: undefined };
+  return { height: "0", proposal_pol_round: 0, proposal_pol: undefined };
 }
 
 export const ProposalPOL = {
@@ -394,11 +396,11 @@ export const ProposalPOL = {
     if (message.height !== "0") {
       writer.uint32(8).int64(message.height);
     }
-    if (message.proposalPolRound !== 0) {
-      writer.uint32(16).int32(message.proposalPolRound);
+    if (message.proposal_pol_round !== 0) {
+      writer.uint32(16).int32(message.proposal_pol_round);
     }
-    if (message.proposalPol !== undefined) {
-      BitArray.encode(message.proposalPol, writer.uint32(26).fork()).ldelim();
+    if (message.proposal_pol !== undefined) {
+      BitArray.encode(message.proposal_pol, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -414,10 +416,10 @@ export const ProposalPOL = {
           message.height = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.proposalPolRound = reader.int32();
+          message.proposal_pol_round = reader.int32();
           break;
         case 3:
-          message.proposalPol = BitArray.decode(reader, reader.uint32());
+          message.proposal_pol = BitArray.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -430,11 +432,11 @@ export const ProposalPOL = {
   fromJSON(object: any): ProposalPOL {
     return {
       height: isSet(object.height) ? String(object.height) : "0",
-      proposalPolRound: isSet(object.proposalPolRound)
-        ? Number(object.proposalPolRound)
+      proposal_pol_round: isSet(object.proposal_pol_round)
+        ? Number(object.proposal_pol_round)
         : 0,
-      proposalPol: isSet(object.proposalPol)
-        ? BitArray.fromJSON(object.proposalPol)
+      proposal_pol: isSet(object.proposal_pol)
+        ? BitArray.fromJSON(object.proposal_pol)
         : undefined,
     };
   },
@@ -442,11 +444,11 @@ export const ProposalPOL = {
   toJSON(message: ProposalPOL): unknown {
     const obj: any = {};
     message.height !== undefined && (obj.height = message.height);
-    message.proposalPolRound !== undefined &&
-      (obj.proposalPolRound = Math.round(message.proposalPolRound));
-    message.proposalPol !== undefined &&
-      (obj.proposalPol = message.proposalPol
-        ? BitArray.toJSON(message.proposalPol)
+    message.proposal_pol_round !== undefined &&
+      (obj.proposal_pol_round = Math.round(message.proposal_pol_round));
+    message.proposal_pol !== undefined &&
+      (obj.proposal_pol = message.proposal_pol
+        ? BitArray.toJSON(message.proposal_pol)
         : undefined);
     return obj;
   },
@@ -456,10 +458,10 @@ export const ProposalPOL = {
   ): ProposalPOL {
     const message = createBaseProposalPOL();
     message.height = object.height ?? "0";
-    message.proposalPolRound = object.proposalPolRound ?? 0;
-    message.proposalPol =
-      object.proposalPol !== undefined && object.proposalPol !== null
-        ? BitArray.fromPartial(object.proposalPol)
+    message.proposal_pol_round = object.proposal_pol_round ?? 0;
+    message.proposal_pol =
+      object.proposal_pol !== undefined && object.proposal_pol !== null
+        ? BitArray.fromPartial(object.proposal_pol)
         : undefined;
     return message;
   },
@@ -675,7 +677,7 @@ export const HasVote = {
 };
 
 function createBaseVoteSetMaj23(): VoteSetMaj23 {
-  return { height: "0", round: 0, type: 0, blockId: undefined };
+  return { height: "0", round: 0, type: 0, block_id: undefined };
 }
 
 export const VoteSetMaj23 = {
@@ -692,8 +694,8 @@ export const VoteSetMaj23 = {
     if (message.type !== 0) {
       writer.uint32(24).int32(message.type);
     }
-    if (message.blockId !== undefined) {
-      BlockID.encode(message.blockId, writer.uint32(34).fork()).ldelim();
+    if (message.block_id !== undefined) {
+      BlockID.encode(message.block_id, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -715,7 +717,7 @@ export const VoteSetMaj23 = {
           message.type = reader.int32() as any;
           break;
         case 4:
-          message.blockId = BlockID.decode(reader, reader.uint32());
+          message.block_id = BlockID.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -730,8 +732,8 @@ export const VoteSetMaj23 = {
       height: isSet(object.height) ? String(object.height) : "0",
       round: isSet(object.round) ? Number(object.round) : 0,
       type: isSet(object.type) ? signedMsgTypeFromJSON(object.type) : 0,
-      blockId: isSet(object.blockId)
-        ? BlockID.fromJSON(object.blockId)
+      block_id: isSet(object.block_id)
+        ? BlockID.fromJSON(object.block_id)
         : undefined,
     };
   },
@@ -742,9 +744,9 @@ export const VoteSetMaj23 = {
     message.round !== undefined && (obj.round = Math.round(message.round));
     message.type !== undefined &&
       (obj.type = signedMsgTypeToJSON(message.type));
-    message.blockId !== undefined &&
-      (obj.blockId = message.blockId
-        ? BlockID.toJSON(message.blockId)
+    message.block_id !== undefined &&
+      (obj.block_id = message.block_id
+        ? BlockID.toJSON(message.block_id)
         : undefined);
     return obj;
   },
@@ -756,9 +758,9 @@ export const VoteSetMaj23 = {
     message.height = object.height ?? "0";
     message.round = object.round ?? 0;
     message.type = object.type ?? 0;
-    message.blockId =
-      object.blockId !== undefined && object.blockId !== null
-        ? BlockID.fromPartial(object.blockId)
+    message.block_id =
+      object.block_id !== undefined && object.block_id !== null
+        ? BlockID.fromPartial(object.block_id)
         : undefined;
     return message;
   },
@@ -769,7 +771,7 @@ function createBaseVoteSetBits(): VoteSetBits {
     height: "0",
     round: 0,
     type: 0,
-    blockId: undefined,
+    block_id: undefined,
     votes: undefined,
   };
 }
@@ -788,8 +790,8 @@ export const VoteSetBits = {
     if (message.type !== 0) {
       writer.uint32(24).int32(message.type);
     }
-    if (message.blockId !== undefined) {
-      BlockID.encode(message.blockId, writer.uint32(34).fork()).ldelim();
+    if (message.block_id !== undefined) {
+      BlockID.encode(message.block_id, writer.uint32(34).fork()).ldelim();
     }
     if (message.votes !== undefined) {
       BitArray.encode(message.votes, writer.uint32(42).fork()).ldelim();
@@ -814,7 +816,7 @@ export const VoteSetBits = {
           message.type = reader.int32() as any;
           break;
         case 4:
-          message.blockId = BlockID.decode(reader, reader.uint32());
+          message.block_id = BlockID.decode(reader, reader.uint32());
           break;
         case 5:
           message.votes = BitArray.decode(reader, reader.uint32());
@@ -832,8 +834,8 @@ export const VoteSetBits = {
       height: isSet(object.height) ? String(object.height) : "0",
       round: isSet(object.round) ? Number(object.round) : 0,
       type: isSet(object.type) ? signedMsgTypeFromJSON(object.type) : 0,
-      blockId: isSet(object.blockId)
-        ? BlockID.fromJSON(object.blockId)
+      block_id: isSet(object.block_id)
+        ? BlockID.fromJSON(object.block_id)
         : undefined,
       votes: isSet(object.votes) ? BitArray.fromJSON(object.votes) : undefined,
     };
@@ -845,9 +847,9 @@ export const VoteSetBits = {
     message.round !== undefined && (obj.round = Math.round(message.round));
     message.type !== undefined &&
       (obj.type = signedMsgTypeToJSON(message.type));
-    message.blockId !== undefined &&
-      (obj.blockId = message.blockId
-        ? BlockID.toJSON(message.blockId)
+    message.block_id !== undefined &&
+      (obj.block_id = message.block_id
+        ? BlockID.toJSON(message.block_id)
         : undefined);
     message.votes !== undefined &&
       (obj.votes = message.votes ? BitArray.toJSON(message.votes) : undefined);
@@ -861,9 +863,9 @@ export const VoteSetBits = {
     message.height = object.height ?? "0";
     message.round = object.round ?? 0;
     message.type = object.type ?? 0;
-    message.blockId =
-      object.blockId !== undefined && object.blockId !== null
-        ? BlockID.fromPartial(object.blockId)
+    message.block_id =
+      object.block_id !== undefined && object.block_id !== null
+        ? BlockID.fromPartial(object.block_id)
         : undefined;
     message.votes =
       object.votes !== undefined && object.votes !== null
@@ -875,15 +877,15 @@ export const VoteSetBits = {
 
 function createBaseMessage(): Message {
   return {
-    newRoundStep: undefined,
-    newValidBlock: undefined,
+    new_round_step: undefined,
+    new_valid_block: undefined,
     proposal: undefined,
-    proposalPol: undefined,
-    blockPart: undefined,
+    proposal_pol: undefined,
+    block_part: undefined,
     vote: undefined,
-    hasVote: undefined,
-    voteSetMaj23: undefined,
-    voteSetBits: undefined,
+    has_vote: undefined,
+    vote_set_maj23: undefined,
+    vote_set_bits: undefined,
   };
 }
 
@@ -892,45 +894,45 @@ export const Message = {
     message: Message,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.newRoundStep !== undefined) {
+    if (message.new_round_step !== undefined) {
       NewRoundStep.encode(
-        message.newRoundStep,
+        message.new_round_step,
         writer.uint32(10).fork(),
       ).ldelim();
     }
-    if (message.newValidBlock !== undefined) {
+    if (message.new_valid_block !== undefined) {
       NewValidBlock.encode(
-        message.newValidBlock,
+        message.new_valid_block,
         writer.uint32(18).fork(),
       ).ldelim();
     }
     if (message.proposal !== undefined) {
       Proposal.encode(message.proposal, writer.uint32(26).fork()).ldelim();
     }
-    if (message.proposalPol !== undefined) {
+    if (message.proposal_pol !== undefined) {
       ProposalPOL.encode(
-        message.proposalPol,
+        message.proposal_pol,
         writer.uint32(34).fork(),
       ).ldelim();
     }
-    if (message.blockPart !== undefined) {
-      BlockPart.encode(message.blockPart, writer.uint32(42).fork()).ldelim();
+    if (message.block_part !== undefined) {
+      BlockPart.encode(message.block_part, writer.uint32(42).fork()).ldelim();
     }
     if (message.vote !== undefined) {
       Vote.encode(message.vote, writer.uint32(50).fork()).ldelim();
     }
-    if (message.hasVote !== undefined) {
-      HasVote.encode(message.hasVote, writer.uint32(58).fork()).ldelim();
+    if (message.has_vote !== undefined) {
+      HasVote.encode(message.has_vote, writer.uint32(58).fork()).ldelim();
     }
-    if (message.voteSetMaj23 !== undefined) {
+    if (message.vote_set_maj23 !== undefined) {
       VoteSetMaj23.encode(
-        message.voteSetMaj23,
+        message.vote_set_maj23,
         writer.uint32(66).fork(),
       ).ldelim();
     }
-    if (message.voteSetBits !== undefined) {
+    if (message.vote_set_bits !== undefined) {
       VoteSetBits.encode(
-        message.voteSetBits,
+        message.vote_set_bits,
         writer.uint32(74).fork(),
       ).ldelim();
     }
@@ -945,31 +947,34 @@ export const Message = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.newRoundStep = NewRoundStep.decode(reader, reader.uint32());
+          message.new_round_step = NewRoundStep.decode(reader, reader.uint32());
           break;
         case 2:
-          message.newValidBlock = NewValidBlock.decode(reader, reader.uint32());
+          message.new_valid_block = NewValidBlock.decode(
+            reader,
+            reader.uint32(),
+          );
           break;
         case 3:
           message.proposal = Proposal.decode(reader, reader.uint32());
           break;
         case 4:
-          message.proposalPol = ProposalPOL.decode(reader, reader.uint32());
+          message.proposal_pol = ProposalPOL.decode(reader, reader.uint32());
           break;
         case 5:
-          message.blockPart = BlockPart.decode(reader, reader.uint32());
+          message.block_part = BlockPart.decode(reader, reader.uint32());
           break;
         case 6:
           message.vote = Vote.decode(reader, reader.uint32());
           break;
         case 7:
-          message.hasVote = HasVote.decode(reader, reader.uint32());
+          message.has_vote = HasVote.decode(reader, reader.uint32());
           break;
         case 8:
-          message.voteSetMaj23 = VoteSetMaj23.decode(reader, reader.uint32());
+          message.vote_set_maj23 = VoteSetMaj23.decode(reader, reader.uint32());
           break;
         case 9:
-          message.voteSetBits = VoteSetBits.decode(reader, reader.uint32());
+          message.vote_set_bits = VoteSetBits.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -981,110 +986,110 @@ export const Message = {
 
   fromJSON(object: any): Message {
     return {
-      newRoundStep: isSet(object.newRoundStep)
-        ? NewRoundStep.fromJSON(object.newRoundStep)
+      new_round_step: isSet(object.new_round_step)
+        ? NewRoundStep.fromJSON(object.new_round_step)
         : undefined,
-      newValidBlock: isSet(object.newValidBlock)
-        ? NewValidBlock.fromJSON(object.newValidBlock)
+      new_valid_block: isSet(object.new_valid_block)
+        ? NewValidBlock.fromJSON(object.new_valid_block)
         : undefined,
       proposal: isSet(object.proposal)
         ? Proposal.fromJSON(object.proposal)
         : undefined,
-      proposalPol: isSet(object.proposalPol)
-        ? ProposalPOL.fromJSON(object.proposalPol)
+      proposal_pol: isSet(object.proposal_pol)
+        ? ProposalPOL.fromJSON(object.proposal_pol)
         : undefined,
-      blockPart: isSet(object.blockPart)
-        ? BlockPart.fromJSON(object.blockPart)
+      block_part: isSet(object.block_part)
+        ? BlockPart.fromJSON(object.block_part)
         : undefined,
       vote: isSet(object.vote) ? Vote.fromJSON(object.vote) : undefined,
-      hasVote: isSet(object.hasVote)
-        ? HasVote.fromJSON(object.hasVote)
+      has_vote: isSet(object.has_vote)
+        ? HasVote.fromJSON(object.has_vote)
         : undefined,
-      voteSetMaj23: isSet(object.voteSetMaj23)
-        ? VoteSetMaj23.fromJSON(object.voteSetMaj23)
+      vote_set_maj23: isSet(object.vote_set_maj23)
+        ? VoteSetMaj23.fromJSON(object.vote_set_maj23)
         : undefined,
-      voteSetBits: isSet(object.voteSetBits)
-        ? VoteSetBits.fromJSON(object.voteSetBits)
+      vote_set_bits: isSet(object.vote_set_bits)
+        ? VoteSetBits.fromJSON(object.vote_set_bits)
         : undefined,
     };
   },
 
   toJSON(message: Message): unknown {
     const obj: any = {};
-    message.newRoundStep !== undefined &&
-      (obj.newRoundStep = message.newRoundStep
-        ? NewRoundStep.toJSON(message.newRoundStep)
+    message.new_round_step !== undefined &&
+      (obj.new_round_step = message.new_round_step
+        ? NewRoundStep.toJSON(message.new_round_step)
         : undefined);
-    message.newValidBlock !== undefined &&
-      (obj.newValidBlock = message.newValidBlock
-        ? NewValidBlock.toJSON(message.newValidBlock)
+    message.new_valid_block !== undefined &&
+      (obj.new_valid_block = message.new_valid_block
+        ? NewValidBlock.toJSON(message.new_valid_block)
         : undefined);
     message.proposal !== undefined &&
       (obj.proposal = message.proposal
         ? Proposal.toJSON(message.proposal)
         : undefined);
-    message.proposalPol !== undefined &&
-      (obj.proposalPol = message.proposalPol
-        ? ProposalPOL.toJSON(message.proposalPol)
+    message.proposal_pol !== undefined &&
+      (obj.proposal_pol = message.proposal_pol
+        ? ProposalPOL.toJSON(message.proposal_pol)
         : undefined);
-    message.blockPart !== undefined &&
-      (obj.blockPart = message.blockPart
-        ? BlockPart.toJSON(message.blockPart)
+    message.block_part !== undefined &&
+      (obj.block_part = message.block_part
+        ? BlockPart.toJSON(message.block_part)
         : undefined);
     message.vote !== undefined &&
       (obj.vote = message.vote ? Vote.toJSON(message.vote) : undefined);
-    message.hasVote !== undefined &&
-      (obj.hasVote = message.hasVote
-        ? HasVote.toJSON(message.hasVote)
+    message.has_vote !== undefined &&
+      (obj.has_vote = message.has_vote
+        ? HasVote.toJSON(message.has_vote)
         : undefined);
-    message.voteSetMaj23 !== undefined &&
-      (obj.voteSetMaj23 = message.voteSetMaj23
-        ? VoteSetMaj23.toJSON(message.voteSetMaj23)
+    message.vote_set_maj23 !== undefined &&
+      (obj.vote_set_maj23 = message.vote_set_maj23
+        ? VoteSetMaj23.toJSON(message.vote_set_maj23)
         : undefined);
-    message.voteSetBits !== undefined &&
-      (obj.voteSetBits = message.voteSetBits
-        ? VoteSetBits.toJSON(message.voteSetBits)
+    message.vote_set_bits !== undefined &&
+      (obj.vote_set_bits = message.vote_set_bits
+        ? VoteSetBits.toJSON(message.vote_set_bits)
         : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
     const message = createBaseMessage();
-    message.newRoundStep =
-      object.newRoundStep !== undefined && object.newRoundStep !== null
-        ? NewRoundStep.fromPartial(object.newRoundStep)
+    message.new_round_step =
+      object.new_round_step !== undefined && object.new_round_step !== null
+        ? NewRoundStep.fromPartial(object.new_round_step)
         : undefined;
-    message.newValidBlock =
-      object.newValidBlock !== undefined && object.newValidBlock !== null
-        ? NewValidBlock.fromPartial(object.newValidBlock)
+    message.new_valid_block =
+      object.new_valid_block !== undefined && object.new_valid_block !== null
+        ? NewValidBlock.fromPartial(object.new_valid_block)
         : undefined;
     message.proposal =
       object.proposal !== undefined && object.proposal !== null
         ? Proposal.fromPartial(object.proposal)
         : undefined;
-    message.proposalPol =
-      object.proposalPol !== undefined && object.proposalPol !== null
-        ? ProposalPOL.fromPartial(object.proposalPol)
+    message.proposal_pol =
+      object.proposal_pol !== undefined && object.proposal_pol !== null
+        ? ProposalPOL.fromPartial(object.proposal_pol)
         : undefined;
-    message.blockPart =
-      object.blockPart !== undefined && object.blockPart !== null
-        ? BlockPart.fromPartial(object.blockPart)
+    message.block_part =
+      object.block_part !== undefined && object.block_part !== null
+        ? BlockPart.fromPartial(object.block_part)
         : undefined;
     message.vote =
       object.vote !== undefined && object.vote !== null
         ? Vote.fromPartial(object.vote)
         : undefined;
-    message.hasVote =
-      object.hasVote !== undefined && object.hasVote !== null
-        ? HasVote.fromPartial(object.hasVote)
+    message.has_vote =
+      object.has_vote !== undefined && object.has_vote !== null
+        ? HasVote.fromPartial(object.has_vote)
         : undefined;
-    message.voteSetMaj23 =
-      object.voteSetMaj23 !== undefined && object.voteSetMaj23 !== null
-        ? VoteSetMaj23.fromPartial(object.voteSetMaj23)
+    message.vote_set_maj23 =
+      object.vote_set_maj23 !== undefined && object.vote_set_maj23 !== null
+        ? VoteSetMaj23.fromPartial(object.vote_set_maj23)
         : undefined;
-    message.voteSetBits =
-      object.voteSetBits !== undefined && object.voteSetBits !== null
-        ? VoteSetBits.fromPartial(object.voteSetBits)
+    message.vote_set_bits =
+      object.vote_set_bits !== undefined && object.vote_set_bits !== null
+        ? VoteSetBits.fromPartial(object.vote_set_bits)
         : undefined;
     return message;
   },

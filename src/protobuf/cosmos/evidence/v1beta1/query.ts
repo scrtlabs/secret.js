@@ -12,7 +12,7 @@ export const protobufPackage = "cosmos.evidence.v1beta1";
 /** QueryEvidenceRequest is the request type for the Query/Evidence RPC method. */
 export interface QueryEvidenceRequest {
   /** evidence_hash defines the hash of the requested evidence. */
-  evidenceHash: Uint8Array;
+  evidence_hash: Uint8Array;
 }
 
 /** QueryEvidenceResponse is the response type for the Query/Evidence RPC method. */
@@ -42,7 +42,7 @@ export interface QueryAllEvidenceResponse {
 }
 
 function createBaseQueryEvidenceRequest(): QueryEvidenceRequest {
-  return { evidenceHash: new Uint8Array() };
+  return { evidence_hash: new Uint8Array() };
 }
 
 export const QueryEvidenceRequest = {
@@ -50,8 +50,8 @@ export const QueryEvidenceRequest = {
     message: QueryEvidenceRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.evidenceHash.length !== 0) {
-      writer.uint32(10).bytes(message.evidenceHash);
+    if (message.evidence_hash.length !== 0) {
+      writer.uint32(10).bytes(message.evidence_hash);
     }
     return writer;
   },
@@ -67,7 +67,7 @@ export const QueryEvidenceRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.evidenceHash = reader.bytes();
+          message.evidence_hash = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -79,18 +79,18 @@ export const QueryEvidenceRequest = {
 
   fromJSON(object: any): QueryEvidenceRequest {
     return {
-      evidenceHash: isSet(object.evidenceHash)
-        ? bytesFromBase64(object.evidenceHash)
+      evidence_hash: isSet(object.evidence_hash)
+        ? bytesFromBase64(object.evidence_hash)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: QueryEvidenceRequest): unknown {
     const obj: any = {};
-    message.evidenceHash !== undefined &&
-      (obj.evidenceHash = base64FromBytes(
-        message.evidenceHash !== undefined
-          ? message.evidenceHash
+    message.evidence_hash !== undefined &&
+      (obj.evidence_hash = base64FromBytes(
+        message.evidence_hash !== undefined
+          ? message.evidence_hash
           : new Uint8Array(),
       ));
     return obj;
@@ -100,7 +100,7 @@ export const QueryEvidenceRequest = {
     object: I,
   ): QueryEvidenceRequest {
     const message = createBaseQueryEvidenceRequest();
-    message.evidenceHash = object.evidenceHash ?? new Uint8Array();
+    message.evidence_hash = object.evidence_hash ?? new Uint8Array();
     return message;
   },
 };
@@ -323,11 +323,53 @@ export const QueryAllEvidenceResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Evidence queries evidence based on evidence hash. */
-  evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse>;
+  Evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse>;
   /** AllEvidence queries all evidence. */
-  allEvidence(
+  AllEvidence(
     request: QueryAllEvidenceRequest,
   ): Promise<QueryAllEvidenceResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Evidence = this.Evidence.bind(this);
+    this.AllEvidence = this.AllEvidence.bind(this);
+  }
+  Evidence(request: QueryEvidenceRequest): Promise<QueryEvidenceResponse> {
+    const data = QueryEvidenceRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.evidence.v1beta1.Query",
+      "Evidence",
+      data,
+    );
+    return promise.then((data) =>
+      QueryEvidenceResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  AllEvidence(
+    request: QueryAllEvidenceRequest,
+  ): Promise<QueryAllEvidenceResponse> {
+    const data = QueryAllEvidenceRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.evidence.v1beta1.Query",
+      "AllEvidence",
+      data,
+    );
+    return promise.then((data) =>
+      QueryAllEvidenceResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

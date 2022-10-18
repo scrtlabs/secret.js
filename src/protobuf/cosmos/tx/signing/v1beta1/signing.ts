@@ -100,7 +100,7 @@ export interface SignatureDescriptors {
  */
 export interface SignatureDescriptor {
   /** public_key is the public key of the signer */
-  publicKey?: Any;
+  public_key?: Any;
   data?: SignatureDescriptor_Data;
   /**
    * sequence is the sequence of the account, which describes the
@@ -203,7 +203,7 @@ export const SignatureDescriptors = {
 };
 
 function createBaseSignatureDescriptor(): SignatureDescriptor {
-  return { publicKey: undefined, data: undefined, sequence: "0" };
+  return { public_key: undefined, data: undefined, sequence: "0" };
 }
 
 export const SignatureDescriptor = {
@@ -211,8 +211,8 @@ export const SignatureDescriptor = {
     message: SignatureDescriptor,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.publicKey !== undefined) {
-      Any.encode(message.publicKey, writer.uint32(10).fork()).ldelim();
+    if (message.public_key !== undefined) {
+      Any.encode(message.public_key, writer.uint32(10).fork()).ldelim();
     }
     if (message.data !== undefined) {
       SignatureDescriptor_Data.encode(
@@ -234,7 +234,7 @@ export const SignatureDescriptor = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.publicKey = Any.decode(reader, reader.uint32());
+          message.public_key = Any.decode(reader, reader.uint32());
           break;
         case 2:
           message.data = SignatureDescriptor_Data.decode(
@@ -255,8 +255,8 @@ export const SignatureDescriptor = {
 
   fromJSON(object: any): SignatureDescriptor {
     return {
-      publicKey: isSet(object.publicKey)
-        ? Any.fromJSON(object.publicKey)
+      public_key: isSet(object.public_key)
+        ? Any.fromJSON(object.public_key)
         : undefined,
       data: isSet(object.data)
         ? SignatureDescriptor_Data.fromJSON(object.data)
@@ -267,9 +267,9 @@ export const SignatureDescriptor = {
 
   toJSON(message: SignatureDescriptor): unknown {
     const obj: any = {};
-    message.publicKey !== undefined &&
-      (obj.publicKey = message.publicKey
-        ? Any.toJSON(message.publicKey)
+    message.public_key !== undefined &&
+      (obj.public_key = message.public_key
+        ? Any.toJSON(message.public_key)
         : undefined);
     message.data !== undefined &&
       (obj.data = message.data
@@ -283,9 +283,9 @@ export const SignatureDescriptor = {
     object: I,
   ): SignatureDescriptor {
     const message = createBaseSignatureDescriptor();
-    message.publicKey =
-      object.publicKey !== undefined && object.publicKey !== null
-        ? Any.fromPartial(object.publicKey)
+    message.public_key =
+      object.public_key !== undefined && object.public_key !== null
+        ? Any.fromPartial(object.public_key)
         : undefined;
     message.data =
       object.data !== undefined && object.data !== null

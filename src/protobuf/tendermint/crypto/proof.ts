@@ -7,7 +7,7 @@ export const protobufPackage = "tendermint.crypto";
 export interface Proof {
   total: string;
   index: string;
-  leafHash: Uint8Array;
+  leaf_hash: Uint8Array;
   aunts: Uint8Array[];
 }
 
@@ -41,7 +41,7 @@ export interface ProofOps {
 }
 
 function createBaseProof(): Proof {
-  return { total: "0", index: "0", leafHash: new Uint8Array(), aunts: [] };
+  return { total: "0", index: "0", leaf_hash: new Uint8Array(), aunts: [] };
 }
 
 export const Proof = {
@@ -52,8 +52,8 @@ export const Proof = {
     if (message.index !== "0") {
       writer.uint32(16).int64(message.index);
     }
-    if (message.leafHash.length !== 0) {
-      writer.uint32(26).bytes(message.leafHash);
+    if (message.leaf_hash.length !== 0) {
+      writer.uint32(26).bytes(message.leaf_hash);
     }
     for (const v of message.aunts) {
       writer.uint32(34).bytes(v!);
@@ -75,7 +75,7 @@ export const Proof = {
           message.index = longToString(reader.int64() as Long);
           break;
         case 3:
-          message.leafHash = reader.bytes();
+          message.leaf_hash = reader.bytes();
           break;
         case 4:
           message.aunts.push(reader.bytes());
@@ -92,8 +92,8 @@ export const Proof = {
     return {
       total: isSet(object.total) ? String(object.total) : "0",
       index: isSet(object.index) ? String(object.index) : "0",
-      leafHash: isSet(object.leafHash)
-        ? bytesFromBase64(object.leafHash)
+      leaf_hash: isSet(object.leaf_hash)
+        ? bytesFromBase64(object.leaf_hash)
         : new Uint8Array(),
       aunts: Array.isArray(object?.aunts)
         ? object.aunts.map((e: any) => bytesFromBase64(e))
@@ -105,9 +105,9 @@ export const Proof = {
     const obj: any = {};
     message.total !== undefined && (obj.total = message.total);
     message.index !== undefined && (obj.index = message.index);
-    message.leafHash !== undefined &&
-      (obj.leafHash = base64FromBytes(
-        message.leafHash !== undefined ? message.leafHash : new Uint8Array(),
+    message.leaf_hash !== undefined &&
+      (obj.leaf_hash = base64FromBytes(
+        message.leaf_hash !== undefined ? message.leaf_hash : new Uint8Array(),
       ));
     if (message.aunts) {
       obj.aunts = message.aunts.map((e) =>
@@ -123,7 +123,7 @@ export const Proof = {
     const message = createBaseProof();
     message.total = object.total ?? "0";
     message.index = object.index ?? "0";
-    message.leafHash = object.leafHash ?? new Uint8Array();
+    message.leaf_hash = object.leaf_hash ?? new Uint8Array();
     message.aunts = object.aunts?.map((e) => e) || [];
     return message;
   },

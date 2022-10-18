@@ -334,9 +334,51 @@ export const QueryAllowancesResponse = {
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Allowance returns fee granted to the grantee by the granter. */
-  allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse>;
+  Allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse>;
   /** Allowances returns all the grants for address. */
-  allowances(request: QueryAllowancesRequest): Promise<QueryAllowancesResponse>;
+  Allowances(request: QueryAllowancesRequest): Promise<QueryAllowancesResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Allowance = this.Allowance.bind(this);
+    this.Allowances = this.Allowances.bind(this);
+  }
+  Allowance(request: QueryAllowanceRequest): Promise<QueryAllowanceResponse> {
+    const data = QueryAllowanceRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.feegrant.v1beta1.Query",
+      "Allowance",
+      data,
+    );
+    return promise.then((data) =>
+      QueryAllowanceResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Allowances(
+    request: QueryAllowancesRequest,
+  ): Promise<QueryAllowancesResponse> {
+    const data = QueryAllowancesRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.feegrant.v1beta1.Query",
+      "Allowances",
+      data,
+    );
+    return promise.then((data) =>
+      QueryAllowancesResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

@@ -7,11 +7,11 @@ export const protobufPackage = "cosmos.genutil.v1beta1";
 /** GenesisState defines the raw genesis transaction in JSON. */
 export interface GenesisState {
   /** gen_txs defines the genesis transactions. */
-  genTxs: Uint8Array[];
+  gen_txs: Uint8Array[];
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { genTxs: [] };
+  return { gen_txs: [] };
 }
 
 export const GenesisState = {
@@ -19,7 +19,7 @@ export const GenesisState = {
     message: GenesisState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.genTxs) {
+    for (const v of message.gen_txs) {
       writer.uint32(10).bytes(v!);
     }
     return writer;
@@ -33,7 +33,7 @@ export const GenesisState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.genTxs.push(reader.bytes());
+          message.gen_txs.push(reader.bytes());
           break;
         default:
           reader.skipType(tag & 7);
@@ -45,20 +45,20 @@ export const GenesisState = {
 
   fromJSON(object: any): GenesisState {
     return {
-      genTxs: Array.isArray(object?.genTxs)
-        ? object.genTxs.map((e: any) => bytesFromBase64(e))
+      gen_txs: Array.isArray(object?.gen_txs)
+        ? object.gen_txs.map((e: any) => bytesFromBase64(e))
         : [],
     };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
-    if (message.genTxs) {
-      obj.genTxs = message.genTxs.map((e) =>
+    if (message.gen_txs) {
+      obj.gen_txs = message.gen_txs.map((e) =>
         base64FromBytes(e !== undefined ? e : new Uint8Array()),
       );
     } else {
-      obj.genTxs = [];
+      obj.gen_txs = [];
     }
     return obj;
   },
@@ -67,7 +67,7 @@ export const GenesisState = {
     object: I,
   ): GenesisState {
     const message = createBaseGenesisState();
-    message.genTxs = object.genTxs?.map((e) => e) || [];
+    message.gen_txs = object.gen_txs?.map((e) => e) || [];
     return message;
   },
 };

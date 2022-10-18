@@ -38,7 +38,7 @@ export interface QueryAnnualProvisionsRequest {}
  */
 export interface QueryAnnualProvisionsResponse {
   /** annual_provisions is the current minting annual provisions value. */
-  annualProvisions: Uint8Array;
+  annual_provisions: Uint8Array;
 }
 
 function createBaseQueryParamsRequest(): QueryParamsRequest {
@@ -300,7 +300,7 @@ export const QueryAnnualProvisionsRequest = {
 };
 
 function createBaseQueryAnnualProvisionsResponse(): QueryAnnualProvisionsResponse {
-  return { annualProvisions: new Uint8Array() };
+  return { annual_provisions: new Uint8Array() };
 }
 
 export const QueryAnnualProvisionsResponse = {
@@ -308,8 +308,8 @@ export const QueryAnnualProvisionsResponse = {
     message: QueryAnnualProvisionsResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.annualProvisions.length !== 0) {
-      writer.uint32(10).bytes(message.annualProvisions);
+    if (message.annual_provisions.length !== 0) {
+      writer.uint32(10).bytes(message.annual_provisions);
     }
     return writer;
   },
@@ -325,7 +325,7 @@ export const QueryAnnualProvisionsResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.annualProvisions = reader.bytes();
+          message.annual_provisions = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -337,18 +337,18 @@ export const QueryAnnualProvisionsResponse = {
 
   fromJSON(object: any): QueryAnnualProvisionsResponse {
     return {
-      annualProvisions: isSet(object.annualProvisions)
-        ? bytesFromBase64(object.annualProvisions)
+      annual_provisions: isSet(object.annual_provisions)
+        ? bytesFromBase64(object.annual_provisions)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: QueryAnnualProvisionsResponse): unknown {
     const obj: any = {};
-    message.annualProvisions !== undefined &&
-      (obj.annualProvisions = base64FromBytes(
-        message.annualProvisions !== undefined
-          ? message.annualProvisions
+    message.annual_provisions !== undefined &&
+      (obj.annual_provisions = base64FromBytes(
+        message.annual_provisions !== undefined
+          ? message.annual_provisions
           : new Uint8Array(),
       ));
     return obj;
@@ -358,7 +358,7 @@ export const QueryAnnualProvisionsResponse = {
     object: I,
   ): QueryAnnualProvisionsResponse {
     const message = createBaseQueryAnnualProvisionsResponse();
-    message.annualProvisions = object.annualProvisions ?? new Uint8Array();
+    message.annual_provisions = object.annual_provisions ?? new Uint8Array();
     return message;
   },
 };
@@ -366,13 +366,68 @@ export const QueryAnnualProvisionsResponse = {
 /** Query provides defines the gRPC querier service. */
 export interface Query {
   /** Params returns the total set of minting parameters. */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** Inflation returns the current minting inflation value. */
-  inflation(request: QueryInflationRequest): Promise<QueryInflationResponse>;
+  Inflation(request: QueryInflationRequest): Promise<QueryInflationResponse>;
   /** AnnualProvisions current minting annual provisions value. */
-  annualProvisions(
+  AnnualProvisions(
     request: QueryAnnualProvisionsRequest,
   ): Promise<QueryAnnualProvisionsResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Params = this.Params.bind(this);
+    this.Inflation = this.Inflation.bind(this);
+    this.AnnualProvisions = this.AnnualProvisions.bind(this);
+  }
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+    const data = QueryParamsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.mint.v1beta1.Query",
+      "Params",
+      data,
+    );
+    return promise.then((data) =>
+      QueryParamsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Inflation(request: QueryInflationRequest): Promise<QueryInflationResponse> {
+    const data = QueryInflationRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.mint.v1beta1.Query",
+      "Inflation",
+      data,
+    );
+    return promise.then((data) =>
+      QueryInflationResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  AnnualProvisions(
+    request: QueryAnnualProvisionsRequest,
+  ): Promise<QueryAnnualProvisionsResponse> {
+    const data = QueryAnnualProvisionsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.mint.v1beta1.Query",
+      "AnnualProvisions",
+      data,
+    );
+    return promise.then((data) =>
+      QueryAnnualProvisionsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

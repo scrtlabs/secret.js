@@ -13,15 +13,15 @@ export const protobufPackage = "cosmos.slashing.v1beta1";
 export interface ValidatorSigningInfo {
   address: string;
   /** Height at which validator was first a candidate OR was unjailed */
-  startHeight: string;
+  start_height: string;
   /**
    * Index which is incremented each time the validator was a bonded
    * in a block and may have signed a precommit or not. This in conjunction with the
    * `SignedBlocksWindow` param determines the index in the `MissedBlocksBitArray`.
    */
-  indexOffset: string;
+  index_offset: string;
   /** Timestamp until which the validator is jailed due to liveness downtime. */
-  jailedUntil?: Timestamp;
+  jailed_until?: Timestamp;
   /**
    * Whether or not a validator has been tombstoned (killed out of validator set). It is set
    * once the validator commits an equivocation or for any other configured misbehiavor.
@@ -31,26 +31,26 @@ export interface ValidatorSigningInfo {
    * A counter kept to avoid unnecessary array reads.
    * Note that `Sum(MissedBlocksBitArray)` always equals `MissedBlocksCounter`.
    */
-  missedBlocksCounter: string;
+  missed_blocks_counter: string;
 }
 
 /** Params represents the parameters used for by the slashing module. */
 export interface Params {
-  signedBlocksWindow: string;
-  minSignedPerWindow: Uint8Array;
-  downtimeJailDuration?: Duration;
-  slashFractionDoubleSign: Uint8Array;
-  slashFractionDowntime: Uint8Array;
+  signed_blocks_window: string;
+  min_signed_per_window: Uint8Array;
+  downtime_jail_duration?: Duration;
+  slash_fraction_double_sign: Uint8Array;
+  slash_fraction_downtime: Uint8Array;
 }
 
 function createBaseValidatorSigningInfo(): ValidatorSigningInfo {
   return {
     address: "",
-    startHeight: "0",
-    indexOffset: "0",
-    jailedUntil: undefined,
+    start_height: "0",
+    index_offset: "0",
+    jailed_until: undefined,
     tombstoned: false,
-    missedBlocksCounter: "0",
+    missed_blocks_counter: "0",
   };
 }
 
@@ -62,20 +62,20 @@ export const ValidatorSigningInfo = {
     if (message.address !== "") {
       writer.uint32(10).string(message.address);
     }
-    if (message.startHeight !== "0") {
-      writer.uint32(16).int64(message.startHeight);
+    if (message.start_height !== "0") {
+      writer.uint32(16).int64(message.start_height);
     }
-    if (message.indexOffset !== "0") {
-      writer.uint32(24).int64(message.indexOffset);
+    if (message.index_offset !== "0") {
+      writer.uint32(24).int64(message.index_offset);
     }
-    if (message.jailedUntil !== undefined) {
-      Timestamp.encode(message.jailedUntil, writer.uint32(34).fork()).ldelim();
+    if (message.jailed_until !== undefined) {
+      Timestamp.encode(message.jailed_until, writer.uint32(34).fork()).ldelim();
     }
     if (message.tombstoned === true) {
       writer.uint32(40).bool(message.tombstoned);
     }
-    if (message.missedBlocksCounter !== "0") {
-      writer.uint32(48).int64(message.missedBlocksCounter);
+    if (message.missed_blocks_counter !== "0") {
+      writer.uint32(48).int64(message.missed_blocks_counter);
     }
     return writer;
   },
@@ -94,19 +94,19 @@ export const ValidatorSigningInfo = {
           message.address = reader.string();
           break;
         case 2:
-          message.startHeight = longToString(reader.int64() as Long);
+          message.start_height = longToString(reader.int64() as Long);
           break;
         case 3:
-          message.indexOffset = longToString(reader.int64() as Long);
+          message.index_offset = longToString(reader.int64() as Long);
           break;
         case 4:
-          message.jailedUntil = Timestamp.decode(reader, reader.uint32());
+          message.jailed_until = Timestamp.decode(reader, reader.uint32());
           break;
         case 5:
           message.tombstoned = reader.bool();
           break;
         case 6:
-          message.missedBlocksCounter = longToString(reader.int64() as Long);
+          message.missed_blocks_counter = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -119,14 +119,18 @@ export const ValidatorSigningInfo = {
   fromJSON(object: any): ValidatorSigningInfo {
     return {
       address: isSet(object.address) ? String(object.address) : "",
-      startHeight: isSet(object.startHeight) ? String(object.startHeight) : "0",
-      indexOffset: isSet(object.indexOffset) ? String(object.indexOffset) : "0",
-      jailedUntil: isSet(object.jailedUntil)
-        ? fromJsonTimestamp(object.jailedUntil)
+      start_height: isSet(object.start_height)
+        ? String(object.start_height)
+        : "0",
+      index_offset: isSet(object.index_offset)
+        ? String(object.index_offset)
+        : "0",
+      jailed_until: isSet(object.jailed_until)
+        ? fromJsonTimestamp(object.jailed_until)
         : undefined,
       tombstoned: isSet(object.tombstoned) ? Boolean(object.tombstoned) : false,
-      missedBlocksCounter: isSet(object.missedBlocksCounter)
-        ? String(object.missedBlocksCounter)
+      missed_blocks_counter: isSet(object.missed_blocks_counter)
+        ? String(object.missed_blocks_counter)
         : "0",
     };
   },
@@ -134,15 +138,15 @@ export const ValidatorSigningInfo = {
   toJSON(message: ValidatorSigningInfo): unknown {
     const obj: any = {};
     message.address !== undefined && (obj.address = message.address);
-    message.startHeight !== undefined &&
-      (obj.startHeight = message.startHeight);
-    message.indexOffset !== undefined &&
-      (obj.indexOffset = message.indexOffset);
-    message.jailedUntil !== undefined &&
-      (obj.jailedUntil = fromTimestamp(message.jailedUntil).toISOString());
+    message.start_height !== undefined &&
+      (obj.start_height = message.start_height);
+    message.index_offset !== undefined &&
+      (obj.index_offset = message.index_offset);
+    message.jailed_until !== undefined &&
+      (obj.jailed_until = fromTimestamp(message.jailed_until).toISOString());
     message.tombstoned !== undefined && (obj.tombstoned = message.tombstoned);
-    message.missedBlocksCounter !== undefined &&
-      (obj.missedBlocksCounter = message.missedBlocksCounter);
+    message.missed_blocks_counter !== undefined &&
+      (obj.missed_blocks_counter = message.missed_blocks_counter);
     return obj;
   },
 
@@ -151,25 +155,25 @@ export const ValidatorSigningInfo = {
   ): ValidatorSigningInfo {
     const message = createBaseValidatorSigningInfo();
     message.address = object.address ?? "";
-    message.startHeight = object.startHeight ?? "0";
-    message.indexOffset = object.indexOffset ?? "0";
-    message.jailedUntil =
-      object.jailedUntil !== undefined && object.jailedUntil !== null
-        ? Timestamp.fromPartial(object.jailedUntil)
+    message.start_height = object.start_height ?? "0";
+    message.index_offset = object.index_offset ?? "0";
+    message.jailed_until =
+      object.jailed_until !== undefined && object.jailed_until !== null
+        ? Timestamp.fromPartial(object.jailed_until)
         : undefined;
     message.tombstoned = object.tombstoned ?? false;
-    message.missedBlocksCounter = object.missedBlocksCounter ?? "0";
+    message.missed_blocks_counter = object.missed_blocks_counter ?? "0";
     return message;
   },
 };
 
 function createBaseParams(): Params {
   return {
-    signedBlocksWindow: "0",
-    minSignedPerWindow: new Uint8Array(),
-    downtimeJailDuration: undefined,
-    slashFractionDoubleSign: new Uint8Array(),
-    slashFractionDowntime: new Uint8Array(),
+    signed_blocks_window: "0",
+    min_signed_per_window: new Uint8Array(),
+    downtime_jail_duration: undefined,
+    slash_fraction_double_sign: new Uint8Array(),
+    slash_fraction_downtime: new Uint8Array(),
   };
 }
 
@@ -178,23 +182,23 @@ export const Params = {
     message: Params,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.signedBlocksWindow !== "0") {
-      writer.uint32(8).int64(message.signedBlocksWindow);
+    if (message.signed_blocks_window !== "0") {
+      writer.uint32(8).int64(message.signed_blocks_window);
     }
-    if (message.minSignedPerWindow.length !== 0) {
-      writer.uint32(18).bytes(message.minSignedPerWindow);
+    if (message.min_signed_per_window.length !== 0) {
+      writer.uint32(18).bytes(message.min_signed_per_window);
     }
-    if (message.downtimeJailDuration !== undefined) {
+    if (message.downtime_jail_duration !== undefined) {
       Duration.encode(
-        message.downtimeJailDuration,
+        message.downtime_jail_duration,
         writer.uint32(26).fork(),
       ).ldelim();
     }
-    if (message.slashFractionDoubleSign.length !== 0) {
-      writer.uint32(34).bytes(message.slashFractionDoubleSign);
+    if (message.slash_fraction_double_sign.length !== 0) {
+      writer.uint32(34).bytes(message.slash_fraction_double_sign);
     }
-    if (message.slashFractionDowntime.length !== 0) {
-      writer.uint32(42).bytes(message.slashFractionDowntime);
+    if (message.slash_fraction_downtime.length !== 0) {
+      writer.uint32(42).bytes(message.slash_fraction_downtime);
     }
     return writer;
   },
@@ -207,22 +211,22 @@ export const Params = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.signedBlocksWindow = longToString(reader.int64() as Long);
+          message.signed_blocks_window = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.minSignedPerWindow = reader.bytes();
+          message.min_signed_per_window = reader.bytes();
           break;
         case 3:
-          message.downtimeJailDuration = Duration.decode(
+          message.downtime_jail_duration = Duration.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 4:
-          message.slashFractionDoubleSign = reader.bytes();
+          message.slash_fraction_double_sign = reader.bytes();
           break;
         case 5:
-          message.slashFractionDowntime = reader.bytes();
+          message.slash_fraction_downtime = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -234,48 +238,48 @@ export const Params = {
 
   fromJSON(object: any): Params {
     return {
-      signedBlocksWindow: isSet(object.signedBlocksWindow)
-        ? String(object.signedBlocksWindow)
+      signed_blocks_window: isSet(object.signed_blocks_window)
+        ? String(object.signed_blocks_window)
         : "0",
-      minSignedPerWindow: isSet(object.minSignedPerWindow)
-        ? bytesFromBase64(object.minSignedPerWindow)
+      min_signed_per_window: isSet(object.min_signed_per_window)
+        ? bytesFromBase64(object.min_signed_per_window)
         : new Uint8Array(),
-      downtimeJailDuration: isSet(object.downtimeJailDuration)
-        ? Duration.fromJSON(object.downtimeJailDuration)
+      downtime_jail_duration: isSet(object.downtime_jail_duration)
+        ? Duration.fromJSON(object.downtime_jail_duration)
         : undefined,
-      slashFractionDoubleSign: isSet(object.slashFractionDoubleSign)
-        ? bytesFromBase64(object.slashFractionDoubleSign)
+      slash_fraction_double_sign: isSet(object.slash_fraction_double_sign)
+        ? bytesFromBase64(object.slash_fraction_double_sign)
         : new Uint8Array(),
-      slashFractionDowntime: isSet(object.slashFractionDowntime)
-        ? bytesFromBase64(object.slashFractionDowntime)
+      slash_fraction_downtime: isSet(object.slash_fraction_downtime)
+        ? bytesFromBase64(object.slash_fraction_downtime)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: Params): unknown {
     const obj: any = {};
-    message.signedBlocksWindow !== undefined &&
-      (obj.signedBlocksWindow = message.signedBlocksWindow);
-    message.minSignedPerWindow !== undefined &&
-      (obj.minSignedPerWindow = base64FromBytes(
-        message.minSignedPerWindow !== undefined
-          ? message.minSignedPerWindow
+    message.signed_blocks_window !== undefined &&
+      (obj.signed_blocks_window = message.signed_blocks_window);
+    message.min_signed_per_window !== undefined &&
+      (obj.min_signed_per_window = base64FromBytes(
+        message.min_signed_per_window !== undefined
+          ? message.min_signed_per_window
           : new Uint8Array(),
       ));
-    message.downtimeJailDuration !== undefined &&
-      (obj.downtimeJailDuration = message.downtimeJailDuration
-        ? Duration.toJSON(message.downtimeJailDuration)
+    message.downtime_jail_duration !== undefined &&
+      (obj.downtime_jail_duration = message.downtime_jail_duration
+        ? Duration.toJSON(message.downtime_jail_duration)
         : undefined);
-    message.slashFractionDoubleSign !== undefined &&
-      (obj.slashFractionDoubleSign = base64FromBytes(
-        message.slashFractionDoubleSign !== undefined
-          ? message.slashFractionDoubleSign
+    message.slash_fraction_double_sign !== undefined &&
+      (obj.slash_fraction_double_sign = base64FromBytes(
+        message.slash_fraction_double_sign !== undefined
+          ? message.slash_fraction_double_sign
           : new Uint8Array(),
       ));
-    message.slashFractionDowntime !== undefined &&
-      (obj.slashFractionDowntime = base64FromBytes(
-        message.slashFractionDowntime !== undefined
-          ? message.slashFractionDowntime
+    message.slash_fraction_downtime !== undefined &&
+      (obj.slash_fraction_downtime = base64FromBytes(
+        message.slash_fraction_downtime !== undefined
+          ? message.slash_fraction_downtime
           : new Uint8Array(),
       ));
     return obj;
@@ -283,17 +287,18 @@ export const Params = {
 
   fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
     const message = createBaseParams();
-    message.signedBlocksWindow = object.signedBlocksWindow ?? "0";
-    message.minSignedPerWindow = object.minSignedPerWindow ?? new Uint8Array();
-    message.downtimeJailDuration =
-      object.downtimeJailDuration !== undefined &&
-      object.downtimeJailDuration !== null
-        ? Duration.fromPartial(object.downtimeJailDuration)
+    message.signed_blocks_window = object.signed_blocks_window ?? "0";
+    message.min_signed_per_window =
+      object.min_signed_per_window ?? new Uint8Array();
+    message.downtime_jail_duration =
+      object.downtime_jail_duration !== undefined &&
+      object.downtime_jail_duration !== null
+        ? Duration.fromPartial(object.downtime_jail_duration)
         : undefined;
-    message.slashFractionDoubleSign =
-      object.slashFractionDoubleSign ?? new Uint8Array();
-    message.slashFractionDowntime =
-      object.slashFractionDowntime ?? new Uint8Array();
+    message.slash_fraction_double_sign =
+      object.slash_fraction_double_sign ?? new Uint8Array();
+    message.slash_fraction_downtime =
+      object.slash_fraction_downtime ?? new Uint8Array();
     return message;
   },
 };

@@ -13,7 +13,7 @@ SECRET_DIR="${SCRIPT_PATH}/SecretNetwork/proto"
 SECRET_THIRD_PARTY_DIR="${SCRIPT_PATH}/SecretNetwork/third_party/proto"
 
 # ts-proto
-TS_PROTO_OPTS="esModuleInterop=true,forceLong=string,useOptionals=true,useDate=false,lowerCaseServiceMethods=true,outputClientImpl=false"
+TS_PROTO_OPTS="esModuleInterop=true,forceLong=string,useOptionals=true,useDate=false,snakeToCamel=false"
 
 PROTO_OUT_DIR="${SCRIPT_PATH}/../src/protobuf"
 rm -rf "$PROTO_OUT_DIR"

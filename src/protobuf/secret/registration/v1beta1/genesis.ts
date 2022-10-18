@@ -8,15 +8,15 @@ export const protobufPackage = "secret.registration.v1beta1";
 
 export interface GenesisState {
   registration: RegistrationNodeInfo[];
-  nodeExchMasterCertificate?: MasterCertificate;
-  ioMasterCertificate?: MasterCertificate;
+  node_exch_master_certificate?: MasterCertificate;
+  io_master_certificate?: MasterCertificate;
 }
 
 function createBaseGenesisState(): GenesisState {
   return {
     registration: [],
-    nodeExchMasterCertificate: undefined,
-    ioMasterCertificate: undefined,
+    node_exch_master_certificate: undefined,
+    io_master_certificate: undefined,
   };
 }
 
@@ -28,15 +28,15 @@ export const GenesisState = {
     for (const v of message.registration) {
       RegistrationNodeInfo.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    if (message.nodeExchMasterCertificate !== undefined) {
+    if (message.node_exch_master_certificate !== undefined) {
       MasterCertificate.encode(
-        message.nodeExchMasterCertificate,
+        message.node_exch_master_certificate,
         writer.uint32(18).fork(),
       ).ldelim();
     }
-    if (message.ioMasterCertificate !== undefined) {
+    if (message.io_master_certificate !== undefined) {
       MasterCertificate.encode(
-        message.ioMasterCertificate,
+        message.io_master_certificate,
         writer.uint32(26).fork(),
       ).ldelim();
     }
@@ -56,13 +56,13 @@ export const GenesisState = {
           );
           break;
         case 2:
-          message.nodeExchMasterCertificate = MasterCertificate.decode(
+          message.node_exch_master_certificate = MasterCertificate.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 3:
-          message.ioMasterCertificate = MasterCertificate.decode(
+          message.io_master_certificate = MasterCertificate.decode(
             reader,
             reader.uint32(),
           );
@@ -80,11 +80,11 @@ export const GenesisState = {
       registration: Array.isArray(object?.registration)
         ? object.registration.map((e: any) => RegistrationNodeInfo.fromJSON(e))
         : [],
-      nodeExchMasterCertificate: isSet(object.nodeExchMasterCertificate)
-        ? MasterCertificate.fromJSON(object.nodeExchMasterCertificate)
+      node_exch_master_certificate: isSet(object.node_exch_master_certificate)
+        ? MasterCertificate.fromJSON(object.node_exch_master_certificate)
         : undefined,
-      ioMasterCertificate: isSet(object.ioMasterCertificate)
-        ? MasterCertificate.fromJSON(object.ioMasterCertificate)
+      io_master_certificate: isSet(object.io_master_certificate)
+        ? MasterCertificate.fromJSON(object.io_master_certificate)
         : undefined,
     };
   },
@@ -98,13 +98,13 @@ export const GenesisState = {
     } else {
       obj.registration = [];
     }
-    message.nodeExchMasterCertificate !== undefined &&
-      (obj.nodeExchMasterCertificate = message.nodeExchMasterCertificate
-        ? MasterCertificate.toJSON(message.nodeExchMasterCertificate)
+    message.node_exch_master_certificate !== undefined &&
+      (obj.node_exch_master_certificate = message.node_exch_master_certificate
+        ? MasterCertificate.toJSON(message.node_exch_master_certificate)
         : undefined);
-    message.ioMasterCertificate !== undefined &&
-      (obj.ioMasterCertificate = message.ioMasterCertificate
-        ? MasterCertificate.toJSON(message.ioMasterCertificate)
+    message.io_master_certificate !== undefined &&
+      (obj.io_master_certificate = message.io_master_certificate
+        ? MasterCertificate.toJSON(message.io_master_certificate)
         : undefined);
     return obj;
   },
@@ -116,15 +116,15 @@ export const GenesisState = {
     message.registration =
       object.registration?.map((e) => RegistrationNodeInfo.fromPartial(e)) ||
       [];
-    message.nodeExchMasterCertificate =
-      object.nodeExchMasterCertificate !== undefined &&
-      object.nodeExchMasterCertificate !== null
-        ? MasterCertificate.fromPartial(object.nodeExchMasterCertificate)
+    message.node_exch_master_certificate =
+      object.node_exch_master_certificate !== undefined &&
+      object.node_exch_master_certificate !== null
+        ? MasterCertificate.fromPartial(object.node_exch_master_certificate)
         : undefined;
-    message.ioMasterCertificate =
-      object.ioMasterCertificate !== undefined &&
-      object.ioMasterCertificate !== null
-        ? MasterCertificate.fromPartial(object.ioMasterCertificate)
+    message.io_master_certificate =
+      object.io_master_certificate !== undefined &&
+      object.io_master_certificate !== null
+        ? MasterCertificate.fromPartial(object.io_master_certificate)
         : undefined;
     return message;
   },

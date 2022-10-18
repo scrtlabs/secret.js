@@ -48,7 +48,7 @@ export const protobufPackage = "google.api";
  */
 export interface HttpBody {
   /** The HTTP Content-Type header value specifying the content type of the body. */
-  contentType: string;
+  content_type: string;
   /** The HTTP request/response body as raw binary. */
   data: Uint8Array;
   /**
@@ -59,7 +59,7 @@ export interface HttpBody {
 }
 
 function createBaseHttpBody(): HttpBody {
-  return { contentType: "", data: new Uint8Array(), extensions: [] };
+  return { content_type: "", data: new Uint8Array(), extensions: [] };
 }
 
 export const HttpBody = {
@@ -67,8 +67,8 @@ export const HttpBody = {
     message: HttpBody,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contentType !== "") {
-      writer.uint32(10).string(message.contentType);
+    if (message.content_type !== "") {
+      writer.uint32(10).string(message.content_type);
     }
     if (message.data.length !== 0) {
       writer.uint32(18).bytes(message.data);
@@ -87,7 +87,7 @@ export const HttpBody = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contentType = reader.string();
+          message.content_type = reader.string();
           break;
         case 2:
           message.data = reader.bytes();
@@ -105,7 +105,9 @@ export const HttpBody = {
 
   fromJSON(object: any): HttpBody {
     return {
-      contentType: isSet(object.contentType) ? String(object.contentType) : "",
+      content_type: isSet(object.content_type)
+        ? String(object.content_type)
+        : "",
       data: isSet(object.data)
         ? bytesFromBase64(object.data)
         : new Uint8Array(),
@@ -117,8 +119,8 @@ export const HttpBody = {
 
   toJSON(message: HttpBody): unknown {
     const obj: any = {};
-    message.contentType !== undefined &&
-      (obj.contentType = message.contentType);
+    message.content_type !== undefined &&
+      (obj.content_type = message.content_type);
     message.data !== undefined &&
       (obj.data = base64FromBytes(
         message.data !== undefined ? message.data : new Uint8Array(),
@@ -135,7 +137,7 @@ export const HttpBody = {
 
   fromPartial<I extends Exact<DeepPartial<HttpBody>, I>>(object: I): HttpBody {
     const message = createBaseHttpBody();
-    message.contentType = object.contentType ?? "";
+    message.content_type = object.content_type ?? "";
     message.data = object.data ?? new Uint8Array();
     message.extensions =
       object.extensions?.map((e) => Any.fromPartial(e)) || [];

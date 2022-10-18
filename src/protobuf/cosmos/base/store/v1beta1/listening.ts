@@ -13,7 +13,7 @@ export const protobufPackage = "cosmos.base.store.v1beta1";
  */
 export interface StoreKVPair {
   /** the store key for the KVStore this pair originates from */
-  storeKey: string;
+  store_key: string;
   /** true indicates a delete operation, false indicates a set operation */
   delete: boolean;
   key: Uint8Array;
@@ -22,7 +22,7 @@ export interface StoreKVPair {
 
 function createBaseStoreKVPair(): StoreKVPair {
   return {
-    storeKey: "",
+    store_key: "",
     delete: false,
     key: new Uint8Array(),
     value: new Uint8Array(),
@@ -34,8 +34,8 @@ export const StoreKVPair = {
     message: StoreKVPair,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.storeKey !== "") {
-      writer.uint32(10).string(message.storeKey);
+    if (message.store_key !== "") {
+      writer.uint32(10).string(message.store_key);
     }
     if (message.delete === true) {
       writer.uint32(16).bool(message.delete);
@@ -57,7 +57,7 @@ export const StoreKVPair = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.storeKey = reader.string();
+          message.store_key = reader.string();
           break;
         case 2:
           message.delete = reader.bool();
@@ -78,7 +78,7 @@ export const StoreKVPair = {
 
   fromJSON(object: any): StoreKVPair {
     return {
-      storeKey: isSet(object.storeKey) ? String(object.storeKey) : "",
+      store_key: isSet(object.store_key) ? String(object.store_key) : "",
       delete: isSet(object.delete) ? Boolean(object.delete) : false,
       key: isSet(object.key) ? bytesFromBase64(object.key) : new Uint8Array(),
       value: isSet(object.value)
@@ -89,7 +89,7 @@ export const StoreKVPair = {
 
   toJSON(message: StoreKVPair): unknown {
     const obj: any = {};
-    message.storeKey !== undefined && (obj.storeKey = message.storeKey);
+    message.store_key !== undefined && (obj.store_key = message.store_key);
     message.delete !== undefined && (obj.delete = message.delete);
     message.key !== undefined &&
       (obj.key = base64FromBytes(
@@ -106,7 +106,7 @@ export const StoreKVPair = {
     object: I,
   ): StoreKVPair {
     const message = createBaseStoreKVPair();
-    message.storeKey = object.storeKey ?? "";
+    message.store_key = object.store_key ?? "";
     message.delete = object.delete ?? false;
     message.key = object.key ?? new Uint8Array();
     message.value = object.value ?? new Uint8Array();

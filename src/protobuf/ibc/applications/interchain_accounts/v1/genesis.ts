@@ -8,42 +8,42 @@ export const protobufPackage = "ibc.applications.interchain_accounts.v1";
 
 /** GenesisState defines the interchain accounts genesis state */
 export interface GenesisState {
-  controllerGenesisState?: ControllerGenesisState;
-  hostGenesisState?: HostGenesisState;
+  controller_genesis_state?: ControllerGenesisState;
+  host_genesis_state?: HostGenesisState;
 }
 
 /** ControllerGenesisState defines the interchain accounts controller genesis state */
 export interface ControllerGenesisState {
-  activeChannels: ActiveChannel[];
-  interchainAccounts: RegisteredInterchainAccount[];
+  active_channels: ActiveChannel[];
+  interchain_accounts: RegisteredInterchainAccount[];
   ports: string[];
   params?: Params;
 }
 
 /** HostGenesisState defines the interchain accounts host genesis state */
 export interface HostGenesisState {
-  activeChannels: ActiveChannel[];
-  interchainAccounts: RegisteredInterchainAccount[];
+  active_channels: ActiveChannel[];
+  interchain_accounts: RegisteredInterchainAccount[];
   port: string;
   params?: Params1;
 }
 
 /** ActiveChannel contains a connection ID, port ID and associated active channel ID */
 export interface ActiveChannel {
-  connectionId: string;
-  portId: string;
-  channelId: string;
+  connection_id: string;
+  port_id: string;
+  channel_id: string;
 }
 
 /** RegisteredInterchainAccount contains a connection ID, port ID and associated interchain account address */
 export interface RegisteredInterchainAccount {
-  connectionId: string;
-  portId: string;
-  accountAddress: string;
+  connection_id: string;
+  port_id: string;
+  account_address: string;
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { controllerGenesisState: undefined, hostGenesisState: undefined };
+  return { controller_genesis_state: undefined, host_genesis_state: undefined };
 }
 
 export const GenesisState = {
@@ -51,15 +51,15 @@ export const GenesisState = {
     message: GenesisState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.controllerGenesisState !== undefined) {
+    if (message.controller_genesis_state !== undefined) {
       ControllerGenesisState.encode(
-        message.controllerGenesisState,
+        message.controller_genesis_state,
         writer.uint32(10).fork(),
       ).ldelim();
     }
-    if (message.hostGenesisState !== undefined) {
+    if (message.host_genesis_state !== undefined) {
       HostGenesisState.encode(
-        message.hostGenesisState,
+        message.host_genesis_state,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -74,13 +74,13 @@ export const GenesisState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.controllerGenesisState = ControllerGenesisState.decode(
+          message.controller_genesis_state = ControllerGenesisState.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 2:
-          message.hostGenesisState = HostGenesisState.decode(
+          message.host_genesis_state = HostGenesisState.decode(
             reader,
             reader.uint32(),
           );
@@ -95,24 +95,24 @@ export const GenesisState = {
 
   fromJSON(object: any): GenesisState {
     return {
-      controllerGenesisState: isSet(object.controllerGenesisState)
-        ? ControllerGenesisState.fromJSON(object.controllerGenesisState)
+      controller_genesis_state: isSet(object.controller_genesis_state)
+        ? ControllerGenesisState.fromJSON(object.controller_genesis_state)
         : undefined,
-      hostGenesisState: isSet(object.hostGenesisState)
-        ? HostGenesisState.fromJSON(object.hostGenesisState)
+      host_genesis_state: isSet(object.host_genesis_state)
+        ? HostGenesisState.fromJSON(object.host_genesis_state)
         : undefined,
     };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
-    message.controllerGenesisState !== undefined &&
-      (obj.controllerGenesisState = message.controllerGenesisState
-        ? ControllerGenesisState.toJSON(message.controllerGenesisState)
+    message.controller_genesis_state !== undefined &&
+      (obj.controller_genesis_state = message.controller_genesis_state
+        ? ControllerGenesisState.toJSON(message.controller_genesis_state)
         : undefined);
-    message.hostGenesisState !== undefined &&
-      (obj.hostGenesisState = message.hostGenesisState
-        ? HostGenesisState.toJSON(message.hostGenesisState)
+    message.host_genesis_state !== undefined &&
+      (obj.host_genesis_state = message.host_genesis_state
+        ? HostGenesisState.toJSON(message.host_genesis_state)
         : undefined);
     return obj;
   },
@@ -121,14 +121,15 @@ export const GenesisState = {
     object: I,
   ): GenesisState {
     const message = createBaseGenesisState();
-    message.controllerGenesisState =
-      object.controllerGenesisState !== undefined &&
-      object.controllerGenesisState !== null
-        ? ControllerGenesisState.fromPartial(object.controllerGenesisState)
+    message.controller_genesis_state =
+      object.controller_genesis_state !== undefined &&
+      object.controller_genesis_state !== null
+        ? ControllerGenesisState.fromPartial(object.controller_genesis_state)
         : undefined;
-    message.hostGenesisState =
-      object.hostGenesisState !== undefined && object.hostGenesisState !== null
-        ? HostGenesisState.fromPartial(object.hostGenesisState)
+    message.host_genesis_state =
+      object.host_genesis_state !== undefined &&
+      object.host_genesis_state !== null
+        ? HostGenesisState.fromPartial(object.host_genesis_state)
         : undefined;
     return message;
   },
@@ -136,8 +137,8 @@ export const GenesisState = {
 
 function createBaseControllerGenesisState(): ControllerGenesisState {
   return {
-    activeChannels: [],
-    interchainAccounts: [],
+    active_channels: [],
+    interchain_accounts: [],
     ports: [],
     params: undefined,
   };
@@ -148,10 +149,10 @@ export const ControllerGenesisState = {
     message: ControllerGenesisState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.activeChannels) {
+    for (const v of message.active_channels) {
       ActiveChannel.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.interchainAccounts) {
+    for (const v of message.interchain_accounts) {
       RegisteredInterchainAccount.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     for (const v of message.ports) {
@@ -174,12 +175,12 @@ export const ControllerGenesisState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.activeChannels.push(
+          message.active_channels.push(
             ActiveChannel.decode(reader, reader.uint32()),
           );
           break;
         case 2:
-          message.interchainAccounts.push(
+          message.interchain_accounts.push(
             RegisteredInterchainAccount.decode(reader, reader.uint32()),
           );
           break;
@@ -199,11 +200,11 @@ export const ControllerGenesisState = {
 
   fromJSON(object: any): ControllerGenesisState {
     return {
-      activeChannels: Array.isArray(object?.activeChannels)
-        ? object.activeChannels.map((e: any) => ActiveChannel.fromJSON(e))
+      active_channels: Array.isArray(object?.active_channels)
+        ? object.active_channels.map((e: any) => ActiveChannel.fromJSON(e))
         : [],
-      interchainAccounts: Array.isArray(object?.interchainAccounts)
-        ? object.interchainAccounts.map((e: any) =>
+      interchain_accounts: Array.isArray(object?.interchain_accounts)
+        ? object.interchain_accounts.map((e: any) =>
             RegisteredInterchainAccount.fromJSON(e),
           )
         : [],
@@ -216,19 +217,19 @@ export const ControllerGenesisState = {
 
   toJSON(message: ControllerGenesisState): unknown {
     const obj: any = {};
-    if (message.activeChannels) {
-      obj.activeChannels = message.activeChannels.map((e) =>
+    if (message.active_channels) {
+      obj.active_channels = message.active_channels.map((e) =>
         e ? ActiveChannel.toJSON(e) : undefined,
       );
     } else {
-      obj.activeChannels = [];
+      obj.active_channels = [];
     }
-    if (message.interchainAccounts) {
-      obj.interchainAccounts = message.interchainAccounts.map((e) =>
+    if (message.interchain_accounts) {
+      obj.interchain_accounts = message.interchain_accounts.map((e) =>
         e ? RegisteredInterchainAccount.toJSON(e) : undefined,
       );
     } else {
-      obj.interchainAccounts = [];
+      obj.interchain_accounts = [];
     }
     if (message.ports) {
       obj.ports = message.ports.map((e) => e);
@@ -244,10 +245,10 @@ export const ControllerGenesisState = {
     object: I,
   ): ControllerGenesisState {
     const message = createBaseControllerGenesisState();
-    message.activeChannels =
-      object.activeChannels?.map((e) => ActiveChannel.fromPartial(e)) || [];
-    message.interchainAccounts =
-      object.interchainAccounts?.map((e) =>
+    message.active_channels =
+      object.active_channels?.map((e) => ActiveChannel.fromPartial(e)) || [];
+    message.interchain_accounts =
+      object.interchain_accounts?.map((e) =>
         RegisteredInterchainAccount.fromPartial(e),
       ) || [];
     message.ports = object.ports?.map((e) => e) || [];
@@ -261,8 +262,8 @@ export const ControllerGenesisState = {
 
 function createBaseHostGenesisState(): HostGenesisState {
   return {
-    activeChannels: [],
-    interchainAccounts: [],
+    active_channels: [],
+    interchain_accounts: [],
     port: "",
     params: undefined,
   };
@@ -273,10 +274,10 @@ export const HostGenesisState = {
     message: HostGenesisState,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.activeChannels) {
+    for (const v of message.active_channels) {
       ActiveChannel.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.interchainAccounts) {
+    for (const v of message.interchain_accounts) {
       RegisteredInterchainAccount.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     if (message.port !== "") {
@@ -296,12 +297,12 @@ export const HostGenesisState = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.activeChannels.push(
+          message.active_channels.push(
             ActiveChannel.decode(reader, reader.uint32()),
           );
           break;
         case 2:
-          message.interchainAccounts.push(
+          message.interchain_accounts.push(
             RegisteredInterchainAccount.decode(reader, reader.uint32()),
           );
           break;
@@ -321,11 +322,11 @@ export const HostGenesisState = {
 
   fromJSON(object: any): HostGenesisState {
     return {
-      activeChannels: Array.isArray(object?.activeChannels)
-        ? object.activeChannels.map((e: any) => ActiveChannel.fromJSON(e))
+      active_channels: Array.isArray(object?.active_channels)
+        ? object.active_channels.map((e: any) => ActiveChannel.fromJSON(e))
         : [],
-      interchainAccounts: Array.isArray(object?.interchainAccounts)
-        ? object.interchainAccounts.map((e: any) =>
+      interchain_accounts: Array.isArray(object?.interchain_accounts)
+        ? object.interchain_accounts.map((e: any) =>
             RegisteredInterchainAccount.fromJSON(e),
           )
         : [],
@@ -338,19 +339,19 @@ export const HostGenesisState = {
 
   toJSON(message: HostGenesisState): unknown {
     const obj: any = {};
-    if (message.activeChannels) {
-      obj.activeChannels = message.activeChannels.map((e) =>
+    if (message.active_channels) {
+      obj.active_channels = message.active_channels.map((e) =>
         e ? ActiveChannel.toJSON(e) : undefined,
       );
     } else {
-      obj.activeChannels = [];
+      obj.active_channels = [];
     }
-    if (message.interchainAccounts) {
-      obj.interchainAccounts = message.interchainAccounts.map((e) =>
+    if (message.interchain_accounts) {
+      obj.interchain_accounts = message.interchain_accounts.map((e) =>
         e ? RegisteredInterchainAccount.toJSON(e) : undefined,
       );
     } else {
-      obj.interchainAccounts = [];
+      obj.interchain_accounts = [];
     }
     message.port !== undefined && (obj.port = message.port);
     message.params !== undefined &&
@@ -364,10 +365,10 @@ export const HostGenesisState = {
     object: I,
   ): HostGenesisState {
     const message = createBaseHostGenesisState();
-    message.activeChannels =
-      object.activeChannels?.map((e) => ActiveChannel.fromPartial(e)) || [];
-    message.interchainAccounts =
-      object.interchainAccounts?.map((e) =>
+    message.active_channels =
+      object.active_channels?.map((e) => ActiveChannel.fromPartial(e)) || [];
+    message.interchain_accounts =
+      object.interchain_accounts?.map((e) =>
         RegisteredInterchainAccount.fromPartial(e),
       ) || [];
     message.port = object.port ?? "";
@@ -380,7 +381,7 @@ export const HostGenesisState = {
 };
 
 function createBaseActiveChannel(): ActiveChannel {
-  return { connectionId: "", portId: "", channelId: "" };
+  return { connection_id: "", port_id: "", channel_id: "" };
 }
 
 export const ActiveChannel = {
@@ -388,14 +389,14 @@ export const ActiveChannel = {
     message: ActiveChannel,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.connectionId !== "") {
-      writer.uint32(10).string(message.connectionId);
+    if (message.connection_id !== "") {
+      writer.uint32(10).string(message.connection_id);
     }
-    if (message.portId !== "") {
-      writer.uint32(18).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(18).string(message.port_id);
     }
-    if (message.channelId !== "") {
-      writer.uint32(26).string(message.channelId);
+    if (message.channel_id !== "") {
+      writer.uint32(26).string(message.channel_id);
     }
     return writer;
   },
@@ -408,13 +409,13 @@ export const ActiveChannel = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.connectionId = reader.string();
+          message.connection_id = reader.string();
           break;
         case 2:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 3:
-          message.channelId = reader.string();
+          message.channel_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -426,20 +427,20 @@ export const ActiveChannel = {
 
   fromJSON(object: any): ActiveChannel {
     return {
-      connectionId: isSet(object.connectionId)
-        ? String(object.connectionId)
+      connection_id: isSet(object.connection_id)
+        ? String(object.connection_id)
         : "",
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
     };
   },
 
   toJSON(message: ActiveChannel): unknown {
     const obj: any = {};
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.connection_id !== undefined &&
+      (obj.connection_id = message.connection_id);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
     return obj;
   },
 
@@ -447,15 +448,15 @@ export const ActiveChannel = {
     object: I,
   ): ActiveChannel {
     const message = createBaseActiveChannel();
-    message.connectionId = object.connectionId ?? "";
-    message.portId = object.portId ?? "";
-    message.channelId = object.channelId ?? "";
+    message.connection_id = object.connection_id ?? "";
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };
 
 function createBaseRegisteredInterchainAccount(): RegisteredInterchainAccount {
-  return { connectionId: "", portId: "", accountAddress: "" };
+  return { connection_id: "", port_id: "", account_address: "" };
 }
 
 export const RegisteredInterchainAccount = {
@@ -463,14 +464,14 @@ export const RegisteredInterchainAccount = {
     message: RegisteredInterchainAccount,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.connectionId !== "") {
-      writer.uint32(10).string(message.connectionId);
+    if (message.connection_id !== "") {
+      writer.uint32(10).string(message.connection_id);
     }
-    if (message.portId !== "") {
-      writer.uint32(18).string(message.portId);
+    if (message.port_id !== "") {
+      writer.uint32(18).string(message.port_id);
     }
-    if (message.accountAddress !== "") {
-      writer.uint32(26).string(message.accountAddress);
+    if (message.account_address !== "") {
+      writer.uint32(26).string(message.account_address);
     }
     return writer;
   },
@@ -486,13 +487,13 @@ export const RegisteredInterchainAccount = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.connectionId = reader.string();
+          message.connection_id = reader.string();
           break;
         case 2:
-          message.portId = reader.string();
+          message.port_id = reader.string();
           break;
         case 3:
-          message.accountAddress = reader.string();
+          message.account_address = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -504,23 +505,23 @@ export const RegisteredInterchainAccount = {
 
   fromJSON(object: any): RegisteredInterchainAccount {
     return {
-      connectionId: isSet(object.connectionId)
-        ? String(object.connectionId)
+      connection_id: isSet(object.connection_id)
+        ? String(object.connection_id)
         : "",
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      accountAddress: isSet(object.accountAddress)
-        ? String(object.accountAddress)
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      account_address: isSet(object.account_address)
+        ? String(object.account_address)
         : "",
     };
   },
 
   toJSON(message: RegisteredInterchainAccount): unknown {
     const obj: any = {};
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
-    message.portId !== undefined && (obj.portId = message.portId);
-    message.accountAddress !== undefined &&
-      (obj.accountAddress = message.accountAddress);
+    message.connection_id !== undefined &&
+      (obj.connection_id = message.connection_id);
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.account_address !== undefined &&
+      (obj.account_address = message.account_address);
     return obj;
   },
 
@@ -528,9 +529,9 @@ export const RegisteredInterchainAccount = {
     object: I,
   ): RegisteredInterchainAccount {
     const message = createBaseRegisteredInterchainAccount();
-    message.connectionId = object.connectionId ?? "";
-    message.portId = object.portId ?? "";
-    message.accountAddress = object.accountAddress ?? "";
+    message.connection_id = object.connection_id ?? "";
+    message.port_id = object.port_id ?? "";
+    message.account_address = object.account_address ?? "";
     return message;
   },
 };

@@ -7,15 +7,15 @@ export const protobufPackage = "cosmos.crisis.v1beta1";
 /** MsgVerifyInvariant represents a message to verify a particular invariance. */
 export interface MsgVerifyInvariant {
   sender: string;
-  invariantModuleName: string;
-  invariantRoute: string;
+  invariant_module_name: string;
+  invariant_route: string;
 }
 
 /** MsgVerifyInvariantResponse defines the Msg/VerifyInvariant response type. */
 export interface MsgVerifyInvariantResponse {}
 
 function createBaseMsgVerifyInvariant(): MsgVerifyInvariant {
-  return { sender: "", invariantModuleName: "", invariantRoute: "" };
+  return { sender: "", invariant_module_name: "", invariant_route: "" };
 }
 
 export const MsgVerifyInvariant = {
@@ -26,11 +26,11 @@ export const MsgVerifyInvariant = {
     if (message.sender !== "") {
       writer.uint32(10).string(message.sender);
     }
-    if (message.invariantModuleName !== "") {
-      writer.uint32(18).string(message.invariantModuleName);
+    if (message.invariant_module_name !== "") {
+      writer.uint32(18).string(message.invariant_module_name);
     }
-    if (message.invariantRoute !== "") {
-      writer.uint32(26).string(message.invariantRoute);
+    if (message.invariant_route !== "") {
+      writer.uint32(26).string(message.invariant_route);
     }
     return writer;
   },
@@ -46,10 +46,10 @@ export const MsgVerifyInvariant = {
           message.sender = reader.string();
           break;
         case 2:
-          message.invariantModuleName = reader.string();
+          message.invariant_module_name = reader.string();
           break;
         case 3:
-          message.invariantRoute = reader.string();
+          message.invariant_route = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -62,11 +62,11 @@ export const MsgVerifyInvariant = {
   fromJSON(object: any): MsgVerifyInvariant {
     return {
       sender: isSet(object.sender) ? String(object.sender) : "",
-      invariantModuleName: isSet(object.invariantModuleName)
-        ? String(object.invariantModuleName)
+      invariant_module_name: isSet(object.invariant_module_name)
+        ? String(object.invariant_module_name)
         : "",
-      invariantRoute: isSet(object.invariantRoute)
-        ? String(object.invariantRoute)
+      invariant_route: isSet(object.invariant_route)
+        ? String(object.invariant_route)
         : "",
     };
   },
@@ -74,10 +74,10 @@ export const MsgVerifyInvariant = {
   toJSON(message: MsgVerifyInvariant): unknown {
     const obj: any = {};
     message.sender !== undefined && (obj.sender = message.sender);
-    message.invariantModuleName !== undefined &&
-      (obj.invariantModuleName = message.invariantModuleName);
-    message.invariantRoute !== undefined &&
-      (obj.invariantRoute = message.invariantRoute);
+    message.invariant_module_name !== undefined &&
+      (obj.invariant_module_name = message.invariant_module_name);
+    message.invariant_route !== undefined &&
+      (obj.invariant_route = message.invariant_route);
     return obj;
   },
 
@@ -86,8 +86,8 @@ export const MsgVerifyInvariant = {
   ): MsgVerifyInvariant {
     const message = createBaseMsgVerifyInvariant();
     message.sender = object.sender ?? "";
-    message.invariantModuleName = object.invariantModuleName ?? "";
-    message.invariantRoute = object.invariantRoute ?? "";
+    message.invariant_module_name = object.invariant_module_name ?? "";
+    message.invariant_route = object.invariant_route ?? "";
     return message;
   },
 };
@@ -142,9 +142,38 @@ export const MsgVerifyInvariantResponse = {
 /** Msg defines the bank Msg service. */
 export interface Msg {
   /** VerifyInvariant defines a method to verify a particular invariance. */
-  verifyInvariant(
+  VerifyInvariant(
     request: MsgVerifyInvariant,
   ): Promise<MsgVerifyInvariantResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.VerifyInvariant = this.VerifyInvariant.bind(this);
+  }
+  VerifyInvariant(
+    request: MsgVerifyInvariant,
+  ): Promise<MsgVerifyInvariantResponse> {
+    const data = MsgVerifyInvariant.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.crisis.v1beta1.Msg",
+      "VerifyInvariant",
+      data,
+    );
+    return promise.then((data) =>
+      MsgVerifyInvariantResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

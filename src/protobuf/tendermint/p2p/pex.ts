@@ -12,8 +12,8 @@ export interface PexAddrs {
 }
 
 export interface Message {
-  pexRequest?: PexRequest | undefined;
-  pexAddrs?: PexAddrs | undefined;
+  pex_request?: PexRequest | undefined;
+  pex_addrs?: PexAddrs | undefined;
 }
 
 function createBasePexRequest(): PexRequest {
@@ -116,7 +116,7 @@ export const PexAddrs = {
 };
 
 function createBaseMessage(): Message {
-  return { pexRequest: undefined, pexAddrs: undefined };
+  return { pex_request: undefined, pex_addrs: undefined };
 }
 
 export const Message = {
@@ -124,11 +124,11 @@ export const Message = {
     message: Message,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.pexRequest !== undefined) {
-      PexRequest.encode(message.pexRequest, writer.uint32(10).fork()).ldelim();
+    if (message.pex_request !== undefined) {
+      PexRequest.encode(message.pex_request, writer.uint32(10).fork()).ldelim();
     }
-    if (message.pexAddrs !== undefined) {
-      PexAddrs.encode(message.pexAddrs, writer.uint32(18).fork()).ldelim();
+    if (message.pex_addrs !== undefined) {
+      PexAddrs.encode(message.pex_addrs, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -141,10 +141,10 @@ export const Message = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pexRequest = PexRequest.decode(reader, reader.uint32());
+          message.pex_request = PexRequest.decode(reader, reader.uint32());
           break;
         case 2:
-          message.pexAddrs = PexAddrs.decode(reader, reader.uint32());
+          message.pex_addrs = PexAddrs.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -156,37 +156,37 @@ export const Message = {
 
   fromJSON(object: any): Message {
     return {
-      pexRequest: isSet(object.pexRequest)
-        ? PexRequest.fromJSON(object.pexRequest)
+      pex_request: isSet(object.pex_request)
+        ? PexRequest.fromJSON(object.pex_request)
         : undefined,
-      pexAddrs: isSet(object.pexAddrs)
-        ? PexAddrs.fromJSON(object.pexAddrs)
+      pex_addrs: isSet(object.pex_addrs)
+        ? PexAddrs.fromJSON(object.pex_addrs)
         : undefined,
     };
   },
 
   toJSON(message: Message): unknown {
     const obj: any = {};
-    message.pexRequest !== undefined &&
-      (obj.pexRequest = message.pexRequest
-        ? PexRequest.toJSON(message.pexRequest)
+    message.pex_request !== undefined &&
+      (obj.pex_request = message.pex_request
+        ? PexRequest.toJSON(message.pex_request)
         : undefined);
-    message.pexAddrs !== undefined &&
-      (obj.pexAddrs = message.pexAddrs
-        ? PexAddrs.toJSON(message.pexAddrs)
+    message.pex_addrs !== undefined &&
+      (obj.pex_addrs = message.pex_addrs
+        ? PexAddrs.toJSON(message.pex_addrs)
         : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
     const message = createBaseMessage();
-    message.pexRequest =
-      object.pexRequest !== undefined && object.pexRequest !== null
-        ? PexRequest.fromPartial(object.pexRequest)
+    message.pex_request =
+      object.pex_request !== undefined && object.pex_request !== null
+        ? PexRequest.fromPartial(object.pex_request)
         : undefined;
-    message.pexAddrs =
-      object.pexAddrs !== undefined && object.pexAddrs !== null
-        ? PexAddrs.fromPartial(object.pexAddrs)
+    message.pex_addrs =
+      object.pex_addrs !== undefined && object.pex_addrs !== null
+        ? PexAddrs.fromPartial(object.pex_addrs)
         : undefined;
     return message;
   },

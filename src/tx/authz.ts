@@ -147,7 +147,7 @@ export class MsgGrant implements Msg {
     if (isSendAuthorization(this.params.authorization)) {
       grant = {
         authorization: {
-          typeUrl: "/cosmos.bank.v1beta1.SendAuthorization",
+          type_url: "/cosmos.bank.v1beta1.SendAuthorization",
           value: SendAuthorizationProto.encode(
             this.params.authorization,
           ).finish(),

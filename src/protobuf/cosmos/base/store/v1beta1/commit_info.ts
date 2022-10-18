@@ -10,7 +10,7 @@ export const protobufPackage = "cosmos.base.store.v1beta1";
  */
 export interface CommitInfo {
   version: string;
-  storeInfos: StoreInfo[];
+  store_infos: StoreInfo[];
 }
 
 /**
@@ -19,7 +19,7 @@ export interface CommitInfo {
  */
 export interface StoreInfo {
   name: string;
-  commitId?: CommitID;
+  commit_id?: CommitID;
 }
 
 /**
@@ -32,7 +32,7 @@ export interface CommitID {
 }
 
 function createBaseCommitInfo(): CommitInfo {
-  return { version: "0", storeInfos: [] };
+  return { version: "0", store_infos: [] };
 }
 
 export const CommitInfo = {
@@ -43,7 +43,7 @@ export const CommitInfo = {
     if (message.version !== "0") {
       writer.uint32(8).int64(message.version);
     }
-    for (const v of message.storeInfos) {
+    for (const v of message.store_infos) {
       StoreInfo.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
@@ -60,7 +60,7 @@ export const CommitInfo = {
           message.version = longToString(reader.int64() as Long);
           break;
         case 2:
-          message.storeInfos.push(StoreInfo.decode(reader, reader.uint32()));
+          message.store_infos.push(StoreInfo.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -73,8 +73,8 @@ export const CommitInfo = {
   fromJSON(object: any): CommitInfo {
     return {
       version: isSet(object.version) ? String(object.version) : "0",
-      storeInfos: Array.isArray(object?.storeInfos)
-        ? object.storeInfos.map((e: any) => StoreInfo.fromJSON(e))
+      store_infos: Array.isArray(object?.store_infos)
+        ? object.store_infos.map((e: any) => StoreInfo.fromJSON(e))
         : [],
     };
   },
@@ -82,12 +82,12 @@ export const CommitInfo = {
   toJSON(message: CommitInfo): unknown {
     const obj: any = {};
     message.version !== undefined && (obj.version = message.version);
-    if (message.storeInfos) {
-      obj.storeInfos = message.storeInfos.map((e) =>
+    if (message.store_infos) {
+      obj.store_infos = message.store_infos.map((e) =>
         e ? StoreInfo.toJSON(e) : undefined,
       );
     } else {
-      obj.storeInfos = [];
+      obj.store_infos = [];
     }
     return obj;
   },
@@ -97,14 +97,14 @@ export const CommitInfo = {
   ): CommitInfo {
     const message = createBaseCommitInfo();
     message.version = object.version ?? "0";
-    message.storeInfos =
-      object.storeInfos?.map((e) => StoreInfo.fromPartial(e)) || [];
+    message.store_infos =
+      object.store_infos?.map((e) => StoreInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseStoreInfo(): StoreInfo {
-  return { name: "", commitId: undefined };
+  return { name: "", commit_id: undefined };
 }
 
 export const StoreInfo = {
@@ -115,8 +115,8 @@ export const StoreInfo = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.commitId !== undefined) {
-      CommitID.encode(message.commitId, writer.uint32(18).fork()).ldelim();
+    if (message.commit_id !== undefined) {
+      CommitID.encode(message.commit_id, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -132,7 +132,7 @@ export const StoreInfo = {
           message.name = reader.string();
           break;
         case 2:
-          message.commitId = CommitID.decode(reader, reader.uint32());
+          message.commit_id = CommitID.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -145,8 +145,8 @@ export const StoreInfo = {
   fromJSON(object: any): StoreInfo {
     return {
       name: isSet(object.name) ? String(object.name) : "",
-      commitId: isSet(object.commitId)
-        ? CommitID.fromJSON(object.commitId)
+      commit_id: isSet(object.commit_id)
+        ? CommitID.fromJSON(object.commit_id)
         : undefined,
     };
   },
@@ -154,9 +154,9 @@ export const StoreInfo = {
   toJSON(message: StoreInfo): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.commitId !== undefined &&
-      (obj.commitId = message.commitId
-        ? CommitID.toJSON(message.commitId)
+    message.commit_id !== undefined &&
+      (obj.commit_id = message.commit_id
+        ? CommitID.toJSON(message.commit_id)
         : undefined);
     return obj;
   },
@@ -166,9 +166,9 @@ export const StoreInfo = {
   ): StoreInfo {
     const message = createBaseStoreInfo();
     message.name = object.name ?? "";
-    message.commitId =
-      object.commitId !== undefined && object.commitId !== null
-        ? CommitID.fromPartial(object.commitId)
+    message.commit_id =
+      object.commit_id !== undefined && object.commit_id !== null
+        ? CommitID.fromPartial(object.commit_id)
         : undefined;
     return message;
   },

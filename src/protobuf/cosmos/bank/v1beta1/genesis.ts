@@ -18,7 +18,7 @@ export interface GenesisState {
    */
   supply: Coin[];
   /** denom_metadata defines the metadata of the differents coins. */
-  denomMetadata: Metadata[];
+  denom_metadata: Metadata[];
 }
 
 /**
@@ -33,7 +33,7 @@ export interface Balance {
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { params: undefined, balances: [], supply: [], denomMetadata: [] };
+  return { params: undefined, balances: [], supply: [], denom_metadata: [] };
 }
 
 export const GenesisState = {
@@ -50,7 +50,7 @@ export const GenesisState = {
     for (const v of message.supply) {
       Coin.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    for (const v of message.denomMetadata) {
+    for (const v of message.denom_metadata) {
       Metadata.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
@@ -73,7 +73,7 @@ export const GenesisState = {
           message.supply.push(Coin.decode(reader, reader.uint32()));
           break;
         case 4:
-          message.denomMetadata.push(Metadata.decode(reader, reader.uint32()));
+          message.denom_metadata.push(Metadata.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -92,8 +92,8 @@ export const GenesisState = {
       supply: Array.isArray(object?.supply)
         ? object.supply.map((e: any) => Coin.fromJSON(e))
         : [],
-      denomMetadata: Array.isArray(object?.denomMetadata)
-        ? object.denomMetadata.map((e: any) => Metadata.fromJSON(e))
+      denom_metadata: Array.isArray(object?.denom_metadata)
+        ? object.denom_metadata.map((e: any) => Metadata.fromJSON(e))
         : [],
     };
   },
@@ -114,12 +114,12 @@ export const GenesisState = {
     } else {
       obj.supply = [];
     }
-    if (message.denomMetadata) {
-      obj.denomMetadata = message.denomMetadata.map((e) =>
+    if (message.denom_metadata) {
+      obj.denom_metadata = message.denom_metadata.map((e) =>
         e ? Metadata.toJSON(e) : undefined,
       );
     } else {
-      obj.denomMetadata = [];
+      obj.denom_metadata = [];
     }
     return obj;
   },
@@ -135,8 +135,8 @@ export const GenesisState = {
     message.balances =
       object.balances?.map((e) => Balance.fromPartial(e)) || [];
     message.supply = object.supply?.map((e) => Coin.fromPartial(e)) || [];
-    message.denomMetadata =
-      object.denomMetadata?.map((e) => Metadata.fromPartial(e)) || [];
+    message.denom_metadata =
+      object.denom_metadata?.map((e) => Metadata.fromPartial(e)) || [];
     return message;
   },
 };

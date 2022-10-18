@@ -8,7 +8,7 @@ export const protobufPackage = "secret.intertx.v1beta1";
 /** MsgRegisterAccount registers an interchain account for the given owner over the specified connection pair */
 export interface MsgRegisterAccount {
   owner: string;
-  connectionId: string;
+  connection_id: string;
 }
 
 /** MsgRegisterAccountResponse is the response type for Msg/RegisterAccount */
@@ -17,7 +17,7 @@ export interface MsgRegisterAccountResponse {}
 /** MsgSubmitTx creates and submits an arbitrary transaction msg to be executed using an interchain account */
 export interface MsgSubmitTx {
   owner: Uint8Array;
-  connectionId: string;
+  connection_id: string;
   msg?: Any;
 }
 
@@ -25,7 +25,7 @@ export interface MsgSubmitTx {
 export interface MsgSubmitTxResponse {}
 
 function createBaseMsgRegisterAccount(): MsgRegisterAccount {
-  return { owner: "", connectionId: "" };
+  return { owner: "", connection_id: "" };
 }
 
 export const MsgRegisterAccount = {
@@ -36,8 +36,8 @@ export const MsgRegisterAccount = {
     if (message.owner !== "") {
       writer.uint32(10).string(message.owner);
     }
-    if (message.connectionId !== "") {
-      writer.uint32(18).string(message.connectionId);
+    if (message.connection_id !== "") {
+      writer.uint32(18).string(message.connection_id);
     }
     return writer;
   },
@@ -53,7 +53,7 @@ export const MsgRegisterAccount = {
           message.owner = reader.string();
           break;
         case 2:
-          message.connectionId = reader.string();
+          message.connection_id = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -66,8 +66,8 @@ export const MsgRegisterAccount = {
   fromJSON(object: any): MsgRegisterAccount {
     return {
       owner: isSet(object.owner) ? String(object.owner) : "",
-      connectionId: isSet(object.connectionId)
-        ? String(object.connectionId)
+      connection_id: isSet(object.connection_id)
+        ? String(object.connection_id)
         : "",
     };
   },
@@ -75,8 +75,8 @@ export const MsgRegisterAccount = {
   toJSON(message: MsgRegisterAccount): unknown {
     const obj: any = {};
     message.owner !== undefined && (obj.owner = message.owner);
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.connection_id !== undefined &&
+      (obj.connection_id = message.connection_id);
     return obj;
   },
 
@@ -85,7 +85,7 @@ export const MsgRegisterAccount = {
   ): MsgRegisterAccount {
     const message = createBaseMsgRegisterAccount();
     message.owner = object.owner ?? "";
-    message.connectionId = object.connectionId ?? "";
+    message.connection_id = object.connection_id ?? "";
     return message;
   },
 };
@@ -138,7 +138,7 @@ export const MsgRegisterAccountResponse = {
 };
 
 function createBaseMsgSubmitTx(): MsgSubmitTx {
-  return { owner: new Uint8Array(), connectionId: "", msg: undefined };
+  return { owner: new Uint8Array(), connection_id: "", msg: undefined };
 }
 
 export const MsgSubmitTx = {
@@ -149,8 +149,8 @@ export const MsgSubmitTx = {
     if (message.owner.length !== 0) {
       writer.uint32(10).bytes(message.owner);
     }
-    if (message.connectionId !== "") {
-      writer.uint32(18).string(message.connectionId);
+    if (message.connection_id !== "") {
+      writer.uint32(18).string(message.connection_id);
     }
     if (message.msg !== undefined) {
       Any.encode(message.msg, writer.uint32(34).fork()).ldelim();
@@ -169,7 +169,7 @@ export const MsgSubmitTx = {
           message.owner = reader.bytes();
           break;
         case 2:
-          message.connectionId = reader.string();
+          message.connection_id = reader.string();
           break;
         case 4:
           message.msg = Any.decode(reader, reader.uint32());
@@ -187,8 +187,8 @@ export const MsgSubmitTx = {
       owner: isSet(object.owner)
         ? bytesFromBase64(object.owner)
         : new Uint8Array(),
-      connectionId: isSet(object.connectionId)
-        ? String(object.connectionId)
+      connection_id: isSet(object.connection_id)
+        ? String(object.connection_id)
         : "",
       msg: isSet(object.msg) ? Any.fromJSON(object.msg) : undefined,
     };
@@ -200,8 +200,8 @@ export const MsgSubmitTx = {
       (obj.owner = base64FromBytes(
         message.owner !== undefined ? message.owner : new Uint8Array(),
       ));
-    message.connectionId !== undefined &&
-      (obj.connectionId = message.connectionId);
+    message.connection_id !== undefined &&
+      (obj.connection_id = message.connection_id);
     message.msg !== undefined &&
       (obj.msg = message.msg ? Any.toJSON(message.msg) : undefined);
     return obj;
@@ -212,7 +212,7 @@ export const MsgSubmitTx = {
   ): MsgSubmitTx {
     const message = createBaseMsgSubmitTx();
     message.owner = object.owner ?? new Uint8Array();
-    message.connectionId = object.connectionId ?? "";
+    message.connection_id = object.connection_id ?? "";
     message.msg =
       object.msg !== undefined && object.msg !== null
         ? Any.fromPartial(object.msg)
@@ -268,10 +268,52 @@ export const MsgSubmitTxResponse = {
 /** Msg defines the ica-authentication Msg service. */
 export interface Msg {
   /** Register defines a rpc handler for MsgRegisterAccount */
-  registerAccount(
+  RegisterAccount(
     request: MsgRegisterAccount,
   ): Promise<MsgRegisterAccountResponse>;
-  submitTx(request: MsgSubmitTx): Promise<MsgSubmitTxResponse>;
+  SubmitTx(request: MsgSubmitTx): Promise<MsgSubmitTxResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.RegisterAccount = this.RegisterAccount.bind(this);
+    this.SubmitTx = this.SubmitTx.bind(this);
+  }
+  RegisterAccount(
+    request: MsgRegisterAccount,
+  ): Promise<MsgRegisterAccountResponse> {
+    const data = MsgRegisterAccount.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.intertx.v1beta1.Msg",
+      "RegisterAccount",
+      data,
+    );
+    return promise.then((data) =>
+      MsgRegisterAccountResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  SubmitTx(request: MsgSubmitTx): Promise<MsgSubmitTxResponse> {
+    const data = MsgSubmitTx.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.intertx.v1beta1.Msg",
+      "SubmitTx",
+      data,
+    );
+    return promise.then((data) =>
+      MsgSubmitTxResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

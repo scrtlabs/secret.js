@@ -13,9 +13,9 @@ export const protobufPackage = "ibc.applications.transfer.v1";
  */
 export interface MsgTransfer {
   /** the port on which the packet will be sent */
-  sourcePort: string;
+  source_port: string;
   /** the channel by which the packet will be sent */
-  sourceChannel: string;
+  source_channel: string;
   /** the tokens to be transferred */
   token?: Coin;
   /** the sender address */
@@ -26,12 +26,12 @@ export interface MsgTransfer {
    * Timeout height relative to the current block height.
    * The timeout is disabled when set to 0.
    */
-  timeoutHeight?: Height;
+  timeout_height?: Height;
   /**
    * Timeout timestamp in absolute nanoseconds since unix epoch.
    * The timeout is disabled when set to 0.
    */
-  timeoutTimestamp: string;
+  timeout_timestamp: string;
 }
 
 /** MsgTransferResponse defines the Msg/Transfer response type. */
@@ -39,13 +39,13 @@ export interface MsgTransferResponse {}
 
 function createBaseMsgTransfer(): MsgTransfer {
   return {
-    sourcePort: "",
-    sourceChannel: "",
+    source_port: "",
+    source_channel: "",
     token: undefined,
     sender: "",
     receiver: "",
-    timeoutHeight: undefined,
-    timeoutTimestamp: "0",
+    timeout_height: undefined,
+    timeout_timestamp: "0",
   };
 }
 
@@ -54,11 +54,11 @@ export const MsgTransfer = {
     message: MsgTransfer,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.sourcePort !== "") {
-      writer.uint32(10).string(message.sourcePort);
+    if (message.source_port !== "") {
+      writer.uint32(10).string(message.source_port);
     }
-    if (message.sourceChannel !== "") {
-      writer.uint32(18).string(message.sourceChannel);
+    if (message.source_channel !== "") {
+      writer.uint32(18).string(message.source_channel);
     }
     if (message.token !== undefined) {
       Coin.encode(message.token, writer.uint32(26).fork()).ldelim();
@@ -69,11 +69,11 @@ export const MsgTransfer = {
     if (message.receiver !== "") {
       writer.uint32(42).string(message.receiver);
     }
-    if (message.timeoutHeight !== undefined) {
-      Height.encode(message.timeoutHeight, writer.uint32(50).fork()).ldelim();
+    if (message.timeout_height !== undefined) {
+      Height.encode(message.timeout_height, writer.uint32(50).fork()).ldelim();
     }
-    if (message.timeoutTimestamp !== "0") {
-      writer.uint32(56).uint64(message.timeoutTimestamp);
+    if (message.timeout_timestamp !== "0") {
+      writer.uint32(56).uint64(message.timeout_timestamp);
     }
     return writer;
   },
@@ -86,10 +86,10 @@ export const MsgTransfer = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sourcePort = reader.string();
+          message.source_port = reader.string();
           break;
         case 2:
-          message.sourceChannel = reader.string();
+          message.source_channel = reader.string();
           break;
         case 3:
           message.token = Coin.decode(reader, reader.uint32());
@@ -101,10 +101,10 @@ export const MsgTransfer = {
           message.receiver = reader.string();
           break;
         case 6:
-          message.timeoutHeight = Height.decode(reader, reader.uint32());
+          message.timeout_height = Height.decode(reader, reader.uint32());
           break;
         case 7:
-          message.timeoutTimestamp = longToString(reader.uint64() as Long);
+          message.timeout_timestamp = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -116,37 +116,38 @@ export const MsgTransfer = {
 
   fromJSON(object: any): MsgTransfer {
     return {
-      sourcePort: isSet(object.sourcePort) ? String(object.sourcePort) : "",
-      sourceChannel: isSet(object.sourceChannel)
-        ? String(object.sourceChannel)
+      source_port: isSet(object.source_port) ? String(object.source_port) : "",
+      source_channel: isSet(object.source_channel)
+        ? String(object.source_channel)
         : "",
       token: isSet(object.token) ? Coin.fromJSON(object.token) : undefined,
       sender: isSet(object.sender) ? String(object.sender) : "",
       receiver: isSet(object.receiver) ? String(object.receiver) : "",
-      timeoutHeight: isSet(object.timeoutHeight)
-        ? Height.fromJSON(object.timeoutHeight)
+      timeout_height: isSet(object.timeout_height)
+        ? Height.fromJSON(object.timeout_height)
         : undefined,
-      timeoutTimestamp: isSet(object.timeoutTimestamp)
-        ? String(object.timeoutTimestamp)
+      timeout_timestamp: isSet(object.timeout_timestamp)
+        ? String(object.timeout_timestamp)
         : "0",
     };
   },
 
   toJSON(message: MsgTransfer): unknown {
     const obj: any = {};
-    message.sourcePort !== undefined && (obj.sourcePort = message.sourcePort);
-    message.sourceChannel !== undefined &&
-      (obj.sourceChannel = message.sourceChannel);
+    message.source_port !== undefined &&
+      (obj.source_port = message.source_port);
+    message.source_channel !== undefined &&
+      (obj.source_channel = message.source_channel);
     message.token !== undefined &&
       (obj.token = message.token ? Coin.toJSON(message.token) : undefined);
     message.sender !== undefined && (obj.sender = message.sender);
     message.receiver !== undefined && (obj.receiver = message.receiver);
-    message.timeoutHeight !== undefined &&
-      (obj.timeoutHeight = message.timeoutHeight
-        ? Height.toJSON(message.timeoutHeight)
+    message.timeout_height !== undefined &&
+      (obj.timeout_height = message.timeout_height
+        ? Height.toJSON(message.timeout_height)
         : undefined);
-    message.timeoutTimestamp !== undefined &&
-      (obj.timeoutTimestamp = message.timeoutTimestamp);
+    message.timeout_timestamp !== undefined &&
+      (obj.timeout_timestamp = message.timeout_timestamp);
     return obj;
   },
 
@@ -154,19 +155,19 @@ export const MsgTransfer = {
     object: I,
   ): MsgTransfer {
     const message = createBaseMsgTransfer();
-    message.sourcePort = object.sourcePort ?? "";
-    message.sourceChannel = object.sourceChannel ?? "";
+    message.source_port = object.source_port ?? "";
+    message.source_channel = object.source_channel ?? "";
     message.token =
       object.token !== undefined && object.token !== null
         ? Coin.fromPartial(object.token)
         : undefined;
     message.sender = object.sender ?? "";
     message.receiver = object.receiver ?? "";
-    message.timeoutHeight =
-      object.timeoutHeight !== undefined && object.timeoutHeight !== null
-        ? Height.fromPartial(object.timeoutHeight)
+    message.timeout_height =
+      object.timeout_height !== undefined && object.timeout_height !== null
+        ? Height.fromPartial(object.timeout_height)
         : undefined;
-    message.timeoutTimestamp = object.timeoutTimestamp ?? "0";
+    message.timeout_timestamp = object.timeout_timestamp ?? "0";
     return message;
   },
 };
@@ -218,7 +219,34 @@ export const MsgTransferResponse = {
 /** Msg defines the ibc/transfer Msg service. */
 export interface Msg {
   /** Transfer defines a rpc handler method for MsgTransfer. */
-  transfer(request: MsgTransfer): Promise<MsgTransferResponse>;
+  Transfer(request: MsgTransfer): Promise<MsgTransferResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Transfer = this.Transfer.bind(this);
+  }
+  Transfer(request: MsgTransfer): Promise<MsgTransferResponse> {
+    const data = MsgTransfer.encode(request).finish();
+    const promise = this.rpc.request(
+      "ibc.applications.transfer.v1.Msg",
+      "Transfer",
+      data,
+    );
+    return promise.then((data) =>
+      MsgTransferResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

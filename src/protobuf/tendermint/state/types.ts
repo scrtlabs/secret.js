@@ -20,21 +20,21 @@ export const protobufPackage = "tendermint.state";
  * It is persisted to disk for each height before calling Commit.
  */
 export interface ABCIResponses {
-  deliverTxs: ResponseDeliverTx[];
-  endBlock?: ResponseEndBlock;
-  beginBlock?: ResponseBeginBlock;
+  deliver_txs: ResponseDeliverTx[];
+  end_block?: ResponseEndBlock;
+  begin_block?: ResponseBeginBlock;
 }
 
 /** ValidatorsInfo represents the latest validator set, or the last height it changed */
 export interface ValidatorsInfo {
-  validatorSet?: ValidatorSet;
-  lastHeightChanged: string;
+  validator_set?: ValidatorSet;
+  last_height_changed: string;
 }
 
 /** ConsensusParamsInfo represents the latest consensus params, or the last height it changed */
 export interface ConsensusParamsInfo {
-  consensusParams?: ConsensusParams;
-  lastHeightChanged: string;
+  consensus_params?: ConsensusParams;
+  last_height_changed: string;
 }
 
 export interface Version {
@@ -45,12 +45,12 @@ export interface Version {
 export interface State {
   version?: Version;
   /** immutable */
-  chainId: string;
-  initialHeight: string;
+  chain_id: string;
+  initial_height: string;
   /** LastBlockHeight=0 at genesis (ie. block(H=0) does not exist) */
-  lastBlockHeight: string;
-  lastBlockId?: BlockID;
-  lastBlockTime?: Timestamp;
+  last_block_height: string;
+  last_block_id?: BlockID;
+  last_block_time?: Timestamp;
   /**
    * LastValidators is used to validate block.LastCommit.
    * Validators are persisted to the database separately every time they change,
@@ -59,24 +59,24 @@ export interface State {
    * we set s.LastHeightValidatorsChanged = s.LastBlockHeight + 1 + 1
    * Extra +1 due to nextValSet delay.
    */
-  nextValidators?: ValidatorSet;
+  next_validators?: ValidatorSet;
   validators?: ValidatorSet;
-  lastValidators?: ValidatorSet;
-  lastHeightValidatorsChanged: string;
+  last_validators?: ValidatorSet;
+  last_height_validators_changed: string;
   /**
    * Consensus parameters used for validating blocks.
    * Changes returned by EndBlock and updated after Commit.
    */
-  consensusParams?: ConsensusParams;
-  lastHeightConsensusParamsChanged: string;
+  consensus_params?: ConsensusParams;
+  last_height_consensus_params_changed: string;
   /** Merkle root of the results from executing prev block */
-  lastResultsHash: Uint8Array;
+  last_results_hash: Uint8Array;
   /** the latest AppHash we've received from calling abci.Commit() */
-  appHash: Uint8Array;
+  app_hash: Uint8Array;
 }
 
 function createBaseABCIResponses(): ABCIResponses {
-  return { deliverTxs: [], endBlock: undefined, beginBlock: undefined };
+  return { deliver_txs: [], end_block: undefined, begin_block: undefined };
 }
 
 export const ABCIResponses = {
@@ -84,18 +84,18 @@ export const ABCIResponses = {
     message: ABCIResponses,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.deliverTxs) {
+    for (const v of message.deliver_txs) {
       ResponseDeliverTx.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    if (message.endBlock !== undefined) {
+    if (message.end_block !== undefined) {
       ResponseEndBlock.encode(
-        message.endBlock,
+        message.end_block,
         writer.uint32(18).fork(),
       ).ldelim();
     }
-    if (message.beginBlock !== undefined) {
+    if (message.begin_block !== undefined) {
       ResponseBeginBlock.encode(
-        message.beginBlock,
+        message.begin_block,
         writer.uint32(26).fork(),
       ).ldelim();
     }
@@ -110,15 +110,15 @@ export const ABCIResponses = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.deliverTxs.push(
+          message.deliver_txs.push(
             ResponseDeliverTx.decode(reader, reader.uint32()),
           );
           break;
         case 2:
-          message.endBlock = ResponseEndBlock.decode(reader, reader.uint32());
+          message.end_block = ResponseEndBlock.decode(reader, reader.uint32());
           break;
         case 3:
-          message.beginBlock = ResponseBeginBlock.decode(
+          message.begin_block = ResponseBeginBlock.decode(
             reader,
             reader.uint32(),
           );
@@ -133,34 +133,34 @@ export const ABCIResponses = {
 
   fromJSON(object: any): ABCIResponses {
     return {
-      deliverTxs: Array.isArray(object?.deliverTxs)
-        ? object.deliverTxs.map((e: any) => ResponseDeliverTx.fromJSON(e))
+      deliver_txs: Array.isArray(object?.deliver_txs)
+        ? object.deliver_txs.map((e: any) => ResponseDeliverTx.fromJSON(e))
         : [],
-      endBlock: isSet(object.endBlock)
-        ? ResponseEndBlock.fromJSON(object.endBlock)
+      end_block: isSet(object.end_block)
+        ? ResponseEndBlock.fromJSON(object.end_block)
         : undefined,
-      beginBlock: isSet(object.beginBlock)
-        ? ResponseBeginBlock.fromJSON(object.beginBlock)
+      begin_block: isSet(object.begin_block)
+        ? ResponseBeginBlock.fromJSON(object.begin_block)
         : undefined,
     };
   },
 
   toJSON(message: ABCIResponses): unknown {
     const obj: any = {};
-    if (message.deliverTxs) {
-      obj.deliverTxs = message.deliverTxs.map((e) =>
+    if (message.deliver_txs) {
+      obj.deliver_txs = message.deliver_txs.map((e) =>
         e ? ResponseDeliverTx.toJSON(e) : undefined,
       );
     } else {
-      obj.deliverTxs = [];
+      obj.deliver_txs = [];
     }
-    message.endBlock !== undefined &&
-      (obj.endBlock = message.endBlock
-        ? ResponseEndBlock.toJSON(message.endBlock)
+    message.end_block !== undefined &&
+      (obj.end_block = message.end_block
+        ? ResponseEndBlock.toJSON(message.end_block)
         : undefined);
-    message.beginBlock !== undefined &&
-      (obj.beginBlock = message.beginBlock
-        ? ResponseBeginBlock.toJSON(message.beginBlock)
+    message.begin_block !== undefined &&
+      (obj.begin_block = message.begin_block
+        ? ResponseBeginBlock.toJSON(message.begin_block)
         : undefined);
     return obj;
   },
@@ -169,22 +169,22 @@ export const ABCIResponses = {
     object: I,
   ): ABCIResponses {
     const message = createBaseABCIResponses();
-    message.deliverTxs =
-      object.deliverTxs?.map((e) => ResponseDeliverTx.fromPartial(e)) || [];
-    message.endBlock =
-      object.endBlock !== undefined && object.endBlock !== null
-        ? ResponseEndBlock.fromPartial(object.endBlock)
+    message.deliver_txs =
+      object.deliver_txs?.map((e) => ResponseDeliverTx.fromPartial(e)) || [];
+    message.end_block =
+      object.end_block !== undefined && object.end_block !== null
+        ? ResponseEndBlock.fromPartial(object.end_block)
         : undefined;
-    message.beginBlock =
-      object.beginBlock !== undefined && object.beginBlock !== null
-        ? ResponseBeginBlock.fromPartial(object.beginBlock)
+    message.begin_block =
+      object.begin_block !== undefined && object.begin_block !== null
+        ? ResponseBeginBlock.fromPartial(object.begin_block)
         : undefined;
     return message;
   },
 };
 
 function createBaseValidatorsInfo(): ValidatorsInfo {
-  return { validatorSet: undefined, lastHeightChanged: "0" };
+  return { validator_set: undefined, last_height_changed: "0" };
 }
 
 export const ValidatorsInfo = {
@@ -192,14 +192,14 @@ export const ValidatorsInfo = {
     message: ValidatorsInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.validatorSet !== undefined) {
+    if (message.validator_set !== undefined) {
       ValidatorSet.encode(
-        message.validatorSet,
+        message.validator_set,
         writer.uint32(10).fork(),
       ).ldelim();
     }
-    if (message.lastHeightChanged !== "0") {
-      writer.uint32(16).int64(message.lastHeightChanged);
+    if (message.last_height_changed !== "0") {
+      writer.uint32(16).int64(message.last_height_changed);
     }
     return writer;
   },
@@ -212,10 +212,10 @@ export const ValidatorsInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.validatorSet = ValidatorSet.decode(reader, reader.uint32());
+          message.validator_set = ValidatorSet.decode(reader, reader.uint32());
           break;
         case 2:
-          message.lastHeightChanged = longToString(reader.int64() as Long);
+          message.last_height_changed = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -227,23 +227,23 @@ export const ValidatorsInfo = {
 
   fromJSON(object: any): ValidatorsInfo {
     return {
-      validatorSet: isSet(object.validatorSet)
-        ? ValidatorSet.fromJSON(object.validatorSet)
+      validator_set: isSet(object.validator_set)
+        ? ValidatorSet.fromJSON(object.validator_set)
         : undefined,
-      lastHeightChanged: isSet(object.lastHeightChanged)
-        ? String(object.lastHeightChanged)
+      last_height_changed: isSet(object.last_height_changed)
+        ? String(object.last_height_changed)
         : "0",
     };
   },
 
   toJSON(message: ValidatorsInfo): unknown {
     const obj: any = {};
-    message.validatorSet !== undefined &&
-      (obj.validatorSet = message.validatorSet
-        ? ValidatorSet.toJSON(message.validatorSet)
+    message.validator_set !== undefined &&
+      (obj.validator_set = message.validator_set
+        ? ValidatorSet.toJSON(message.validator_set)
         : undefined);
-    message.lastHeightChanged !== undefined &&
-      (obj.lastHeightChanged = message.lastHeightChanged);
+    message.last_height_changed !== undefined &&
+      (obj.last_height_changed = message.last_height_changed);
     return obj;
   },
 
@@ -251,17 +251,17 @@ export const ValidatorsInfo = {
     object: I,
   ): ValidatorsInfo {
     const message = createBaseValidatorsInfo();
-    message.validatorSet =
-      object.validatorSet !== undefined && object.validatorSet !== null
-        ? ValidatorSet.fromPartial(object.validatorSet)
+    message.validator_set =
+      object.validator_set !== undefined && object.validator_set !== null
+        ? ValidatorSet.fromPartial(object.validator_set)
         : undefined;
-    message.lastHeightChanged = object.lastHeightChanged ?? "0";
+    message.last_height_changed = object.last_height_changed ?? "0";
     return message;
   },
 };
 
 function createBaseConsensusParamsInfo(): ConsensusParamsInfo {
-  return { consensusParams: undefined, lastHeightChanged: "0" };
+  return { consensus_params: undefined, last_height_changed: "0" };
 }
 
 export const ConsensusParamsInfo = {
@@ -269,14 +269,14 @@ export const ConsensusParamsInfo = {
     message: ConsensusParamsInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.consensusParams !== undefined) {
+    if (message.consensus_params !== undefined) {
       ConsensusParams.encode(
-        message.consensusParams,
+        message.consensus_params,
         writer.uint32(10).fork(),
       ).ldelim();
     }
-    if (message.lastHeightChanged !== "0") {
-      writer.uint32(16).int64(message.lastHeightChanged);
+    if (message.last_height_changed !== "0") {
+      writer.uint32(16).int64(message.last_height_changed);
     }
     return writer;
   },
@@ -289,13 +289,13 @@ export const ConsensusParamsInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.consensusParams = ConsensusParams.decode(
+          message.consensus_params = ConsensusParams.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 2:
-          message.lastHeightChanged = longToString(reader.int64() as Long);
+          message.last_height_changed = longToString(reader.int64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -307,23 +307,23 @@ export const ConsensusParamsInfo = {
 
   fromJSON(object: any): ConsensusParamsInfo {
     return {
-      consensusParams: isSet(object.consensusParams)
-        ? ConsensusParams.fromJSON(object.consensusParams)
+      consensus_params: isSet(object.consensus_params)
+        ? ConsensusParams.fromJSON(object.consensus_params)
         : undefined,
-      lastHeightChanged: isSet(object.lastHeightChanged)
-        ? String(object.lastHeightChanged)
+      last_height_changed: isSet(object.last_height_changed)
+        ? String(object.last_height_changed)
         : "0",
     };
   },
 
   toJSON(message: ConsensusParamsInfo): unknown {
     const obj: any = {};
-    message.consensusParams !== undefined &&
-      (obj.consensusParams = message.consensusParams
-        ? ConsensusParams.toJSON(message.consensusParams)
+    message.consensus_params !== undefined &&
+      (obj.consensus_params = message.consensus_params
+        ? ConsensusParams.toJSON(message.consensus_params)
         : undefined);
-    message.lastHeightChanged !== undefined &&
-      (obj.lastHeightChanged = message.lastHeightChanged);
+    message.last_height_changed !== undefined &&
+      (obj.last_height_changed = message.last_height_changed);
     return obj;
   },
 
@@ -331,11 +331,11 @@ export const ConsensusParamsInfo = {
     object: I,
   ): ConsensusParamsInfo {
     const message = createBaseConsensusParamsInfo();
-    message.consensusParams =
-      object.consensusParams !== undefined && object.consensusParams !== null
-        ? ConsensusParams.fromPartial(object.consensusParams)
+    message.consensus_params =
+      object.consensus_params !== undefined && object.consensus_params !== null
+        ? ConsensusParams.fromPartial(object.consensus_params)
         : undefined;
-    message.lastHeightChanged = object.lastHeightChanged ?? "0";
+    message.last_height_changed = object.last_height_changed ?? "0";
     return message;
   },
 };
@@ -412,19 +412,19 @@ export const Version = {
 function createBaseState(): State {
   return {
     version: undefined,
-    chainId: "",
-    initialHeight: "0",
-    lastBlockHeight: "0",
-    lastBlockId: undefined,
-    lastBlockTime: undefined,
-    nextValidators: undefined,
+    chain_id: "",
+    initial_height: "0",
+    last_block_height: "0",
+    last_block_id: undefined,
+    last_block_time: undefined,
+    next_validators: undefined,
     validators: undefined,
-    lastValidators: undefined,
-    lastHeightValidatorsChanged: "0",
-    consensusParams: undefined,
-    lastHeightConsensusParamsChanged: "0",
-    lastResultsHash: new Uint8Array(),
-    appHash: new Uint8Array(),
+    last_validators: undefined,
+    last_height_validators_changed: "0",
+    consensus_params: undefined,
+    last_height_consensus_params_changed: "0",
+    last_results_hash: new Uint8Array(),
+    app_hash: new Uint8Array(),
   };
 }
 
@@ -433,27 +433,27 @@ export const State = {
     if (message.version !== undefined) {
       Version.encode(message.version, writer.uint32(10).fork()).ldelim();
     }
-    if (message.chainId !== "") {
-      writer.uint32(18).string(message.chainId);
+    if (message.chain_id !== "") {
+      writer.uint32(18).string(message.chain_id);
     }
-    if (message.initialHeight !== "0") {
-      writer.uint32(112).int64(message.initialHeight);
+    if (message.initial_height !== "0") {
+      writer.uint32(112).int64(message.initial_height);
     }
-    if (message.lastBlockHeight !== "0") {
-      writer.uint32(24).int64(message.lastBlockHeight);
+    if (message.last_block_height !== "0") {
+      writer.uint32(24).int64(message.last_block_height);
     }
-    if (message.lastBlockId !== undefined) {
-      BlockID.encode(message.lastBlockId, writer.uint32(34).fork()).ldelim();
+    if (message.last_block_id !== undefined) {
+      BlockID.encode(message.last_block_id, writer.uint32(34).fork()).ldelim();
     }
-    if (message.lastBlockTime !== undefined) {
+    if (message.last_block_time !== undefined) {
       Timestamp.encode(
-        message.lastBlockTime,
+        message.last_block_time,
         writer.uint32(42).fork(),
       ).ldelim();
     }
-    if (message.nextValidators !== undefined) {
+    if (message.next_validators !== undefined) {
       ValidatorSet.encode(
-        message.nextValidators,
+        message.next_validators,
         writer.uint32(50).fork(),
       ).ldelim();
     }
@@ -463,29 +463,29 @@ export const State = {
         writer.uint32(58).fork(),
       ).ldelim();
     }
-    if (message.lastValidators !== undefined) {
+    if (message.last_validators !== undefined) {
       ValidatorSet.encode(
-        message.lastValidators,
+        message.last_validators,
         writer.uint32(66).fork(),
       ).ldelim();
     }
-    if (message.lastHeightValidatorsChanged !== "0") {
-      writer.uint32(72).int64(message.lastHeightValidatorsChanged);
+    if (message.last_height_validators_changed !== "0") {
+      writer.uint32(72).int64(message.last_height_validators_changed);
     }
-    if (message.consensusParams !== undefined) {
+    if (message.consensus_params !== undefined) {
       ConsensusParams.encode(
-        message.consensusParams,
+        message.consensus_params,
         writer.uint32(82).fork(),
       ).ldelim();
     }
-    if (message.lastHeightConsensusParamsChanged !== "0") {
-      writer.uint32(88).int64(message.lastHeightConsensusParamsChanged);
+    if (message.last_height_consensus_params_changed !== "0") {
+      writer.uint32(88).int64(message.last_height_consensus_params_changed);
     }
-    if (message.lastResultsHash.length !== 0) {
-      writer.uint32(98).bytes(message.lastResultsHash);
+    if (message.last_results_hash.length !== 0) {
+      writer.uint32(98).bytes(message.last_results_hash);
     }
-    if (message.appHash.length !== 0) {
-      writer.uint32(106).bytes(message.appHash);
+    if (message.app_hash.length !== 0) {
+      writer.uint32(106).bytes(message.app_hash);
     }
     return writer;
   },
@@ -501,50 +501,56 @@ export const State = {
           message.version = Version.decode(reader, reader.uint32());
           break;
         case 2:
-          message.chainId = reader.string();
+          message.chain_id = reader.string();
           break;
         case 14:
-          message.initialHeight = longToString(reader.int64() as Long);
+          message.initial_height = longToString(reader.int64() as Long);
           break;
         case 3:
-          message.lastBlockHeight = longToString(reader.int64() as Long);
+          message.last_block_height = longToString(reader.int64() as Long);
           break;
         case 4:
-          message.lastBlockId = BlockID.decode(reader, reader.uint32());
+          message.last_block_id = BlockID.decode(reader, reader.uint32());
           break;
         case 5:
-          message.lastBlockTime = Timestamp.decode(reader, reader.uint32());
+          message.last_block_time = Timestamp.decode(reader, reader.uint32());
           break;
         case 6:
-          message.nextValidators = ValidatorSet.decode(reader, reader.uint32());
+          message.next_validators = ValidatorSet.decode(
+            reader,
+            reader.uint32(),
+          );
           break;
         case 7:
           message.validators = ValidatorSet.decode(reader, reader.uint32());
           break;
         case 8:
-          message.lastValidators = ValidatorSet.decode(reader, reader.uint32());
+          message.last_validators = ValidatorSet.decode(
+            reader,
+            reader.uint32(),
+          );
           break;
         case 9:
-          message.lastHeightValidatorsChanged = longToString(
+          message.last_height_validators_changed = longToString(
             reader.int64() as Long,
           );
           break;
         case 10:
-          message.consensusParams = ConsensusParams.decode(
+          message.consensus_params = ConsensusParams.decode(
             reader,
             reader.uint32(),
           );
           break;
         case 11:
-          message.lastHeightConsensusParamsChanged = longToString(
+          message.last_height_consensus_params_changed = longToString(
             reader.int64() as Long,
           );
           break;
         case 12:
-          message.lastResultsHash = reader.bytes();
+          message.last_results_hash = reader.bytes();
           break;
         case 13:
-          message.appHash = reader.bytes();
+          message.app_hash = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -559,44 +565,46 @@ export const State = {
       version: isSet(object.version)
         ? Version.fromJSON(object.version)
         : undefined,
-      chainId: isSet(object.chainId) ? String(object.chainId) : "",
-      initialHeight: isSet(object.initialHeight)
-        ? String(object.initialHeight)
+      chain_id: isSet(object.chain_id) ? String(object.chain_id) : "",
+      initial_height: isSet(object.initial_height)
+        ? String(object.initial_height)
         : "0",
-      lastBlockHeight: isSet(object.lastBlockHeight)
-        ? String(object.lastBlockHeight)
+      last_block_height: isSet(object.last_block_height)
+        ? String(object.last_block_height)
         : "0",
-      lastBlockId: isSet(object.lastBlockId)
-        ? BlockID.fromJSON(object.lastBlockId)
+      last_block_id: isSet(object.last_block_id)
+        ? BlockID.fromJSON(object.last_block_id)
         : undefined,
-      lastBlockTime: isSet(object.lastBlockTime)
-        ? fromJsonTimestamp(object.lastBlockTime)
+      last_block_time: isSet(object.last_block_time)
+        ? fromJsonTimestamp(object.last_block_time)
         : undefined,
-      nextValidators: isSet(object.nextValidators)
-        ? ValidatorSet.fromJSON(object.nextValidators)
+      next_validators: isSet(object.next_validators)
+        ? ValidatorSet.fromJSON(object.next_validators)
         : undefined,
       validators: isSet(object.validators)
         ? ValidatorSet.fromJSON(object.validators)
         : undefined,
-      lastValidators: isSet(object.lastValidators)
-        ? ValidatorSet.fromJSON(object.lastValidators)
+      last_validators: isSet(object.last_validators)
+        ? ValidatorSet.fromJSON(object.last_validators)
         : undefined,
-      lastHeightValidatorsChanged: isSet(object.lastHeightValidatorsChanged)
-        ? String(object.lastHeightValidatorsChanged)
-        : "0",
-      consensusParams: isSet(object.consensusParams)
-        ? ConsensusParams.fromJSON(object.consensusParams)
-        : undefined,
-      lastHeightConsensusParamsChanged: isSet(
-        object.lastHeightConsensusParamsChanged,
+      last_height_validators_changed: isSet(
+        object.last_height_validators_changed,
       )
-        ? String(object.lastHeightConsensusParamsChanged)
+        ? String(object.last_height_validators_changed)
         : "0",
-      lastResultsHash: isSet(object.lastResultsHash)
-        ? bytesFromBase64(object.lastResultsHash)
+      consensus_params: isSet(object.consensus_params)
+        ? ConsensusParams.fromJSON(object.consensus_params)
+        : undefined,
+      last_height_consensus_params_changed: isSet(
+        object.last_height_consensus_params_changed,
+      )
+        ? String(object.last_height_consensus_params_changed)
+        : "0",
+      last_results_hash: isSet(object.last_results_hash)
+        ? bytesFromBase64(object.last_results_hash)
         : new Uint8Array(),
-      appHash: isSet(object.appHash)
-        ? bytesFromBase64(object.appHash)
+      app_hash: isSet(object.app_hash)
+        ? bytesFromBase64(object.app_hash)
         : new Uint8Array(),
     };
   },
@@ -607,47 +615,50 @@ export const State = {
       (obj.version = message.version
         ? Version.toJSON(message.version)
         : undefined);
-    message.chainId !== undefined && (obj.chainId = message.chainId);
-    message.initialHeight !== undefined &&
-      (obj.initialHeight = message.initialHeight);
-    message.lastBlockHeight !== undefined &&
-      (obj.lastBlockHeight = message.lastBlockHeight);
-    message.lastBlockId !== undefined &&
-      (obj.lastBlockId = message.lastBlockId
-        ? BlockID.toJSON(message.lastBlockId)
+    message.chain_id !== undefined && (obj.chain_id = message.chain_id);
+    message.initial_height !== undefined &&
+      (obj.initial_height = message.initial_height);
+    message.last_block_height !== undefined &&
+      (obj.last_block_height = message.last_block_height);
+    message.last_block_id !== undefined &&
+      (obj.last_block_id = message.last_block_id
+        ? BlockID.toJSON(message.last_block_id)
         : undefined);
-    message.lastBlockTime !== undefined &&
-      (obj.lastBlockTime = fromTimestamp(message.lastBlockTime).toISOString());
-    message.nextValidators !== undefined &&
-      (obj.nextValidators = message.nextValidators
-        ? ValidatorSet.toJSON(message.nextValidators)
+    message.last_block_time !== undefined &&
+      (obj.last_block_time = fromTimestamp(
+        message.last_block_time,
+      ).toISOString());
+    message.next_validators !== undefined &&
+      (obj.next_validators = message.next_validators
+        ? ValidatorSet.toJSON(message.next_validators)
         : undefined);
     message.validators !== undefined &&
       (obj.validators = message.validators
         ? ValidatorSet.toJSON(message.validators)
         : undefined);
-    message.lastValidators !== undefined &&
-      (obj.lastValidators = message.lastValidators
-        ? ValidatorSet.toJSON(message.lastValidators)
+    message.last_validators !== undefined &&
+      (obj.last_validators = message.last_validators
+        ? ValidatorSet.toJSON(message.last_validators)
         : undefined);
-    message.lastHeightValidatorsChanged !== undefined &&
-      (obj.lastHeightValidatorsChanged = message.lastHeightValidatorsChanged);
-    message.consensusParams !== undefined &&
-      (obj.consensusParams = message.consensusParams
-        ? ConsensusParams.toJSON(message.consensusParams)
+    message.last_height_validators_changed !== undefined &&
+      (obj.last_height_validators_changed =
+        message.last_height_validators_changed);
+    message.consensus_params !== undefined &&
+      (obj.consensus_params = message.consensus_params
+        ? ConsensusParams.toJSON(message.consensus_params)
         : undefined);
-    message.lastHeightConsensusParamsChanged !== undefined &&
-      (obj.lastHeightConsensusParamsChanged =
-        message.lastHeightConsensusParamsChanged);
-    message.lastResultsHash !== undefined &&
-      (obj.lastResultsHash = base64FromBytes(
-        message.lastResultsHash !== undefined
-          ? message.lastResultsHash
+    message.last_height_consensus_params_changed !== undefined &&
+      (obj.last_height_consensus_params_changed =
+        message.last_height_consensus_params_changed);
+    message.last_results_hash !== undefined &&
+      (obj.last_results_hash = base64FromBytes(
+        message.last_results_hash !== undefined
+          ? message.last_results_hash
           : new Uint8Array(),
       ));
-    message.appHash !== undefined &&
-      (obj.appHash = base64FromBytes(
-        message.appHash !== undefined ? message.appHash : new Uint8Array(),
+    message.app_hash !== undefined &&
+      (obj.app_hash = base64FromBytes(
+        message.app_hash !== undefined ? message.app_hash : new Uint8Array(),
       ));
     return obj;
   },
@@ -658,39 +669,39 @@ export const State = {
       object.version !== undefined && object.version !== null
         ? Version.fromPartial(object.version)
         : undefined;
-    message.chainId = object.chainId ?? "";
-    message.initialHeight = object.initialHeight ?? "0";
-    message.lastBlockHeight = object.lastBlockHeight ?? "0";
-    message.lastBlockId =
-      object.lastBlockId !== undefined && object.lastBlockId !== null
-        ? BlockID.fromPartial(object.lastBlockId)
+    message.chain_id = object.chain_id ?? "";
+    message.initial_height = object.initial_height ?? "0";
+    message.last_block_height = object.last_block_height ?? "0";
+    message.last_block_id =
+      object.last_block_id !== undefined && object.last_block_id !== null
+        ? BlockID.fromPartial(object.last_block_id)
         : undefined;
-    message.lastBlockTime =
-      object.lastBlockTime !== undefined && object.lastBlockTime !== null
-        ? Timestamp.fromPartial(object.lastBlockTime)
+    message.last_block_time =
+      object.last_block_time !== undefined && object.last_block_time !== null
+        ? Timestamp.fromPartial(object.last_block_time)
         : undefined;
-    message.nextValidators =
-      object.nextValidators !== undefined && object.nextValidators !== null
-        ? ValidatorSet.fromPartial(object.nextValidators)
+    message.next_validators =
+      object.next_validators !== undefined && object.next_validators !== null
+        ? ValidatorSet.fromPartial(object.next_validators)
         : undefined;
     message.validators =
       object.validators !== undefined && object.validators !== null
         ? ValidatorSet.fromPartial(object.validators)
         : undefined;
-    message.lastValidators =
-      object.lastValidators !== undefined && object.lastValidators !== null
-        ? ValidatorSet.fromPartial(object.lastValidators)
+    message.last_validators =
+      object.last_validators !== undefined && object.last_validators !== null
+        ? ValidatorSet.fromPartial(object.last_validators)
         : undefined;
-    message.lastHeightValidatorsChanged =
-      object.lastHeightValidatorsChanged ?? "0";
-    message.consensusParams =
-      object.consensusParams !== undefined && object.consensusParams !== null
-        ? ConsensusParams.fromPartial(object.consensusParams)
+    message.last_height_validators_changed =
+      object.last_height_validators_changed ?? "0";
+    message.consensus_params =
+      object.consensus_params !== undefined && object.consensus_params !== null
+        ? ConsensusParams.fromPartial(object.consensus_params)
         : undefined;
-    message.lastHeightConsensusParamsChanged =
-      object.lastHeightConsensusParamsChanged ?? "0";
-    message.lastResultsHash = object.lastResultsHash ?? new Uint8Array();
-    message.appHash = object.appHash ?? new Uint8Array();
+    message.last_height_consensus_params_changed =
+      object.last_height_consensus_params_changed ?? "0";
+    message.last_results_hash = object.last_results_hash ?? new Uint8Array();
+    message.app_hash = object.app_hash ?? new Uint8Array();
     return message;
   },
 };

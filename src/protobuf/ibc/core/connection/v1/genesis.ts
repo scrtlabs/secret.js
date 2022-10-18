@@ -12,17 +12,17 @@ export const protobufPackage = "ibc.core.connection.v1";
 /** GenesisState defines the ibc connection submodule's genesis state. */
 export interface GenesisState {
   connections: IdentifiedConnection[];
-  clientConnectionPaths: ConnectionPaths[];
+  client_connection_paths: ConnectionPaths[];
   /** the sequence for the next generated connection identifier */
-  nextConnectionSequence: string;
+  next_connection_sequence: string;
   params?: Params;
 }
 
 function createBaseGenesisState(): GenesisState {
   return {
     connections: [],
-    clientConnectionPaths: [],
-    nextConnectionSequence: "0",
+    client_connection_paths: [],
+    next_connection_sequence: "0",
     params: undefined,
   };
 }
@@ -35,11 +35,11 @@ export const GenesisState = {
     for (const v of message.connections) {
       IdentifiedConnection.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.clientConnectionPaths) {
+    for (const v of message.client_connection_paths) {
       ConnectionPaths.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-    if (message.nextConnectionSequence !== "0") {
-      writer.uint32(24).uint64(message.nextConnectionSequence);
+    if (message.next_connection_sequence !== "0") {
+      writer.uint32(24).uint64(message.next_connection_sequence);
     }
     if (message.params !== undefined) {
       Params.encode(message.params, writer.uint32(34).fork()).ldelim();
@@ -60,12 +60,12 @@ export const GenesisState = {
           );
           break;
         case 2:
-          message.clientConnectionPaths.push(
+          message.client_connection_paths.push(
             ConnectionPaths.decode(reader, reader.uint32()),
           );
           break;
         case 3:
-          message.nextConnectionSequence = longToString(
+          message.next_connection_sequence = longToString(
             reader.uint64() as Long,
           );
           break;
@@ -85,13 +85,13 @@ export const GenesisState = {
       connections: Array.isArray(object?.connections)
         ? object.connections.map((e: any) => IdentifiedConnection.fromJSON(e))
         : [],
-      clientConnectionPaths: Array.isArray(object?.clientConnectionPaths)
-        ? object.clientConnectionPaths.map((e: any) =>
+      client_connection_paths: Array.isArray(object?.client_connection_paths)
+        ? object.client_connection_paths.map((e: any) =>
             ConnectionPaths.fromJSON(e),
           )
         : [],
-      nextConnectionSequence: isSet(object.nextConnectionSequence)
-        ? String(object.nextConnectionSequence)
+      next_connection_sequence: isSet(object.next_connection_sequence)
+        ? String(object.next_connection_sequence)
         : "0",
       params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
     };
@@ -106,15 +106,15 @@ export const GenesisState = {
     } else {
       obj.connections = [];
     }
-    if (message.clientConnectionPaths) {
-      obj.clientConnectionPaths = message.clientConnectionPaths.map((e) =>
+    if (message.client_connection_paths) {
+      obj.client_connection_paths = message.client_connection_paths.map((e) =>
         e ? ConnectionPaths.toJSON(e) : undefined,
       );
     } else {
-      obj.clientConnectionPaths = [];
+      obj.client_connection_paths = [];
     }
-    message.nextConnectionSequence !== undefined &&
-      (obj.nextConnectionSequence = message.nextConnectionSequence);
+    message.next_connection_sequence !== undefined &&
+      (obj.next_connection_sequence = message.next_connection_sequence);
     message.params !== undefined &&
       (obj.params = message.params ? Params.toJSON(message.params) : undefined);
     return obj;
@@ -126,11 +126,11 @@ export const GenesisState = {
     const message = createBaseGenesisState();
     message.connections =
       object.connections?.map((e) => IdentifiedConnection.fromPartial(e)) || [];
-    message.clientConnectionPaths =
-      object.clientConnectionPaths?.map((e) =>
+    message.client_connection_paths =
+      object.client_connection_paths?.map((e) =>
         ConnectionPaths.fromPartial(e),
       ) || [];
-    message.nextConnectionSequence = object.nextConnectionSequence ?? "0";
+    message.next_connection_sequence = object.next_connection_sequence ?? "0";
     message.params =
       object.params !== undefined && object.params !== null
         ? Params.fromPartial(object.params)

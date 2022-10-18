@@ -48,7 +48,7 @@ export interface MsgGrantResponse {}
 export interface MsgRevoke {
   granter: string;
   grantee: string;
-  msgTypeUrl: string;
+  msg_type_url: string;
 }
 
 /** MsgRevokeResponse defines the Msg/MsgRevokeResponse response type. */
@@ -302,7 +302,7 @@ export const MsgGrantResponse = {
 };
 
 function createBaseMsgRevoke(): MsgRevoke {
-  return { granter: "", grantee: "", msgTypeUrl: "" };
+  return { granter: "", grantee: "", msg_type_url: "" };
 }
 
 export const MsgRevoke = {
@@ -316,8 +316,8 @@ export const MsgRevoke = {
     if (message.grantee !== "") {
       writer.uint32(18).string(message.grantee);
     }
-    if (message.msgTypeUrl !== "") {
-      writer.uint32(26).string(message.msgTypeUrl);
+    if (message.msg_type_url !== "") {
+      writer.uint32(26).string(message.msg_type_url);
     }
     return writer;
   },
@@ -336,7 +336,7 @@ export const MsgRevoke = {
           message.grantee = reader.string();
           break;
         case 3:
-          message.msgTypeUrl = reader.string();
+          message.msg_type_url = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -350,7 +350,9 @@ export const MsgRevoke = {
     return {
       granter: isSet(object.granter) ? String(object.granter) : "",
       grantee: isSet(object.grantee) ? String(object.grantee) : "",
-      msgTypeUrl: isSet(object.msgTypeUrl) ? String(object.msgTypeUrl) : "",
+      msg_type_url: isSet(object.msg_type_url)
+        ? String(object.msg_type_url)
+        : "",
     };
   },
 
@@ -358,7 +360,8 @@ export const MsgRevoke = {
     const obj: any = {};
     message.granter !== undefined && (obj.granter = message.granter);
     message.grantee !== undefined && (obj.grantee = message.grantee);
-    message.msgTypeUrl !== undefined && (obj.msgTypeUrl = message.msgTypeUrl);
+    message.msg_type_url !== undefined &&
+      (obj.msg_type_url = message.msg_type_url);
     return obj;
   },
 
@@ -368,7 +371,7 @@ export const MsgRevoke = {
     const message = createBaseMsgRevoke();
     message.granter = object.granter ?? "";
     message.grantee = object.grantee ?? "";
-    message.msgTypeUrl = object.msgTypeUrl ?? "";
+    message.msg_type_url = object.msg_type_url ?? "";
     return message;
   },
 };
@@ -425,18 +428,61 @@ export interface Msg {
    * for the given (granter, grantee, Authorization) triple, then the grant
    * will be overwritten.
    */
-  grant(request: MsgGrant): Promise<MsgGrantResponse>;
+  Grant(request: MsgGrant): Promise<MsgGrantResponse>;
   /**
    * Exec attempts to execute the provided messages using
    * authorizations granted to the grantee. Each message should have only
    * one signer corresponding to the granter of the authorization.
    */
-  exec(request: MsgExec): Promise<MsgExecResponse>;
+  Exec(request: MsgExec): Promise<MsgExecResponse>;
   /**
    * Revoke revokes any authorization corresponding to the provided method name on the
    * granter's account that has been granted to the grantee.
    */
-  revoke(request: MsgRevoke): Promise<MsgRevokeResponse>;
+  Revoke(request: MsgRevoke): Promise<MsgRevokeResponse>;
+}
+
+export class MsgClientImpl implements Msg {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Grant = this.Grant.bind(this);
+    this.Exec = this.Exec.bind(this);
+    this.Revoke = this.Revoke.bind(this);
+  }
+  Grant(request: MsgGrant): Promise<MsgGrantResponse> {
+    const data = MsgGrant.encode(request).finish();
+    const promise = this.rpc.request("cosmos.authz.v1beta1.Msg", "Grant", data);
+    return promise.then((data) =>
+      MsgGrantResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Exec(request: MsgExec): Promise<MsgExecResponse> {
+    const data = MsgExec.encode(request).finish();
+    const promise = this.rpc.request("cosmos.authz.v1beta1.Msg", "Exec", data);
+    return promise.then((data) => MsgExecResponse.decode(new _m0.Reader(data)));
+  }
+
+  Revoke(request: MsgRevoke): Promise<MsgRevokeResponse> {
+    const data = MsgRevoke.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.authz.v1beta1.Msg",
+      "Revoke",
+      data,
+    );
+    return promise.then((data) =>
+      MsgRevokeResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

@@ -9,7 +9,7 @@ export const protobufPackage = "secret.compute.v1beta1";
 
 export interface QuerySecretContractRequest {
   /** address is the bech32 human readable address of the contract */
-  contractAddress: string;
+  contract_address: string;
   query: Uint8Array;
 }
 
@@ -19,11 +19,11 @@ export interface QueryByLabelRequest {
 
 export interface QueryByContractAddressRequest {
   /** address is the bech32 human readable address of the contract */
-  contractAddress: string;
+  contract_address: string;
 }
 
 export interface QueryByCodeIDRequest {
-  codeId: string;
+  code_id: string;
 }
 
 export interface QuerySecretContractResponse {
@@ -33,42 +33,42 @@ export interface QuerySecretContractResponse {
 /** QueryContractInfoResponse is the response type for the Query/ContractInfo RPC method */
 export interface QueryContractInfoResponse {
   /** contract_address is the bech32 human readable address of the contract */
-  contractAddress: string;
+  contract_address: string;
   ContractInfo?: ContractInfo;
 }
 
 /** ContractInfoWithAddress adds the contract address to the ContractInfo representation */
 export interface ContractInfoWithAddress {
   /** contract_address is the bech32 human readable address of the contract */
-  contractAddress: string;
+  contract_address: string;
   ContractInfo?: ContractInfo;
 }
 
 export interface QueryContractsByCodeIDResponse {
-  contractInfos: ContractInfoWithAddress[];
+  contract_infos: ContractInfoWithAddress[];
 }
 
 export interface CodeInfoResponse {
-  codeId: string;
+  code_id: string;
   /** creator is the bech32 human readable address of the contract */
   creator: string;
-  codeHash: string;
+  code_hash: string;
   source: string;
   builder: string;
 }
 
 export interface QueryCodeResponse {
-  codeInfo?: CodeInfoResponse;
+  code_info?: CodeInfoResponse;
   wasm: Uint8Array;
 }
 
 export interface QueryCodesResponse {
-  codeInfos: CodeInfoResponse[];
+  code_infos: CodeInfoResponse[];
 }
 
 export interface QueryContractAddressResponse {
   /** address is the bech32 human readable address of the contract */
-  contractAddress: string;
+  contract_address: string;
 }
 
 export interface QueryContractLabelResponse {
@@ -76,26 +76,26 @@ export interface QueryContractLabelResponse {
 }
 
 export interface QueryCodeHashResponse {
-  codeHash: string;
+  code_hash: string;
 }
 
 /** DecryptedAnswer is a struct that represents a decrypted tx-query */
 export interface DecryptedAnswer {
   type: string;
   input: string;
-  outputData: string;
-  outputDataAsString: string;
+  output_data: string;
+  output_data_as_string: string;
 }
 
 export interface DecryptedAnswers {
   answers: DecryptedAnswer[];
-  outputLogs: StringEvent[];
-  outputError: string;
-  plaintextError: string;
+  output_logs: StringEvent[];
+  output_error: string;
+  plaintext_error: string;
 }
 
 function createBaseQuerySecretContractRequest(): QuerySecretContractRequest {
-  return { contractAddress: "", query: new Uint8Array() };
+  return { contract_address: "", query: new Uint8Array() };
 }
 
 export const QuerySecretContractRequest = {
@@ -103,8 +103,8 @@ export const QuerySecretContractRequest = {
     message: QuerySecretContractRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress !== "") {
-      writer.uint32(10).string(message.contractAddress);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
     if (message.query.length !== 0) {
       writer.uint32(18).bytes(message.query);
@@ -123,7 +123,7 @@ export const QuerySecretContractRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.string();
+          message.contract_address = reader.string();
           break;
         case 2:
           message.query = reader.bytes();
@@ -138,8 +138,8 @@ export const QuerySecretContractRequest = {
 
   fromJSON(object: any): QuerySecretContractRequest {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? String(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
         : "",
       query: isSet(object.query)
         ? bytesFromBase64(object.query)
@@ -149,8 +149,8 @@ export const QuerySecretContractRequest = {
 
   toJSON(message: QuerySecretContractRequest): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = message.contractAddress);
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
     message.query !== undefined &&
       (obj.query = base64FromBytes(
         message.query !== undefined ? message.query : new Uint8Array(),
@@ -162,7 +162,7 @@ export const QuerySecretContractRequest = {
     object: I,
   ): QuerySecretContractRequest {
     const message = createBaseQuerySecretContractRequest();
-    message.contractAddress = object.contractAddress ?? "";
+    message.contract_address = object.contract_address ?? "";
     message.query = object.query ?? new Uint8Array();
     return message;
   },
@@ -223,7 +223,7 @@ export const QueryByLabelRequest = {
 };
 
 function createBaseQueryByContractAddressRequest(): QueryByContractAddressRequest {
-  return { contractAddress: "" };
+  return { contract_address: "" };
 }
 
 export const QueryByContractAddressRequest = {
@@ -231,8 +231,8 @@ export const QueryByContractAddressRequest = {
     message: QueryByContractAddressRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress !== "") {
-      writer.uint32(10).string(message.contractAddress);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
     return writer;
   },
@@ -248,7 +248,7 @@ export const QueryByContractAddressRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.string();
+          message.contract_address = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -260,16 +260,16 @@ export const QueryByContractAddressRequest = {
 
   fromJSON(object: any): QueryByContractAddressRequest {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? String(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
         : "",
     };
   },
 
   toJSON(message: QueryByContractAddressRequest): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = message.contractAddress);
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
     return obj;
   },
 
@@ -277,13 +277,13 @@ export const QueryByContractAddressRequest = {
     object: I,
   ): QueryByContractAddressRequest {
     const message = createBaseQueryByContractAddressRequest();
-    message.contractAddress = object.contractAddress ?? "";
+    message.contract_address = object.contract_address ?? "";
     return message;
   },
 };
 
 function createBaseQueryByCodeIDRequest(): QueryByCodeIDRequest {
-  return { codeId: "0" };
+  return { code_id: "0" };
 }
 
 export const QueryByCodeIDRequest = {
@@ -291,8 +291,8 @@ export const QueryByCodeIDRequest = {
     message: QueryByCodeIDRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeId !== "0") {
-      writer.uint32(8).uint64(message.codeId);
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
     }
     return writer;
   },
@@ -308,7 +308,7 @@ export const QueryByCodeIDRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = longToString(reader.uint64() as Long);
+          message.code_id = longToString(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -320,13 +320,13 @@ export const QueryByCodeIDRequest = {
 
   fromJSON(object: any): QueryByCodeIDRequest {
     return {
-      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
     };
   },
 
   toJSON(message: QueryByCodeIDRequest): unknown {
     const obj: any = {};
-    message.codeId !== undefined && (obj.codeId = message.codeId);
+    message.code_id !== undefined && (obj.code_id = message.code_id);
     return obj;
   },
 
@@ -334,7 +334,7 @@ export const QueryByCodeIDRequest = {
     object: I,
   ): QueryByCodeIDRequest {
     const message = createBaseQueryByCodeIDRequest();
-    message.codeId = object.codeId ?? "0";
+    message.code_id = object.code_id ?? "0";
     return message;
   },
 };
@@ -402,7 +402,7 @@ export const QuerySecretContractResponse = {
 };
 
 function createBaseQueryContractInfoResponse(): QueryContractInfoResponse {
-  return { contractAddress: "", ContractInfo: undefined };
+  return { contract_address: "", ContractInfo: undefined };
 }
 
 export const QueryContractInfoResponse = {
@@ -410,8 +410,8 @@ export const QueryContractInfoResponse = {
     message: QueryContractInfoResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress !== "") {
-      writer.uint32(10).string(message.contractAddress);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
     if (message.ContractInfo !== undefined) {
       ContractInfo.encode(
@@ -433,7 +433,7 @@ export const QueryContractInfoResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.string();
+          message.contract_address = reader.string();
           break;
         case 2:
           message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
@@ -448,8 +448,8 @@ export const QueryContractInfoResponse = {
 
   fromJSON(object: any): QueryContractInfoResponse {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? String(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
         : "",
       ContractInfo: isSet(object.ContractInfo)
         ? ContractInfo.fromJSON(object.ContractInfo)
@@ -459,8 +459,8 @@ export const QueryContractInfoResponse = {
 
   toJSON(message: QueryContractInfoResponse): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = message.contractAddress);
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
     message.ContractInfo !== undefined &&
       (obj.ContractInfo = message.ContractInfo
         ? ContractInfo.toJSON(message.ContractInfo)
@@ -472,7 +472,7 @@ export const QueryContractInfoResponse = {
     object: I,
   ): QueryContractInfoResponse {
     const message = createBaseQueryContractInfoResponse();
-    message.contractAddress = object.contractAddress ?? "";
+    message.contract_address = object.contract_address ?? "";
     message.ContractInfo =
       object.ContractInfo !== undefined && object.ContractInfo !== null
         ? ContractInfo.fromPartial(object.ContractInfo)
@@ -482,7 +482,7 @@ export const QueryContractInfoResponse = {
 };
 
 function createBaseContractInfoWithAddress(): ContractInfoWithAddress {
-  return { contractAddress: "", ContractInfo: undefined };
+  return { contract_address: "", ContractInfo: undefined };
 }
 
 export const ContractInfoWithAddress = {
@@ -490,8 +490,8 @@ export const ContractInfoWithAddress = {
     message: ContractInfoWithAddress,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress !== "") {
-      writer.uint32(10).string(message.contractAddress);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
     if (message.ContractInfo !== undefined) {
       ContractInfo.encode(
@@ -513,7 +513,7 @@ export const ContractInfoWithAddress = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.string();
+          message.contract_address = reader.string();
           break;
         case 2:
           message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
@@ -528,8 +528,8 @@ export const ContractInfoWithAddress = {
 
   fromJSON(object: any): ContractInfoWithAddress {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? String(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
         : "",
       ContractInfo: isSet(object.ContractInfo)
         ? ContractInfo.fromJSON(object.ContractInfo)
@@ -539,8 +539,8 @@ export const ContractInfoWithAddress = {
 
   toJSON(message: ContractInfoWithAddress): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = message.contractAddress);
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
     message.ContractInfo !== undefined &&
       (obj.ContractInfo = message.ContractInfo
         ? ContractInfo.toJSON(message.ContractInfo)
@@ -552,7 +552,7 @@ export const ContractInfoWithAddress = {
     object: I,
   ): ContractInfoWithAddress {
     const message = createBaseContractInfoWithAddress();
-    message.contractAddress = object.contractAddress ?? "";
+    message.contract_address = object.contract_address ?? "";
     message.ContractInfo =
       object.ContractInfo !== undefined && object.ContractInfo !== null
         ? ContractInfo.fromPartial(object.ContractInfo)
@@ -562,7 +562,7 @@ export const ContractInfoWithAddress = {
 };
 
 function createBaseQueryContractsByCodeIDResponse(): QueryContractsByCodeIDResponse {
-  return { contractInfos: [] };
+  return { contract_infos: [] };
 }
 
 export const QueryContractsByCodeIDResponse = {
@@ -570,7 +570,7 @@ export const QueryContractsByCodeIDResponse = {
     message: QueryContractsByCodeIDResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.contractInfos) {
+    for (const v of message.contract_infos) {
       ContractInfoWithAddress.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -587,7 +587,7 @@ export const QueryContractsByCodeIDResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractInfos.push(
+          message.contract_infos.push(
             ContractInfoWithAddress.decode(reader, reader.uint32()),
           );
           break;
@@ -601,8 +601,8 @@ export const QueryContractsByCodeIDResponse = {
 
   fromJSON(object: any): QueryContractsByCodeIDResponse {
     return {
-      contractInfos: Array.isArray(object?.contractInfos)
-        ? object.contractInfos.map((e: any) =>
+      contract_infos: Array.isArray(object?.contract_infos)
+        ? object.contract_infos.map((e: any) =>
             ContractInfoWithAddress.fromJSON(e),
           )
         : [],
@@ -611,12 +611,12 @@ export const QueryContractsByCodeIDResponse = {
 
   toJSON(message: QueryContractsByCodeIDResponse): unknown {
     const obj: any = {};
-    if (message.contractInfos) {
-      obj.contractInfos = message.contractInfos.map((e) =>
+    if (message.contract_infos) {
+      obj.contract_infos = message.contract_infos.map((e) =>
         e ? ContractInfoWithAddress.toJSON(e) : undefined,
       );
     } else {
-      obj.contractInfos = [];
+      obj.contract_infos = [];
     }
     return obj;
   },
@@ -625,8 +625,8 @@ export const QueryContractsByCodeIDResponse = {
     object: I,
   ): QueryContractsByCodeIDResponse {
     const message = createBaseQueryContractsByCodeIDResponse();
-    message.contractInfos =
-      object.contractInfos?.map((e) =>
+    message.contract_infos =
+      object.contract_infos?.map((e) =>
         ContractInfoWithAddress.fromPartial(e),
       ) || [];
     return message;
@@ -634,7 +634,7 @@ export const QueryContractsByCodeIDResponse = {
 };
 
 function createBaseCodeInfoResponse(): CodeInfoResponse {
-  return { codeId: "0", creator: "", codeHash: "", source: "", builder: "" };
+  return { code_id: "0", creator: "", code_hash: "", source: "", builder: "" };
 }
 
 export const CodeInfoResponse = {
@@ -642,14 +642,14 @@ export const CodeInfoResponse = {
     message: CodeInfoResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeId !== "0") {
-      writer.uint32(8).uint64(message.codeId);
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
     }
     if (message.creator !== "") {
       writer.uint32(18).string(message.creator);
     }
-    if (message.codeHash !== "") {
-      writer.uint32(26).string(message.codeHash);
+    if (message.code_hash !== "") {
+      writer.uint32(26).string(message.code_hash);
     }
     if (message.source !== "") {
       writer.uint32(34).string(message.source);
@@ -668,13 +668,13 @@ export const CodeInfoResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeId = longToString(reader.uint64() as Long);
+          message.code_id = longToString(reader.uint64() as Long);
           break;
         case 2:
           message.creator = reader.string();
           break;
         case 3:
-          message.codeHash = reader.string();
+          message.code_hash = reader.string();
           break;
         case 4:
           message.source = reader.string();
@@ -692,9 +692,9 @@ export const CodeInfoResponse = {
 
   fromJSON(object: any): CodeInfoResponse {
     return {
-      codeId: isSet(object.codeId) ? String(object.codeId) : "0",
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
       creator: isSet(object.creator) ? String(object.creator) : "",
-      codeHash: isSet(object.codeHash) ? String(object.codeHash) : "",
+      code_hash: isSet(object.code_hash) ? String(object.code_hash) : "",
       source: isSet(object.source) ? String(object.source) : "",
       builder: isSet(object.builder) ? String(object.builder) : "",
     };
@@ -702,9 +702,9 @@ export const CodeInfoResponse = {
 
   toJSON(message: CodeInfoResponse): unknown {
     const obj: any = {};
-    message.codeId !== undefined && (obj.codeId = message.codeId);
+    message.code_id !== undefined && (obj.code_id = message.code_id);
     message.creator !== undefined && (obj.creator = message.creator);
-    message.codeHash !== undefined && (obj.codeHash = message.codeHash);
+    message.code_hash !== undefined && (obj.code_hash = message.code_hash);
     message.source !== undefined && (obj.source = message.source);
     message.builder !== undefined && (obj.builder = message.builder);
     return obj;
@@ -714,9 +714,9 @@ export const CodeInfoResponse = {
     object: I,
   ): CodeInfoResponse {
     const message = createBaseCodeInfoResponse();
-    message.codeId = object.codeId ?? "0";
+    message.code_id = object.code_id ?? "0";
     message.creator = object.creator ?? "";
-    message.codeHash = object.codeHash ?? "";
+    message.code_hash = object.code_hash ?? "";
     message.source = object.source ?? "";
     message.builder = object.builder ?? "";
     return message;
@@ -724,7 +724,7 @@ export const CodeInfoResponse = {
 };
 
 function createBaseQueryCodeResponse(): QueryCodeResponse {
-  return { codeInfo: undefined, wasm: new Uint8Array() };
+  return { code_info: undefined, wasm: new Uint8Array() };
 }
 
 export const QueryCodeResponse = {
@@ -732,9 +732,9 @@ export const QueryCodeResponse = {
     message: QueryCodeResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeInfo !== undefined) {
+    if (message.code_info !== undefined) {
       CodeInfoResponse.encode(
-        message.codeInfo,
+        message.code_info,
         writer.uint32(10).fork(),
       ).ldelim();
     }
@@ -752,7 +752,7 @@ export const QueryCodeResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeInfo = CodeInfoResponse.decode(reader, reader.uint32());
+          message.code_info = CodeInfoResponse.decode(reader, reader.uint32());
           break;
         case 2:
           message.wasm = reader.bytes();
@@ -767,8 +767,8 @@ export const QueryCodeResponse = {
 
   fromJSON(object: any): QueryCodeResponse {
     return {
-      codeInfo: isSet(object.codeInfo)
-        ? CodeInfoResponse.fromJSON(object.codeInfo)
+      code_info: isSet(object.code_info)
+        ? CodeInfoResponse.fromJSON(object.code_info)
         : undefined,
       wasm: isSet(object.wasm)
         ? bytesFromBase64(object.wasm)
@@ -778,9 +778,9 @@ export const QueryCodeResponse = {
 
   toJSON(message: QueryCodeResponse): unknown {
     const obj: any = {};
-    message.codeInfo !== undefined &&
-      (obj.codeInfo = message.codeInfo
-        ? CodeInfoResponse.toJSON(message.codeInfo)
+    message.code_info !== undefined &&
+      (obj.code_info = message.code_info
+        ? CodeInfoResponse.toJSON(message.code_info)
         : undefined);
     message.wasm !== undefined &&
       (obj.wasm = base64FromBytes(
@@ -793,9 +793,9 @@ export const QueryCodeResponse = {
     object: I,
   ): QueryCodeResponse {
     const message = createBaseQueryCodeResponse();
-    message.codeInfo =
-      object.codeInfo !== undefined && object.codeInfo !== null
-        ? CodeInfoResponse.fromPartial(object.codeInfo)
+    message.code_info =
+      object.code_info !== undefined && object.code_info !== null
+        ? CodeInfoResponse.fromPartial(object.code_info)
         : undefined;
     message.wasm = object.wasm ?? new Uint8Array();
     return message;
@@ -803,7 +803,7 @@ export const QueryCodeResponse = {
 };
 
 function createBaseQueryCodesResponse(): QueryCodesResponse {
-  return { codeInfos: [] };
+  return { code_infos: [] };
 }
 
 export const QueryCodesResponse = {
@@ -811,7 +811,7 @@ export const QueryCodesResponse = {
     message: QueryCodesResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    for (const v of message.codeInfos) {
+    for (const v of message.code_infos) {
       CodeInfoResponse.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -825,7 +825,7 @@ export const QueryCodesResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeInfos.push(
+          message.code_infos.push(
             CodeInfoResponse.decode(reader, reader.uint32()),
           );
           break;
@@ -839,20 +839,20 @@ export const QueryCodesResponse = {
 
   fromJSON(object: any): QueryCodesResponse {
     return {
-      codeInfos: Array.isArray(object?.codeInfos)
-        ? object.codeInfos.map((e: any) => CodeInfoResponse.fromJSON(e))
+      code_infos: Array.isArray(object?.code_infos)
+        ? object.code_infos.map((e: any) => CodeInfoResponse.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: QueryCodesResponse): unknown {
     const obj: any = {};
-    if (message.codeInfos) {
-      obj.codeInfos = message.codeInfos.map((e) =>
+    if (message.code_infos) {
+      obj.code_infos = message.code_infos.map((e) =>
         e ? CodeInfoResponse.toJSON(e) : undefined,
       );
     } else {
-      obj.codeInfos = [];
+      obj.code_infos = [];
     }
     return obj;
   },
@@ -861,14 +861,14 @@ export const QueryCodesResponse = {
     object: I,
   ): QueryCodesResponse {
     const message = createBaseQueryCodesResponse();
-    message.codeInfos =
-      object.codeInfos?.map((e) => CodeInfoResponse.fromPartial(e)) || [];
+    message.code_infos =
+      object.code_infos?.map((e) => CodeInfoResponse.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseQueryContractAddressResponse(): QueryContractAddressResponse {
-  return { contractAddress: "" };
+  return { contract_address: "" };
 }
 
 export const QueryContractAddressResponse = {
@@ -876,8 +876,8 @@ export const QueryContractAddressResponse = {
     message: QueryContractAddressResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.contractAddress !== "") {
-      writer.uint32(10).string(message.contractAddress);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
     return writer;
   },
@@ -893,7 +893,7 @@ export const QueryContractAddressResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.contractAddress = reader.string();
+          message.contract_address = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -905,16 +905,16 @@ export const QueryContractAddressResponse = {
 
   fromJSON(object: any): QueryContractAddressResponse {
     return {
-      contractAddress: isSet(object.contractAddress)
-        ? String(object.contractAddress)
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
         : "",
     };
   },
 
   toJSON(message: QueryContractAddressResponse): unknown {
     const obj: any = {};
-    message.contractAddress !== undefined &&
-      (obj.contractAddress = message.contractAddress);
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
     return obj;
   },
 
@@ -922,7 +922,7 @@ export const QueryContractAddressResponse = {
     object: I,
   ): QueryContractAddressResponse {
     const message = createBaseQueryContractAddressResponse();
-    message.contractAddress = object.contractAddress ?? "";
+    message.contract_address = object.contract_address ?? "";
     return message;
   },
 };
@@ -985,7 +985,7 @@ export const QueryContractLabelResponse = {
 };
 
 function createBaseQueryCodeHashResponse(): QueryCodeHashResponse {
-  return { codeHash: "" };
+  return { code_hash: "" };
 }
 
 export const QueryCodeHashResponse = {
@@ -993,8 +993,8 @@ export const QueryCodeHashResponse = {
     message: QueryCodeHashResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.codeHash !== "") {
-      writer.uint32(10).string(message.codeHash);
+    if (message.code_hash !== "") {
+      writer.uint32(10).string(message.code_hash);
     }
     return writer;
   },
@@ -1010,7 +1010,7 @@ export const QueryCodeHashResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.codeHash = reader.string();
+          message.code_hash = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1022,13 +1022,13 @@ export const QueryCodeHashResponse = {
 
   fromJSON(object: any): QueryCodeHashResponse {
     return {
-      codeHash: isSet(object.codeHash) ? String(object.codeHash) : "",
+      code_hash: isSet(object.code_hash) ? String(object.code_hash) : "",
     };
   },
 
   toJSON(message: QueryCodeHashResponse): unknown {
     const obj: any = {};
-    message.codeHash !== undefined && (obj.codeHash = message.codeHash);
+    message.code_hash !== undefined && (obj.code_hash = message.code_hash);
     return obj;
   },
 
@@ -1036,13 +1036,13 @@ export const QueryCodeHashResponse = {
     object: I,
   ): QueryCodeHashResponse {
     const message = createBaseQueryCodeHashResponse();
-    message.codeHash = object.codeHash ?? "";
+    message.code_hash = object.code_hash ?? "";
     return message;
   },
 };
 
 function createBaseDecryptedAnswer(): DecryptedAnswer {
-  return { type: "", input: "", outputData: "", outputDataAsString: "" };
+  return { type: "", input: "", output_data: "", output_data_as_string: "" };
 }
 
 export const DecryptedAnswer = {
@@ -1056,11 +1056,11 @@ export const DecryptedAnswer = {
     if (message.input !== "") {
       writer.uint32(18).string(message.input);
     }
-    if (message.outputData !== "") {
-      writer.uint32(26).string(message.outputData);
+    if (message.output_data !== "") {
+      writer.uint32(26).string(message.output_data);
     }
-    if (message.outputDataAsString !== "") {
-      writer.uint32(34).string(message.outputDataAsString);
+    if (message.output_data_as_string !== "") {
+      writer.uint32(34).string(message.output_data_as_string);
     }
     return writer;
   },
@@ -1079,10 +1079,10 @@ export const DecryptedAnswer = {
           message.input = reader.string();
           break;
         case 3:
-          message.outputData = reader.string();
+          message.output_data = reader.string();
           break;
         case 4:
-          message.outputDataAsString = reader.string();
+          message.output_data_as_string = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1096,9 +1096,9 @@ export const DecryptedAnswer = {
     return {
       type: isSet(object.type) ? String(object.type) : "",
       input: isSet(object.input) ? String(object.input) : "",
-      outputData: isSet(object.outputData) ? String(object.outputData) : "",
-      outputDataAsString: isSet(object.outputDataAsString)
-        ? String(object.outputDataAsString)
+      output_data: isSet(object.output_data) ? String(object.output_data) : "",
+      output_data_as_string: isSet(object.output_data_as_string)
+        ? String(object.output_data_as_string)
         : "",
     };
   },
@@ -1107,9 +1107,10 @@ export const DecryptedAnswer = {
     const obj: any = {};
     message.type !== undefined && (obj.type = message.type);
     message.input !== undefined && (obj.input = message.input);
-    message.outputData !== undefined && (obj.outputData = message.outputData);
-    message.outputDataAsString !== undefined &&
-      (obj.outputDataAsString = message.outputDataAsString);
+    message.output_data !== undefined &&
+      (obj.output_data = message.output_data);
+    message.output_data_as_string !== undefined &&
+      (obj.output_data_as_string = message.output_data_as_string);
     return obj;
   },
 
@@ -1119,14 +1120,19 @@ export const DecryptedAnswer = {
     const message = createBaseDecryptedAnswer();
     message.type = object.type ?? "";
     message.input = object.input ?? "";
-    message.outputData = object.outputData ?? "";
-    message.outputDataAsString = object.outputDataAsString ?? "";
+    message.output_data = object.output_data ?? "";
+    message.output_data_as_string = object.output_data_as_string ?? "";
     return message;
   },
 };
 
 function createBaseDecryptedAnswers(): DecryptedAnswers {
-  return { answers: [], outputLogs: [], outputError: "", plaintextError: "" };
+  return {
+    answers: [],
+    output_logs: [],
+    output_error: "",
+    plaintext_error: "",
+  };
 }
 
 export const DecryptedAnswers = {
@@ -1137,14 +1143,14 @@ export const DecryptedAnswers = {
     for (const v of message.answers) {
       DecryptedAnswer.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.outputLogs) {
+    for (const v of message.output_logs) {
       StringEvent.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-    if (message.outputError !== "") {
-      writer.uint32(26).string(message.outputError);
+    if (message.output_error !== "") {
+      writer.uint32(26).string(message.output_error);
     }
-    if (message.plaintextError !== "") {
-      writer.uint32(34).string(message.plaintextError);
+    if (message.plaintext_error !== "") {
+      writer.uint32(34).string(message.plaintext_error);
     }
     return writer;
   },
@@ -1160,13 +1166,13 @@ export const DecryptedAnswers = {
           message.answers.push(DecryptedAnswer.decode(reader, reader.uint32()));
           break;
         case 2:
-          message.outputLogs.push(StringEvent.decode(reader, reader.uint32()));
+          message.output_logs.push(StringEvent.decode(reader, reader.uint32()));
           break;
         case 3:
-          message.outputError = reader.string();
+          message.output_error = reader.string();
           break;
         case 4:
-          message.plaintextError = reader.string();
+          message.plaintext_error = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1181,12 +1187,14 @@ export const DecryptedAnswers = {
       answers: Array.isArray(object?.answers)
         ? object.answers.map((e: any) => DecryptedAnswer.fromJSON(e))
         : [],
-      outputLogs: Array.isArray(object?.outputLogs)
-        ? object.outputLogs.map((e: any) => StringEvent.fromJSON(e))
+      output_logs: Array.isArray(object?.output_logs)
+        ? object.output_logs.map((e: any) => StringEvent.fromJSON(e))
         : [],
-      outputError: isSet(object.outputError) ? String(object.outputError) : "",
-      plaintextError: isSet(object.plaintextError)
-        ? String(object.plaintextError)
+      output_error: isSet(object.output_error)
+        ? String(object.output_error)
+        : "",
+      plaintext_error: isSet(object.plaintext_error)
+        ? String(object.plaintext_error)
         : "",
     };
   },
@@ -1200,17 +1208,17 @@ export const DecryptedAnswers = {
     } else {
       obj.answers = [];
     }
-    if (message.outputLogs) {
-      obj.outputLogs = message.outputLogs.map((e) =>
+    if (message.output_logs) {
+      obj.output_logs = message.output_logs.map((e) =>
         e ? StringEvent.toJSON(e) : undefined,
       );
     } else {
-      obj.outputLogs = [];
+      obj.output_logs = [];
     }
-    message.outputError !== undefined &&
-      (obj.outputError = message.outputError);
-    message.plaintextError !== undefined &&
-      (obj.plaintextError = message.plaintextError);
+    message.output_error !== undefined &&
+      (obj.output_error = message.output_error);
+    message.plaintext_error !== undefined &&
+      (obj.plaintext_error = message.plaintext_error);
     return obj;
   },
 
@@ -1220,10 +1228,10 @@ export const DecryptedAnswers = {
     const message = createBaseDecryptedAnswers();
     message.answers =
       object.answers?.map((e) => DecryptedAnswer.fromPartial(e)) || [];
-    message.outputLogs =
-      object.outputLogs?.map((e) => StringEvent.fromPartial(e)) || [];
-    message.outputError = object.outputError ?? "";
-    message.plaintextError = object.plaintextError ?? "";
+    message.output_logs =
+      object.output_logs?.map((e) => StringEvent.fromPartial(e)) || [];
+    message.output_error = object.output_error ?? "";
+    message.plaintext_error = object.plaintext_error ?? "";
     return message;
   },
 };
@@ -1231,37 +1239,182 @@ export const DecryptedAnswers = {
 /** Query defines the gRPC querier service */
 export interface Query {
   /** Query contract info by address */
-  contractInfo(
+  ContractInfo(
     request: QueryByContractAddressRequest,
   ): Promise<QueryContractInfoResponse>;
   /** Query code info by id */
-  contractsByCodeID(
+  ContractsByCodeID(
     request: QueryByCodeIDRequest,
   ): Promise<QueryContractsByCodeIDResponse>;
   /** Query secret contract */
-  querySecretContract(
+  QuerySecretContract(
     request: QuerySecretContractRequest,
   ): Promise<QuerySecretContractResponse>;
   /** Query a specific contract code by id */
-  code(request: QueryByCodeIDRequest): Promise<QueryCodeResponse>;
+  Code(request: QueryByCodeIDRequest): Promise<QueryCodeResponse>;
   /** Query all contract codes on-chain */
-  codes(request: Empty): Promise<QueryCodesResponse>;
+  Codes(request: Empty): Promise<QueryCodesResponse>;
   /** Query code hash by contract address */
-  codeHashByContractAddress(
+  CodeHashByContractAddress(
     request: QueryByContractAddressRequest,
   ): Promise<QueryCodeHashResponse>;
   /** Query code hash by code id */
-  codeHashByCodeID(
+  CodeHashByCodeID(
     request: QueryByCodeIDRequest,
   ): Promise<QueryCodeHashResponse>;
   /** Query contract label by address */
-  labelByAddress(
+  LabelByAddress(
     request: QueryByContractAddressRequest,
   ): Promise<QueryContractLabelResponse>;
   /** Query contract address by label */
-  addressByLabel(
+  AddressByLabel(
     request: QueryByLabelRequest,
   ): Promise<QueryContractAddressResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.ContractInfo = this.ContractInfo.bind(this);
+    this.ContractsByCodeID = this.ContractsByCodeID.bind(this);
+    this.QuerySecretContract = this.QuerySecretContract.bind(this);
+    this.Code = this.Code.bind(this);
+    this.Codes = this.Codes.bind(this);
+    this.CodeHashByContractAddress = this.CodeHashByContractAddress.bind(this);
+    this.CodeHashByCodeID = this.CodeHashByCodeID.bind(this);
+    this.LabelByAddress = this.LabelByAddress.bind(this);
+    this.AddressByLabel = this.AddressByLabel.bind(this);
+  }
+  ContractInfo(
+    request: QueryByContractAddressRequest,
+  ): Promise<QueryContractInfoResponse> {
+    const data = QueryByContractAddressRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "ContractInfo",
+      data,
+    );
+    return promise.then((data) =>
+      QueryContractInfoResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ContractsByCodeID(
+    request: QueryByCodeIDRequest,
+  ): Promise<QueryContractsByCodeIDResponse> {
+    const data = QueryByCodeIDRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "ContractsByCodeID",
+      data,
+    );
+    return promise.then((data) =>
+      QueryContractsByCodeIDResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  QuerySecretContract(
+    request: QuerySecretContractRequest,
+  ): Promise<QuerySecretContractResponse> {
+    const data = QuerySecretContractRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "QuerySecretContract",
+      data,
+    );
+    return promise.then((data) =>
+      QuerySecretContractResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Code(request: QueryByCodeIDRequest): Promise<QueryCodeResponse> {
+    const data = QueryByCodeIDRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "Code",
+      data,
+    );
+    return promise.then((data) =>
+      QueryCodeResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  Codes(request: Empty): Promise<QueryCodesResponse> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "Codes",
+      data,
+    );
+    return promise.then((data) =>
+      QueryCodesResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  CodeHashByContractAddress(
+    request: QueryByContractAddressRequest,
+  ): Promise<QueryCodeHashResponse> {
+    const data = QueryByContractAddressRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "CodeHashByContractAddress",
+      data,
+    );
+    return promise.then((data) =>
+      QueryCodeHashResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  CodeHashByCodeID(
+    request: QueryByCodeIDRequest,
+  ): Promise<QueryCodeHashResponse> {
+    const data = QueryByCodeIDRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "CodeHashByCodeID",
+      data,
+    );
+    return promise.then((data) =>
+      QueryCodeHashResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  LabelByAddress(
+    request: QueryByContractAddressRequest,
+  ): Promise<QueryContractLabelResponse> {
+    const data = QueryByContractAddressRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "LabelByAddress",
+      data,
+    );
+    return promise.then((data) =>
+      QueryContractLabelResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  AddressByLabel(
+    request: QueryByLabelRequest,
+  ): Promise<QueryContractAddressResponse> {
+    const data = QueryByLabelRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "AddressByLabel",
+      data,
+    );
+    return promise.then((data) =>
+      QueryContractAddressResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

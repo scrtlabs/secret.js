@@ -17,8 +17,8 @@ export interface RequestBroadcastTx {
 export interface ResponsePing {}
 
 export interface ResponseBroadcastTx {
-  checkTx?: ResponseCheckTx;
-  deliverTx?: ResponseDeliverTx;
+  check_tx?: ResponseCheckTx;
+  deliver_tx?: ResponseDeliverTx;
 }
 
 function createBaseRequestPing(): RequestPing {
@@ -162,7 +162,7 @@ export const ResponsePing = {
 };
 
 function createBaseResponseBroadcastTx(): ResponseBroadcastTx {
-  return { checkTx: undefined, deliverTx: undefined };
+  return { check_tx: undefined, deliver_tx: undefined };
 }
 
 export const ResponseBroadcastTx = {
@@ -170,15 +170,15 @@ export const ResponseBroadcastTx = {
     message: ResponseBroadcastTx,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.checkTx !== undefined) {
+    if (message.check_tx !== undefined) {
       ResponseCheckTx.encode(
-        message.checkTx,
+        message.check_tx,
         writer.uint32(10).fork(),
       ).ldelim();
     }
-    if (message.deliverTx !== undefined) {
+    if (message.deliver_tx !== undefined) {
       ResponseDeliverTx.encode(
-        message.deliverTx,
+        message.deliver_tx,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -193,10 +193,13 @@ export const ResponseBroadcastTx = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.checkTx = ResponseCheckTx.decode(reader, reader.uint32());
+          message.check_tx = ResponseCheckTx.decode(reader, reader.uint32());
           break;
         case 2:
-          message.deliverTx = ResponseDeliverTx.decode(reader, reader.uint32());
+          message.deliver_tx = ResponseDeliverTx.decode(
+            reader,
+            reader.uint32(),
+          );
           break;
         default:
           reader.skipType(tag & 7);
@@ -208,24 +211,24 @@ export const ResponseBroadcastTx = {
 
   fromJSON(object: any): ResponseBroadcastTx {
     return {
-      checkTx: isSet(object.checkTx)
-        ? ResponseCheckTx.fromJSON(object.checkTx)
+      check_tx: isSet(object.check_tx)
+        ? ResponseCheckTx.fromJSON(object.check_tx)
         : undefined,
-      deliverTx: isSet(object.deliverTx)
-        ? ResponseDeliverTx.fromJSON(object.deliverTx)
+      deliver_tx: isSet(object.deliver_tx)
+        ? ResponseDeliverTx.fromJSON(object.deliver_tx)
         : undefined,
     };
   },
 
   toJSON(message: ResponseBroadcastTx): unknown {
     const obj: any = {};
-    message.checkTx !== undefined &&
-      (obj.checkTx = message.checkTx
-        ? ResponseCheckTx.toJSON(message.checkTx)
+    message.check_tx !== undefined &&
+      (obj.check_tx = message.check_tx
+        ? ResponseCheckTx.toJSON(message.check_tx)
         : undefined);
-    message.deliverTx !== undefined &&
-      (obj.deliverTx = message.deliverTx
-        ? ResponseDeliverTx.toJSON(message.deliverTx)
+    message.deliver_tx !== undefined &&
+      (obj.deliver_tx = message.deliver_tx
+        ? ResponseDeliverTx.toJSON(message.deliver_tx)
         : undefined);
     return obj;
   },
@@ -234,21 +237,59 @@ export const ResponseBroadcastTx = {
     object: I,
   ): ResponseBroadcastTx {
     const message = createBaseResponseBroadcastTx();
-    message.checkTx =
-      object.checkTx !== undefined && object.checkTx !== null
-        ? ResponseCheckTx.fromPartial(object.checkTx)
+    message.check_tx =
+      object.check_tx !== undefined && object.check_tx !== null
+        ? ResponseCheckTx.fromPartial(object.check_tx)
         : undefined;
-    message.deliverTx =
-      object.deliverTx !== undefined && object.deliverTx !== null
-        ? ResponseDeliverTx.fromPartial(object.deliverTx)
+    message.deliver_tx =
+      object.deliver_tx !== undefined && object.deliver_tx !== null
+        ? ResponseDeliverTx.fromPartial(object.deliver_tx)
         : undefined;
     return message;
   },
 };
 
 export interface BroadcastAPI {
-  ping(request: RequestPing): Promise<ResponsePing>;
-  broadcastTx(request: RequestBroadcastTx): Promise<ResponseBroadcastTx>;
+  Ping(request: RequestPing): Promise<ResponsePing>;
+  BroadcastTx(request: RequestBroadcastTx): Promise<ResponseBroadcastTx>;
+}
+
+export class BroadcastAPIClientImpl implements BroadcastAPI {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Ping = this.Ping.bind(this);
+    this.BroadcastTx = this.BroadcastTx.bind(this);
+  }
+  Ping(request: RequestPing): Promise<ResponsePing> {
+    const data = RequestPing.encode(request).finish();
+    const promise = this.rpc.request(
+      "tendermint.rpc.grpc.BroadcastAPI",
+      "Ping",
+      data,
+    );
+    return promise.then((data) => ResponsePing.decode(new _m0.Reader(data)));
+  }
+
+  BroadcastTx(request: RequestBroadcastTx): Promise<ResponseBroadcastTx> {
+    const data = RequestBroadcastTx.encode(request).finish();
+    const promise = this.rpc.request(
+      "tendermint.rpc.grpc.BroadcastAPI",
+      "BroadcastTx",
+      data,
+    );
+    return promise.then((data) =>
+      ResponseBroadcastTx.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;

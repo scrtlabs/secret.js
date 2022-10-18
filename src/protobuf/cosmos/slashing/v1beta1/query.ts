@@ -26,7 +26,7 @@ export interface QueryParamsResponse {
  */
 export interface QuerySigningInfoRequest {
   /** cons_address is the address to query signing info of */
-  consAddress: string;
+  cons_address: string;
 }
 
 /**
@@ -35,7 +35,7 @@ export interface QuerySigningInfoRequest {
  */
 export interface QuerySigningInfoResponse {
   /** val_signing_info is the signing info of requested val cons address */
-  valSigningInfo?: ValidatorSigningInfo;
+  val_signing_info?: ValidatorSigningInfo;
 }
 
 /**
@@ -159,7 +159,7 @@ export const QueryParamsResponse = {
 };
 
 function createBaseQuerySigningInfoRequest(): QuerySigningInfoRequest {
-  return { consAddress: "" };
+  return { cons_address: "" };
 }
 
 export const QuerySigningInfoRequest = {
@@ -167,8 +167,8 @@ export const QuerySigningInfoRequest = {
     message: QuerySigningInfoRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.consAddress !== "") {
-      writer.uint32(10).string(message.consAddress);
+    if (message.cons_address !== "") {
+      writer.uint32(10).string(message.cons_address);
     }
     return writer;
   },
@@ -184,7 +184,7 @@ export const QuerySigningInfoRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.consAddress = reader.string();
+          message.cons_address = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -196,14 +196,16 @@ export const QuerySigningInfoRequest = {
 
   fromJSON(object: any): QuerySigningInfoRequest {
     return {
-      consAddress: isSet(object.consAddress) ? String(object.consAddress) : "",
+      cons_address: isSet(object.cons_address)
+        ? String(object.cons_address)
+        : "",
     };
   },
 
   toJSON(message: QuerySigningInfoRequest): unknown {
     const obj: any = {};
-    message.consAddress !== undefined &&
-      (obj.consAddress = message.consAddress);
+    message.cons_address !== undefined &&
+      (obj.cons_address = message.cons_address);
     return obj;
   },
 
@@ -211,13 +213,13 @@ export const QuerySigningInfoRequest = {
     object: I,
   ): QuerySigningInfoRequest {
     const message = createBaseQuerySigningInfoRequest();
-    message.consAddress = object.consAddress ?? "";
+    message.cons_address = object.cons_address ?? "";
     return message;
   },
 };
 
 function createBaseQuerySigningInfoResponse(): QuerySigningInfoResponse {
-  return { valSigningInfo: undefined };
+  return { val_signing_info: undefined };
 }
 
 export const QuerySigningInfoResponse = {
@@ -225,9 +227,9 @@ export const QuerySigningInfoResponse = {
     message: QuerySigningInfoResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.valSigningInfo !== undefined) {
+    if (message.val_signing_info !== undefined) {
       ValidatorSigningInfo.encode(
-        message.valSigningInfo,
+        message.val_signing_info,
         writer.uint32(10).fork(),
       ).ldelim();
     }
@@ -245,7 +247,7 @@ export const QuerySigningInfoResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.valSigningInfo = ValidatorSigningInfo.decode(
+          message.val_signing_info = ValidatorSigningInfo.decode(
             reader,
             reader.uint32(),
           );
@@ -260,17 +262,17 @@ export const QuerySigningInfoResponse = {
 
   fromJSON(object: any): QuerySigningInfoResponse {
     return {
-      valSigningInfo: isSet(object.valSigningInfo)
-        ? ValidatorSigningInfo.fromJSON(object.valSigningInfo)
+      val_signing_info: isSet(object.val_signing_info)
+        ? ValidatorSigningInfo.fromJSON(object.val_signing_info)
         : undefined,
     };
   },
 
   toJSON(message: QuerySigningInfoResponse): unknown {
     const obj: any = {};
-    message.valSigningInfo !== undefined &&
-      (obj.valSigningInfo = message.valSigningInfo
-        ? ValidatorSigningInfo.toJSON(message.valSigningInfo)
+    message.val_signing_info !== undefined &&
+      (obj.val_signing_info = message.val_signing_info
+        ? ValidatorSigningInfo.toJSON(message.val_signing_info)
         : undefined);
     return obj;
   },
@@ -279,9 +281,9 @@ export const QuerySigningInfoResponse = {
     object: I,
   ): QuerySigningInfoResponse {
     const message = createBaseQuerySigningInfoResponse();
-    message.valSigningInfo =
-      object.valSigningInfo !== undefined && object.valSigningInfo !== null
-        ? ValidatorSigningInfo.fromPartial(object.valSigningInfo)
+    message.val_signing_info =
+      object.val_signing_info !== undefined && object.val_signing_info !== null
+        ? ValidatorSigningInfo.fromPartial(object.val_signing_info)
         : undefined;
     return message;
   },
@@ -443,15 +445,72 @@ export const QuerySigningInfosResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Params queries the parameters of slashing module */
-  params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
   /** SigningInfo queries the signing info of given cons address */
-  signingInfo(
+  SigningInfo(
     request: QuerySigningInfoRequest,
   ): Promise<QuerySigningInfoResponse>;
   /** SigningInfos queries signing info of all validators */
-  signingInfos(
+  SigningInfos(
     request: QuerySigningInfosRequest,
   ): Promise<QuerySigningInfosResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Params = this.Params.bind(this);
+    this.SigningInfo = this.SigningInfo.bind(this);
+    this.SigningInfos = this.SigningInfos.bind(this);
+  }
+  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+    const data = QueryParamsRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.slashing.v1beta1.Query",
+      "Params",
+      data,
+    );
+    return promise.then((data) =>
+      QueryParamsResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  SigningInfo(
+    request: QuerySigningInfoRequest,
+  ): Promise<QuerySigningInfoResponse> {
+    const data = QuerySigningInfoRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.slashing.v1beta1.Query",
+      "SigningInfo",
+      data,
+    );
+    return promise.then((data) =>
+      QuerySigningInfoResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  SigningInfos(
+    request: QuerySigningInfosRequest,
+  ): Promise<QuerySigningInfosResponse> {
+    const data = QuerySigningInfosRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.slashing.v1beta1.Query",
+      "SigningInfos",
+      data,
+    );
+    return promise.then((data) =>
+      QuerySigningInfosResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 type Builtin =

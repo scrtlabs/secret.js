@@ -101,7 +101,11 @@ import {
   SimulateResponse,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
-import { TxBody as TxBodyPb, TxRaw } from "./protobuf/cosmos/tx/v1beta1/tx";
+import {
+  AuthInfo,
+  TxBody as TxBodyPb,
+  TxRaw,
+} from "./protobuf/cosmos/tx/v1beta1/tx";
 import { Any } from "./protobuf/google/protobuf/any";
 import {
   MsgExecuteContractResponse,
@@ -761,8 +765,14 @@ export class SecretNetworkClient {
   }
 
   private async getTx(hash: string): Promise<TxResponse | null> {
-    const results = await this.txsQuery(`tx.hash='${hash}'`);
-    return results[0] ?? null;
+    const { tx_response } = await TxService.GetTx(
+      {
+        hash,
+      },
+      { pathPrefix: this.url },
+    );
+
+    return tx_response ? this.decodeTxResponse(tx_response) : null;
   }
 
   private async txsQuery(query: string): Promise<TxResponse[]> {
@@ -1035,10 +1045,14 @@ export class SecretNetworkClient {
       }
 
       if (!isBroadcastTimedOut) {
-        const result = await this.getTx(txhash);
+        for (let i = 0; i < 10; i++) {
+          const result = await this.getTx(txhash);
 
-        if (result) {
-          return result;
+          if (result) {
+            return result;
+          }
+
+          await sleep(20);
         }
 
         throw new Error(
@@ -1301,8 +1315,8 @@ export class SecretNetworkClient {
       signMode,
     );
     return TxRaw.fromPartial({
-      bodyBytes: txBodyBytes,
-      authInfoBytes: signedAuthInfoBytes,
+      body_bytes: txBodyBytes,
+      auth_info_bytes: signedAuthInfoBytes,
       signatures: [fromBase64(signature.signature)],
     });
   }
@@ -1338,7 +1352,7 @@ export class SecretNetworkClient {
       txBody.value.messages.map(async (message) => {
         const binaryValue = await message.encode();
         return Any.fromPartial({
-          typeUrl: message.typeUrl,
+          type_url: message.typeUrl,
           value: binaryValue,
         });
       }),
@@ -1396,8 +1410,8 @@ export class SecretNetworkClient {
       signDoc,
     );
     return TxRaw.fromPartial({
-      bodyBytes: signed.bodyBytes,
-      authInfoBytes: signed.authInfoBytes,
+      body_bytes: signed.body_bytes,
+      auth_info_bytes: signed.auth_info_bytes,
       signatures: [fromBase64(signature.signature)],
     });
   }
@@ -1431,12 +1445,13 @@ async function makeAuthInfoBytes(
       .SignMode.SIGN_MODE_DIRECT;
   }
 
-  const authInfo = {
-    signerInfos: makeSignerInfos(signers, signMode),
+  const authInfo: AuthInfo = {
+    signer_infos: makeSignerInfos(signers, signMode),
     fee: {
       amount: [...feeAmount],
-      gasLimit: String(gasLimit),
-      granter: feeGranter,
+      gas_limit: String(gasLimit),
+      granter: feeGranter ?? "",
+      payer: "",
     },
   };
 
@@ -1461,8 +1476,8 @@ function makeSignerInfos(
       pubkey,
       sequence,
     }): import("./protobuf/cosmos/tx/v1beta1/tx").SignerInfo => ({
-      publicKey: pubkey,
-      modeInfo: {
+      public_key: pubkey,
+      mode_info: {
         single: { mode: signMode },
       },
       sequence: String(sequence),
@@ -1477,10 +1492,10 @@ function makeSignDocProto(
   accountNumber: number,
 ): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
   return {
-    bodyBytes: bodyBytes,
-    authInfoBytes: authInfoBytes,
-    chainId: chainId,
-    accountNumber: String(accountNumber),
+    body_bytes: bodyBytes,
+    auth_info_bytes: authInfoBytes,
+    chain_id: chainId,
+    account_number: String(accountNumber),
   };
 }
 
@@ -1496,7 +1511,7 @@ async function encodePubkey(
       key: fromBase64(pubkey.value),
     });
     return Any.fromPartial({
-      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+      type_url: "/cosmos.crypto.secp256k1.PubKey",
       value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
     });
   } else if (isMultisigThresholdPubkey(pubkey)) {
@@ -1506,10 +1521,10 @@ async function encodePubkey(
 
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Number(pubkey.value.threshold),
-      publicKeys: pubkey.value.pubkeys.map(encodePubkey),
+      public_keys: pubkey.value.pubkeys.map(encodePubkey),
     });
     return Any.fromPartial({
-      typeUrl: "/cosmos.crypto.multisig.LegacyAminoPubKey",
+      type_url: "/cosmos.crypto.multisig.LegacyAminoPubKey",
       value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
     });
   } else {

@@ -7,16 +7,16 @@ import { Empty } from "../../../google/protobuf/empty";
 export const protobufPackage = "secret.registration.v1beta1";
 
 export interface QueryEncryptedSeedRequest {
-  pubKey: Uint8Array;
+  pub_key: Uint8Array;
 }
 
 export interface QueryEncryptedSeedResponse {
   /** [(gogoproto.nullable) = false]; */
-  encryptedSeed: Uint8Array;
+  encrypted_seed: Uint8Array;
 }
 
 function createBaseQueryEncryptedSeedRequest(): QueryEncryptedSeedRequest {
-  return { pubKey: new Uint8Array() };
+  return { pub_key: new Uint8Array() };
 }
 
 export const QueryEncryptedSeedRequest = {
@@ -24,8 +24,8 @@ export const QueryEncryptedSeedRequest = {
     message: QueryEncryptedSeedRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.pubKey.length !== 0) {
-      writer.uint32(10).bytes(message.pubKey);
+    if (message.pub_key.length !== 0) {
+      writer.uint32(10).bytes(message.pub_key);
     }
     return writer;
   },
@@ -41,7 +41,7 @@ export const QueryEncryptedSeedRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pubKey = reader.bytes();
+          message.pub_key = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -53,17 +53,17 @@ export const QueryEncryptedSeedRequest = {
 
   fromJSON(object: any): QueryEncryptedSeedRequest {
     return {
-      pubKey: isSet(object.pubKey)
-        ? bytesFromBase64(object.pubKey)
+      pub_key: isSet(object.pub_key)
+        ? bytesFromBase64(object.pub_key)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: QueryEncryptedSeedRequest): unknown {
     const obj: any = {};
-    message.pubKey !== undefined &&
-      (obj.pubKey = base64FromBytes(
-        message.pubKey !== undefined ? message.pubKey : new Uint8Array(),
+    message.pub_key !== undefined &&
+      (obj.pub_key = base64FromBytes(
+        message.pub_key !== undefined ? message.pub_key : new Uint8Array(),
       ));
     return obj;
   },
@@ -72,13 +72,13 @@ export const QueryEncryptedSeedRequest = {
     object: I,
   ): QueryEncryptedSeedRequest {
     const message = createBaseQueryEncryptedSeedRequest();
-    message.pubKey = object.pubKey ?? new Uint8Array();
+    message.pub_key = object.pub_key ?? new Uint8Array();
     return message;
   },
 };
 
 function createBaseQueryEncryptedSeedResponse(): QueryEncryptedSeedResponse {
-  return { encryptedSeed: new Uint8Array() };
+  return { encrypted_seed: new Uint8Array() };
 }
 
 export const QueryEncryptedSeedResponse = {
@@ -86,8 +86,8 @@ export const QueryEncryptedSeedResponse = {
     message: QueryEncryptedSeedResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.encryptedSeed.length !== 0) {
-      writer.uint32(10).bytes(message.encryptedSeed);
+    if (message.encrypted_seed.length !== 0) {
+      writer.uint32(10).bytes(message.encrypted_seed);
     }
     return writer;
   },
@@ -103,7 +103,7 @@ export const QueryEncryptedSeedResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.encryptedSeed = reader.bytes();
+          message.encrypted_seed = reader.bytes();
           break;
         default:
           reader.skipType(tag & 7);
@@ -115,18 +115,18 @@ export const QueryEncryptedSeedResponse = {
 
   fromJSON(object: any): QueryEncryptedSeedResponse {
     return {
-      encryptedSeed: isSet(object.encryptedSeed)
-        ? bytesFromBase64(object.encryptedSeed)
+      encrypted_seed: isSet(object.encrypted_seed)
+        ? bytesFromBase64(object.encrypted_seed)
         : new Uint8Array(),
     };
   },
 
   toJSON(message: QueryEncryptedSeedResponse): unknown {
     const obj: any = {};
-    message.encryptedSeed !== undefined &&
-      (obj.encryptedSeed = base64FromBytes(
-        message.encryptedSeed !== undefined
-          ? message.encryptedSeed
+    message.encrypted_seed !== undefined &&
+      (obj.encrypted_seed = base64FromBytes(
+        message.encrypted_seed !== undefined
+          ? message.encrypted_seed
           : new Uint8Array(),
       ));
     return obj;
@@ -136,7 +136,7 @@ export const QueryEncryptedSeedResponse = {
     object: I,
   ): QueryEncryptedSeedResponse {
     const message = createBaseQueryEncryptedSeedResponse();
-    message.encryptedSeed = object.encryptedSeed ?? new Uint8Array();
+    message.encrypted_seed = object.encrypted_seed ?? new Uint8Array();
     return message;
   },
 };
@@ -144,13 +144,64 @@ export const QueryEncryptedSeedResponse = {
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Returns the key used for transactions */
-  txKey(request: Empty): Promise<Key>;
+  TxKey(request: Empty): Promise<Key>;
   /** Returns the key used for registration */
-  registrationKey(request: Empty): Promise<Key>;
+  RegistrationKey(request: Empty): Promise<Key>;
   /** Returns the encrypted seed for a registered node by public key */
-  encryptedSeed(
+  EncryptedSeed(
     request: QueryEncryptedSeedRequest,
   ): Promise<QueryEncryptedSeedResponse>;
+}
+
+export class QueryClientImpl implements Query {
+  private readonly rpc: Rpc;
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.TxKey = this.TxKey.bind(this);
+    this.RegistrationKey = this.RegistrationKey.bind(this);
+    this.EncryptedSeed = this.EncryptedSeed.bind(this);
+  }
+  TxKey(request: Empty): Promise<Key> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.registration.v1beta1.Query",
+      "TxKey",
+      data,
+    );
+    return promise.then((data) => Key.decode(new _m0.Reader(data)));
+  }
+
+  RegistrationKey(request: Empty): Promise<Key> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.registration.v1beta1.Query",
+      "RegistrationKey",
+      data,
+    );
+    return promise.then((data) => Key.decode(new _m0.Reader(data)));
+  }
+
+  EncryptedSeed(
+    request: QueryEncryptedSeedRequest,
+  ): Promise<QueryEncryptedSeedResponse> {
+    const data = QueryEncryptedSeedRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.registration.v1beta1.Query",
+      "EncryptedSeed",
+      data,
+    );
+    return promise.then((data) =>
+      QueryEncryptedSeedResponse.decode(new _m0.Reader(data)),
+    );
+  }
+}
+
+interface Rpc {
+  request(
+    service: string,
+    method: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array>;
 }
 
 declare var self: any | undefined;
