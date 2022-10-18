@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import { Coin, MsgParams } from "..";
+import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type ProposalContent =
@@ -81,7 +82,7 @@ const proposalTypeToAminoType: Map<ProposalType, string> = new Map([
 export interface MsgSubmitProposalParams {
   type: ProposalType;
   content: ProposalContent;
-  initialDeposit: Coin[];
+  initial_deposit: Coin[];
   proposer: string;
 }
 
@@ -90,36 +91,20 @@ export interface MsgSubmitProposalParams {
  * proposal Content.
  */
 export class MsgSubmitProposal implements Msg {
-  public type: ProposalType;
-  public content: ProposalContent;
-  public initialDeposit: Coin[];
-  public proposer: string;
-
-  constructor({
-    type,
-    content,
-    initialDeposit,
-    proposer,
-  }: MsgSubmitProposalParams) {
-    this.proposer = proposer;
-    this.initialDeposit = initialDeposit;
-    this.content = content;
-    this.type = type;
-  }
+  constructor(public params: MsgSubmitProposalParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const { Any } = await import("../protobuf/google/protobuf/any");
-    let content: import("../protobuf/google/protobuf/any").Any;
+    let content: Any;
 
-    switch (this.type) {
+    switch (this.params.type) {
       case ProposalType.TextProposal:
         const { TextProposal } = await import(
           "../protobuf/cosmos/gov/v1beta1/gov"
         );
         content = Any.fromPartial({
-          typeUrl: "/cosmos.gov.v1beta1.TextProposal",
+          type_url: "/cosmos.gov.v1beta1.TextProposal",
           value: TextProposal.encode(
-            TextProposal.fromPartial(this.content),
+            TextProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -129,9 +114,9 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/cosmos/distribution/v1beta1/distribution"
         );
         content = Any.fromPartial({
-          typeUrl: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
+          type_url: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
           value: CommunityPoolSpendProposal.encode(
-            CommunityPoolSpendProposal.fromPartial(this.content),
+            CommunityPoolSpendProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -141,9 +126,9 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/cosmos/params/v1beta1/params"
         );
         content = Any.fromPartial({
-          typeUrl: "/cosmos.params.v1beta1.ParameterChangeProposal",
+          type_url: "/cosmos.params.v1beta1.ParameterChangeProposal",
           value: ParameterChangeProposal.encode(
-            ParameterChangeProposal.fromPartial(this.content),
+            ParameterChangeProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -153,9 +138,9 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/ibc/core/client/v1/client"
         );
         content = Any.fromPartial({
-          typeUrl: "/ibc.core.client.v1.ClientUpdateProposal",
+          type_url: "/ibc.core.client.v1.ClientUpdateProposal",
           value: ClientUpdateProposal.encode(
-            ClientUpdateProposal.fromPartial(this.content),
+            ClientUpdateProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -165,9 +150,9 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/ibc/core/client/v1/client"
         );
         content = Any.fromPartial({
-          typeUrl: "/ibc.core.client.v1.UpgradeProposal",
+          type_url: "/ibc.core.client.v1.UpgradeProposal",
           value: UpgradeProposal.encode(
-            UpgradeProposal.fromPartial(this.content),
+            UpgradeProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -177,9 +162,9 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/cosmos/upgrade/v1beta1/upgrade"
         );
         content = Any.fromPartial({
-          typeUrl: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+          type_url: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
           value: SoftwareUpgradeProposal.encode(
-            SoftwareUpgradeProposal.fromPartial(this.content),
+            SoftwareUpgradeProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -189,29 +174,29 @@ export class MsgSubmitProposal implements Msg {
           "../protobuf/cosmos/upgrade/v1beta1/upgrade"
         );
         content = Any.fromPartial({
-          typeUrl: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
+          type_url: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
           value: CancelSoftwareUpgradeProposal.encode(
-            CancelSoftwareUpgradeProposal.fromPartial(this.content),
+            CancelSoftwareUpgradeProposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
 
       default:
         throw new Error(
-          `Unknown proposal type: "${this.type}" - ${JSON.stringify(
-            this.content,
+          `Unknown proposal type: "${this.params.type}" - ${JSON.stringify(
+            this.params.content,
           )}`,
         );
     }
 
     const msgContent = {
       content: content,
-      initialDeposit: this.initialDeposit,
-      proposer: this.proposer,
+      initial_deposit: this.params.initial_deposit,
+      proposer: this.params.proposer,
     };
 
     return {
-      typeUrl: `/cosmos.gov.v1beta1.MsgSubmitProposal`,
+      type_url: `/cosmos.gov.v1beta1.MsgSubmitProposal`,
       value: msgContent,
       encode: async () =>
         (
@@ -221,17 +206,17 @@ export class MsgSubmitProposal implements Msg {
   }
 
   async toAmino(): Promise<AminoMsg> {
-    const contentType = proposalTypeToAminoType.get(this.type);
+    const contentType = proposalTypeToAminoType.get(this.params.type);
     if (!contentType) {
       throw new Error(
         `Proposal of type "${String(
-          this.type,
+          this.params.type,
         )}" is not supported with an Amino signer.`,
       );
     }
 
-    let content: any = this.content;
-    if (this.type === ProposalType.SoftwareUpgradeProposal) {
+    let content: any = this.params.content;
+    if (this.params.type === ProposalType.SoftwareUpgradeProposal) {
       if (content.plan) {
         content = {
           ...content,
@@ -250,8 +235,8 @@ export class MsgSubmitProposal implements Msg {
           type: contentType,
           value: content,
         },
-        initial_deposit: this.initialDeposit,
-        proposer: this.proposer,
+        initial_deposit: this.params.initial_deposit,
+        proposer: this.params.proposer,
       },
     };
   }
@@ -260,34 +245,21 @@ export class MsgSubmitProposal implements Msg {
 /** MsgVote defines a message to cast a vote. */
 
 export interface MsgVoteParams extends MsgParams {
-  proposalId: string;
+  proposal_id: string;
   voter: string;
   option: VoteOption;
 }
-export class MsgVote implements Msg {
-  public voter: string;
-  public proposalId: string;
-  public option: VoteOption;
 
-  constructor({ voter, proposalId, option }: MsgVoteParams) {
-    this.voter = voter;
-    this.proposalId = proposalId;
-    this.option = option;
-  }
+export class MsgVote implements Msg {
+  constructor(public params: MsgVoteParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      voter: this.voter,
-      proposalId: this.proposalId,
-      option: this.option,
-    };
-
     return {
-      typeUrl: `/cosmos.gov.v1beta1.MsgVote`,
-      value: msgContent,
+      type_url: `/cosmos.gov.v1beta1.MsgVote`,
+      value: this.params,
       encode: async () =>
         (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgVote.encode(
-          msgContent,
+          this.params,
         ).finish(),
     };
   }
@@ -295,11 +267,7 @@ export class MsgVote implements Msg {
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgVote",
-      value: {
-        voter: this.voter,
-        proposal_id: this.proposalId,
-        option: this.option,
-      },
+      value: this.params,
     };
   }
 }
@@ -314,34 +282,26 @@ export interface WeightedVoteOption {
 
 export interface MsgVoteWeightedParams extends MsgParams {
   voter: string;
-  proposalId: string;
+  proposal_id: string;
   options: WeightedVoteOption[];
 }
 
 /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
 export class MsgVoteWeighted implements Msg {
-  public voter: string;
-  public proposalId: string;
-  public options: WeightedVoteOption[];
-
-  constructor({ voter, proposalId, options }: MsgVoteWeightedParams) {
-    this.voter = voter;
-    this.proposalId = proposalId;
-    this.options = options;
-  }
+  constructor(public params: MsgVoteWeightedParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     const msgContent = {
-      voter: this.voter,
-      proposalId: this.proposalId,
-      options: this.options.map((o) => ({
+      voter: this.params.voter,
+      proposal_id: this.params.proposal_id,
+      options: this.params.options.map((o) => ({
         option: o.option,
         weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
       })),
     };
 
     return {
-      typeUrl: `/cosmos.gov.v1beta1.MsgVoteWeighted`,
+      type_url: `/cosmos.gov.v1beta1.MsgVoteWeighted`,
       value: msgContent,
       encode: async () =>
         (
@@ -352,9 +312,9 @@ export class MsgVoteWeighted implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     const msgContent = {
-      voter: this.voter,
-      proposal_id: this.proposalId,
-      options: this.options.map((o) => ({
+      voter: this.params.voter,
+      proposal_id: this.params.proposal_id,
+      options: this.params.options.map((o) => ({
         option: o.option,
         weight: new BigNumber(o.weight).toFixed(18),
       })),
@@ -368,36 +328,22 @@ export class MsgVoteWeighted implements Msg {
 }
 
 export interface MsgDepositParams extends MsgParams {
-  proposalId: string;
+  proposal_id: string;
   depositor: string;
   amount: Coin[];
 }
 
 /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
 export class MsgDeposit implements Msg {
-  public depositor: string;
-  public proposalId: string;
-  public amount: Coin[];
-
-  constructor({ depositor, proposalId, amount }: MsgDepositParams) {
-    this.depositor = depositor;
-    this.proposalId = proposalId;
-    this.amount = amount;
-  }
+  constructor(public params: MsgDepositParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      depositor: this.depositor,
-      proposalId: this.proposalId,
-      amount: this.amount,
-    };
-
     return {
-      typeUrl: `/cosmos.gov.v1beta1.MsgDeposit`,
-      value: msgContent,
+      type_url: `/cosmos.gov.v1beta1.MsgDeposit`,
+      value: this.params,
       encode: async () =>
         (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgDeposit.encode(
-          msgContent,
+          this.params,
         ).finish(),
     };
   }
@@ -405,11 +351,7 @@ export class MsgDeposit implements Msg {
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgDeposit",
-      value: {
-        depositor: this.depositor,
-        proposal_id: this.proposalId,
-        amount: this.amount,
-      },
+      value: this.params,
     };
   }
 }

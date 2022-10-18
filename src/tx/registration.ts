@@ -19,7 +19,7 @@ export class RaAuthenticate implements Msg {
     };
 
     return {
-      typeUrl: "/secret.registration.v1beta1.RaAuthenticate",
+      type_url: "/secret.registration.v1beta1.RaAuthenticate",
       value: msgContent,
       encode: async () =>
         (

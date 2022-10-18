@@ -46,18 +46,18 @@ type DirectSignResponse = {
 };
 
 async function serializeSignDoc({
-  accountNumber,
-  authInfoBytes,
-  bodyBytes,
-  chainId,
+  account_number,
+  auth_info_bytes,
+  body_bytes,
+  chain_id,
 }: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc): Promise<Uint8Array> {
   const { SignDoc } = await import("./protobuf/cosmos/tx/v1beta1/tx");
   return SignDoc.encode(
     SignDoc.fromPartial({
-      accountNumber: accountNumber,
-      authInfoBytes: authInfoBytes,
-      bodyBytes: bodyBytes,
-      chainId: chainId,
+      account_number,
+      auth_info_bytes,
+      body_bytes,
+      chain_id,
     }),
   ).finish();
 }

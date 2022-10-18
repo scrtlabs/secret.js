@@ -3,9 +3,9 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgTransferParams extends MsgParams {
   /** the port on which the packet will be sent */
-  sourcePort: string;
+  source_port: string;
   /** the channel by which the packet will be sent */
-  sourceChannel: string;
+  source_channel: string;
   /** the tokens to be transferred */
   token: Coin;
   /** the sender address */
@@ -16,12 +16,12 @@ export interface MsgTransferParams extends MsgParams {
    * Timeout height relative to the current block height.
    * The timeout is disabled when undefined or set to 0.
    */
-  timeoutHeight?: Height;
+  timeout_height?: Height;
   /**
    * Timeout timestamp (in seconds) since Unix epoch.
    * The timeout is disabled when undefined or set to 0.
    */
-  timeoutTimestampSec?: string;
+  timeout_timestamp?: string;
 }
 
 /**
@@ -38,9 +38,9 @@ export interface MsgTransferParams extends MsgParams {
  */
 export type Height = {
   /** the revision that the client is currently on */
-  revisionNumber: string;
+  revision_number: string;
   /** the height within the given revision */
-  revisionHeight: string;
+  revision_height: string;
 };
 
 /**
@@ -53,19 +53,19 @@ export class MsgTransfer implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     const msgContent = {
-      sourcePort: this.params.sourcePort,
-      sourceChannel: this.params.sourceChannel,
+      source_port: this.params.source_port,
+      source_channel: this.params.source_channel,
       token: this.params.token,
       sender: this.params.sender,
       receiver: this.params.receiver,
-      timeoutHeight: this.params.timeoutHeight,
-      timeoutTimestamp: this.params.timeoutTimestampSec
-        ? `${this.params.timeoutTimestampSec}000000000` // sec -> ns
+      timeout_height: this.params.timeout_height,
+      timeout_timestamp: this.params.timeout_timestamp
+        ? `${this.params.timeout_timestamp}000000000` // sec -> ns
         : "0",
     };
 
     return {
-      typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
+      type_url: "/ibc.applications.transfer.v1.MsgTransfer",
       value: msgContent,
       encode: async () =>
         (
@@ -78,19 +78,19 @@ export class MsgTransfer implements Msg {
     return {
       type: "cosmos-sdk/MsgTransfer",
       value: {
-        source_port: this.params.sourcePort,
-        source_channel: this.params.sourceChannel,
+        source_port: this.params.source_port,
+        source_channel: this.params.source_channel,
         token: this.params.token,
         sender: this.params.sender,
         receiver: this.params.receiver,
-        timeout_height: this.params.timeoutHeight
+        timeout_height: this.params.timeout_height
           ? {
-              revision_number: this.params.timeoutHeight.revisionNumber,
-              revision_height: this.params.timeoutHeight.revisionHeight,
+              revision_number: this.params.timeout_height.revision_number,
+              revision_height: this.params.timeout_height.revision_height,
             }
           : {},
-        timeout_timestamp: this.params.timeoutTimestampSec
-          ? `${this.params.timeoutTimestampSec}000000000` // sec -> ns
+        timeout_timestamp: this.params.timeout_timestamp
+          ? `${this.params.timeout_timestamp}000000000` // sec -> ns
           : "0",
       },
     };

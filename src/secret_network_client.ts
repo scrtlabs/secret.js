@@ -933,9 +933,9 @@ export class SecretNetworkClient {
         // Check if the message needs decryption
 
         try {
-          const { "@type": typeUrl } = tx.body!.messages![msgIndex] as AnyJson;
+          const { "@type": type_url } = tx.body!.messages![msgIndex] as AnyJson;
 
-          if (typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract") {
+          if (type_url === "/secret.compute.v1beta1.MsgInstantiateContract") {
             const decoded = MsgInstantiateContractResponse.decode(
               txMsgData.data[msgIndex].data,
             );
@@ -946,7 +946,9 @@ export class SecretNetworkClient {
               address: decoded.address,
               data: decrypted,
             }).finish();
-          } else if (typeUrl === "/secret.compute.v1beta1.MsgExecuteContract") {
+          } else if (
+            type_url === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
             const decoded = MsgExecuteContractResponse.decode(
               txMsgData.data[msgIndex].data,
             );
@@ -1290,12 +1292,12 @@ export class SecretNetworkClient {
     );
 
     const txBody = {
-      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      type_url: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
-            const asProto = await msg.toProto(this.encryptionUtils);
+            const asProto: ProtoMsg = await msg.toProto(this.encryptionUtils);
 
             return asProto;
           }),
@@ -1342,7 +1344,7 @@ export class SecretNetworkClient {
   }
 
   private async encodeTx(txBody: {
-    typeUrl: string;
+    type_url: string;
     value: {
       messages: ProtoMsg[];
       memo: string;
@@ -1352,7 +1354,7 @@ export class SecretNetworkClient {
       txBody.value.messages.map(async (message) => {
         const binaryValue = await message.encode();
         return Any.fromPartial({
-          type_url: message.typeUrl,
+          type_url: message.type_url,
           value: binaryValue,
         });
       }),
@@ -1377,7 +1379,7 @@ export class SecretNetworkClient {
     }
 
     const txBody = {
-      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      type_url: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {

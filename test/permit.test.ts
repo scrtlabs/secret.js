@@ -101,7 +101,7 @@ describe("permit", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -119,17 +119,16 @@ describe("permit", () => {
 
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
-      await secretjs.query.compute.codeHashByCodeID({
-        code_id,
-      });
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+      code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId: code_id,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -146,7 +145,7 @@ describe("permit", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -166,7 +165,7 @@ describe("permit", () => {
     );
 
     const query = await secretjs.query.snip20.getBalance({
-      contract: { address: contractAddress, codeHash: codeHash! },
+      contract: { address: contractAddress, code_hash: code_hash! },
       address: accounts[0].address,
       auth: { permit },
     });

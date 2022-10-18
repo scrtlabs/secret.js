@@ -167,7 +167,7 @@ describe("query", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -183,19 +183,18 @@ describe("query", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
-      await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
-      });
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+      code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -212,7 +211,7 @@ describe("query", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -227,11 +226,11 @@ describe("query", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
@@ -239,13 +238,13 @@ describe("query", () => {
       [
         new MsgExecuteContract({
           sender: secretjs.address,
-          contractAddress,
+          contract_address,
           msg: {
             create_viewing_key: {
               entropy: "bla bla",
             },
           },
-          codeHash,
+          code_hash,
         }),
       ],
       {
@@ -270,7 +269,7 @@ describe("query", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -286,19 +285,19 @@ describe("query", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -315,7 +314,7 @@ describe("query", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -330,7 +329,7 @@ describe("query", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
@@ -339,8 +338,8 @@ describe("query", () => {
       [
         new MsgExecuteContract({
           sender: accounts[0].address,
-          contractAddress: contractAddress,
-          codeHash,
+          contract_address: contract_address,
+          code_hash,
           msg: {
             transfer: {
               recipient: accounts[1].address,
@@ -442,13 +441,13 @@ describe("query.compute", () => {
   let sSCRT: string;
 
   beforeAll(async () => {
-    const codeId = await storeContract(
+    const code_id = await storeContract(
       `${__dirname}/snip20-ibc.wasm.gz`,
       accounts[0],
     );
 
     sSCRT = await initContract(
-      codeId,
+      code_id,
       {
         name: "Secret SCRT",
         admin: accounts[0].address,
@@ -482,8 +481,8 @@ describe("query.compute", () => {
     };
 
     const result = (await secretjs.query.compute.queryContract({
-      contractAddress: sSCRT,
-      //codeHash,
+      contract_address: sSCRT,
+      //code_hash,
       query: { token_info: {} },
     })) as Result;
 
@@ -501,7 +500,7 @@ describe("query.compute", () => {
     const { secretjs } = accounts[0];
 
     const result = await secretjs.query.compute.queryContract({
-      contractAddress: sSCRT,
+      contract_address: sSCRT,
       query: {
         balance: {
           address: accounts[0].address,
@@ -521,7 +520,7 @@ describe("query.compute", () => {
     const { secretjs } = accounts[0];
 
     const result = await secretjs.query.compute.queryContract({
-      contractAddress: sSCRT,
+      contract_address: sSCRT,
       query: {
         non_existent_query: {},
       },
@@ -532,7 +531,7 @@ describe("query.compute", () => {
     );
   });
 
-  test("queryContract() without codeHash", async () => {
+  test("queryContract() without code_hash", async () => {
     const { secretjs } = accounts[0];
 
     type Result = {
@@ -545,7 +544,7 @@ describe("query.compute", () => {
     };
 
     const result = (await secretjs.query.compute.queryContract({
-      contractAddress: sSCRT,
+      contract_address: sSCRT,
       query: { token_info: {} },
     })) as Result;
 
@@ -568,16 +567,16 @@ describe("tx.bank", () => {
     const cBefore = await getBalance(secretjs, accounts[2].address);
 
     const sim = await secretjs.tx.bank.send.simulate({
-      fromAddress: accounts[0].address,
-      toAddress: accounts[2].address,
+      from_address: accounts[0].address,
+      to_address: accounts[2].address,
       amount: [{ denom: "uscrt", amount: "1" }],
     });
 
     const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
 
     const msg = {
-      fromAddress: accounts[0].address,
-      toAddress: accounts[2].address,
+      from_address: accounts[0].address,
+      to_address: accounts[2].address,
       amount: [{ denom: "uscrt", amount: "1" }],
     };
     const tx = await secretjs.tx.bank.send(msg, {
@@ -657,7 +656,7 @@ describe("tx.compute", () => {
     const tx = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -683,7 +682,7 @@ describe("tx.compute", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -699,19 +698,19 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const tx = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -728,7 +727,7 @@ describe("tx.compute", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -754,7 +753,7 @@ describe("tx.compute", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -770,21 +769,21 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const tx = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {},
+        code_id,
+        code_hash,
+        init_msg: {},
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -805,7 +804,7 @@ describe("tx.compute", () => {
 
     const storeInput = {
       sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
+      wasm_byte_code: fs.readFileSync(
         `${__dirname}/snip721.wasm.gz`,
       ) as Uint8Array,
       source: "",
@@ -823,18 +822,18 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const initInput = {
       sender: accounts[0].address,
-      codeId,
-      // codeHash, // Test MsgInstantiateContract without codeHash
-      initMsg: {
+      code_id,
+      // code_hash, // Test MsgInstantiateContract without code_hash
+      init_msg: {
         name: "SecretJS NFTs",
         symbol: "YOLO",
         admin: accounts[0].address,
@@ -846,7 +845,7 @@ describe("tx.compute", () => {
         config: { public_token_supply: true },
       },
       label: `label-${Date.now()}`,
-      initFunds: [],
+      init_funds: [],
     };
 
     const simInit = await secretjs.tx.compute.instantiateContract.simulate(
@@ -862,8 +861,8 @@ describe("tx.compute", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
     //@ts-ignore
-    expect(txInit.tx.body?.messages![0].initMsg).toStrictEqual(
-      initInput.initMsg,
+    expect(txInit.tx.body?.messages![0].init_msg).toStrictEqual(
+      initInput.init_msg,
     );
 
     const contract = getValueFromRawLog(
@@ -873,16 +872,16 @@ describe("tx.compute", () => {
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress: contract,
-      // codeHash, // Test MsgExecuteContract without codeHash
+      contract_address: contract,
+      // code_hash, // Test MsgExecuteContract without code_hash
       msg: { add_minters: { minters: [accounts[0].address] } },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress: contract,
-      codeHash,
+      contract_address: contract,
+      code_hash,
       msg: {
         mint_nft: {
           token_id: "1",
@@ -903,7 +902,7 @@ describe("tx.compute", () => {
           },
         },
       },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const simExec = await secretjs.tx.simulate([addMinterMsg, mintMsg]);
@@ -937,7 +936,7 @@ describe("tx.compute", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -953,19 +952,19 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -982,7 +981,7 @@ describe("tx.compute", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -997,7 +996,7 @@ describe("tx.compute", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
@@ -1005,8 +1004,8 @@ describe("tx.compute", () => {
     const txExec = await secretjs.tx.compute.executeContract(
       {
         sender: accounts[0].address,
-        contractAddress: contractAddress,
-        codeHash,
+        contract_address: contract_address,
+        code_hash,
         msg: {
           transfer: {
             recipient: accounts[1].address,
@@ -1034,7 +1033,7 @@ describe("tx.compute", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -1050,19 +1049,19 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -1079,7 +1078,7 @@ describe("tx.compute", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1094,19 +1093,19 @@ describe("tx.compute", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.compute.executeContract(
       {
         sender: accounts[0].address,
-        contractAddress: contractAddress,
-        codeHash,
+        contract_address: contract_address,
+        code_hash,
         msg: {
           create_viewing_key: {
             entropy: "bla bla",
@@ -1130,7 +1129,7 @@ describe("tx.compute", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip721.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -1146,19 +1145,19 @@ describe("tx.compute", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash: codeHash } =
+    const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeID({
-        code_id: codeId,
+        code_id: code_id,
       });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
+        code_id,
+        // code_hash, // Test MsgInstantiateContract without code_hash
+        init_msg: {
           name: "SecretJS NFTs",
           symbol: "YOLO",
           admin: accounts[0].address,
@@ -1170,7 +1169,7 @@ describe("tx.compute", () => {
           config: { public_token_supply: true },
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1189,20 +1188,20 @@ describe("tx.compute", () => {
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress: contract,
-      // codeHash, // Test MsgExecuteContract without codeHash
+      contract_address: contract,
+      // code_hash, // Test MsgExecuteContract without code_hash
       msg: { add_minters: { minters: [accounts[0].address] } },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress: contract,
-      codeHash,
+      contract_address: contract,
+      code_hash,
       msg: {
         yolo: {},
       },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
@@ -1239,7 +1238,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.TextProposal,
           proposer: accounts[0].address,
-          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
           content: {
             title: "Hi",
             description: "Hello",
@@ -1277,7 +1276,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CommunityPoolSpendProposal,
           proposer: accounts[0].address,
-          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
           content: {
             title: "Hi",
             description: "Hello",
@@ -1316,7 +1315,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.ParameterChangeProposal,
           proposer: accounts[0].address,
-          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
           content: {
             title: "Hi",
             description: "YOLO",
@@ -1348,9 +1347,6 @@ describe("tx.gov", () => {
     });
 
     test("SoftwareUpgradeProposal", async () => {
-      // TODO make this work
-      // https://discord.com/channels/669268347736686612/680435043570941973/938352848905863178
-
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
@@ -1359,7 +1355,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.SoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
           content: {
             title: "Hi let's upgrade",
             description: "PROD NO FEAR",
@@ -1401,7 +1397,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CancelSoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
           content: {
             title: "Hi let's cancel",
             description: "PROD FEAR",
@@ -1437,7 +1433,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1452,7 +1448,7 @@ describe("tx.gov", () => {
       console.error(txSubmit.rawLog);
     }
     expect(txSubmit.code).toBe(TxResultCode.Success);
-    const proposalId = getValueFromRawLog(
+    const proposal_id = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
     );
@@ -1460,7 +1456,7 @@ describe("tx.gov", () => {
     const tx = await secretjs.tx.gov.vote(
       {
         voter: accounts[0].address,
-        proposalId,
+        proposal_id,
         option: VoteOption.VOTE_OPTION_YES,
       },
       {
@@ -1474,7 +1470,7 @@ describe("tx.gov", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
-      proposalId,
+      proposal_id,
     );
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
       '{"option":1,"weight":"1.000000000000000000"}',
@@ -1488,7 +1484,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1503,7 +1499,7 @@ describe("tx.gov", () => {
       console.error(txSubmit.rawLog);
     }
     expect(txSubmit.code).toBe(TxResultCode.Success);
-    const proposalId = getValueFromRawLog(
+    const proposal_id = getValueFromRawLog(
       txSubmit.rawLog,
       "submit_proposal.proposal_id",
     );
@@ -1512,7 +1508,7 @@ describe("tx.gov", () => {
     const tx = await secretjs.tx.gov.voteWeighted(
       {
         voter: accounts[0].address,
-        proposalId,
+        proposal_id,
         options: [
           // weights must sum to 1.0
           { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
@@ -1530,7 +1526,7 @@ describe("tx.gov", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.proposal_id")).toBe(
-      proposalId,
+      proposal_id,
     );
     expect(getValueFromRawLog(tx.rawLog, "proposal_vote.option")).toBe(
       '{"option":1,"weight":"0.700000000000000000"}\n{"option":2,"weight":"0.300000000000000000"}',
@@ -1544,7 +1540,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initialDeposit: [],
+        initial_deposit: [],
         content: {
           title: "Hi",
           description: "Hello",
@@ -1567,7 +1563,7 @@ describe("tx.gov", () => {
     const tx = await secretjs.tx.gov.deposit(
       {
         depositor: accounts[0].address,
-        proposalId: proposal_id,
+        proposal_id: proposal_id,
         amount: [{ amount: "1", denom: "uscrt" }],
       },
       {
@@ -1593,7 +1589,7 @@ describe("tx.staking", () => {
   test("MsgDelegate", async () => {
     const { secretjs } = accounts[0];
 
-    const [{ operator_address: validatorAddress, tokens: tokensBefore }] = (
+    const [{ operator_address: validator_address, tokens: tokensBefore }] = (
       await secretjs.query.staking.validators({
         status: "",
       })
@@ -1601,8 +1597,8 @@ describe("tx.staking", () => {
 
     const tx = await secretjs.tx.staking.delegate(
       {
-        delegatorAddress: accounts[0].address,
-        validatorAddress: validatorAddress!,
+        delegator_address: accounts[0].address,
+        validator_address: validator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1625,14 +1621,14 @@ describe("tx.staking", () => {
   test("MsgUndelegate", async () => {
     const { secretjs } = accounts[0];
 
-    const [{ operator_address: validatorAddress, tokens: tokensBefore }] = (
+    const [{ operator_address: validator_address, tokens: tokensBefore }] = (
       await secretjs.query.staking.validators({ status: "" })
     ).validators!;
 
     const txDelegate = await secretjs.tx.staking.delegate(
       {
-        delegatorAddress: accounts[0].address,
-        validatorAddress: validatorAddress!,
+        delegator_address: accounts[0].address,
+        validator_address: validator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1654,8 +1650,8 @@ describe("tx.staking", () => {
 
     const tx = await secretjs.tx.staking.undelegate(
       {
-        delegatorAddress: accounts[0].address,
-        validatorAddress: validatorAddress!,
+        delegator_address: accounts[0].address,
+        validator_address: validator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1682,22 +1678,22 @@ describe("tx.staking", () => {
 
     const tx = await secretjs.tx.staking.createValidator(
       {
-        selfDelegatorAddress: accounts[1].address,
+        delegator_address: accounts[1].address,
         commission: {
-          maxChangeRate: 0.01,
-          maxRate: 0.1,
+          max_change_rate: 0.01,
+          max_rate: 0.1,
           rate: 0.05,
         },
         description: {
           moniker: "banana",
           identity: "papaya",
           website: "watermelon.com",
-          securityContact: "info@watermelon.com",
+          security_contact: "info@watermelon.com",
           details: "We are the banana papaya validator",
         },
         pubkey: toBase64(new Uint8Array(32).fill(1)),
-        minSelfDelegation: "1",
-        initialDelegation: { amount: "1", denom: "uscrt" },
+        min_self_delegation: "1",
+        initial_delegation: { amount: "1", denom: "uscrt" },
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1720,22 +1716,22 @@ describe("tx.staking", () => {
 
     const txCreateValidator = await secretjs.tx.staking.createValidator(
       {
-        selfDelegatorAddress: accounts[2].address,
+        delegator_address: accounts[2].address,
         commission: {
-          maxChangeRate: 0.01,
-          maxRate: 0.1,
+          max_change_rate: 0.01,
+          max_rate: 0.1,
           rate: 0.05,
         },
         description: {
           moniker: "banana",
           identity: "papaya",
           website: "watermelon.com",
-          securityContact: "info@watermelon.com",
+          security_contact: "info@watermelon.com",
           details: "We are the banana papaya validator",
         },
         pubkey: toBase64(new Uint8Array(32).fill(2)),
-        minSelfDelegation: "2",
-        initialDelegation: { amount: "3", denom: "uscrt" },
+        min_self_delegation: "2",
+        initial_delegation: { amount: "3", denom: "uscrt" },
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1746,22 +1742,22 @@ describe("tx.staking", () => {
       console.error(txCreateValidator.rawLog);
     }
     expect(txCreateValidator.code).toBe(TxResultCode.Success);
-    const validatorAddress = getValueFromRawLog(
+    const validator_address = getValueFromRawLog(
       txCreateValidator.rawLog,
       "create_validator.validator",
     );
 
     const tx = await secretjs.tx.staking.editValidator(
       {
-        validatorAddress,
+        validator_address,
         description: {
           moniker: "papaya",
           identity: "banana",
           website: "com.watermelon",
-          securityContact: "as@com.com",
+          security_contact: "as@com.com",
           details: "We are the banana papaya validator yay!",
         },
-        minSelfDelegation: "3",
+        min_self_delegation: "3",
         // commissionRate: 0.04, // commission cannot be changed more than once in 24h
       },
       {
@@ -1779,7 +1775,7 @@ describe("tx.staking", () => {
     });
 
     const validator = validators!.find(
-      (v) => v.operator_address === validatorAddress,
+      (v) => v.operator_address === validator_address,
     )!;
 
     expect(validator).toBeTruthy();
@@ -1796,22 +1792,22 @@ describe("tx.staking", () => {
   test("MsgBeginRedelegate", async () => {
     const txCreate = await accounts[3].secretjs.tx.staking.createValidator(
       {
-        selfDelegatorAddress: accounts[3].address,
+        delegator_address: accounts[3].address,
         commission: {
-          maxChangeRate: 0.01,
-          maxRate: 0.1,
+          max_change_rate: 0.01,
+          max_rate: 0.1,
           rate: 0.05,
         },
         description: {
           moniker: "banana",
           identity: "papaya",
           website: "watermelon.com",
-          securityContact: "info@watermelon.com",
+          security_contact: "info@watermelon.com",
           details: "We are the banana papaya validator",
         },
         pubkey: toBase64(new Uint8Array(32).fill(3)),
-        minSelfDelegation: "2",
-        initialDelegation: { amount: "3", denom: "uscrt" },
+        min_self_delegation: "2",
+        initial_delegation: { amount: "3", denom: "uscrt" },
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1829,8 +1825,8 @@ describe("tx.staking", () => {
 
     const txDelegate = await accounts[0].secretjs.tx.staking.delegate(
       {
-        delegatorAddress: accounts[0].address,
-        validatorAddress: validators![0].operator_address!,
+        delegator_address: accounts[0].address,
+        validator_address: validators![0].operator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1845,9 +1841,9 @@ describe("tx.staking", () => {
 
     const tx = await accounts[0].secretjs.tx.staking.beginRedelegate(
       {
-        delegatorAddress: accounts[0].address,
-        validatorSrcAddress: validators![0].operator_address!,
-        validatorDstAddress: validators![1].operator_address!,
+        delegator_address: accounts[0].address,
+        validator_src_address: validators![0].operator_address!,
+        validator_dst_address: validators![1].operator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1868,22 +1864,22 @@ describe("tx.slashing", () => {
 
     const txCreateValidator = await secretjs.tx.staking.createValidator(
       {
-        selfDelegatorAddress: accounts[4].address,
+        delegator_address: accounts[4].address,
         commission: {
-          maxChangeRate: 0.01,
-          maxRate: 0.1,
+          max_change_rate: 0.01,
+          max_rate: 0.1,
           rate: 0.05,
         },
         description: {
           moniker: "banana",
           identity: "papaya",
           website: "watermelon.com",
-          securityContact: "info@watermelon.com",
+          security_contact: "info@watermelon.com",
           details: "We are the banana papaya validator",
         },
         pubkey: toBase64(new Uint8Array(32).fill(4)),
-        minSelfDelegation: "2",
-        initialDelegation: { amount: "3", denom: "uscrt" },
+        min_self_delegation: "2",
+        initial_delegation: { amount: "3", denom: "uscrt" },
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1895,14 +1891,14 @@ describe("tx.slashing", () => {
     }
     expect(txCreateValidator.code).toBe(TxResultCode.Success);
 
-    const validatorAddr = getValueFromRawLog(
+    const validator_addr = getValueFromRawLog(
       txCreateValidator.rawLog,
       "create_validator.validator",
     );
 
     const txUnjail = await secretjs.tx.slashing.unjail(
       {
-        validatorAddr,
+        validator_addr,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1939,16 +1935,16 @@ describe("tx.distribution", () => {
   });
 
   test("MsgWithdrawDelegatorReward", async () => {
-    const { secretjs, address: delegatorAddress } = accounts[0];
+    const { secretjs, address: delegator_address } = accounts[0];
 
-    const [{ operator_address: validatorAddress }] = (
+    const [{ operator_address: validator_address }] = (
       await secretjs.query.staking.validators({ status: "" })
     ).validators!;
 
     const txDelegate = await secretjs.tx.staking.delegate(
       {
-        delegatorAddress,
-        validatorAddress: validatorAddress!,
+        delegator_address,
+        validator_address: validator_address!,
         amount: { amount: "1", denom: "uscrt" },
       },
       {
@@ -1963,8 +1959,8 @@ describe("tx.distribution", () => {
 
     const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
       {
-        delegatorAddress,
-        validatorAddress: validatorAddress!,
+        delegator_address,
+        validator_address: validator_address!,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1995,7 +1991,7 @@ describe("tx.distribution", () => {
     const tx =
       await selfDelegatorAccount.secretjs.tx.distribution.withdrawValidatorCommission(
         {
-          validatorAddress: onlineValidator.operator_address!,
+          validator_address: onlineValidator.operator_address!,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2029,8 +2025,8 @@ describe("tx.distribution", () => {
     const tx =
       await selfDelegatorAccount.secretjs.tx.distribution.setWithdrawAddress(
         {
-          delegatorAddress: selfDelegatorAccount.address,
-          withdrawAddress: notSelfDelegatorAccount.address,
+          delegator_address: selfDelegatorAccount.address,
+          withdraw_address: notSelfDelegatorAccount.address,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2081,7 +2077,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
       },
     });
 
@@ -2105,7 +2101,7 @@ describe("tx.feegrant", () => {
       {
         proposer: secretjsGrantee.address,
         type: ProposalType.TextProposal,
-        initialDeposit: [],
+        initial_deposit: [],
         content: {
           title: "Test Feegrant",
           description: "YOLO",
@@ -2131,7 +2127,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
       },
     });
 
@@ -2158,7 +2154,7 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[1];
       const { secretjs: secretjsGrantee } = accounts[2];
 
-      const [{ operator_address: validatorAddress }] = (
+      const [{ operator_address: validator_address }] = (
         await secretjsGranter.query.staking.validators({ status: "" })
       ).validators!;
 
@@ -2167,10 +2163,10 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress!],
-            denyList: [],
-            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
-            authorizationType: StakeAuthorizationType.Delegate,
+            allow_list: [validator_address!],
+            deny_list: [],
+            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2194,7 +2190,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2239,7 +2235,7 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[4];
       const { secretjs: secretjsGrantee } = accounts[5];
 
-      const [{ operator_address: validatorAddress }] = (
+      const [{ operator_address: validator_address }] = (
         await secretjsGranter.query.staking.validators({ status: "" })
       ).validators!;
 
@@ -2248,10 +2244,10 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress!],
-            denyList: [],
-            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
-            authorizationType: StakeAuthorizationType.Delegate,
+            allow_list: [validator_address!],
+            deny_list: [],
+            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2274,8 +2270,8 @@ describe("tx.authz", () => {
                 amount: "1",
                 denom: "uscrt",
               },
-              delegatorAddress: secretjsGranter.address,
-              validatorAddress: validatorAddress!,
+              delegator_address: secretjsGranter.address,
+              validator_address: validator_address!,
             }),
           ],
         },
@@ -2299,7 +2295,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2318,8 +2314,8 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgSend({
-              fromAddress: secretjsGranter.address,
-              toAddress: secretjsGranter.address,
+              from_address: secretjsGranter.address,
+              to_address: secretjsGranter.address,
               amount: [
                 {
                   amount: "1",
@@ -2368,8 +2364,8 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgSend({
-              fromAddress: secretjsGranter.address,
-              toAddress: secretjsGranter.address,
+              from_address: secretjsGranter.address,
+              to_address: secretjsGranter.address,
               amount: [
                 {
                   amount: "1",
@@ -2396,7 +2392,7 @@ describe("tx.authz", () => {
       const { secretjs: secretjsGranter } = accounts[7];
       const { secretjs: secretjsGrantee } = accounts[8];
 
-      const [{ operator_address: validatorAddress }] = (
+      const [{ operator_address: validator_address }] = (
         await secretjsGranter.query.staking.validators({ status: "" })
       ).validators!;
 
@@ -2405,10 +2401,10 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            allowList: [validatorAddress!],
-            denyList: [],
-            maxTokens: { amount: String(1_000_000), denom: "uscrt" },
-            authorizationType: StakeAuthorizationType.Delegate,
+            allow_list: [validator_address!],
+            deny_list: [],
+            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2447,8 +2443,8 @@ describe("tx.authz", () => {
                 amount: "1",
                 denom: "uscrt",
               },
-              delegatorAddress: secretjsGranter.address,
-              validatorAddress: validatorAddress!,
+              delegator_address: secretjsGranter.address,
+              validator_address: validator_address!,
             }),
           ],
         },
@@ -2472,7 +2468,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spendLimit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2507,8 +2503,8 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgSend({
-              fromAddress: secretjsGranter.address,
-              toAddress: secretjsGranter.address,
+              from_address: secretjsGranter.address,
+              to_address: secretjsGranter.address,
               amount: [
                 {
                   amount: "1",
@@ -2573,8 +2569,8 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgSend({
-              fromAddress: secretjsGranter.address,
-              toAddress: secretjsGranter.address,
+              from_address: secretjsGranter.address,
+              to_address: secretjsGranter.address,
               amount: [
                 {
                   amount: "1",
@@ -2693,7 +2689,7 @@ test("MetaMaskWallet", async () => {
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
+      wasm_byte_code: fs.readFileSync(
         `${__dirname}/snip20-ibc.wasm.gz`,
       ) as Uint8Array,
       source: "",
@@ -2709,7 +2705,7 @@ test("MetaMaskWallet", async () => {
   }
   expect(txStore.code).toBe(TxResultCode.Success);
 
-  const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).codeId;
+  const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).code_id;
   expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 
   const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
@@ -2719,9 +2715,9 @@ test("MetaMaskWallet", async () => {
   const tx = await secretjs.tx.compute.instantiateContract(
     {
       sender: accounts[0].address,
-      codeId: code_id,
-      codeHash: code_hash,
-      initMsg: {
+      code_id: code_id,
+      code_hash: code_hash,
+      init_msg: {
         name: "Secret SCRT",
         admin: accounts[0].address,
         symbol: "SSCRT",
@@ -2738,7 +2734,7 @@ test("MetaMaskWallet", async () => {
         supported_denoms: ["uscrt"],
       },
       label: `label-${Date.now()}`,
-      initFunds: [],
+      init_funds: [],
     },
     {
       broadcastCheckIntervalMs: 100,

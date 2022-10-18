@@ -25,12 +25,12 @@ import {
 
 export type QueryContractRequest<T> = {
   /** The address of the contract */
-  contractAddress: string;
+  contract_address: string;
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * code_hash is an optional parameter but using it will result in way faster execution time.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -38,7 +38,7 @@ export type QueryContractRequest<T> = {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash?: string;
+  code_hash?: string;
   /** A JSON object that will be passed to the contract as a query */
   query: T;
 };
@@ -164,7 +164,11 @@ export class ComputeQuerier {
    * May return a string on error.
    */
   async queryContract<T extends object, R extends any>(
-    { contractAddress, codeHash, query }: QueryContractRequest<T>,
+    {
+      contract_address: contractAddress,
+      code_hash: codeHash,
+      query,
+    }: QueryContractRequest<T>,
     headers?: HeadersInit,
   ): Promise<R> {
     if (!codeHash) {

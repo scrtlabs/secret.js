@@ -68,7 +68,7 @@ export async function storeContract(
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: account.address,
-      wasmByteCode: fs.readFileSync(wasmPath) as Uint8Array,
+      wasm_byte_code: fs.readFileSync(wasmPath) as Uint8Array,
       source: "",
       builder: "",
     },
@@ -85,24 +85,24 @@ export async function storeContract(
 }
 
 export async function initContract(
-  codeId: number,
-  initMsg: object,
+  code_id: number,
+  init_msg: object,
   account: Account,
   label?: string,
 ): Promise<string> {
   const secretjs = account.secretjs;
   const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
-    code_id: String(codeId),
+    code_id: String(code_id),
   });
 
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
       sender: account.address,
-      codeId,
-      codeHash: code_hash,
-      initMsg,
+      code_id,
+      code_hash,
+      init_msg,
       label: label || `label-${Date.now()}`,
-      initFunds: [],
+      init_funds: [],
     },
     {
       gasLimit: 5_000_000,

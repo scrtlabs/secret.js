@@ -1,9 +1,10 @@
 import { MsgParams } from ".";
+import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgSubmitEvidenceParams extends MsgParams {
   submitter: string;
-  evidence: import("../protobuf/google/protobuf/any").Any;
+  evidence: Any;
 }
 
 /**

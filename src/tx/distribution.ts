@@ -2,8 +2,8 @@ import { Coin, MsgParams } from ".";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgSetWithdrawAddressParams extends MsgParams {
-  delegatorAddress: string;
-  withdrawAddress: string;
+  delegator_address: string;
+  withdraw_address: string;
 }
 
 /**
@@ -11,40 +11,23 @@ export interface MsgSetWithdrawAddressParams extends MsgParams {
  * a delegator (or validator self-delegation).
  */
 export class MsgSetWithdrawAddress implements Msg {
-  public delegatorAddress: string;
-  public withdrawAddress: string;
-
-  constructor({
-    delegatorAddress,
-    withdrawAddress,
-  }: MsgSetWithdrawAddressParams) {
-    this.delegatorAddress = delegatorAddress;
-    this.withdrawAddress = withdrawAddress;
-  }
+  constructor(public params: MsgSetWithdrawAddressParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      delegatorAddress: this.delegatorAddress,
-      withdrawAddress: this.withdrawAddress,
-    };
-
     return {
-      typeUrl: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
-      value: msgContent,
+      type_url: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
+      value: this.params,
       encode: async () =>
         (
           await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgSetWithdrawAddress.encode(msgContent).finish(),
+        ).MsgSetWithdrawAddress.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgModifyWithdrawAddress", // wtf
-      value: {
-        delegator_address: this.delegatorAddress,
-        withdraw_address: this.withdrawAddress,
-      },
+      value: this.params,
     };
   }
 }
@@ -55,8 +38,8 @@ export { MsgSetWithdrawAddress as MsgModifyWithdrawAddress };
 export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
 
 export interface MsgWithdrawDelegatorRewardParams extends MsgParams {
-  delegatorAddress: string;
-  validatorAddress: string;
+  delegator_address: string;
+  validator_address: string;
 }
 
 /**
@@ -64,46 +47,29 @@ export interface MsgWithdrawDelegatorRewardParams extends MsgParams {
  * from a single validator.
  */
 export class MsgWithdrawDelegatorReward implements Msg {
-  public delegatorAddress: string;
-  public validatorAddress: string;
-
-  constructor({
-    delegatorAddress,
-    validatorAddress,
-  }: MsgWithdrawDelegatorRewardParams) {
-    this.delegatorAddress = delegatorAddress;
-    this.validatorAddress = validatorAddress;
-  }
+  constructor(public params: MsgWithdrawDelegatorRewardParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      delegatorAddress: this.delegatorAddress,
-      validatorAddress: this.validatorAddress,
-    };
-
     return {
-      typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-      value: msgContent,
+      type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+      value: this.params,
       encode: async () =>
         (
           await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgWithdrawDelegatorReward.encode(msgContent).finish(),
+        ).MsgWithdrawDelegatorReward.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgWithdrawDelegationReward", // wtf
-      value: {
-        delegator_address: this.delegatorAddress,
-        validator_address: this.validatorAddress,
-      },
+      value: this.params,
     };
   }
 }
 
 export interface MsgWithdrawValidatorCommissionParams extends MsgParams {
-  validatorAddress: string;
+  validator_address: string;
 }
 
 /**
@@ -111,33 +77,23 @@ export interface MsgWithdrawValidatorCommissionParams extends MsgParams {
  * address.
  */
 export class MsgWithdrawValidatorCommission implements Msg {
-  public validatorAddress: string;
-
-  constructor({ validatorAddress }: MsgWithdrawValidatorCommissionParams) {
-    this.validatorAddress = validatorAddress;
-  }
+  constructor(public params: MsgWithdrawValidatorCommissionParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      validatorAddress: this.validatorAddress,
-    };
-
     return {
-      typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
-      value: msgContent,
+      type_url: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
+      value: this.params,
       encode: async () =>
         (
           await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgWithdrawValidatorCommission.encode(msgContent).finish(),
+        ).MsgWithdrawValidatorCommission.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgWithdrawValidatorCommission",
-      value: {
-        validator_address: this.validatorAddress,
-      },
+      value: this.params,
     };
   }
 }
@@ -152,37 +108,23 @@ export interface MsgFundCommunityPoolParams extends MsgParams {
  * fund the community pool.
  */
 export class MsgFundCommunityPool implements Msg {
-  public depositor: string;
-  public amount: Coin[];
-
-  constructor({ depositor, amount }: MsgFundCommunityPoolParams) {
-    this.depositor = depositor;
-    this.amount = amount;
-  }
+  constructor(public params: MsgFundCommunityPoolParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      depositor: this.depositor,
-      amount: this.amount,
-    };
-
     return {
-      typeUrl: "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
-      value: msgContent,
+      type_url: "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
+      value: this.params,
       encode: async () =>
         (
           await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgFundCommunityPool.encode(msgContent).finish(),
+        ).MsgFundCommunityPool.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgFundCommunityPool",
-      value: {
-        depositor: this.depositor,
-        amount: this.amount,
-      },
+      value: this.params,
     };
   }
 }

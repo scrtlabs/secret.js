@@ -3,8 +3,8 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgVerifyInvariantParams extends MsgParams {
   sender: string;
-  invariantModuleName: string;
-  invariantRoute: string;
+  invariant_module_name: string;
+  invariant_route: string;
 }
 
 /** MsgVerifyInvariant represents a message to verify a particular invariance. */
@@ -13,7 +13,7 @@ export class MsgVerifyInvariant implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      typeUrl: "/cosmos.crisis.v1beta1.MsgVerifyInvariant",
+      type_url: "/cosmos.crisis.v1beta1.MsgVerifyInvariant",
       value: this.params,
       encode: async () =>
         (
@@ -27,8 +27,8 @@ export class MsgVerifyInvariant implements Msg {
       type: "cosmos-sdk/MsgVerifyInvariant",
       value: {
         sender: this.params.sender || undefined,
-        invariant_module_name: this.params.invariantModuleName || undefined,
-        invariant_route: this.params.invariantRoute || undefined,
+        invariant_module_name: this.params.invariant_module_name || undefined,
+        invariant_route: this.params.invariant_route || undefined,
       },
     };
   }
