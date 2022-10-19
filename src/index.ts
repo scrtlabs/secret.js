@@ -17,3 +17,8 @@ export * from "./extensions/snip20";
 export * from "./extensions/snip721";
 export * from "./extensions/access_control";
 export { grpc } from "@improbable-eng/grpc-web";
+export {
+  MsgStoreCodeResponse,
+  MsgInstantiateContractResponse,
+  MsgExecuteContractResponse,
+} from "./protobuf_stuff/secret/compute/v1beta1/msg";
