@@ -74,33 +74,64 @@ import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 import {
   MsgCreateViewingKey,
-  MsgSetViewingKey
+  MsgSetViewingKey,
 } from "./extensions/access_control/viewing_key/msgs";
 import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   CreateViewingKeyContractParams,
-  SetViewingKeyContractParams
+  SetViewingKeyContractParams,
 } from "./extensions/access_control/viewing_key/params";
-import { MsgSnip1155CurateTokens, MsgSnip1155Mint, MsgSnip1155Send, MsgSnip1155Transfer, MsgSnipAddMinter } from "./extensions/snip1155/tx";
-import { Snip1155AddMinterOptions, Snip1155CurateTokensOptions, Snip1155MintTokensOptions, Snip1155SendOptions, Snip1155TransferOptions } from "./extensions/snip1155/types";
+import { Snip1155Querier } from "./extensions/snip1155/query";
+import {
+  MsgSnip1155AddCurator,
+  MsgSnip1155BatchSend,
+  MsgSnip1155BatchTransfer,
+  MsgSnip1155Burn,
+  MsgSnip1155ChangeAdmin,
+  MsgSnip1155ChangeMetadata,
+  MsgSnip1155CurateTokens,
+  MsgSnip1155Mint,
+  MsgSnip1155RemoveAdmin,
+  MsgSnip1155RemoveCurator,
+  MsgSnip1155RemoveMinter,
+  MsgSnip1155Send,
+  MsgSnip1155Transfer,
+  MsgSnipAddMinter,
+} from "./extensions/snip1155/tx";
+import {
+  Snip1155AddCuratorOptions,
+  Snip1155AddMinterOptions,
+  Snip1155BatchSendOptions,
+  Snip1155BatchTransferOptions,
+  Snip1155BurnTokensOptions,
+  Snip1155ChangeAdminOptions,
+  Snip1155ChangeMetaDataOptions,
+  Snip1155CurateTokensOptions,
+  Snip1155MintTokensOptions,
+  Snip1155RemoveAdminOptions,
+  Snip1155RemoveCuratorOptions,
+  Snip1155RemoveMinterOptions,
+  Snip1155SendOptions,
+  Snip1155TransferOptions,
+} from "./extensions/snip1155/types";
 import {
   MsgSnip20DecreaseAllowance,
   MsgSnip20IncreaseAllowance,
   MsgSnip20Send,
   MsgSnip20Transfer,
-  Snip20Querier
+  Snip20Querier,
 } from "./extensions/snip20";
 import {
   Snip20DecreaseAllowanceOptions,
   Snip20IncreaseAllowanceOptions,
   Snip20SendOptions,
-  Snip20TransferOptions
+  Snip20TransferOptions,
 } from "./extensions/snip20/types";
 import { MsgSnip721Send, Snip721Querier } from "./extensions/snip721";
 import {
   Snip721AddMinterOptions,
   Snip721MintOptions,
-  Snip721SendOptions
+  Snip721SendOptions,
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import {
@@ -149,7 +180,7 @@ import {
   Pubkey,
   Signer,
   StdFee,
-  StdSignDoc
+  StdSignDoc,
 } from "./wallet_amino";
 import {RaAuthenticate} from "./tx/registration";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
@@ -303,6 +334,7 @@ export type Querier = {
   compute: ComputeQuerier;
   snip20: Snip20Querier;
   snip721: Snip721Querier;
+  snip1155: Snip1155Querier;
   distribution: DistributionQuerier;
   evidence: EvidenceQuerier;
   feegrant: FeegrantQuerier;
@@ -505,11 +537,34 @@ export type TxSender = {
   };
 
   snip1155: {
-    send: SingleMsgTx<MsgExecuteContractParams<Snip1155SendOptions>>;
-    transfer: SingleMsgTx<MsgExecuteContractParams<Snip1155TransferOptions>>;
-    mint:SingleMsgTx<MsgExecuteContractParams<Snip1155MintTokensOptions>>;
+    changeAdmin: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155ChangeAdminOptions>
+    >;
+    removeAdmin: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveAdminOptions>
+    >;
+    addCurator: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155AddCuratorOptions>
+    >;
+    removeCurator: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveCuratorOptions>
+    >;
     addMinter: SingleMsgTx<MsgExecuteContractParams<Snip1155AddMinterOptions>>;
-    curate:SingleMsgTx<MsgExecuteContractParams<Snip1155CurateTokensOptions>>;
+    removeMinter: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveMinterOptions>
+    >;
+    send: SingleMsgTx<MsgExecuteContractParams<Snip1155SendOptions>>;
+    batchSend: SingleMsgTx<MsgExecuteContractParams<Snip1155BatchSendOptions>>;
+    transfer: SingleMsgTx<MsgExecuteContractParams<Snip1155TransferOptions>>;
+    batchTransfer: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155BatchTransferOptions>
+    >;
+    curate: SingleMsgTx<MsgExecuteContractParams<Snip1155CurateTokensOptions>>;
+    mint: SingleMsgTx<MsgExecuteContractParams<Snip1155MintTokensOptions>>;
+    burn: SingleMsgTx<MsgExecuteContractParams<Snip1155BurnTokensOptions>>;
+    changeMetaData: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155ChangeMetaDataOptions>
+    >;
     setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
     createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
   };
@@ -659,6 +714,7 @@ export class SecretNetworkClient {
       compute: new ComputeQuerier(options.url),
       snip20: new Snip20Querier(options.url),
       snip721: new Snip721Querier(options.url),
+      snip1155: new Snip1155Querier(options.url),
       distribution: new DistributionQuerier(options.url),
       evidence: new EvidenceQuerier(options.url),
       feegrant: new FeegrantQuerier(options.url),
@@ -727,11 +783,20 @@ export class SecretNetworkClient {
       },
 
       snip1155: {
-        send: doMsg(MsgSnip1155Send),
-        mint: doMsg(MsgSnip1155Mint),
+        changeAdmin: doMsg(MsgSnip1155ChangeAdmin),
+        removeAdmin: doMsg(MsgSnip1155RemoveAdmin),
+        addCurator: doMsg(MsgSnip1155AddCurator),
+        removeCurator: doMsg(MsgSnip1155RemoveCurator),
         addMinter: doMsg(MsgSnipAddMinter),
-        curate: doMsg(MsgSnip1155CurateTokens),
+        removeMinter: doMsg(MsgSnip1155RemoveMinter),
+        send: doMsg(MsgSnip1155Send),
+        batchSend: doMsg(MsgSnip1155BatchSend),
         transfer: doMsg(MsgSnip1155Transfer),
+        batchTransfer: doMsg(MsgSnip1155BatchTransfer),
+        curate: doMsg(MsgSnip1155CurateTokens),
+        mint: doMsg(MsgSnip1155Mint),
+        burn: doMsg(MsgSnip1155Burn),
+        changeMetaData: doMsg(MsgSnip1155ChangeMetadata),
         setViewingKey: doMsg(MsgSetViewingKey),
         createViewingKey: doMsg(MsgCreateViewingKey),
       },
