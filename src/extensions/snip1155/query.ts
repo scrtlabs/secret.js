@@ -34,7 +34,7 @@ interface Auth {
 interface SecretContract {
   address: string;
   // switch this to optional after we enable automatic code hash
-  codeHash: string;
+  codeHash?: string;
 }
 
 export class Snip1155Querier extends ComputeQuerier {
