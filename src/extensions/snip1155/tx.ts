@@ -1,5 +1,6 @@
 import { MsgExecuteContract } from "../../tx";
 import {
+  Snip1155AddCuratorOptions,
   Snip1155AddMinterOptions,
   Snip1155BatchSendOptions,
   Snip1155BatchTransferOptions,
@@ -9,6 +10,7 @@ import {
   Snip1155CurateTokensOptions,
   Snip1155MintTokensOptions,
   Snip1155RemoveAdminOptions,
+  Snip1155RemoveCuratorOptions,
   Snip1155RemoveMinterOptions,
   Snip1155SendOptions,
 } from "./types";
