@@ -1,5 +1,5 @@
 import { Permit } from "../../access_control";
-import { Metadata, TokenConfig } from "../types/misc";
+import { Metadata, Snip1155TokenConfig } from "../types/misc";
 
 export type QueryPrivateTokenInfoWithViewingKey = {
   token_id_private_info: {
@@ -25,7 +25,7 @@ export type QueryPrivateTokenInfoResponse = {
       token_id: string;
       name: string;
       symbol: string;
-      token_config: TokenConfig;
+      token_config: Snip1155TokenConfig;
       public_metadata: Metadata;
       private_metadata: Metadata;
       curator: string;

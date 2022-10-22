@@ -1,4 +1,4 @@
-import { Metadata, TokenConfig } from "../types/misc";
+import { Metadata, Snip1155TokenConfig } from "../types/misc";
 
 export type QueryTokenIdPublicInfo = {
   token_id_public_info: {
@@ -12,7 +12,7 @@ export type QueryTokenIdPublicInfoResponse = {
       token_id: string;
       name: string;
       symbol: string;
-      token_config: TokenConfig;
+      token_config: Snip1155TokenConfig;
       public_metadata: Metadata;
       private_metadata: null;
       curator: string;

@@ -1,4 +1,4 @@
-export type NFTTokenConfig = {
+export type Snip1155NFTTokenConfig = {
   nft: {
     minters: string[];
     public_total_supply: boolean;
@@ -9,7 +9,7 @@ export type NFTTokenConfig = {
   };
 };
 
-export type FungibleTokenConfig = {
+export type Snip1155FungibleTokenConfig = {
   fungible: {
     minters: string[];
     decimals: number;
@@ -20,18 +20,20 @@ export type FungibleTokenConfig = {
   };
 };
 
-export type TokenConfig = NFTTokenConfig | FungibleTokenConfig;
+export type Snip1155TokenConfig =
+  | Snip1155NFTTokenConfig
+  | Snip1155FungibleTokenConfig;
 
 export type Metadata = {
   token_uri?: string;
   extension?: any;
 };
 
-export type TokenInfo = {
+export type Snip1155TokenInfo = {
   token_id: string;
   name: string;
   symbol: string;
-  token_config: TokenConfig;
+  token_config: Snip1155TokenConfig;
   public_metadata?: Metadata;
   private_metadata?: Metadata;
 };
@@ -41,15 +43,15 @@ export type Balance = {
   amount: string;
 };
 
-export type InitalTokens = {
-  token_info: TokenInfo[];
+export type Snip1155InitalToken = {
+  token_info: Snip1155TokenInfo;
   balances: Balance[];
 };
 
-export type InitMessage = {
+export type Snip1155InitMessageOptions = {
   has_admin: boolean;
   admin?: string;
   curators: string[];
-  initial_tokens: InitalTokens[];
+  initial_tokens: Snip1155InitalToken[];
   entropy: string;
 };
