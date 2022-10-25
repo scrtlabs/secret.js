@@ -2,6 +2,8 @@ import {
   Query,
   QueryAllowanceRequest,
   QueryAllowanceResponse,
+  QueryAllowancesByGranterRequest,
+  QueryAllowancesByGranterResponse,
   QueryAllowancesRequest,
   QueryAllowancesResponse,
 } from "../grpc_gateway/cosmos/feegrant/v1beta1/query.pb";
@@ -24,6 +26,16 @@ export class FeegrantQuerier {
     headers?: HeadersInit,
   ): Promise<QueryAllowancesResponse> {
     return Query.Allowances(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  allowancesByGranter(
+    req: QueryAllowancesByGranterRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryAllowancesByGranterResponse> {
+    return Query.AllowancesByGranter(req, {
       headers,
       pathPrefix: this.url,
     });

@@ -11,7 +11,7 @@ import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
 import { Empty } from "../grpc_gateway/google/protobuf/empty.pb";
 import {
   Query,
-  QueryByCodeIDRequest,
+  QueryByCodeIdRequest,
   QueryByContractAddressRequest,
   QueryByLabelRequest,
   QueryCodeHashResponse,
@@ -20,7 +20,7 @@ import {
   QueryContractAddressResponse,
   QueryContractInfoResponse,
   QueryContractLabelResponse,
-  QueryContractsByCodeIDResponse,
+  QueryContractsByCodeIdResponse,
 } from "../grpc_gateway/secret/compute/v1beta1/query.pb";
 
 export type QueryContractRequest<T> = {
@@ -63,17 +63,17 @@ export class ComputeQuerier {
   }
 
   contractsByCodeID(
-    req: QueryByCodeIDRequest,
+    req: QueryByCodeIdRequest,
     headers?: HeadersInit,
-  ): Promise<QueryContractsByCodeIDResponse> {
-    return Query.ContractsByCodeID(req, {
+  ): Promise<QueryContractsByCodeIdResponse> {
+    return Query.ContractsByCodeId(req, {
       headers,
       pathPrefix: this.url,
     });
   }
 
   code(
-    req: QueryByCodeIDRequest,
+    req: QueryByCodeIdRequest,
     headers?: HeadersInit,
   ): Promise<QueryCodeResponse> {
     return Query.Code(req, {
@@ -108,29 +108,18 @@ export class ComputeQuerier {
   }
 
   async codeHashByCodeID(
-    req: QueryByCodeIDRequest,
+    req: QueryByCodeIdRequest,
     headers?: HeadersInit,
   ): Promise<QueryCodeHashResponse> {
     let code_hash = this.codeHashCache.get(req.code_id!);
 
     if (!code_hash) {
-      // TODO fix this after 1.5 when CodeHashByCodeID is fixed
-      const res = await Query.ContractsByCodeID(
+      ({ code_hash } = await Query.CodeHashByCodeId(
         { code_id: req.code_id },
         {
           headers,
           pathPrefix: this.url,
         },
-      );
-      const contract_address = res.contract_infos?.find(
-        (x) => x.contract_address,
-      )?.contract_address!;
-
-      ({ code_hash } = await this.codeHashByContractAddress(
-        {
-          contract_address,
-        },
-        headers,
       ));
 
       this.codeHashCache.set(req.code_id!, code_hash!);

@@ -22,7 +22,7 @@ export interface QueryByContractAddressRequest {
   contract_address: string;
 }
 
-export interface QueryByCodeIDRequest {
+export interface QueryByCodeIdRequest {
   code_id: string;
 }
 
@@ -44,7 +44,7 @@ export interface ContractInfoWithAddress {
   ContractInfo?: ContractInfo;
 }
 
-export interface QueryContractsByCodeIDResponse {
+export interface QueryContractsByCodeIdResponse {
   contract_infos: ContractInfoWithAddress[];
 }
 
@@ -282,13 +282,13 @@ export const QueryByContractAddressRequest = {
   },
 };
 
-function createBaseQueryByCodeIDRequest(): QueryByCodeIDRequest {
+function createBaseQueryByCodeIdRequest(): QueryByCodeIdRequest {
   return { code_id: "0" };
 }
 
-export const QueryByCodeIDRequest = {
+export const QueryByCodeIdRequest = {
   encode(
-    message: QueryByCodeIDRequest,
+    message: QueryByCodeIdRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     if (message.code_id !== "0") {
@@ -300,10 +300,10 @@ export const QueryByCodeIDRequest = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): QueryByCodeIDRequest {
+  ): QueryByCodeIdRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryByCodeIDRequest();
+    const message = createBaseQueryByCodeIdRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -318,22 +318,22 @@ export const QueryByCodeIDRequest = {
     return message;
   },
 
-  fromJSON(object: any): QueryByCodeIDRequest {
+  fromJSON(object: any): QueryByCodeIdRequest {
     return {
       code_id: isSet(object.code_id) ? String(object.code_id) : "0",
     };
   },
 
-  toJSON(message: QueryByCodeIDRequest): unknown {
+  toJSON(message: QueryByCodeIdRequest): unknown {
     const obj: any = {};
     message.code_id !== undefined && (obj.code_id = message.code_id);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryByCodeIDRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryByCodeIdRequest>, I>>(
     object: I,
-  ): QueryByCodeIDRequest {
-    const message = createBaseQueryByCodeIDRequest();
+  ): QueryByCodeIdRequest {
+    const message = createBaseQueryByCodeIdRequest();
     message.code_id = object.code_id ?? "0";
     return message;
   },
@@ -561,13 +561,13 @@ export const ContractInfoWithAddress = {
   },
 };
 
-function createBaseQueryContractsByCodeIDResponse(): QueryContractsByCodeIDResponse {
+function createBaseQueryContractsByCodeIdResponse(): QueryContractsByCodeIdResponse {
   return { contract_infos: [] };
 }
 
-export const QueryContractsByCodeIDResponse = {
+export const QueryContractsByCodeIdResponse = {
   encode(
-    message: QueryContractsByCodeIDResponse,
+    message: QueryContractsByCodeIdResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     for (const v of message.contract_infos) {
@@ -579,10 +579,10 @@ export const QueryContractsByCodeIDResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): QueryContractsByCodeIDResponse {
+  ): QueryContractsByCodeIdResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryContractsByCodeIDResponse();
+    const message = createBaseQueryContractsByCodeIdResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -599,7 +599,7 @@ export const QueryContractsByCodeIDResponse = {
     return message;
   },
 
-  fromJSON(object: any): QueryContractsByCodeIDResponse {
+  fromJSON(object: any): QueryContractsByCodeIdResponse {
     return {
       contract_infos: Array.isArray(object?.contract_infos)
         ? object.contract_infos.map((e: any) =>
@@ -609,7 +609,7 @@ export const QueryContractsByCodeIDResponse = {
     };
   },
 
-  toJSON(message: QueryContractsByCodeIDResponse): unknown {
+  toJSON(message: QueryContractsByCodeIdResponse): unknown {
     const obj: any = {};
     if (message.contract_infos) {
       obj.contract_infos = message.contract_infos.map((e) =>
@@ -621,10 +621,10 @@ export const QueryContractsByCodeIDResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryContractsByCodeIDResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryContractsByCodeIdResponse>, I>>(
     object: I,
-  ): QueryContractsByCodeIDResponse {
-    const message = createBaseQueryContractsByCodeIDResponse();
+  ): QueryContractsByCodeIdResponse {
+    const message = createBaseQueryContractsByCodeIdResponse();
     message.contract_infos =
       object.contract_infos?.map((e) =>
         ContractInfoWithAddress.fromPartial(e),
@@ -1243,15 +1243,15 @@ export interface Query {
     request: QueryByContractAddressRequest,
   ): Promise<QueryContractInfoResponse>;
   /** Query code info by id */
-  ContractsByCodeID(
-    request: QueryByCodeIDRequest,
-  ): Promise<QueryContractsByCodeIDResponse>;
+  ContractsByCodeId(
+    request: QueryByCodeIdRequest,
+  ): Promise<QueryContractsByCodeIdResponse>;
   /** Query secret contract */
   QuerySecretContract(
     request: QuerySecretContractRequest,
   ): Promise<QuerySecretContractResponse>;
   /** Query a specific contract code by id */
-  Code(request: QueryByCodeIDRequest): Promise<QueryCodeResponse>;
+  Code(request: QueryByCodeIdRequest): Promise<QueryCodeResponse>;
   /** Query all contract codes on-chain */
   Codes(request: Empty): Promise<QueryCodesResponse>;
   /** Query code hash by contract address */
@@ -1259,8 +1259,8 @@ export interface Query {
     request: QueryByContractAddressRequest,
   ): Promise<QueryCodeHashResponse>;
   /** Query code hash by code id */
-  CodeHashByCodeID(
-    request: QueryByCodeIDRequest,
+  CodeHashByCodeId(
+    request: QueryByCodeIdRequest,
   ): Promise<QueryCodeHashResponse>;
   /** Query contract label by address */
   LabelByAddress(
@@ -1277,12 +1277,12 @@ export class QueryClientImpl implements Query {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.ContractInfo = this.ContractInfo.bind(this);
-    this.ContractsByCodeID = this.ContractsByCodeID.bind(this);
+    this.ContractsByCodeId = this.ContractsByCodeId.bind(this);
     this.QuerySecretContract = this.QuerySecretContract.bind(this);
     this.Code = this.Code.bind(this);
     this.Codes = this.Codes.bind(this);
     this.CodeHashByContractAddress = this.CodeHashByContractAddress.bind(this);
-    this.CodeHashByCodeID = this.CodeHashByCodeID.bind(this);
+    this.CodeHashByCodeId = this.CodeHashByCodeId.bind(this);
     this.LabelByAddress = this.LabelByAddress.bind(this);
     this.AddressByLabel = this.AddressByLabel.bind(this);
   }
@@ -1300,17 +1300,17 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  ContractsByCodeID(
-    request: QueryByCodeIDRequest,
-  ): Promise<QueryContractsByCodeIDResponse> {
-    const data = QueryByCodeIDRequest.encode(request).finish();
+  ContractsByCodeId(
+    request: QueryByCodeIdRequest,
+  ): Promise<QueryContractsByCodeIdResponse> {
+    const data = QueryByCodeIdRequest.encode(request).finish();
     const promise = this.rpc.request(
       "secret.compute.v1beta1.Query",
-      "ContractsByCodeID",
+      "ContractsByCodeId",
       data,
     );
     return promise.then((data) =>
-      QueryContractsByCodeIDResponse.decode(new _m0.Reader(data)),
+      QueryContractsByCodeIdResponse.decode(new _m0.Reader(data)),
     );
   }
 
@@ -1328,8 +1328,8 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  Code(request: QueryByCodeIDRequest): Promise<QueryCodeResponse> {
-    const data = QueryByCodeIDRequest.encode(request).finish();
+  Code(request: QueryByCodeIdRequest): Promise<QueryCodeResponse> {
+    const data = QueryByCodeIdRequest.encode(request).finish();
     const promise = this.rpc.request(
       "secret.compute.v1beta1.Query",
       "Code",
@@ -1366,13 +1366,13 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  CodeHashByCodeID(
-    request: QueryByCodeIDRequest,
+  CodeHashByCodeId(
+    request: QueryByCodeIdRequest,
   ): Promise<QueryCodeHashResponse> {
-    const data = QueryByCodeIDRequest.encode(request).finish();
+    const data = QueryByCodeIdRequest.encode(request).finish();
     const promise = this.rpc.request(
       "secret.compute.v1beta1.Query",
-      "CodeHashByCodeID",
+      "CodeHashByCodeId",
       data,
     );
     return promise.then((data) =>

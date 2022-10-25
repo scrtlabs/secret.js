@@ -21,7 +21,7 @@ export type QueryByContractAddressRequest = {
   contract_address?: string
 }
 
-export type QueryByCodeIDRequest = {
+export type QueryByCodeIdRequest = {
   code_id?: string
 }
 
@@ -39,7 +39,7 @@ export type ContractInfoWithAddress = {
   ContractInfo?: SecretComputeV1beta1Types.ContractInfo
 }
 
-export type QueryContractsByCodeIDResponse = {
+export type QueryContractsByCodeIdResponse = {
   contract_infos?: ContractInfoWithAddress[]
 }
 
@@ -90,23 +90,23 @@ export class Query {
   static ContractInfo(req: QueryByContractAddressRequest, initReq?: fm.InitReq): Promise<QueryContractInfoResponse> {
     return fm.fetchReq<QueryByContractAddressRequest, QueryContractInfoResponse>(`/compute/v1beta1/info/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
   }
-  static ContractsByCodeID(req: QueryByCodeIDRequest, initReq?: fm.InitReq): Promise<QueryContractsByCodeIDResponse> {
-    return fm.fetchReq<QueryByCodeIDRequest, QueryContractsByCodeIDResponse>(`/compute/v1beta1/contracts/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
+  static ContractsByCodeId(req: QueryByCodeIdRequest, initReq?: fm.InitReq): Promise<QueryContractsByCodeIdResponse> {
+    return fm.fetchReq<QueryByCodeIdRequest, QueryContractsByCodeIdResponse>(`/compute/v1beta1/contracts/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
   }
   static QuerySecretContract(req: QuerySecretContractRequest, initReq?: fm.InitReq): Promise<QuerySecretContractResponse> {
     return fm.fetchReq<QuerySecretContractRequest, QuerySecretContractResponse>(`/compute/v1beta1/query/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
   }
-  static Code(req: QueryByCodeIDRequest, initReq?: fm.InitReq): Promise<QueryCodeResponse> {
-    return fm.fetchReq<QueryByCodeIDRequest, QueryCodeResponse>(`/compute/v1beta1/code/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
+  static Code(req: QueryByCodeIdRequest, initReq?: fm.InitReq): Promise<QueryCodeResponse> {
+    return fm.fetchReq<QueryByCodeIdRequest, QueryCodeResponse>(`/compute/v1beta1/code/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
   }
   static Codes(req: GoogleProtobufEmpty.Empty, initReq?: fm.InitReq): Promise<QueryCodesResponse> {
     return fm.fetchReq<GoogleProtobufEmpty.Empty, QueryCodesResponse>(`/compute/v1beta1/codes?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CodeHashByContractAddress(req: QueryByContractAddressRequest, initReq?: fm.InitReq): Promise<QueryCodeHashResponse> {
-    return fm.fetchReq<QueryByContractAddressRequest, QueryCodeHashResponse>(`/compute/v1beta1/code_hash/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<QueryByContractAddressRequest, QueryCodeHashResponse>(`/compute/v1beta1/code_hash/by_contract_address/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
   }
-  static CodeHashByCodeID(req: QueryByCodeIDRequest, initReq?: fm.InitReq): Promise<QueryCodeHashResponse> {
-    return fm.fetchReq<QueryByCodeIDRequest, QueryCodeHashResponse>(`/compute/v1beta1/code_hash/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
+  static CodeHashByCodeId(req: QueryByCodeIdRequest, initReq?: fm.InitReq): Promise<QueryCodeHashResponse> {
+    return fm.fetchReq<QueryByCodeIdRequest, QueryCodeHashResponse>(`/compute/v1beta1/code_hash/by_code_id/${req["code_id"]}?${fm.renderURLSearchParams(req, ["code_id"])}`, {...initReq, method: "GET"})
   }
   static LabelByAddress(req: QueryByContractAddressRequest, initReq?: fm.InitReq): Promise<QueryContractLabelResponse> {
     return fm.fetchReq<QueryByContractAddressRequest, QueryContractLabelResponse>(`/compute/v1beta1/label/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
