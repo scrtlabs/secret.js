@@ -130,7 +130,7 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
-import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./tx";
+import { AminoMsg, Msg, MsgParams, MsgRegistry, ProtoMsg } from "./tx";
 import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
@@ -800,9 +800,8 @@ export class SecretNetworkClient {
     // Decoded input tx messages
     for (
       let i = 0;
-      (!isNaN(Number(tx?.body?.messages?.length)) &&
-        i < Number(tx?.body?.messages?.length)) ||
-      0;
+      !isNaN(Number(tx?.body?.messages?.length)) &&
+      i < Number(tx?.body?.messages?.length);
       i++
     ) {
       const msg: AnyJson = tx.body!.messages![i];
@@ -972,7 +971,7 @@ export class SecretNetworkClient {
       code: txResp.code!,
       codespace: txResp.codespace!,
       info: txResp.info!,
-      tx: tx,
+      tx,
       rawLog,
       jsonLog,
       arrayLog,
@@ -1010,7 +1009,6 @@ export class SecretNetworkClient {
     }
 
     let tx_response: TxResponsePb | undefined;
-    let tx: TxPb | undefined;
 
     if (mode === BroadcastMode.Block) {
       waitForCommit = true;
@@ -1032,9 +1030,9 @@ export class SecretNetworkClient {
         ));
       } catch (e) {
         if (
-          JSON.stringify(e).includes(
-            "timed out waiting for tx to be included in a block",
-          )
+          JSON.stringify(e)
+            .toLowerCase()
+            .includes("timed out waiting for tx to be included in a block")
         ) {
           isBroadcastTimedOut = true;
         } else {
@@ -1047,19 +1045,41 @@ export class SecretNetworkClient {
       }
 
       if (!isBroadcastTimedOut) {
-        for (let i = 0; i < 10; i++) {
-          const result = await this.getTx(txhash);
+        tx_response!.tx = (
+          await import("./protobuf/cosmos/tx/v1beta1/tx")
+        ).Tx.toJSON(
+          (await import("./protobuf/cosmos/tx/v1beta1/tx")).Tx.decode(txBytes),
+        ) as AnyJson;
 
-          if (result) {
-            return result;
+        const tx = tx_response!.tx as TxPb;
+
+        for (
+          let i = 0;
+          !isNaN(Number(tx.body?.messages?.length)) &&
+          i < Number(tx.body?.messages?.length);
+          i++
+        ) {
+          //@ts-ignore
+          let msg: { type_url: string; value: any } = tx.body!.messages![i];
+
+          const { type_url: msgType, value: msgBytes } = msg;
+
+          const msgDecoder = MsgRegistry.get(msgType);
+          if (!msgDecoder) {
+            continue;
           }
 
-          await sleep(20);
+          msg = {
+            type_url: msgType,
+            value: msgDecoder.decode(fromBase64(msgBytes)),
+          };
+
+          tx.body!.messages![i] = msg;
         }
 
-        throw new Error(
-          `Transaction ID ${txhash} broadcasted successfully but cannot be retrived.`,
-        );
+        tx_response!.tx = protobufJsonToGrpcGatewayJson(tx_response!.tx);
+
+        return await this.decodeTxResponse(tx_response!);
       }
     } else if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
@@ -1067,7 +1087,7 @@ export class SecretNetworkClient {
       );
 
       //@ts-ignore
-      ({ tx_response: tx_response } = await TxService.BroadcastTx(
+      ({ tx_response } = await TxService.BroadcastTx(
         {
           //@ts-ignore
           txBytes: toBase64(txBytes),
@@ -1686,4 +1706,37 @@ export enum TxResultCode {
 
   /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
   ErrPanic = 111222,
+}
+
+/**
+ * Recursively converts an object of type `{ type_url: string; value: any; }`
+ * to type `{ "@type": string; ...values }`
+ */
+function protobufJsonToGrpcGatewayJson(obj: any): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(protobufJsonToGrpcGatewayJson);
+  }
+
+  if (
+    Object.keys(obj).length === 2 &&
+    typeof obj["type_url"] === "string" &&
+    typeof obj["value"] === "object"
+  ) {
+    return Object.assign(
+      { "@type": obj["type_url"] },
+      protobufJsonToGrpcGatewayJson(obj["value"]),
+    );
+  }
+
+  const result: Record<string, any> = {};
+
+  Object.keys(obj).forEach((key) => {
+    result[key] = protobufJsonToGrpcGatewayJson(obj[key]);
+  });
+
+  return result;
 }
