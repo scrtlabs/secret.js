@@ -114,7 +114,7 @@ import {
 import { AuthQuerier } from "./query/auth";
 import { AuthzQuerier } from "./query/authz";
 import { BankQuerier } from "./query/bank";
-import { ComputeQuerier } from "./query/compute";
+import { bytesToAddress, ComputeQuerier } from "./query/compute";
 import { DistributionQuerier } from "./query/distribution";
 import { EvidenceQuerier } from "./query/evidence";
 import { FeegrantQuerier } from "./query/feegrant";
@@ -809,18 +809,29 @@ export class SecretNetworkClient {
       // Check if the message needs decryption
       let contractInputMsgFieldName = "";
       if (msg["@type"] === "/secret.compute.v1beta1.MsgInstantiateContract") {
-        contractInputMsgFieldName = "initMsg";
+        contractInputMsgFieldName = "init_msg";
+
+        //@ts-ignore
+        msg.sender = bytesToAddress(msg.sender);
       } else if (
         msg["@type"] === "/secret.compute.v1beta1.MsgExecuteContract"
       ) {
         contractInputMsgFieldName = "msg";
+
+        //@ts-ignore
+        msg.sender = bytesToAddress(msg.sender);
+        //@ts-ignore
+        msg.contract = bytesToAddress(msg.contract);
+      } else if (msg["@type"] === "/secret.compute.v1beta1.MsgStoreContract") {
+        //@ts-ignore
+        msg.sender = bytesToAddress(msg.sender);
       }
 
       if (contractInputMsgFieldName !== "") {
         // Encrypted, try to decrypt
         try {
-          const contractInputMsgBytes: Uint8Array = fromBase64(
-            msg[contractInputMsgFieldName],
+          const contractInputMsgBytes = Uint8Array.from(
+            Object.values<number>(msg[contractInputMsgFieldName]),
           );
 
           const nonce = contractInputMsgBytes.slice(0, 32);
@@ -929,7 +940,7 @@ export class SecretNetworkClient {
 
       const nonce = nonces[msgIndex];
       if (nonce && nonce.length === 32) {
-        // Check if the message needs decryption
+        // Check if the output data needs decryption
 
         try {
           const { "@type": type_url } = tx.body!.messages![msgIndex] as AnyJson;
