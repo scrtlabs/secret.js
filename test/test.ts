@@ -2041,6 +2041,8 @@ describe("tx.distribution", () => {
 });
 
 describe("sanity", () => {
+  test.skip("Every msg a decoder registered in the registry", async () => {});
+
   test.skip("Every msg has a Msg class", async () => {
     // TODO fix this test
 
@@ -2066,6 +2068,111 @@ describe("sanity", () => {
   });
 
   test.skip("All queries are implemented", async () => {});
+
+  test("Same tx.tx structure when broadcasting in block mode and when using getTx()", async () => {
+    const { secretjs } = accounts[0];
+
+    let tx = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasm_byte_code: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const storeTxBroadcast = tx.tx;
+    const storeTxGetTx = (await secretjs.query.getTx(tx.transactionHash))!.tx;
+
+    expect(storeTxGetTx).toStrictEqual(storeTxBroadcast);
+
+    const code_id = getValueFromRawLog(tx.rawLog, "message.code_id");
+
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+      code_id,
+    });
+
+    tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const initTxBroadcast = tx.tx;
+    const initTxGetTx = (await secretjs.query.getTx(tx.transactionHash))!.tx;
+
+    expect(initTxGetTx).toStrictEqual(initTxBroadcast);
+
+    const contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
+    ).address;
+
+    tx = await secretjs.tx.broadcast(
+      [
+        new MsgExecuteContract({
+          sender: secretjs.address,
+          contract_address,
+          msg: {
+            create_viewing_key: {
+              entropy: "bla bla",
+            },
+          },
+          code_hash,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const execTxBroadcast = tx.tx;
+    const execTxGetTx = (await secretjs.query.getTx(tx.transactionHash))!.tx;
+
+    expect(execTxGetTx).toStrictEqual(execTxBroadcast);
+  });
 });
 
 describe("tx.feegrant", () => {

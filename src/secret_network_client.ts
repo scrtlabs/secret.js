@@ -103,6 +103,7 @@ import {
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
 import {
   AuthInfo,
+  SignerInfo,
   TxBody as TxBodyPb,
   TxRaw,
 } from "./protobuf/cosmos/tx/v1beta1/tx";
@@ -144,6 +145,10 @@ import {
   StdSignDoc,
 } from "./wallet_amino";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
+import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
+import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
+import { resolve } from "path";
+import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
 
 (async () => {
   if (typeof fetch === "undefined") {
@@ -1053,6 +1058,54 @@ export class SecretNetworkClient {
 
         const tx = tx_response!.tx as TxPb;
 
+        const resolvePubkey = (pubkey: Any) => {
+          if (pubkey.type_url === "/cosmos.crypto.secp256k1.PubKey") {
+            return {
+              type_url: "/cosmos.crypto.secp256k1.PubKey",
+              value: Secp256k1PubkeyProto.toJSON(
+                Secp256k1PubkeyProto.decode(
+                  //@ts-ignore
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
+          }
+
+          if (pubkey.type_url === "/cosmos.crypto.secp256r1.PubKey") {
+            return {
+              type_url: "/cosmos.crypto.secp256r1.PubKey",
+              value: Secp256r1PubkeyProto.toJSON(
+                Secp256r1PubkeyProto.decode(
+                  //@ts-ignore
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
+          }
+
+          if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
+            const multisig = LegacyAminoPubKey.decode(
+              //@ts-ignore
+              fromBase64(pubkey.value),
+            );
+            for (let i = 0; i < multisig.public_keys.length; i++) {
+              //@ts-ignore
+              multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
+            }
+
+            return LegacyAminoPubKey.toJSON(multisig);
+          }
+
+          throw new Error(`unknown pubkey type '${pubkey.type_url}'`);
+        };
+
+        //@ts-ignore
+        tx.auth_info!.signer_infos! = tx.auth_info?.signer_infos?.map((si) => {
+          //@ts-ignore
+          si.public_key = resolvePubkey(si.public_key);
+          return si;
+        });
+
         for (
           let i = 0;
           !isNaN(Number(tx.body?.messages?.length)) &&
@@ -1079,15 +1132,15 @@ export class SecretNetworkClient {
           ) {
             msg.value.sender = bytesToAddress(msg.value.sender);
             msg.value.init_msg = toBase64(msg.value.init_msg);
+            msg.value.callback_sig = null;
           } else if (
             msg.type_url === "/secret.compute.v1beta1.MsgExecuteContract"
           ) {
             msg.value.sender = bytesToAddress(msg.value.sender);
             msg.value.contract = bytesToAddress(msg.value.contract);
             msg.value.msg = toBase64(msg.value.msg);
-          } else if (
-            msg.type_url === "/secret.compute.v1beta1.MsgStoreContract"
-          ) {
+            msg.value.callback_sig = null;
+          } else if (msg.type_url === "/secret.compute.v1beta1.MsgStoreCode") {
             msg.value.sender = bytesToAddress(msg.value.sender);
             msg.value.wasm_byte_code = toBase64(msg.value.wasm_byte_code);
           }
@@ -1095,7 +1148,10 @@ export class SecretNetworkClient {
           tx.body!.messages![i] = msg;
         }
 
-        tx_response!.tx = protobufJsonToGrpcGatewayJson(tx_response!.tx);
+        tx_response!.tx = {
+          "@type": "/cosmos.tx.v1beta1.Tx",
+          ...protobufJsonToGrpcGatewayJson(tx_response!.tx),
+        };
 
         return await this.decodeTxResponse(tx_response!);
       }
