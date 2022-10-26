@@ -80,7 +80,9 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     }
 
     const { key } = await Query.TxKey({}, { pathPrefix: this.url });
-    this.consensusIoPubKey = extractConsensusIoPubkey(key!);
+    this.consensusIoPubKey = extractConsensusIoPubkey(
+      fromBase64(key as unknown as string),
+    );
 
     return this.consensusIoPubKey;
   }
