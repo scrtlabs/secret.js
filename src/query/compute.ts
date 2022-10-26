@@ -185,7 +185,7 @@ export class ComputeQuerier {
       );
 
       const decryptedBase64Result = await this.encryption!.decrypt(
-        encryptedResult!,
+        fromBase64(encryptedResult as unknown as string)!,
         nonce,
       );
 
