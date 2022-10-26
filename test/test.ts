@@ -1908,7 +1908,7 @@ describe("tx.slashing", () => {
 
     // To jail a validator we have to be inactive for 10 minutes.
     // This is too much for a test, so getting to "validator not jailed"
-    // is far enough for to make sure that MsgUnjail goes through.
+    // is far enough to make sure that MsgUnjail goes through.
     expect(txUnjail.code).toBe(5);
     expect(txUnjail.rawLog).toContain("validator not jailed");
   });
