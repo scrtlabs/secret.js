@@ -810,28 +810,17 @@ export class SecretNetworkClient {
       let contractInputMsgFieldName = "";
       if (msg["@type"] === "/secret.compute.v1beta1.MsgInstantiateContract") {
         contractInputMsgFieldName = "init_msg";
-
-        //@ts-ignore
-        msg.sender = bytesToAddress(msg.sender);
       } else if (
         msg["@type"] === "/secret.compute.v1beta1.MsgExecuteContract"
       ) {
         contractInputMsgFieldName = "msg";
-
-        //@ts-ignore
-        msg.sender = bytesToAddress(msg.sender);
-        //@ts-ignore
-        msg.contract = bytesToAddress(msg.contract);
-      } else if (msg["@type"] === "/secret.compute.v1beta1.MsgStoreContract") {
-        //@ts-ignore
-        msg.sender = bytesToAddress(msg.sender);
       }
 
       if (contractInputMsgFieldName !== "") {
         // Encrypted, try to decrypt
         try {
-          const contractInputMsgBytes = Uint8Array.from(
-            Object.values<number>(msg[contractInputMsgFieldName]),
+          const contractInputMsgBytes = fromBase64(
+            msg[contractInputMsgFieldName],
           );
 
           const nonce = contractInputMsgBytes.slice(0, 32);
@@ -1084,6 +1073,24 @@ export class SecretNetworkClient {
             type_url: msgType,
             value: msgDecoder.decode(fromBase64(msgBytes)),
           };
+
+          if (
+            msg.type_url === "/secret.compute.v1beta1.MsgInstantiateContract"
+          ) {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.init_msg = toBase64(msg.value.init_msg);
+          } else if (
+            msg.type_url === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.contract = bytesToAddress(msg.value.contract);
+            msg.value.msg = toBase64(msg.value.msg);
+          } else if (
+            msg.type_url === "/secret.compute.v1beta1.MsgStoreContract"
+          ) {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.wasm_byte_code = toBase64(msg.value.wasm_byte_code);
+          }
 
           tx.body!.messages![i] = msg;
         }
