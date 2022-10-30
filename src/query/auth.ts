@@ -11,11 +11,13 @@ import {
   Query,
   QueryAccountRequest,
   QueryAccountsRequest,
+  QueryModuleAccountByNameResponse,
   QueryParamsRequest,
   QueryParamsResponse,
 } from "../grpc_gateway/cosmos/auth/v1beta1/query.pb";
 import { PageResponse } from "../grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 import { BaseVestingAccount } from "../grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
+import { QueryModuleAccountByNameRequest } from "../protobuf/cosmos/auth/v1beta1/query";
 
 export type Account = {
   "@type":
@@ -58,6 +60,17 @@ export class AuthQuerier {
     headers?: HeadersInit,
   ): Promise<QueryParamsResponse> {
     return Query.Params(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  async moduleAccountByName(
+    req: QueryModuleAccountByNameRequest,
+    headers?: HeadersInit,
+  ): Promise<{ account?: Account }> {
+    //@ts-ignore
+    return Query.ModuleAccountByName(req, {
       headers,
       pathPrefix: this.url,
     });
