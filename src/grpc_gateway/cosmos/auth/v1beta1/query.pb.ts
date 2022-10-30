@@ -32,6 +32,14 @@ export type QueryParamsResponse = {
   params?: CosmosAuthV1beta1Auth.Params
 }
 
+export type QueryModuleAccountByNameRequest = {
+  name?: string
+}
+
+export type QueryModuleAccountByNameResponse = {
+  account?: GoogleProtobufAny.Any
+}
+
 export class Query {
   static Accounts(req: QueryAccountsRequest, initReq?: fm.InitReq): Promise<QueryAccountsResponse> {
     return fm.fetchReq<QueryAccountsRequest, QueryAccountsResponse>(`/cosmos/auth/v1beta1/accounts?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -41,5 +49,8 @@ export class Query {
   }
   static Params(req: QueryParamsRequest, initReq?: fm.InitReq): Promise<QueryParamsResponse> {
     return fm.fetchReq<QueryParamsRequest, QueryParamsResponse>(`/cosmos/auth/v1beta1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ModuleAccountByName(req: QueryModuleAccountByNameRequest, initReq?: fm.InitReq): Promise<QueryModuleAccountByNameResponse> {
+    return fm.fetchReq<QueryModuleAccountByNameRequest, QueryModuleAccountByNameResponse>(`/cosmos/auth/v1beta1/module_accounts/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }
