@@ -41,6 +41,7 @@ import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
   exec,
+  getAllMethodNames,
   getBalance,
   getValueFromRawLog,
   initContract,
@@ -2067,7 +2068,41 @@ describe("sanity", () => {
     expect(msgs).toStrictEqual(classes);
   });
 
-  test.skip("All queries are implemented", async () => {});
+  test("All queries are implemented", async () => {
+    let { stdout } = await exec(
+      `find "${__dirname}/../src/grpc_gateway" -name query.pb.ts -type f`,
+    );
+
+    const queryFiles = String(stdout)
+      .split("\n")
+      .map((x) => x.trim())
+      .filter((x) => x.length > 0);
+
+    const { secretjs } = accounts[0];
+    const secretjsQueries: string[][] = [];
+    for (const module of Object.keys(secretjs.query)) {
+      if (["getTx", "txsQuery"].includes(module)) {
+        continue;
+      }
+      //@ts-ignore
+      secretjsQueries.push(getAllMethodNames(secretjs.query[module]).sort());
+    }
+
+    for (const f of queryFiles) {
+      ({ stdout } = await exec(
+        `cat "${f}" | grep -Po 'static .+?\\(req' | awk -F '[ (]' '{print $2}'`,
+      ));
+
+      const grpcGatewayQueries = String(stdout)
+        .split("\n")
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0)
+        .map((x) => x.slice(0, 1).toLocaleLowerCase() + x.slice(1))
+        .sort();
+
+      expect(secretjsQueries).toContainEqual(grpcGatewayQueries);
+    }
+  });
 
   test("Same tx.tx structure when broadcasting in block mode and when using getTx()", async () => {
     const { secretjs } = accounts[0];

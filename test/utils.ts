@@ -134,3 +134,30 @@ export async function getBalance(
     return BigInt(0);
   }
 }
+
+export function getAllMethodNames(obj: any): Array<string> {
+  const methods = new Set<string>();
+  while ((obj = Reflect.getPrototypeOf(obj))) {
+    Reflect.ownKeys(obj).forEach((k) => {
+      if (
+        ![
+          "__defineGetter__",
+          "__defineSetter__",
+          "__lookupGetter__",
+          "__lookupSetter__",
+          "__proto__",
+          "constructor",
+          "hasOwnProperty",
+          "isPrototypeOf",
+          "propertyIsEnumerable",
+          "toLocaleString",
+          "toString",
+          "valueOf",
+        ].includes(k.toString())
+      ) {
+        methods.add(k.toString());
+      }
+    });
+  }
+  return Array.from(methods);
+}
