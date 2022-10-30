@@ -13,6 +13,7 @@ export * from "./ibc_client";
 export * from "./ibc_connection";
 export * from "./ibc_transfer";
 export * from "./mint";
+export * from "./node";
 export * from "./params";
 export * from "./registration";
 export * from "./slashing";

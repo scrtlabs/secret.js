@@ -64,6 +64,7 @@ import {
   MsgWithdrawDelegatorRewardParams,
   MsgWithdrawValidatorCommission,
   MsgWithdrawValidatorCommissionParams,
+  NodeQuerier,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
@@ -310,6 +311,7 @@ export type Querier = {
   ibc_connection: IbcConnectionQuerier;
   ibc_transfer: IbcTransferQuerier;
   mint: MintQuerier;
+  node: NodeQuerier;
   params: ParamsQuerier;
   registration: RegistrationQuerier;
   slashing: SlashingQuerier;
@@ -648,6 +650,7 @@ export class SecretNetworkClient {
       ibc_connection: new IbcConnectionQuerier(options.url),
       ibc_transfer: new IbcTransferQuerier(options.url),
       mint: new MintQuerier(options.url),
+      node: new NodeQuerier(options.url),
       params: new ParamsQuerier(options.url),
       registration: new RegistrationQuerier(options.url),
       slashing: new SlashingQuerier(options.url),
