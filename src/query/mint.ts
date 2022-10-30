@@ -11,7 +11,7 @@ import {
 export class MintQuerier {
   constructor(private url: string) {}
 
-  Params(
+  params(
     req: QueryParamsRequest,
     headers?: HeadersInit,
   ): Promise<QueryParamsResponse> {
@@ -21,7 +21,7 @@ export class MintQuerier {
     });
   }
 
-  Inflation(
+  inflation(
     req: QueryInflationRequest,
     headers?: HeadersInit,
   ): Promise<QueryInflationResponse> {
@@ -31,7 +31,7 @@ export class MintQuerier {
     });
   }
 
-  AnnualProvisions(
+  annualProvisions(
     req: QueryAnnualProvisionsRequest,
     headers?: HeadersInit,
   ): Promise<QueryAnnualProvisionsResponse> {
