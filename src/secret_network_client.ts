@@ -8,6 +8,7 @@ import {
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Coin,
+  MauthQuerier,
   MsgBeginRedelegate,
   MsgBeginRedelegateParams,
   MsgCreateValidator,
@@ -310,6 +311,7 @@ export type Querier = {
   ibc_client: IbcClientQuerier;
   ibc_connection: IbcConnectionQuerier;
   ibc_transfer: IbcTransferQuerier;
+  mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
   params: ParamsQuerier;
@@ -649,6 +651,7 @@ export class SecretNetworkClient {
       ibc_client: new IbcClientQuerier(options.url),
       ibc_connection: new IbcConnectionQuerier(options.url),
       ibc_transfer: new IbcTransferQuerier(options.url),
+      mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),
       params: new ParamsQuerier(options.url),

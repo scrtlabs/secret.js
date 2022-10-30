@@ -12,6 +12,7 @@ export * from "./ibc_channel";
 export * from "./ibc_client";
 export * from "./ibc_connection";
 export * from "./ibc_transfer";
+export * from "./mauth";
 export * from "./mint";
 export * from "./node";
 export * from "./params";
