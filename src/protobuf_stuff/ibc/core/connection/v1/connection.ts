@@ -149,6 +149,16 @@ export interface Version {
   features: string[];
 }
 
+/** Params defines the set of Connection parameters. */
+export interface Params {
+  /**
+   * maximum expected time per block (in nanoseconds), used to enforce block delay. This parameter should reflect the
+   * largest amount of time that the chain might reasonably take to produce the next block under normal operating
+   * conditions. A safe choice is 3-5x the expected time per block.
+   */
+  maxExpectedTimePerBlock: string;
+}
+
 function createBaseConnectionEnd(): ConnectionEnd {
   return {
     clientId: "",
@@ -671,6 +681,63 @@ export const Version = {
     const message = createBaseVersion();
     message.identifier = object.identifier ?? "";
     message.features = object.features?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseParams(): Params {
+  return { maxExpectedTimePerBlock: "0" };
+}
+
+export const Params = {
+  encode(
+    message: Params,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.maxExpectedTimePerBlock !== "0") {
+      writer.uint32(8).uint64(message.maxExpectedTimePerBlock);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Params {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParams();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.maxExpectedTimePerBlock = longToString(
+            reader.uint64() as Long,
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Params {
+    return {
+      maxExpectedTimePerBlock: isSet(object.maxExpectedTimePerBlock)
+        ? String(object.maxExpectedTimePerBlock)
+        : "0",
+    };
+  },
+
+  toJSON(message: Params): unknown {
+    const obj: any = {};
+    message.maxExpectedTimePerBlock !== undefined &&
+      (obj.maxExpectedTimePerBlock = message.maxExpectedTimePerBlock);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
+    const message = createBaseParams();
+    message.maxExpectedTimePerBlock = object.maxExpectedTimePerBlock ?? "0";
     return message;
   },
 };

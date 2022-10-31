@@ -61,6 +61,24 @@ export interface QueryParamsResponse {
   params?: Params;
 }
 
+/**
+ * QueryDenomHashRequest is the request type for the Query/DenomHash RPC
+ * method
+ */
+export interface QueryDenomHashRequest {
+  /** The denomination trace ([port_id]/[channel_id])+/[denom] */
+  trace: string;
+}
+
+/**
+ * QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+ * method.
+ */
+export interface QueryDenomHashResponse {
+  /** hash (in hex format) of the denomination trace information. */
+  hash: string;
+}
+
 function createBaseQueryDenomTraceRequest(): QueryDenomTraceRequest {
   return { hash: "" };
 }
@@ -436,6 +454,120 @@ export const QueryParamsResponse = {
   },
 };
 
+function createBaseQueryDenomHashRequest(): QueryDenomHashRequest {
+  return { trace: "" };
+}
+
+export const QueryDenomHashRequest = {
+  encode(
+    message: QueryDenomHashRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.trace !== "") {
+      writer.uint32(10).string(message.trace);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryDenomHashRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDenomHashRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.trace = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDenomHashRequest {
+    return {
+      trace: isSet(object.trace) ? String(object.trace) : "",
+    };
+  },
+
+  toJSON(message: QueryDenomHashRequest): unknown {
+    const obj: any = {};
+    message.trace !== undefined && (obj.trace = message.trace);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDenomHashRequest>, I>>(
+    object: I,
+  ): QueryDenomHashRequest {
+    const message = createBaseQueryDenomHashRequest();
+    message.trace = object.trace ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryDenomHashResponse(): QueryDenomHashResponse {
+  return { hash: "" };
+}
+
+export const QueryDenomHashResponse = {
+  encode(
+    message: QueryDenomHashResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.hash !== "") {
+      writer.uint32(10).string(message.hash);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryDenomHashResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDenomHashResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.hash = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDenomHashResponse {
+    return {
+      hash: isSet(object.hash) ? String(object.hash) : "",
+    };
+  },
+
+  toJSON(message: QueryDenomHashResponse): unknown {
+    const obj: any = {};
+    message.hash !== undefined && (obj.hash = message.hash);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDenomHashResponse>, I>>(
+    object: I,
+  ): QueryDenomHashResponse {
+    const message = createBaseQueryDenomHashResponse();
+    message.hash = object.hash ?? "";
+    return message;
+  },
+};
+
 /** Query provides defines the gRPC querier service. */
 export interface Query {
   /** DenomTrace queries a denomination trace information. */
@@ -453,6 +585,11 @@ export interface Query {
     request: DeepPartial<QueryParamsRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryParamsResponse>;
+  /** DenomHash queries a denomination hash information. */
+  denomHash(
+    request: DeepPartial<QueryDenomHashRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDenomHashResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -463,6 +600,7 @@ export class QueryClientImpl implements Query {
     this.denomTrace = this.denomTrace.bind(this);
     this.denomTraces = this.denomTraces.bind(this);
     this.params = this.params.bind(this);
+    this.denomHash = this.denomHash.bind(this);
   }
 
   denomTrace(
@@ -494,6 +632,17 @@ export class QueryClientImpl implements Query {
     return this.rpc.unary(
       QueryParamsDesc,
       QueryParamsRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  denomHash(
+    request: DeepPartial<QueryDenomHashRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryDenomHashResponse> {
+    return this.rpc.unary(
+      QueryDenomHashDesc,
+      QueryDenomHashRequest.fromPartial(request),
       metadata,
     );
   }
@@ -561,6 +710,28 @@ export const QueryParamsDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryDenomHashDesc: UnaryMethodDefinitionish = {
+  methodName: "DenomHash",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryDenomHashRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryDenomHashResponse.decode(data),
         toObject() {
           return this;
         },

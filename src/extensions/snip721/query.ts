@@ -1,10 +1,6 @@
 import { ComputeQuerier } from "../../query";
 import { Permit, ViewingKey } from "../access_control";
 import {
-  GetTokenParamsRequest,
-  Snip721TokenInfo,
-} from "./msg/GetSnip721Params";
-import {
   GetTokenInfoRequest,
   GetTokenInfoRequestWithPermit,
   GetTokenInfoResponse,
@@ -31,20 +27,6 @@ interface Auth {
 }
 
 export class Snip721Querier extends ComputeQuerier {
-  getSnip721Params = async ({
-    contract,
-  }: {
-    contract: SecretContract;
-  }): Promise<Snip721TokenInfo> => {
-    return await this.queryContract<GetTokenParamsRequest, Snip721TokenInfo>({
-      contractAddress: contract.address,
-      codeHash: contract.codeHash,
-      query: {
-        token_info: {},
-      },
-    });
-  };
-
   GetTokenInfo = async ({
     contract,
     auth,
@@ -126,8 +108,10 @@ export class Snip721Querier extends ComputeQuerier {
         query: {
           with_permit: {
             permit: auth.permit,
-            tokens: {
-              owner,
+            query: {
+              tokens: {
+                owner,
+              },
             },
           },
         },

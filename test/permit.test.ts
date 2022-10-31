@@ -1,13 +1,13 @@
 import fs from "fs";
-import {Permit, SecretNetworkClient, Tx, Wallet} from "../src";
+import { Permit, SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
-// @ts-ignore
+//@ts-ignore
 let accounts: Account[];
 
 beforeAll(async () => {
-  // @ts-ignore
+  //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
   // Initialize genesis accounts
@@ -106,7 +106,10 @@ describe("permit", () => {
       },
     );
 
-    expect(txStore.code).toBe(0);
+    if (txStore.code !== TxResultCode.Success) {
+      console.error(txStore.rawLog);
+    }
+    expect(txStore.code).toBe(TxResultCode.Success);
 
     const codeId = Number(
       getValueFromRawLog(txStore.rawLog, "message.code_id"),
@@ -154,7 +157,7 @@ describe("permit", () => {
       "test",
       [contractAddress],
       ["owner", "balance"],
-        false
+      false,
     );
 
     let query = await secretjs.query.snip20.getBalance({
@@ -175,7 +178,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     permit.signature = {
@@ -206,7 +209,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     permit.signature = {
@@ -237,7 +240,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     permit.signature = {
@@ -269,7 +272,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     let permit2 = await secretjs2.utils.accessControl.permit.sign(
@@ -278,7 +281,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     permit.signature = permit2.signature;
@@ -308,7 +311,7 @@ describe("permit", () => {
       "test",
       ["abcdef"],
       ["owner", "balance"],
-        false
+      false,
     );
 
     let result = secretjs.utils.accessControl.permit.verifyNoExcept(
@@ -322,15 +325,29 @@ describe("permit", () => {
 
   test("validatePermit Keplr Signing", async () => {
     const { secretjs } = accounts[0];
-    let permit: Permit = {"params":{"chain_id":"secret-4","permit_name":"default","allowed_tokens":["secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue"],"permissions":["owner"]},"signature":{"pub_key":{"type":"tendermint/PubKeySecp256k1","value":"AgyShSTNVC3olnm/VAPUvrN5IbGrqe1oH+E5/H3F9SUB"},"signature":"c7t302ZD08RR9nRi3J1zx7YV3+KZc/C3HbG+IXF8jalH2n6x4WWM1Iaphx8P0dDoJoNyWDMq3SBhe10lWkCy0w=="}}
+    let permit: Permit = {
+      params: {
+        chain_id: "secret-4",
+        permit_name: "default",
+        allowed_tokens: ["secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue"],
+        permissions: ["owner"],
+      },
+      signature: {
+        pub_key: {
+          type: "tendermint/PubKeySecp256k1",
+          value: "AgyShSTNVC3olnm/VAPUvrN5IbGrqe1oH+E5/H3F9SUB",
+        },
+        signature:
+          "c7t302ZD08RR9nRi3J1zx7YV3+KZc/C3HbG+IXF8jalH2n6x4WWM1Iaphx8P0dDoJoNyWDMq3SBhe10lWkCy0w==",
+      },
+    };
 
     let result = secretjs.utils.accessControl.permit.verify(
-        permit,
-        "secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue",
-        "secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue",
-        ["owner"],
+      permit,
+      "secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue",
+      "secret1p0vgghl8rw4ukzm7geyy0f0tl29glxrtnlalue",
+      ["owner"],
     );
     expect(result).toBeTruthy();
-
   });
 });

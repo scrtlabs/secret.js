@@ -1,9 +1,13 @@
-import { AminoSigner, DirectSigner } from "../../../wallet_amino";
 import {
-  PermitError,
+  AminoEip191Signer,
+  AminoSigner,
+  DirectSigner,
+} from "../../../wallet_amino";
+import {
   newPermit,
   Permission,
   Permit,
+  PermitError,
   validatePermit,
 } from "./index";
 
@@ -14,13 +18,15 @@ export class DirectSignerUnsupported extends PermitError {
 }
 
 export class PermitSigner {
-  signer: AminoSigner | DirectSigner;
+  signer: AminoSigner | DirectSigner | AminoEip191Signer;
 
-  constructor(signer: AminoSigner | DirectSigner) {
+  constructor(signer: AminoSigner | DirectSigner | AminoEip191Signer) {
     this.signer = signer;
   }
 
-  private isAminoSigner = (signer: AminoSigner | DirectSigner): boolean => {
+  private isAminoSigner = (
+    signer: AminoSigner | DirectSigner | AminoEip191Signer,
+  ): boolean => {
     return "signAmino" in signer;
   };
 
@@ -60,7 +66,7 @@ export class PermitSigner {
       permitName,
       allowedContracts,
       permissions,
-      keplr
+      keplr,
     );
   }
 

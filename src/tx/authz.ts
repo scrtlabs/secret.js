@@ -1,5 +1,20 @@
 import { AminoMsg, Coin, Msg, MsgParams, ProtoMsg } from ".";
 import { EncryptionUtils } from "..";
+import {
+  GenericAuthorization as GenericAuthorizationProto,
+  Grant,
+} from "../protobuf_stuff/cosmos/authz/v1beta1/authz";
+import {
+  MsgExec as MsgExecProto,
+  MsgGrant as MsgGrantProto,
+  MsgRevoke as MsgRevokeProto,
+} from "../protobuf_stuff/cosmos/authz/v1beta1/tx";
+import { SendAuthorization as SendAuthorizationProto } from "../protobuf_stuff/cosmos/bank/v1beta1/authz";
+import {
+  StakeAuthorization as StakeAuthorizationProto,
+  StakeAuthorization_Validators,
+} from "../protobuf_stuff/cosmos/staking/v1beta1/authz";
+import { Any } from "../protobuf_stuff/google/protobuf/any";
 
 export enum MsgGrantAuthorization {
   MsgAcknowledgement = "/ibc.core.channel.v1.MsgAcknowledgement",
@@ -99,11 +114,11 @@ function isStakeAuthorization(object: any): object is StakeAuthorization {
 
 /** AuthorizationType defines the type of staking module authorization type */
 export enum StakeAuthorizationType {
-  /** defines an authorization type for Msg/Delegate */
+  /** defines an authorization type for MsgDelegate */
   Delegate = 1,
-  /** defines an authorization type for Msg/Undelegate */
+  /** defines an authorization type for MsgUndelegate */
   Undelegate = 2,
-  /** defines an authorization type for Msg/BeginRedelegate */
+  /** defines an authorization type for MsgBeginRedelegate */
   Redelegate = 3,
 }
 
@@ -123,52 +138,55 @@ export class MsgGrant implements Msg {
   constructor(public params: MsgGrantParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    let grant: import("../protobuf_stuff/cosmos/authz/v1beta1/authz").Grant;
-    if (isSendAuthorization(this.params.authorization)) {
-      const { SendAuthorization } = await import(
-        "../protobuf_stuff/cosmos/bank/v1beta1/authz"
-      );
+    let grant: Grant;
+    const expiration = {
+      seconds: String(Math.floor(this.params.expiration)),
+      nanos: 0,
+    };
 
+    if (isSendAuthorization(this.params.authorization)) {
       grant = {
         authorization: {
           typeUrl: "/cosmos.bank.v1beta1.SendAuthorization",
-          value: SendAuthorization.encode(this.params.authorization).finish(),
+          value: SendAuthorizationProto.encode(
+            this.params.authorization,
+          ).finish(),
         },
-        expiration: { seconds: String(this.params.expiration), nanos: 0 },
+        expiration,
       };
     } else if (isStakeAuthorization(this.params.authorization)) {
-      const { StakeAuthorization } = await import(
-        "../protobuf_stuff/cosmos/staking/v1beta1/authz"
-      );
+      let allowList: StakeAuthorization_Validators | undefined = undefined;
+      let denyList: StakeAuthorization_Validators | undefined = undefined;
+
+      if (this.params.authorization.allowList?.length > 0) {
+        allowList = { address: this.params.authorization.allowList };
+      } else if (this.params.authorization.denyList?.length > 0) {
+        denyList = { address: this.params.authorization.denyList };
+      }
 
       grant = {
         authorization: {
           typeUrl: "/cosmos.staking.v1beta1.StakeAuthorization",
-          value: StakeAuthorization.encode({
+          value: StakeAuthorizationProto.encode({
             maxTokens: this.params.authorization.maxTokens,
-
-            allowList: { address: this.params.authorization.allowList },
-            denyList: { address: this.params.authorization.denyList },
+            allowList,
+            denyList,
             authorizationType: Number(
               this.params.authorization.authorizationType,
             ),
           }).finish(),
         },
-        expiration: { seconds: String(this.params.expiration), nanos: 0 },
+        expiration,
       };
     } else if (isGenericAuthorization(this.params.authorization)) {
-      const { GenericAuthorization } = await import(
-        "../protobuf_stuff/cosmos/authz/v1beta1/authz"
-      );
-
       grant = {
         authorization: {
           typeUrl: "/cosmos.authz.v1beta1.GenericAuthorization",
-          value: GenericAuthorization.encode({
+          value: GenericAuthorizationProto.encode({
             msg: String(this.params.authorization.msg),
           }).finish(),
         },
-        expiration: { seconds: String(this.params.expiration), nanos: 0 },
+        expiration,
       };
     } else {
       throw new Error("Unknown authorization type.");
@@ -183,15 +201,86 @@ export class MsgGrant implements Msg {
     return {
       typeUrl: "/cosmos.authz.v1beta1.MsgGrant",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")
-        ).MsgGrant.encode(msgContent).finish(),
+      encode: async () => MsgGrantProto.encode(msgContent).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgGrant not implemented.");
+    let grant: {
+      type: string;
+      value: {
+        granter: string;
+        grantee: string;
+        grant: {
+          authorization: { type: string; value: object };
+          expiration: string;
+        };
+      };
+    } = {
+      type: "cosmos-sdk/MsgGrant",
+      value: {
+        granter: this.params.granter,
+        grantee: this.params.grantee,
+        grant: {
+          //@ts-ignore
+          authorization: {}, // override later
+          expiration: new Date(Math.floor(this.params.expiration) * 1000)
+            .toISOString()
+            .replace(/\.\d+Z/, "Z"),
+        },
+      },
+    };
+    if (isSendAuthorization(this.params.authorization)) {
+      grant.value.grant.authorization = {
+        type: "cosmos-sdk/SendAuthorization",
+        value: {
+          spend_limit: this.params.authorization.spendLimit,
+        },
+      };
+    } else if (isStakeAuthorization(this.params.authorization)) {
+      let Validators: { type: string; value: object };
+      if (this.params.authorization.allowList?.length > 0) {
+        Validators = {
+          type: "cosmos-sdk/StakeAuthorization/AllowList",
+          value: {
+            allow_list: {
+              address: this.params.authorization.allowList,
+            },
+          },
+        };
+      } else if (this.params.authorization.denyList?.length > 0) {
+        Validators = {
+          type: "cosmos-sdk/StakeAuthorization/DenyList",
+          value: {
+            deny_list: {
+              address: this.params.authorization.denyList,
+            },
+          },
+        };
+      } else {
+        throw new Error("Must pass in allowList or denyList.");
+      }
+
+      grant.value.grant.authorization = {
+        type: "cosmos-sdk/StakeAuthorization",
+        value: {
+          max_tokens: this.params.authorization.maxTokens,
+          authorization_type: this.params.authorization.authorizationType,
+          Validators,
+        },
+      };
+    } else if (isGenericAuthorization(this.params.authorization)) {
+      grant.value.grant.authorization = {
+        type: "cosmos-sdk/GenericAuthorization",
+        value: {
+          msg: this.params.authorization.msg,
+        },
+      };
+    } else {
+      throw new Error("Unknown authorization type.");
+    }
+
+    return grant;
   }
 }
 
@@ -213,24 +302,38 @@ export interface MsgExecParams extends MsgParams {
 export class MsgExec implements Msg {
   constructor(public params: MsgExecParams) {}
 
-  async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
+  async toProto(encryptionUtils: EncryptionUtils): Promise<ProtoMsg> {
+    const msgs: Any[] = [];
+    for (const m of this.params.msgs) {
+      const asProto = await m.toProto(encryptionUtils);
+      msgs.push({
+        typeUrl: asProto.typeUrl,
+        value: await asProto.encode(),
+      });
+    }
+
     const msgContent = {
       grantee: this.params.grantee,
-      msgs: await Promise.all(this.params.msgs.map((m) => m.toProto(utils))),
+      msgs,
     };
 
     return {
       typeUrl: "/cosmos.authz.v1beta1.MsgExec",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")
-        ).MsgExec.encode(msgContent).finish(),
+      encode: async () => MsgExecProto.encode(msgContent).finish(),
     };
   }
 
-  async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgExec not implemented.");
+  async toAmino(encryptionUtils: EncryptionUtils): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgExec",
+      value: {
+        grantee: this.params.grantee,
+        msgs: await Promise.all(
+          this.params.msgs.map((m) => m.toAmino(encryptionUtils)),
+        ),
+      },
+    };
   }
 }
 
@@ -259,14 +362,18 @@ export class MsgRevoke implements Msg {
     return {
       typeUrl: "/cosmos.authz.v1beta1.MsgRevoke",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")
-        ).MsgRevoke.encode(msgContent).finish(),
+      encode: async () => MsgRevokeProto.encode(msgContent).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgRevoke not implemented.");
+    return {
+      type: "cosmos-sdk/MsgRevoke",
+      value: {
+        granter: this.params.granter,
+        grantee: this.params.grantee,
+        msg_type_url: String(this.params.msg),
+      },
+    };
   }
 }

@@ -43,6 +43,8 @@ export interface QueryAppliedPlanResponse {
 /**
  * QueryUpgradedConsensusStateRequest is the request type for the Query/UpgradedConsensusState
  * RPC method.
+ *
+ * @deprecated
  */
 export interface QueryUpgradedConsensusStateRequest {
   /**
@@ -55,14 +57,19 @@ export interface QueryUpgradedConsensusStateRequest {
 /**
  * QueryUpgradedConsensusStateResponse is the response type for the Query/UpgradedConsensusState
  * RPC method.
+ *
+ * @deprecated
  */
 export interface QueryUpgradedConsensusStateResponse {
+  /** Since: cosmos-sdk 0.43 */
   upgradedConsensusState: Uint8Array;
 }
 
 /**
  * QueryModuleVersionsRequest is the request type for the Query/ModuleVersions
  * RPC method.
+ *
+ * Since: cosmos-sdk 0.43
  */
 export interface QueryModuleVersionsRequest {
   /**
@@ -76,6 +83,8 @@ export interface QueryModuleVersionsRequest {
 /**
  * QueryModuleVersionsResponse is the response type for the Query/ModuleVersions
  * RPC method.
+ *
+ * Since: cosmos-sdk 0.43
  */
 export interface QueryModuleVersionsResponse {
   /** module_versions is a list of module names with their consensus versions. */
@@ -568,12 +577,20 @@ export interface Query {
    * as a trusted kernel for the next version of this chain. It will only be
    * stored at the last height of this chain.
    * UpgradedConsensusState RPC not supported with legacy querier
+   * This rpc is deprecated now that IBC has its own replacement
+   * (https://github.com/cosmos/ibc-go/blob/2c880a22e9f9cc75f62b527ca94aa75ce1106001/proto/ibc/core/client/v1/query.proto#L54)
+   *
+   * @deprecated
    */
   upgradedConsensusState(
     request: DeepPartial<QueryUpgradedConsensusStateRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryUpgradedConsensusStateResponse>;
-  /** ModuleVersions queries the list of module versions from state. */
+  /**
+   * ModuleVersions queries the list of module versions from state.
+   *
+   * Since: cosmos-sdk 0.43
+   */
   moduleVersions(
     request: DeepPartial<QueryModuleVersionsRequest>,
     metadata?: grpc.Metadata,

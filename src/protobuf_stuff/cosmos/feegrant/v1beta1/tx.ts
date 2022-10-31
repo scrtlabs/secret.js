@@ -7,6 +7,8 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "cosmos.feegrant.v1beta1";
 
+/** Since: cosmos-sdk 0.43 */
+
 /**
  * MsgGrantAllowance adds permission for Grantee to spend up to Allowance
  * of fees from the account of Granter.

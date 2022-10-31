@@ -46,11 +46,37 @@ export interface QueryAllBalancesResponse {
 }
 
 /**
+ * QuerySpendableBalancesRequest defines the gRPC request structure for querying
+ * an account's spendable balances.
+ */
+export interface QuerySpendableBalancesRequest {
+  /** address is the address to query spendable balances for. */
+  address: string;
+  /** pagination defines an optional pagination for the request. */
+  pagination?: PageRequest;
+}
+
+/**
+ * QuerySpendableBalancesResponse defines the gRPC response structure for querying
+ * an account's spendable balances.
+ */
+export interface QuerySpendableBalancesResponse {
+  /** balances is the spendable balances of all the coins. */
+  balances: Coin[];
+  /** pagination defines the pagination in the response. */
+  pagination?: PageResponse;
+}
+
+/**
  * QueryTotalSupplyRequest is the request type for the Query/TotalSupply RPC
  * method.
  */
 export interface QueryTotalSupplyRequest {
-  /** pagination defines an optional pagination for the request. */
+  /**
+   * pagination defines an optional pagination for the request.
+   *
+   * Since: cosmos-sdk 0.43
+   */
   pagination?: PageRequest;
 }
 
@@ -61,7 +87,11 @@ export interface QueryTotalSupplyRequest {
 export interface QueryTotalSupplyResponse {
   /** supply is the supply of the coins */
   supply: Coin[];
-  /** pagination defines the pagination in the response. */
+  /**
+   * pagination defines the pagination in the response.
+   *
+   * Since: cosmos-sdk 0.43
+   */
   pagination?: PageResponse;
 }
 
@@ -395,6 +425,165 @@ export const QueryAllBalancesResponse = {
     object: I,
   ): QueryAllBalancesResponse {
     const message = createBaseQueryAllBalancesResponse();
+    message.balances = object.balances?.map((e) => Coin.fromPartial(e)) || [];
+    message.pagination =
+      object.pagination !== undefined && object.pagination !== null
+        ? PageResponse.fromPartial(object.pagination)
+        : undefined;
+    return message;
+  },
+};
+
+function createBaseQuerySpendableBalancesRequest(): QuerySpendableBalancesRequest {
+  return { address: "", pagination: undefined };
+}
+
+export const QuerySpendableBalancesRequest = {
+  encode(
+    message: QuerySpendableBalancesRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QuerySpendableBalancesRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySpendableBalancesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.address = reader.string();
+          break;
+        case 2:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QuerySpendableBalancesRequest {
+    return {
+      address: isSet(object.address) ? String(object.address) : "",
+      pagination: isSet(object.pagination)
+        ? PageRequest.fromJSON(object.pagination)
+        : undefined,
+    };
+  },
+
+  toJSON(message: QuerySpendableBalancesRequest): unknown {
+    const obj: any = {};
+    message.address !== undefined && (obj.address = message.address);
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySpendableBalancesRequest>, I>>(
+    object: I,
+  ): QuerySpendableBalancesRequest {
+    const message = createBaseQuerySpendableBalancesRequest();
+    message.address = object.address ?? "";
+    message.pagination =
+      object.pagination !== undefined && object.pagination !== null
+        ? PageRequest.fromPartial(object.pagination)
+        : undefined;
+    return message;
+  },
+};
+
+function createBaseQuerySpendableBalancesResponse(): QuerySpendableBalancesResponse {
+  return { balances: [], pagination: undefined };
+}
+
+export const QuerySpendableBalancesResponse = {
+  encode(
+    message: QuerySpendableBalancesResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.balances) {
+      Coin.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork(),
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QuerySpendableBalancesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySpendableBalancesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.balances.push(Coin.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QuerySpendableBalancesResponse {
+    return {
+      balances: Array.isArray(object?.balances)
+        ? object.balances.map((e: any) => Coin.fromJSON(e))
+        : [],
+      pagination: isSet(object.pagination)
+        ? PageResponse.fromJSON(object.pagination)
+        : undefined,
+    };
+  },
+
+  toJSON(message: QuerySpendableBalancesResponse): unknown {
+    const obj: any = {};
+    if (message.balances) {
+      obj.balances = message.balances.map((e) =>
+        e ? Coin.toJSON(e) : undefined,
+      );
+    } else {
+      obj.balances = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySpendableBalancesResponse>, I>>(
+    object: I,
+  ): QuerySpendableBalancesResponse {
+    const message = createBaseQuerySpendableBalancesResponse();
     message.balances = object.balances?.map((e) => Coin.fromPartial(e)) || [];
     message.pagination =
       object.pagination !== undefined && object.pagination !== null
@@ -1057,6 +1246,14 @@ export interface Query {
     request: DeepPartial<QueryAllBalancesRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryAllBalancesResponse>;
+  /**
+   * SpendableBalances queries the spenable balance of all coins for a single
+   * account.
+   */
+  spendableBalances(
+    request: DeepPartial<QuerySpendableBalancesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QuerySpendableBalancesResponse>;
   /** TotalSupply queries the total supply of all coins. */
   totalSupply(
     request: DeepPartial<QueryTotalSupplyRequest>,
@@ -1091,6 +1288,7 @@ export class QueryClientImpl implements Query {
     this.rpc = rpc;
     this.balance = this.balance.bind(this);
     this.allBalances = this.allBalances.bind(this);
+    this.spendableBalances = this.spendableBalances.bind(this);
     this.totalSupply = this.totalSupply.bind(this);
     this.supplyOf = this.supplyOf.bind(this);
     this.params = this.params.bind(this);
@@ -1116,6 +1314,17 @@ export class QueryClientImpl implements Query {
     return this.rpc.unary(
       QueryAllBalancesDesc,
       QueryAllBalancesRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  spendableBalances(
+    request: DeepPartial<QuerySpendableBalancesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QuerySpendableBalancesResponse> {
+    return this.rpc.unary(
+      QuerySpendableBalancesDesc,
+      QuerySpendableBalancesRequest.fromPartial(request),
       metadata,
     );
   }
@@ -1216,6 +1425,28 @@ export const QueryAllBalancesDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...QueryAllBalancesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QuerySpendableBalancesDesc: UnaryMethodDefinitionish = {
+  methodName: "SpendableBalances",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QuerySpendableBalancesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QuerySpendableBalancesResponse.decode(data),
         toObject() {
           return this;
         },

@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/secretjs/beta" />
+  <img alt="npm" src="https://img.shields.io/npm/v/secretjs" />
   <img alt="ci" style="margin-left: 0.3em" src="https://github.com/scrtlabs/secret.js/actions/workflows/test.yml/badge.svg?branch=master" />
 </p>
 
@@ -27,11 +27,13 @@
 - [Usage Examples](#usage-examples)
   - [Sending Queries](#sending-queries)
   - [Broadcasting Transactions](#broadcasting-transactions)
+- [Integrations](#integrations)
+  - [MetaMask](#metamask)
   - [Keplr Wallet](#keplr-wallet)
-    - [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino)
-    - [`getOfflineSigner()`](#getofflinesigner)
-    - [`getOfflineSignerAuto()`](#getofflinesignerauto)
-- [Migrating from Secret.js v0.17.x](#migrating-from-secretjs-v017x)
+    - [`SignerOnlyAmino` vs `Signer` vs `SignerAuto`](#signeronlyamino-vs-signer-vs-signerauto)
+  - [Fina Wallet](#fina-wallet)
+  - [Leap Cosmos Wallet](#leap-cosmos-wallet)
+- [Migrating from secret.js v0.17.x](#migrating-from-secretjs-v017x)
 - [API](#api)
   - [Wallet](#wallet)
     - [Importing account from mnemonic](#importing-account-from-mnemonic)
@@ -63,36 +65,45 @@ See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list o
 # Installation
 
 ```bash
-npm install secretjs@beta
+npm install secretjs
 ```
 
 or
 
 ```bash
-yarn add secretjs@beta
+yarn add secretjs
 ```
 
 # Usage Examples
+
+Note: Public gRPC-web endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
 
 For a lot more usage examples [refer to the tests](./test/test.ts).
 
 ## Sending Queries
 
 ```ts
-import { SecretNetworkClient } from "secretjs";
+import { SecretNetworkClient, grpc } from "secretjs";
+
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
 });
 
 const {
   balance: { amount },
-} = await secretjs.query.bank.balance({
-  address: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
-  denom: "uscrt",
-});
+} = await secretjs.query.bank.balance(
+  {
+    address: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
+    denom: "uscrt",
+  } /*,
+  // optional: query at a specific height (using an archive node) 
+  new grpc.Metadata({"x-cosmos-block-height": "2000000"})
+  */,
+);
 
 console.log(`I have ${Number(amount) / 1e6} SCRT!`);
 
@@ -120,9 +131,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -137,16 +150,49 @@ const msg = new MsgSend({
 
 const tx = await secretjs.tx.broadcast([msg], {
   gasLimit: 20_000,
-  gasPriceInFeeDenom: 0.25,
+  gasPriceInFeeDenom: 0.1,
   feeDenom: "uscrt",
 });
 ```
 
-## Keplr Wallet
+# Integrations
 
-The recommended way to integrate Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
+## MetaMask
 
 ```ts
+import { SecretNetworkClient, MetaMaskWallet } from "secretjs";
+
+//@ts-ignore
+const [ethAddress] = await window.ethereum.request({
+  method: "eth_requestAccounts",
+});
+
+const wallet = await MetaMaskWallet.create(window.ethereum, ethAddress);
+
+const secretjs = await SecretNetworkClient.create({
+  grpcWebUrl: "TODO get from https://github.com/scrtlabs/api-registry",
+  chainId: "secret-4",
+  wallet: wallet,
+  walletAddress: wallet.address,
+});
+```
+
+Notes:
+
+1. MetaMask supports mobile!
+2. MetaMask supports Ledger.
+3. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
+4. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
+
+<img src="./media/metamask-signing-example.jpg" width="55%" style="border-radius: 10px;" />
+
+## Keplr Wallet
+
+The recommended way of integrating Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
+
+```ts
+import { SecretNetworkClient } from "secretjs";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 while (
@@ -154,22 +200,24 @@ while (
   !window.getEnigmaUtils ||
   !window.getOfflineSignerOnlyAmino
 ) {
-  await sleep(100);
+  await sleep(50);
 }
 
 const CHAIN_ID = "secret-4";
 
 await window.keplr.enable(CHAIN_ID);
 
-const keplrOfflineSigner = window.getOfflineSignerOnlyAmino(CHAIN_ID);
+const keplrOfflineSigner = window.keplr.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
-  encryptionUtils: window.getEnigmaUtils(CHAIN_ID),
+  encryptionUtils: window.keplr.getEnigmaUtils(CHAIN_ID),
 });
 
 // Note: Using `window.getEnigmaUtils` is optional, it will allow
@@ -178,45 +226,41 @@ const secretjs = await SecretNetworkClient.create({
 // the response across sessions.
 ```
 
-### `getOfflineSignerOnlyAmino()`
+Notes:
+
+1. No mobile support yet.
+2. Keplr supports Ledger.
+3. By using `encryptionUtils` you let Keplr handle user encryption keys for you, which allows you to easily decrypt transactions across sessions.
+
+Links:
+
+- <a href="https://www.keplr.app" target="_blank"><strong>Official Keplr Website »</strong></a>
+- <a href="https://docs.keplr.app/api" target="_blank"><strong>Keplr API Docs »</strong></a>
+
+### `SignerOnlyAmino` vs `Signer` vs `SignerAuto`
+
+TLDR:
+
+- [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
+- [`getOfflineSigner()`](#getofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
+- [`getOfflineSignerAuto()`](#getofflinesignerauto): If Ledger alias for `getOfflineSignerOnlyAmino()`, otherwise alias for `getOfflineSigner()`.
+
+#### `window.keplr.getOfflineSignerOnlyAmino()`
 
 Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended for connecting to Keplr due to Ledger support & better UI on Keplr.
 
 - 🟩 Looks good on Keplr
 - 🟩 Supports users signing with Ledger
-- 🟥 Doesn't support signing transactions with these Msgs:
-  - [authz/MsgExec](https://secretjs.scrt.network/classes/MsgExec)
-  - [authz/MsgGrant](https://secretjs.scrt.network/classes/MsgGrant)
-  - [authz/MsgRevoke](https://secretjs.scrt.network/classes/MsgRevoke)
-  - [feegrant/MsgGrantAllowance](https://secretjs.scrt.network/classes/MsgGrantAllowance)
-  - [feegrant/MsgRevokeAllowance](https://secretjs.scrt.network/classes/MsgRevokeAllowance)
-  - All IBC relayer Msgs:
-    - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
-    - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
-    - [ibc_channel/MsgAcknowledgement](https://secretjs.scrt.network/classes/MsgAcknowledgement)
-    - [ibc_channel/MsgChannelCloseConfirm](https://secretjs.scrt.network/classes/MsgChannelCloseConfirm)
-    - [ibc_channel/MsgChannelCloseInit](https://secretjs.scrt.network/classes/MsgChannelCloseInit)
-    - [ibc_channel/MsgChannelOpenAck](https://secretjs.scrt.network/classes/MsgChannelOpenAck)
-    - [ibc_channel/MsgChannelOpenConfirm](https://secretjs.scrt.network/classes/MsgChannelOpenConfirm)
-    - [ibc_channel/MsgChannelOpenInit](https://secretjs.scrt.network/classes/MsgChannelOpenInit)
-    - [ibc_channel/MsgChannelOpenTry](https://secretjs.scrt.network/classes/MsgChannelOpenTry)
-    - [ibc_channel/MsgRecvPacket](https://secretjs.scrt.network/classes/MsgRecvPacket)
-    - [ibc_channel/MsgTimeout](https://secretjs.scrt.network/classes/MsgTimeout)
-    - [ibc_channel/MsgTimeoutOnClose](https://secretjs.scrt.network/classes/MsgTimeoutOnClose)
-    - [ibc_client/MsgCreateClient](https://secretjs.scrt.network/classes/MsgCreateClient)
-    - [ibc_client/MsgSubmitMisbehaviour](https://secretjs.scrt.network/classes/MsgSubmitMisbehaviour)
-    - [ibc_client/MsgUpdateClient](https://secretjs.scrt.network/classes/MsgUpdateClient)
-    - [ibc_client/MsgUpgradeClient](https://secretjs.scrt.network/classes/MsgUpgradeClient)
-    - [ibc_connection/MsgConnectionOpenAck](https://secretjs.scrt.network/classes/MsgConnectionOpenAck)
-    - [ibc_connection/MsgConnectionOpenConfirm](https://secretjs.scrt.network/classes/MsgConnectionOpenConfirm)
-    - [ibc_connection/MsgConnectionOpenInit](https://secretjs.scrt.network/classes/MsgConnectionOpenInit)
-    - [ibc_connection/MsgConnectionOpenTry](https://secretjs.scrt.network/classes/MsgConnectionOpenTry)
+- 🟥 Doesn't support signing these transactions:
+  - Every tx type under `ibc_client`, `ibc_connection` and `ibc_channel` (meaning IBC relaying, for example with [ts-relayer](https://github.com/confio/ts-relayer))
+  - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
+  - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
 
 Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC **is** supported.
 
-<img src="./media/keplr-amino.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
+<img src="./media/keplr-amino.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-### `getOfflineSigner()`
+#### `window.keplr.getOfflineSigner()`
 
 The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
 
@@ -224,17 +268,75 @@ The new way of signing transactions on cosmos-sdk, it's more efficient but still
 - 🟥 Doesn't support users signing with Ledger
 - 🟩 Supports signing transactions with all types of Msgs
 
-<img src="./media/keplr-proto.png" width="65%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
+<img src="./media/keplr-proto.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
 
-### `getOfflineSignerAuto()`
+#### `window.keplr.getOfflineSignerAuto()`
 
-Currently this is equivalent to `keplr.getOfflineSigner()` but may change at the discretion of the Keplr team.
+If the connected Keplr account uses Ledger, returns `window.keplr.getOfflineSignerOnlyAmino()`.  
+Otherwise returns `window.keplr.getOfflineSigner()`.
 
-# Migrating from Secret.js v0.17.x
+## Fina Wallet
+
+Fina implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
+
+Links:
+
+- <a href="https://fina.cash" target="_blank"><strong>Official Fina Website »</strong></a>
+
+## Leap Cosmos Wallet
+
+Leap implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies.
+
+The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
+
+```ts
+import { SecretNetworkClient } from "secretjs";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+while (
+  !window.leap ||
+  !window.leap.getEnigmaUtils ||
+  !window.leap.getOfflineSignerOnlyAmino
+) {
+  await sleep(50);
+}
+
+const CHAIN_ID = "secret-4";
+
+await window.leap.enable(CHAIN_ID);
+
+const leapOfflineSigner = window.leap.getOfflineSignerOnlyAmino(CHAIN_ID);
+const [{ address: myAddress }] = await leapOfflineSigner.getAccounts();
+
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
+const secretjs = await SecretNetworkClient.create({
+  grpcWebUrl,
+  chainId: CHAIN_ID,
+  wallet: leapOfflineSigner,
+  walletAddress: myAddress,
+  encryptionUtils: window.leap.getEnigmaUtils(CHAIN_ID),
+});
+
+// Note: Using `window.leap.getEnigmaUtils()` is optional, it will allow
+// Leap to use the same encryption seed across sessions for the account.
+// The benefit of this is that `secretjs.query.getTx()` will be able to decrypt
+// the response across sessions.
+```
+
+Links:
+
+- <a href="https://www.leapwallet.io/cosmos" target="_blank"><strong>Official Leap Website »</strong></a>
+- <a href="https://leapwallet.notion.site/leapwallet/Connect-to-Leap-on-your-dApp-035d49182fad432da4c3194bc891a746" target="_blank"><strong>Leap API Docs »</strong></a>
+
+# Migrating from secret.js v0.17.x
 
 - `v0.9.x` through `v0.16.x` supported `secret-2` & `secret-3`
 - `v0.17.x` supports `secret-4`
 - `v1.2.x` supports `secret-4`, corresponds to [`v1.2.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.2.0)
+- `v1.3.x` supports `secret-4`, corresponds to [`v1.3.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.3.0)
+- `v1.4.x` supports `secret-4`, corresponds to [`v1.4.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.4.0)
 
 TODO
 
@@ -278,10 +380,12 @@ A querier client can only send queries and get chain information. Access to all 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
 const secretjs = await SecretNetworkClient.create({
   chainId: "secret-4",
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
 });
 ```
 
@@ -299,9 +403,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client you must also pass in `wallet`, `walletAddress` and `chainId`
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -830,9 +936,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
+const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+
 // To create a signer secret.js client, also pass in a wallet
 const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "https://grpc-web.azure-api.net",
+  grpcWebUrl,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -1179,9 +1287,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator from a single validator.
 
-Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-DelegatorRewardParams)
+Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfaces/MsgWithdrawDelegatorRewardParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
@@ -1203,9 +1309,7 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 MsgWithdrawValidatorCommission withdraws the full commission to the validator address.
 
-Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdraw
-
-ValidatorCommissionParams)
+Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/interfaces/MsgWithdrawValidatorCommissionParams)
 
 ```ts
 const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
@@ -1257,6 +1361,41 @@ MsgGrantAllowance adds permission for Grantee to spend up to Allowance of fees f
 
 Input: [MsgGrantAllowanceParams](https://secretjs.scrt.network/interfaces/MsgGrantAllowanceParams)
 
+```ts
+const newWallet = new Wallet();
+
+const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
+  granter: secretjsGranter.address,
+  grantee: newWallet.address,
+  allowance: {
+    spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+  },
+});
+
+const secretjsGrantee = await SecretNetworkClient.create({
+  grpcWebUrl: "http://localhost:9091",
+  chainId: "secretdev-1",
+  wallet: newWallet,
+  walletAddress: newWallet.address,
+});
+
+// Send a tx from newWallet with secretjs.address as the fee payer
+cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
+  {
+    proposer: secretjsGrantee.address,
+    type: ProposalType.TextProposal,
+    initialDeposit: [],
+    content: {
+      title: "Send a tx without any balance",
+      description: `Thanks ${secretjsGranter.address}!`,
+    },
+  },
+  {
+    feeGranter: secretjsGranter.address,
+  },
+);
+```
+
 ##### `secretjs.tx.feegrant.grantAllowance.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
@@ -1266,6 +1405,13 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 MsgRevokeAllowance removes any existing Allowance from Granter to Grantee.
 
 Input: [MsgRevokeAllowanceParams](https://secretjs.scrt.network/interfaces/MsgRevokeAllowanceParams)
+
+```ts
+const tx = await secretjs.tx.feegrant.revokeAllowance({
+  granter: secretjs.address,
+  grantee: newWallet.address,
+});
+```
 
 ##### `secretjs.tx.feegrant.revokeAllowance.simulate()`
 

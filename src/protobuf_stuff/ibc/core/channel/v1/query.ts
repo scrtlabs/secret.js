@@ -253,6 +253,8 @@ export interface QueryPacketAcknowledgementsRequest {
   channelId: string;
   /** pagination request */
   pagination?: PageRequest;
+  /** list of packet sequences */
+  packetCommitmentSequences: string[];
 }
 
 /**
@@ -1915,7 +1917,12 @@ export const QueryPacketAcknowledgementResponse = {
 };
 
 function createBaseQueryPacketAcknowledgementsRequest(): QueryPacketAcknowledgementsRequest {
-  return { portId: "", channelId: "", pagination: undefined };
+  return {
+    portId: "",
+    channelId: "",
+    pagination: undefined,
+    packetCommitmentSequences: [],
+  };
 }
 
 export const QueryPacketAcknowledgementsRequest = {
@@ -1932,6 +1939,11 @@ export const QueryPacketAcknowledgementsRequest = {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
     }
+    writer.uint32(34).fork();
+    for (const v of message.packetCommitmentSequences) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
     return writer;
   },
 
@@ -1954,6 +1966,20 @@ export const QueryPacketAcknowledgementsRequest = {
         case 3:
           message.pagination = PageRequest.decode(reader, reader.uint32());
           break;
+        case 4:
+          if ((tag & 7) === 2) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.packetCommitmentSequences.push(
+                longToString(reader.uint64() as Long),
+              );
+            }
+          } else {
+            message.packetCommitmentSequences.push(
+              longToString(reader.uint64() as Long),
+            );
+          }
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1969,6 +1995,11 @@ export const QueryPacketAcknowledgementsRequest = {
       pagination: isSet(object.pagination)
         ? PageRequest.fromJSON(object.pagination)
         : undefined,
+      packetCommitmentSequences: Array.isArray(
+        object?.packetCommitmentSequences,
+      )
+        ? object.packetCommitmentSequences.map((e: any) => String(e))
+        : [],
     };
   },
 
@@ -1980,6 +2011,13 @@ export const QueryPacketAcknowledgementsRequest = {
       (obj.pagination = message.pagination
         ? PageRequest.toJSON(message.pagination)
         : undefined);
+    if (message.packetCommitmentSequences) {
+      obj.packetCommitmentSequences = message.packetCommitmentSequences.map(
+        (e) => e,
+      );
+    } else {
+      obj.packetCommitmentSequences = [];
+    }
     return obj;
   },
 
@@ -1993,6 +2031,8 @@ export const QueryPacketAcknowledgementsRequest = {
       object.pagination !== undefined && object.pagination !== null
         ? PageRequest.fromPartial(object.pagination)
         : undefined;
+    message.packetCommitmentSequences =
+      object.packetCommitmentSequences?.map((e) => e) || [];
     return message;
   },
 };

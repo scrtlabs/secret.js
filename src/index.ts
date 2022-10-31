@@ -1,15 +1,24 @@
+if (typeof BigInt === "undefined") {
+  global.BigInt = require("big-integer");
+}
+
+// Note: the order of exports is important here
 export * from "@cosmjs/encoding";
 export * from "./encryption";
 export * from "./query";
 export * from "./secret_network_client";
 export * from "./tx";
-export {
-  base64PubkeyToAddress,
-  pubkeyToAddress,
-  WalletOptions,
-} from "./wallet_amino";
+export * from "./utils";
+export { WalletOptions } from "./wallet_amino";
 export { Wallet } from "./wallet_proto";
+export { MetaMaskWallet } from "./wallet_metamask";
 
 export * from "./extensions/snip20";
 export * from "./extensions/snip721";
 export * from "./extensions/access_control";
+export { grpc } from "@improbable-eng/grpc-web";
+export {
+  MsgStoreCodeResponse,
+  MsgInstantiateContractResponse,
+  MsgExecuteContractResponse,
+} from "./protobuf_stuff/secret/compute/v1beta1/msg";

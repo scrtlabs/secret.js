@@ -1,6 +1,7 @@
-import { fromBase64, fromHex, fromUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8, toHex } from "@cosmjs/encoding";
 import { grpc } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
+import { sha256 } from "@noble/hashes/sha256";
 import {
   Coin,
   MsgBeginRedelegate,
@@ -98,12 +99,13 @@ import {
   MsgParams,
   ProtoMsg,
 } from "./tx";
+import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
   AminoSigner,
   AminoSignResponse,
   encodeSecp256k1Pubkey,
-  isOfflineDirectSigner,
+  isDirectSigner,
   Pubkey,
   Signer,
   StdFee,
@@ -118,9 +120,9 @@ export type CreateClientOptions = {
   chainId: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
   wallet?: Signer;
-  /** walletAddress is the spesific account address in the wallet that is permitted to sign transactions & permits. */
+  /** walletAddress is the specific account address in the wallet that is permitted to sign transactions & permits. */
   walletAddress?: string;
-  /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. */
+  /** Passing `encryptionSeed` will allow tx decryption at a later time. Ignored if `encryptionUtils` is supplied. Must be 32 bytes. */
   encryptionSeed?: Uint8Array;
   /** `encryptionUtils` overrides the default {@link EncryptionUtilsImpl}. */
   encryptionUtils?: EncryptionUtils;
@@ -143,6 +145,12 @@ export type SingleMsgTx<T> = {
 
 export enum BroadcastMode {
   /**
+   * Broadcast transaction to mempool and wait for DeliverTx response.
+   *
+   * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_commit
+   */
+  Block = "Block",
+  /**
    * Broadcast transaction to mempool and wait for CheckTx response.
    *
    * @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync
@@ -159,10 +167,12 @@ export enum BroadcastMode {
 export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
-  /** E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt. Defaults to `0.25`. */
+  /** E.g. gasPriceInFeeDenom=0.1 & feeDenom="uscrt" => Total fee for tx is `0.1 * gasLimit`uscrt. Defaults to `0.1`. */
   gasPriceInFeeDenom?: number;
   /** Defaults to `"uscrt"`. */
   feeDenom?: string;
+  /** Address of the fee granter from which to charge gas fees. */
+  feeGranter?: string;
   /** Defaults to `""`. */
   memo?: string;
   /** If `false` returns immediately with only the `transactionHash` field set. Defaults to `true`. */
@@ -176,7 +186,7 @@ export type TxOptions = {
   /**
    * When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks.
    *
-   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize.
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize.
    *
    * Defaults to `6_000`. Ignored if `waitForCommit = false`.
    */
@@ -193,7 +203,7 @@ export type TxOptions = {
   broadcastMode?: BroadcastMode;
   /**
    * explicitSignerData can be used to override `chainId`, `accountNumber` & `accountSequence`.
-   * This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs
+   * This is useful when using {@link BroadcastMode.Async} or when you don't want secretjs
    * to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    */
   explicitSignerData?: SignerData;
@@ -349,7 +359,12 @@ export type TxContent = {
 
 /** A transaction that is indexed as part of the transaction history */
 export type Tx = {
+  /** Block height in which the tx was committed on-chain */
   readonly height: number;
+  /** An RFC 3339 timestamp of when the tx was committed on-chain.
+   * The format is `{year}-{month}-{day}T{hour}:{min}:{sec}[.{frac_sec}]Z`.
+   */
+  readonly timestamp: string;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
   /** Transaction execution error code. 0 on success. See {@link TxResultCode}. */
@@ -364,6 +379,18 @@ export type Tx = {
   readonly jsonLog?: JsonLog;
   /** If code = 0, `arrayLog` is a flattened `jsonLog`. Values are decrypted if possible. */
   readonly arrayLog?: ArrayLog;
+
+  /**
+   * Events defines all the events emitted by processing a transaction. Note,
+   * these events include those emitted by processing all the messages and those
+   * emitted from the ante handler. Whereas Logs contains the events, with
+   * additional metadata, emitted only by processing the messages.
+   *
+   * Note: events are not decrypted.
+   */
+  readonly events: Array<
+    import("./protobuf_stuff/tendermint/abci/types").Event
+  >;
   /** Return value (if there's any) for each input message */
   readonly data: Array<Uint8Array>;
   /**
@@ -383,7 +410,13 @@ export type Tx = {
    * ```
    */
   readonly txBytes: Uint8Array;
+  /**
+   * Amount of gas that was actually used by the transaction.
+   */
   readonly gasUsed: number;
+  /**
+   * Gas limit that was originaly set by the transaction.
+   */
   readonly gasWanted: number;
 };
 
@@ -393,14 +426,14 @@ export type TxSender = {
    *
    * @param {TxOptions} [options] Options for signing and broadcasting
    * @param {Number} [options.gasLimit=25_000]
-   * @param {Number} [options.gasPriceInFeeDenom=0.25] E.g. gasPriceInFeeDenom=0.25 & feeDenom="uscrt" => Total fee for tx is `0.25 * gasLimit`uscrt.
+   * @param {Number} [options.gasPriceInFeeDenom=0.1] E.g. gasPriceInFeeDenom=0.1 & feeDenom="uscrt" => Total fee for tx is `0.1 * gasLimit`uscrt.
    * @param {String} [options.feeDenom="uscrt"]
    * @param {String} [options.memo=""]
    * @param {boolean} [options.waitForCommit=true] If false returns immediately with `transactionHash`. Defaults to `true`.
    * @param {Number} [options.broadcastTimeoutMs=60_000] How much time (in milliseconds) to wait for tx to commit on-chain. Ignored if `waitForCommit = false`.
-   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finilize. Ignored if `waitForCommit = false`.
+   * @param {Number} [options.broadcastCheckIntervalMs=6_000] When waiting for the tx to commit on-chain, how much time (in milliseconds) to wait between checks. Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize. Ignored if `waitForCommit = false`.
    * @param {BroadcastMode} [options.broadcastMode=BroadcastMode.Sync] If {@link BroadcastMode.Sync} - Broadcast transaction to mempool and wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_sync. If {@link BroadcastMode.Async} Broadcast transaction to mempool and do not wait for CheckTx response. @see https://docs.tendermint.com/master/rpc/#/Tx/broadcast_tx_async.
-   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is usefull when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
+   * @param {SignerData} [options.explicitSignerData] explicitSignerData  can be used to override `chainId`, `accountNumber` & `accountSequence`. This is useful when using {@link BroadcastMode.Async} or when you don't want secretjs to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    * @param {Number} [options.explicitSignerData.accountNumber]
    * @param {Number} [options.explicitSignerData.sequence]
    * @param {String} [options.explicitSignerData.chainId]
@@ -602,6 +635,10 @@ export type TxSender = {
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: SingleMsgTx<MsgUndelegateParams>;
   };
+  vesting: {
+    /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
+    createVestingAccount: SingleMsgTx<MsgCreateVestingAccount>;
+  };
 };
 
 type ComputeMsgToNonce = { [msgIndex: number]: Uint8Array };
@@ -630,16 +667,25 @@ export class SecretNetworkClient {
 
     options.grpcWebUrl = options.grpcWebUrl.replace(/\/*$/, ""); // remove trailing slash
 
-    if (typeof window === "undefined") {
-      // node.js
+    if (typeof document !== "undefined") {
+      // browser
+      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
+        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+        // debug: true,
+      });
+    } else if (
+      typeof navigator !== "undefined" &&
+      navigator.product === "ReactNative"
+    ) {
+      // react-native
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
         transport: NodeHttpTransport(),
         // debug: true,
       });
     } else {
-      // browser
+      // node.js
       grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+        transport: NodeHttpTransport(),
         // debug: true,
       });
     }
@@ -829,7 +875,10 @@ export class SecretNetworkClient {
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),
         undelegate: doMsg(MsgUndelegate),
-      }
+      },
+      vesting: {
+        createVestingAccount: doMsg(MsgCreateVestingAccount),
+      },
     };
 
     if (options.encryptionUtils) {
@@ -846,132 +895,31 @@ export class SecretNetworkClient {
     this.query.compute = new ComputeQuerier(grpc, this.encryptionUtils);
   }
 
-  private async getTx(
-    hash: string,
-    nonces: ComputeMsgToNonce = {},
-  ): Promise<Tx | null> {
-    const results = await this.txsQuery(`tx.hash='${hash}'`, nonces);
+  private async getTx(hash: string): Promise<Tx | null> {
+    const results = await this.txsQuery(`tx.hash='${hash}'`);
     return results[0] ?? null;
   }
 
-  private async txsQuery(
-    query: string,
-    nonces: ComputeMsgToNonce = {},
-  ): Promise<Tx[]> {
+  private async txsQuery(query: string): Promise<Tx[]> {
     const { txResponses } = await this.txService.getTxsEvent({
       events: query.split(" AND ").map((q) => q.trim()),
     });
 
+    return this.decodeTxResponses(txResponses);
+  }
+
+  private async decodeTxResponses(
+    txResponses: import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse[],
+  ): Promise<Tx[]> {
+    let nonces: ComputeMsgToNonce = [];
+
     return await Promise.all(
-      txResponses.map(async (tx) => {
-        let rawLog: string = tx.rawLog;
-        let jsonLog: JsonLog | undefined;
-        let arrayLog: ArrayLog | undefined;
-        if (tx.code === 0 && rawLog !== "") {
-          jsonLog = JSON.parse(rawLog) as JsonLog;
-
-          arrayLog = [];
-          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
-            if (jsonLog[msgIndex].msg_index === undefined) {
-              jsonLog[msgIndex].msg_index = msgIndex;
-              // See https://github.com/cosmos/cosmos-sdk/pull/11147
-            }
-
-            const log = jsonLog[msgIndex];
-            for (const event of log.events) {
-              for (const attr of event.attributes) {
-                // Try to decrypt
-                if (event.type === "wasm") {
-                  const nonce = nonces[msgIndex];
-                  if (nonce && nonce.length === 32) {
-                    try {
-                      attr.key = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.key),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                    try {
-                      attr.value = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.value),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                  }
-                }
-
-                arrayLog.push({
-                  msg: msgIndex,
-                  type: event.type,
-                  key: attr.key,
-                  value: attr.value,
-                });
-              }
-            }
-          }
-        } else if (tx.code !== 0 && rawLog !== "") {
-          try {
-            const errorMessageRgx =
-              /; message index: (\d+): encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
-            const rgxMatches = errorMessageRgx.exec(rawLog);
-            if (rgxMatches?.length === 3) {
-              const encryptedError = fromBase64(rgxMatches[2]);
-              const msgIndex = Number(rgxMatches[1]);
-
-              const decryptedBase64Error = await this.encryptionUtils.decrypt(
-                encryptedError,
-                nonces[msgIndex],
-              );
-
-              const decryptedError = fromUtf8(decryptedBase64Error);
-
-              rawLog = rawLog.replace(
-                `encrypted: ${rgxMatches[2]}`,
-                decryptedError,
-              );
-
-              try {
-                jsonLog = JSON.parse(decryptedError);
-              } catch (e) {}
-            }
-          } catch (decryptionError) {
-            // Not encrypted or can't decrypt because not original sender
-          }
-        }
-
-        const { TxMsgData } = await import(
-          "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
-        );
-
-        const txMsgData = TxMsgData.decode(fromHex(tx.data));
-        const data = new Array<Uint8Array>(txMsgData.data.length);
-
-        for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
-          const nonce = nonces[msgIndex];
-          if (nonce && nonce.length === 32) {
-            try {
-              data[msgIndex] = fromBase64(
-                fromUtf8(
-                  await this.encryptionUtils.decrypt(
-                    txMsgData.data[msgIndex].data,
-                    nonce,
-                  ),
-                ),
-              );
-            } catch (decryptionError) {
-              // Not encrypted or can't decrypt because not original sender
-              data[msgIndex] = txMsgData.data[msgIndex].data;
-            }
-          }
-        }
-
+      txResponses.map(async (txResp) => {
         // Decode input tx
+
         const decodedTx = (
           await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-        ).Tx.decode(tx.tx!.value) as TxContent;
+        ).Tx.decode(txResp.tx!.value) as TxContent;
 
         // Decoded input tx messages
         for (let i = 0; i < decodedTx.body!.messages.length; i++) {
@@ -1017,6 +965,8 @@ export class SecretNetworkClient {
               msg.value[contractInputMsgFieldName] = JSON.parse(
                 fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
               );
+
+              nonces[i] = nonce; // Fill nonces array to later use it in output decryption
             } catch (decryptionError) {
               // Not encrypted or can't decrypt because not original sender
             }
@@ -1025,18 +975,159 @@ export class SecretNetworkClient {
           decodedTx.body!.messages[i] = msg;
         }
 
+        let rawLog: string = txResp.rawLog;
+        let jsonLog: JsonLog | undefined;
+        let arrayLog: ArrayLog | undefined;
+        if (txResp.code === 0 && rawLog !== "") {
+          jsonLog = JSON.parse(rawLog) as JsonLog;
+
+          arrayLog = [];
+          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+            if (jsonLog[msgIndex].msg_index === undefined) {
+              jsonLog[msgIndex].msg_index = msgIndex;
+              // See https://github.com/cosmos/cosmos-sdk/pull/11147
+            }
+
+            const log = jsonLog[msgIndex];
+            for (const event of log.events) {
+              for (const attr of event.attributes) {
+                // Try to decrypt
+                if (event.type === "wasm") {
+                  const nonce = nonces[msgIndex];
+                  if (nonce && nonce.length === 32) {
+                    try {
+                      attr.key = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.key),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                    try {
+                      attr.value = fromUtf8(
+                        await this.encryptionUtils.decrypt(
+                          fromBase64(attr.value),
+                          nonce,
+                        ),
+                      ).trim();
+                    } catch (e) {}
+                  }
+                }
+
+                arrayLog.push({
+                  msg: msgIndex,
+                  type: event.type,
+                  key: attr.key,
+                  value: attr.value,
+                });
+              }
+            }
+          }
+        } else if (txResp.code !== 0 && rawLog !== "") {
+          try {
+            const errorMessageRgx =
+              /; message index: (\d+):(?: dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
+            const rgxMatches = errorMessageRgx.exec(rawLog);
+            if (rgxMatches?.length === 3) {
+              const encryptedError = fromBase64(rgxMatches[2]);
+              const msgIndex = Number(rgxMatches[1]);
+
+              const decryptedBase64Error = await this.encryptionUtils.decrypt(
+                encryptedError,
+                nonces[msgIndex],
+              );
+
+              const decryptedError = fromUtf8(decryptedBase64Error);
+
+              rawLog = rawLog.replace(
+                `encrypted: ${rgxMatches[2]}`,
+                decryptedError,
+              );
+
+              try {
+                jsonLog = JSON.parse(decryptedError);
+              } catch (e) {}
+            }
+          } catch (decryptionError) {
+            // Not encrypted or can't decrypt because not original sender
+          }
+        }
+
+        const { TxMsgData } = await import(
+          "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
+        );
+
+        const txMsgData = TxMsgData.decode(fromHex(txResp.data));
+        const data = new Array<Uint8Array>(txMsgData.data.length);
+
+        for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+          data[msgIndex] = txMsgData.data[msgIndex].data;
+
+          const nonce = nonces[msgIndex];
+          if (nonce && nonce.length === 32) {
+            // Check if the message needs decryption
+
+            try {
+              const { typeUrl } = decodedTx.body!.messages[msgIndex];
+
+              if (
+                typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
+                  ),
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgInstantiateContractResponse.encode({
+                  address: decoded.address,
+                  data: decrypted,
+                }).finish();
+              } else if (
+                typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
+              ) {
+                const decoded = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.decode(
+                  txMsgData.data[msgIndex].data,
+                );
+                const decrypted = fromBase64(
+                  fromUtf8(
+                    await this.encryptionUtils.decrypt(decoded.data, nonce),
+                  ),
+                );
+                data[msgIndex] = (
+                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
+                ).MsgExecuteContractResponse.encode({
+                  data: decrypted,
+                }).finish();
+              }
+            } catch (decryptionError) {
+              // Not encrypted or can't decrypt because not original sender
+            }
+          }
+        }
+
         return {
-          height: Number(tx.height),
-          transactionHash: tx.txhash,
-          code: tx.code,
+          height: Number(txResp.height),
+          timestamp: txResp.timestamp,
+          transactionHash: txResp.txhash,
+          code: txResp.code,
           tx: decodedTx,
-          txBytes: tx.tx!.value,
+          txBytes: txResp.tx!.value,
           rawLog,
           jsonLog,
           arrayLog,
+          events: txResp.events,
           data,
-          gasUsed: Number(tx.gasUsed),
-          gasWanted: Number(tx.gasWanted),
+          gasUsed: Number(txResp.gasUsed),
+          gasWanted: Number(txResp.gasWanted),
         };
       }),
     );
@@ -1059,40 +1150,86 @@ export class SecretNetworkClient {
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
-    nonces: ComputeMsgToNonce,
   ): Promise<Tx> {
     const start = Date.now();
 
-    let txhash: string;
+    const txhash = toHex(sha256(tx)).toUpperCase();
 
-    if (mode === BroadcastMode.Sync) {
+    if (!waitForCommit && mode == BroadcastMode.Block) {
+      mode = BroadcastMode.Sync;
+    }
+
+    if (mode === BroadcastMode.Block) {
+      waitForCommit = true;
+
       const { BroadcastMode } = await import(
         "./protobuf_stuff/cosmos/tx/v1beta1/service"
       );
+
+      let txResponse:
+        | import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse
+        | undefined;
+
+      let isBroadcastTimedOut = false;
+      try {
+        ({ txResponse } = await this.txService.broadcastTx({
+          txBytes: tx,
+          mode: BroadcastMode.BROADCAST_MODE_BLOCK,
+        }));
+      } catch (e) {
+        if (
+          JSON.stringify(e).includes(
+            "timed out waiting for tx to be included in a block",
+          )
+        ) {
+          isBroadcastTimedOut = true;
+        } else {
+          throw new Error(
+            `Failed to broadcast transaction ID ${txhash}: '${JSON.stringify(
+              e,
+            )}'.`,
+          );
+        }
+      }
+
+      if (!isBroadcastTimedOut) {
+        txResponse!.tx = {
+          typeUrl: "/cosmos.tx.v1beta1.Tx", // not sure, not used in decodeTxResponses anyway
+          value: tx,
+        };
+        return (await this.decodeTxResponses([txResponse!]))[0];
+      }
+    } else if (mode === BroadcastMode.Sync) {
+      const { BroadcastMode } = await import(
+        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+      );
+
       const { txResponse } = await this.txService.broadcastTx({
         txBytes: tx,
         mode: BroadcastMode.BROADCAST_MODE_SYNC,
       });
-      if (txResponse?.code) {
+
+      if (txResponse?.code !== 0) {
         throw new Error(
           `Broadcasting transaction failed with code ${txResponse?.code} (codespace: ${txResponse?.codespace}). Log: ${txResponse?.rawLog}`,
         );
       }
-      txhash = txResponse!.txhash;
     } else if (mode === BroadcastMode.Async) {
       const { BroadcastMode } = await import(
         "./protobuf_stuff/cosmos/tx/v1beta1/service"
       );
-      const { txResponse } = await this.txService.broadcastTx({
+
+      this.txService.broadcastTx({
         txBytes: tx,
         mode: BroadcastMode.BROADCAST_MODE_ASYNC,
       });
-      txhash = txResponse!.txhash;
     } else {
       throw new Error(
         `Unknown broadcast mode "${String(mode)}", must be either "${String(
-          BroadcastMode.Sync,
-        )}" or "${String(BroadcastMode.Async)}".`,
+          BroadcastMode.Block,
+        )}", "${String(BroadcastMode.Sync)}" or "${String(
+          BroadcastMode.Async,
+        )}".`,
       );
     }
 
@@ -1101,11 +1238,11 @@ export class SecretNetworkClient {
       return { transactionHash: txhash };
     }
 
-    while (true) {
-      // sleep first because there's no point in checking right after broadcasting
-      await sleep(checkIntervalMs);
+    // sleep first because there's no point in checking right after broadcasting
+    await sleep(checkIntervalMs / 2);
 
-      const result = await this.getTx(txhash, nonces);
+    while (true) {
+      const result = await this.getTx(txhash);
 
       if (result) {
         return result;
@@ -1113,24 +1250,27 @@ export class SecretNetworkClient {
 
       if (start + timeoutMs < Date.now()) {
         throw new Error(
-          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later.`,
+          `Transaction ID ${txhash} was submitted but was not yet found on the chain. You might want to check later or increase broadcastTimeoutMs from '${timeoutMs}'.`,
         );
       }
+
+      await sleep(checkIntervalMs);
     }
   }
 
-  private async prepareAndSign(
+  public async prepareAndSign(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<[Uint8Array, ComputeMsgToNonce]> {
+  ): Promise<Uint8Array> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
-    const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.25;
+    const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.1;
     const feeDenom = txOptions?.feeDenom ?? "uscrt";
     const memo = txOptions?.memo ?? "";
+    const feeGranter = txOptions?.feeGranter;
 
     const explicitSignerData = txOptions?.explicitSignerData;
 
-    const [txRaw, nonces] = await this.sign(
+    const txRaw = await this.sign(
       messages,
       {
         gas: String(gasLimit),
@@ -1140,6 +1280,7 @@ export class SecretNetworkClient {
             denom: feeDenom,
           },
         ],
+        granter: feeGranter,
       },
       memo,
       explicitSignerData,
@@ -1149,28 +1290,21 @@ export class SecretNetworkClient {
       await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
     ).TxRaw.encode(txRaw).finish();
 
-    return [txBytes, nonces];
+    return txBytes;
   }
 
   private async signAndBroadcast(
     messages: Msg[],
     txOptions?: TxOptions,
   ): Promise<Tx> {
-    const waitForCommit = txOptions?.waitForCommit ?? true;
-    const broadcastTimeoutMs = txOptions?.broadcastTimeoutMs ?? 60_000;
-    const broadcastCheckIntervalMs =
-      txOptions?.broadcastCheckIntervalMs ?? 6_000;
-    const broadcastMode = txOptions?.broadcastMode ?? BroadcastMode.Sync;
-
-    const [txBytes, nonces] = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions);
 
     return this.broadcastTx(
       txBytes,
-      broadcastTimeoutMs,
-      broadcastCheckIntervalMs,
-      broadcastMode,
-      waitForCommit,
-      nonces,
+      txOptions?.broadcastTimeoutMs ?? 60_000,
+      txOptions?.broadcastCheckIntervalMs ?? 6_000,
+      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.waitForCommit ?? true,
     );
   }
 
@@ -1180,7 +1314,7 @@ export class SecretNetworkClient {
   ): Promise<
     import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
   > {
-    const [txBytes] = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions);
     return this.txService.simulate({ txBytes });
   }
 
@@ -1199,9 +1333,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
     const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === this.address,
     );
@@ -1239,9 +1371,17 @@ export class SecretNetworkClient {
       };
     }
 
-    return isOfflineDirectSigner(this.wallet)
-      ? this.signDirect(accountFromSigner, messages, fee, memo, signerData)
-      : this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+    if (isDirectSigner(this.wallet)) {
+      return this.signDirect(
+        accountFromSigner,
+        messages,
+        fee,
+        memo,
+        signerData,
+      );
+    } else {
+      return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+    }
   }
 
   private async signAmino(
@@ -1250,16 +1390,20 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
-    if (isOfflineDirectSigner(this.wallet)) {
-      throw new Error("Wrong signer type! Expected AminoSigner.");
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
+    if (isDirectSigner(this.wallet)) {
+      throw new Error(
+        "Wrong signer type! Expected AminoSigner or AminoEip191Signer.",
+      );
     }
 
-    const signMode = (
+    let signMode = (
       await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
+    if (typeof this.wallet.getSignMode === "function") {
+      signMode = await this.wallet.getSignMode();
+    }
+
     const msgs = await Promise.all(
       messages.map(async (msg) => {
         await this.populateCodeHash(msg);
@@ -1274,11 +1418,12 @@ export class SecretNetworkClient {
       accountNumber,
       sequence,
     );
+
     const { signature, signed } = await this.wallet.signAmino(
       account.address,
       signDoc,
     );
-    const encryptionNonces: ComputeMsgToNonce = {};
+
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -1286,7 +1431,6 @@ export class SecretNetworkClient {
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -1302,18 +1446,16 @@ export class SecretNetworkClient {
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      signed.fee.granter,
       signMode,
     );
-    return [
-      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
-        {
-          bodyBytes: txBodyBytes,
-          authInfoBytes: signedAuthInfoBytes,
-          signatures: [fromBase64(signature.signature)],
-        },
-      ),
-      encryptionNonces,
-    ];
+    return (
+      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+    ).TxRaw.fromPartial({
+      bodyBytes: txBodyBytes,
+      authInfoBytes: signedAuthInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
   }
 
   private async populateCodeHash(msg: Msg) {
@@ -1364,14 +1506,11 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<
-    [import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw, ComputeMsgToNonce]
-  > {
-    if (!isOfflineDirectSigner(this.wallet)) {
+  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
+    if (!isDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 
-    const encryptionNonces: ComputeMsgToNonce = {};
     const txBody = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -1379,7 +1518,6 @@ export class SecretNetworkClient {
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
             const asProto = await msg.toProto(this.encryptionUtils);
-            encryptionNonces[index] = extractNonce(asProto);
 
             return asProto;
           }),
@@ -1394,6 +1532,7 @@ export class SecretNetworkClient {
       [{ pubkey, sequence }],
       fee.amount,
       gasLimit,
+      fee.granter,
     );
     const signDoc = makeSignDocProto(
       txBodyBytes,
@@ -1405,16 +1544,13 @@ export class SecretNetworkClient {
       account.address,
       signDoc,
     );
-    return [
-      (await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")).TxRaw.fromPartial(
-        {
-          bodyBytes: signed.bodyBytes,
-          authInfoBytes: signed.authInfoBytes,
-          signatures: [fromBase64(signature.signature)],
-        },
-      ),
-      encryptionNonces,
-    ];
+    return (
+      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
+    ).TxRaw.fromPartial({
+      bodyBytes: signed.bodyBytes,
+      authInfoBytes: signed.authInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
   }
 }
 
@@ -1448,6 +1584,7 @@ async function makeAuthInfoBytes(
   }>,
   feeAmount: readonly Coin[],
   gasLimit: number,
+  feeGranter?: string,
   signMode?: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
 ): Promise<Uint8Array> {
   if (!signMode) {
@@ -1461,6 +1598,7 @@ async function makeAuthInfoBytes(
     fee: {
       amount: [...feeAmount],
       gasLimit: String(gasLimit),
+      granter: feeGranter,
     },
   };
 
@@ -1570,7 +1708,7 @@ function makeSignDocAmino(
 }
 
 export enum TxResultCode {
-  /** Success is returned if the transaction executed successfuly */
+  /** Success is returned if the transaction executed successfully */
   Success = 0,
 
   /** ErrInternal should never be exposed, but we reserve this code for non-specified errors */

@@ -1,5 +1,6 @@
+import fs from "fs";
 import util from "util";
-import { SecretNetworkClient, Wallet } from "../src";
+import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -59,48 +60,63 @@ export async function waitForTx(txhash: string): Promise<any> {
   }
 }
 
-export async function secretcliStore(
+export async function storeContract(
   wasmPath: string,
   account: Account,
 ): Promise<number> {
-  const { stdout: cp_wasm, stderr } = await exec(
-    `docker cp "${wasmPath}" localsecret:/wasm-file`,
+  const secretjs = account.secretjs;
+  const txStore = await secretjs.tx.compute.storeCode(
+    {
+      sender: account.address,
+      wasmByteCode: fs.readFileSync(wasmPath) as Uint8Array,
+      source: "",
+      builder: "",
+    },
+    {
+      gasLimit: 5_000_000,
+    },
   );
+  if (txStore.code !== TxResultCode.Success) {
+    console.error(txStore.rawLog);
+  }
+  expect(txStore.code).toBe(TxResultCode.Success);
 
-  const { stdout: secretcli_store } = await exec(
-    `docker exec -i localsecret secretd tx compute store /wasm-file --from "${account.address}" --gas 10000000 -y`,
-  );
-  const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
-
-  const tx = await waitForTx(txhash);
-
-  return Number(
-    tx.logs[0].events[0].attributes.find(
-      (a: { key: string; value: string }) => a.key === "code_id",
-    ).value,
-  );
+  return Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 }
 
-export async function secretcliInit(
+export async function initContract(
   codeId: number,
   initMsg: object,
-  label: string,
   account: Account,
+  label?: string,
 ): Promise<string> {
-  const { stdout: secretcli_store } = await exec(
-    `docker exec -i localsecret secretd tx compute instantiate ${codeId} '${JSON.stringify(
+  const secretjs = account.secretjs;
+  const {
+    codeInfo: { codeHash },
+  } = await secretjs.query.compute.code(codeId);
+
+  const txInit = await secretjs.tx.compute.instantiateContract(
+    {
+      sender: account.address,
+      codeId,
+      codeHash,
       initMsg,
-    )}' --label "${label}" --from "${account.address}" --gas 500000 -y`,
+      label: label || `label-${Date.now()}`,
+      initFunds: [],
+    },
+    {
+      gasLimit: 5_000_000,
+    },
   );
-  const { txhash }: { txhash: string } = JSON.parse(secretcli_store);
-
-  const tx = await waitForTx(txhash);
-
-  return String(
-    tx.logs[0].events[0].attributes.find(
-      (a: { key: string; value: string }) => a.key === "contract_address",
-    ).value,
+  if (txInit.code !== TxResultCode.Success) {
+    console.error(txInit.rawLog);
+  }
+  expect(txInit.code).toBe(TxResultCode.Success);
+  expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    "/secret.compute.v1beta1.MsgInstantiateContract",
   );
+
+  return getValueFromRawLog(txInit.rawLog, "message.contract_address");
 }
 
 export async function getBalance(

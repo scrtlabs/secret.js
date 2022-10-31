@@ -1,11 +1,9 @@
-import { fromBase64, toBase64, toUtf8 } from "@cosmjs/encoding";
-import { ripemd160 } from "@noble/hashes/ripemd160";
+import { toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
-import { bech32 } from "bech32";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
-import { AminoMsg, Coin } from ".";
+import { AminoMsg, Coin, pubkeyToAddress } from ".";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -22,7 +20,7 @@ export type WalletOptions = {
  * supported in the chain, but is phased out slowly.
  *
  * In secret.js AminoWallet is mainly used for testing and should not be used
- * for anyhting else. The reason is that some Msg types don't support Amino
+ * for anything else. The reason is that some Msg types don't support Amino
  * encoding anymore and thus won't work with this wallet (and Ledger).
  * Msgs that do support Amino encoding also must encode with Protobuf,
  * so if a Msg is working as intended with AminoWallet, it'll also work with {@link Wallet}.
@@ -50,7 +48,7 @@ export class AminoWallet {
   /**
    * @param {String} mnemonic Import mnemonic or generate random if empty
    * @param {Number} [options.hdAccountIndex] The account index in the HD derivation path. Defaults to `0`.
-   * @param {Number} [options.coinType] The coin type in the HD derivation path. Defalts to Secret's `529`.
+   * @param {Number} [options.coinType] The coin type in the HD derivation path. Defaults to Secret's `529`.
    * @param {String} [options.bech32Prefix] The bech32 prefix for the account's address. Defaults tp `"secret"`
    */
   constructor(mnemonic: string = "", options: WalletOptions = {}) {
@@ -71,7 +69,7 @@ export class AminoWallet {
     const privateKey = secretHD.privateKey;
 
     if (!privateKey) {
-      throw new Error("Failed to derive keypair");
+      throw new Error("Failed to derive key pair");
     }
 
     this.privateKey = new Uint8Array(privateKey);
@@ -110,37 +108,6 @@ export class AminoWallet {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
-}
-
-/**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function pubkeyToAddress(
-  pubkey: Uint8Array,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
-}
-
-/**
- * Convert a secp256k1 compressed public key to a secret address
- *
- * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
- * @param {String} [prefix="secret"] The address' bech32 prefix, e.g. "secret", "cosmos", "terra". Defaults to `"secret"`.
- * @returns the account's secret address
- */
-export function base64PubkeyToAddress(
-  pubkey: string,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(
-    prefix,
-    bech32.toWords(ripemd160(sha256(fromBase64(pubkey)))),
-  );
 }
 
 /**
@@ -203,6 +170,7 @@ export type StdSignDoc = {
 export type StdFee = {
   readonly amount: readonly Coin[];
   readonly gas: string;
+  readonly granter?: string;
 };
 
 export type StdSignature = {
@@ -227,29 +195,29 @@ export type AccountData = {
   readonly pubkey: Uint8Array;
 };
 
-function sortedObject(obj: any): any {
+export function sortObject(obj: any): any {
   if (typeof obj !== "object" || obj === null) {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return obj.map(sortedObject);
+    return obj.map(sortObject);
   }
   const sortedKeys = Object.keys(obj).sort();
   const result: Record<string, any> = {};
   // NOTE: Use forEach instead of reduce for performance with large objects eg Wasm code
   sortedKeys.forEach((key) => {
-    result[key] = sortedObject(obj[key]);
+    result[key] = sortObject(obj[key]);
   });
   return result;
 }
 
 /** Returns a JSON string with objects sorted by key, used for Amino signing */
-function JsonSortedStringify(obj: any): string {
-  return JSON.stringify(sortedObject(obj));
+function jsonSortedStringify(obj: any): string {
+  return JSON.stringify(sortObject(obj));
 }
 
 export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
-  return toUtf8(JsonSortedStringify(signDoc));
+  return toUtf8(jsonSortedStringify(signDoc));
 }
 
 export type DirectSigner = {
@@ -271,11 +239,18 @@ export type DirectSignResponse = {
 
 export type Signer = AminoSigner | DirectSigner;
 
-export function isOfflineDirectSigner(signer: Signer): signer is DirectSigner {
+export function isDirectSigner(signer: Signer): signer is DirectSigner {
   return (signer as DirectSigner).signDirect !== undefined;
 }
 
 export interface AminoSigner {
+  /**
+   * Get SignMode for signing a tx.
+   */
+  readonly getSignMode?: () => Promise<
+    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+  >;
+
   /**
    * Get AccountData array from wallet. Rejects if not enabled.
    */
@@ -291,6 +266,14 @@ export interface AminoSigner {
    * @param signDoc The content that should be signed
    */
   readonly signAmino: (
+    signerAddress: string,
+    signDoc: StdSignDoc,
+  ) => Promise<AminoSignResponse>;
+}
+
+export interface AminoEip191Signer {
+  readonly getAccounts: () => Promise<readonly AccountData[]>;
+  readonly signAminoEip191: (
     signerAddress: string,
     signDoc: StdSignDoc,
   ) => Promise<AminoSignResponse>;
