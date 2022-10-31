@@ -55,6 +55,16 @@ export interface QueryParamsResponse {
   params?: Params;
 }
 
+/** QueryModuleAccountByNameRequest is the request type for the Query/ModuleAccountByName RPC method. */
+export interface QueryModuleAccountByNameRequest {
+  name: string;
+}
+
+/** QueryModuleAccountByNameResponse is the response type for the Query/ModuleAccountByName RPC method. */
+export interface QueryModuleAccountByNameResponse {
+  account?: Any;
+}
+
 function createBaseQueryAccountsRequest(): QueryAccountsRequest {
   return { pagination: undefined };
 }
@@ -422,6 +432,124 @@ export const QueryParamsResponse = {
   },
 };
 
+function createBaseQueryModuleAccountByNameRequest(): QueryModuleAccountByNameRequest {
+  return { name: "" };
+}
+
+export const QueryModuleAccountByNameRequest = {
+  encode(
+    message: QueryModuleAccountByNameRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryModuleAccountByNameRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryModuleAccountByNameRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.name = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryModuleAccountByNameRequest {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+    };
+  },
+
+  toJSON(message: QueryModuleAccountByNameRequest): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryModuleAccountByNameRequest>, I>>(
+    object: I,
+  ): QueryModuleAccountByNameRequest {
+    const message = createBaseQueryModuleAccountByNameRequest();
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryModuleAccountByNameResponse(): QueryModuleAccountByNameResponse {
+  return { account: undefined };
+}
+
+export const QueryModuleAccountByNameResponse = {
+  encode(
+    message: QueryModuleAccountByNameResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.account !== undefined) {
+      Any.encode(message.account, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryModuleAccountByNameResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryModuleAccountByNameResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.account = Any.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryModuleAccountByNameResponse {
+    return {
+      account: isSet(object.account) ? Any.fromJSON(object.account) : undefined,
+    };
+  },
+
+  toJSON(message: QueryModuleAccountByNameResponse): unknown {
+    const obj: any = {};
+    message.account !== undefined &&
+      (obj.account = message.account ? Any.toJSON(message.account) : undefined);
+    return obj;
+  },
+
+  fromPartial<
+    I extends Exact<DeepPartial<QueryModuleAccountByNameResponse>, I>,
+  >(object: I): QueryModuleAccountByNameResponse {
+    const message = createBaseQueryModuleAccountByNameResponse();
+    message.account =
+      object.account !== undefined && object.account !== null
+        ? Any.fromPartial(object.account)
+        : undefined;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /**
@@ -443,6 +571,11 @@ export interface Query {
     request: DeepPartial<QueryParamsRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryParamsResponse>;
+  /** ModuleAccountByName returns the module account info by module name */
+  moduleAccountByName(
+    request: DeepPartial<QueryModuleAccountByNameRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryModuleAccountByNameResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -453,6 +586,7 @@ export class QueryClientImpl implements Query {
     this.accounts = this.accounts.bind(this);
     this.account = this.account.bind(this);
     this.params = this.params.bind(this);
+    this.moduleAccountByName = this.moduleAccountByName.bind(this);
   }
 
   accounts(
@@ -484,6 +618,17 @@ export class QueryClientImpl implements Query {
     return this.rpc.unary(
       QueryParamsDesc,
       QueryParamsRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  moduleAccountByName(
+    request: DeepPartial<QueryModuleAccountByNameRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryModuleAccountByNameResponse> {
+    return this.rpc.unary(
+      QueryModuleAccountByNameDesc,
+      QueryModuleAccountByNameRequest.fromPartial(request),
       metadata,
     );
   }
@@ -551,6 +696,28 @@ export const QueryParamsDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...QueryParamsResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryModuleAccountByNameDesc: UnaryMethodDefinitionish = {
+  methodName: "ModuleAccountByName",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryModuleAccountByNameRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...QueryModuleAccountByNameResponse.decode(data),
         toObject() {
           return this;
         },

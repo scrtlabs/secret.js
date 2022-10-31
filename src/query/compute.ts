@@ -190,7 +190,7 @@ export class ComputeQuerier {
   ): Promise<QueryContractsByCodeResponse> {
     await this.init();
 
-    const response = await this.client!.contractsByCodeID(
+    const response = await this.client!.contractsByCodeId(
       {
         codeId: String(codeId),
       },

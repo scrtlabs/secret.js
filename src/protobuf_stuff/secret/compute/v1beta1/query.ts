@@ -24,7 +24,7 @@ export interface QueryByContractAddressRequest {
   contractAddress: string;
 }
 
-export interface QueryByCodeIDRequest {
+export interface QueryByCodeIdRequest {
   codeId: string;
 }
 
@@ -46,7 +46,7 @@ export interface ContractInfoWithAddress {
   ContractInfo?: ContractInfo;
 }
 
-export interface QueryContractsByCodeIDResponse {
+export interface QueryContractsByCodeIdResponse {
   contractInfos: ContractInfoWithAddress[];
 }
 
@@ -87,8 +87,12 @@ export interface DecryptedAnswer {
   input: string;
   outputData: string;
   outputDataAsString: string;
+}
+
+export interface DecryptedAnswers {
+  answers: DecryptedAnswer[];
   outputLogs: StringEvent[];
-  outputError: Uint8Array;
+  outputError: string;
   plaintextError: string;
 }
 
@@ -280,13 +284,13 @@ export const QueryByContractAddressRequest = {
   },
 };
 
-function createBaseQueryByCodeIDRequest(): QueryByCodeIDRequest {
+function createBaseQueryByCodeIdRequest(): QueryByCodeIdRequest {
   return { codeId: "0" };
 }
 
-export const QueryByCodeIDRequest = {
+export const QueryByCodeIdRequest = {
   encode(
-    message: QueryByCodeIDRequest,
+    message: QueryByCodeIdRequest,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     if (message.codeId !== "0") {
@@ -298,10 +302,10 @@ export const QueryByCodeIDRequest = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): QueryByCodeIDRequest {
+  ): QueryByCodeIdRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryByCodeIDRequest();
+    const message = createBaseQueryByCodeIdRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -316,22 +320,22 @@ export const QueryByCodeIDRequest = {
     return message;
   },
 
-  fromJSON(object: any): QueryByCodeIDRequest {
+  fromJSON(object: any): QueryByCodeIdRequest {
     return {
       codeId: isSet(object.codeId) ? String(object.codeId) : "0",
     };
   },
 
-  toJSON(message: QueryByCodeIDRequest): unknown {
+  toJSON(message: QueryByCodeIdRequest): unknown {
     const obj: any = {};
     message.codeId !== undefined && (obj.codeId = message.codeId);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryByCodeIDRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryByCodeIdRequest>, I>>(
     object: I,
-  ): QueryByCodeIDRequest {
-    const message = createBaseQueryByCodeIDRequest();
+  ): QueryByCodeIdRequest {
+    const message = createBaseQueryByCodeIdRequest();
     message.codeId = object.codeId ?? "0";
     return message;
   },
@@ -559,13 +563,13 @@ export const ContractInfoWithAddress = {
   },
 };
 
-function createBaseQueryContractsByCodeIDResponse(): QueryContractsByCodeIDResponse {
+function createBaseQueryContractsByCodeIdResponse(): QueryContractsByCodeIdResponse {
   return { contractInfos: [] };
 }
 
-export const QueryContractsByCodeIDResponse = {
+export const QueryContractsByCodeIdResponse = {
   encode(
-    message: QueryContractsByCodeIDResponse,
+    message: QueryContractsByCodeIdResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     for (const v of message.contractInfos) {
@@ -577,10 +581,10 @@ export const QueryContractsByCodeIDResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): QueryContractsByCodeIDResponse {
+  ): QueryContractsByCodeIdResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryContractsByCodeIDResponse();
+    const message = createBaseQueryContractsByCodeIdResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -597,7 +601,7 @@ export const QueryContractsByCodeIDResponse = {
     return message;
   },
 
-  fromJSON(object: any): QueryContractsByCodeIDResponse {
+  fromJSON(object: any): QueryContractsByCodeIdResponse {
     return {
       contractInfos: Array.isArray(object?.contractInfos)
         ? object.contractInfos.map((e: any) =>
@@ -607,7 +611,7 @@ export const QueryContractsByCodeIDResponse = {
     };
   },
 
-  toJSON(message: QueryContractsByCodeIDResponse): unknown {
+  toJSON(message: QueryContractsByCodeIdResponse): unknown {
     const obj: any = {};
     if (message.contractInfos) {
       obj.contractInfos = message.contractInfos.map((e) =>
@@ -619,10 +623,10 @@ export const QueryContractsByCodeIDResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryContractsByCodeIDResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryContractsByCodeIdResponse>, I>>(
     object: I,
-  ): QueryContractsByCodeIDResponse {
-    const message = createBaseQueryContractsByCodeIDResponse();
+  ): QueryContractsByCodeIdResponse {
+    const message = createBaseQueryContractsByCodeIdResponse();
     message.contractInfos =
       object.contractInfos?.map((e) =>
         ContractInfoWithAddress.fromPartial(e),
@@ -1040,15 +1044,7 @@ export const QueryCodeHashResponse = {
 };
 
 function createBaseDecryptedAnswer(): DecryptedAnswer {
-  return {
-    type: "",
-    input: "",
-    outputData: "",
-    outputDataAsString: "",
-    outputLogs: [],
-    outputError: new Uint8Array(),
-    plaintextError: "",
-  };
+  return { type: "", input: "", outputData: "", outputDataAsString: "" };
 }
 
 export const DecryptedAnswer = {
@@ -1067,15 +1063,6 @@ export const DecryptedAnswer = {
     }
     if (message.outputDataAsString !== "") {
       writer.uint32(34).string(message.outputDataAsString);
-    }
-    for (const v of message.outputLogs) {
-      StringEvent.encode(v!, writer.uint32(42).fork()).ldelim();
-    }
-    if (message.outputError.length !== 0) {
-      writer.uint32(50).bytes(message.outputError);
-    }
-    if (message.plaintextError !== "") {
-      writer.uint32(58).string(message.plaintextError);
     }
     return writer;
   },
@@ -1099,15 +1086,6 @@ export const DecryptedAnswer = {
         case 4:
           message.outputDataAsString = reader.string();
           break;
-        case 5:
-          message.outputLogs.push(StringEvent.decode(reader, reader.uint32()));
-          break;
-        case 6:
-          message.outputError = reader.bytes();
-          break;
-        case 7:
-          message.plaintextError = reader.string();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1124,15 +1102,6 @@ export const DecryptedAnswer = {
       outputDataAsString: isSet(object.outputDataAsString)
         ? String(object.outputDataAsString)
         : "",
-      outputLogs: Array.isArray(object?.outputLogs)
-        ? object.outputLogs.map((e: any) => StringEvent.fromJSON(e))
-        : [],
-      outputError: isSet(object.outputError)
-        ? bytesFromBase64(object.outputError)
-        : new Uint8Array(),
-      plaintextError: isSet(object.plaintextError)
-        ? String(object.plaintextError)
-        : "",
     };
   },
 
@@ -1143,21 +1112,6 @@ export const DecryptedAnswer = {
     message.outputData !== undefined && (obj.outputData = message.outputData);
     message.outputDataAsString !== undefined &&
       (obj.outputDataAsString = message.outputDataAsString);
-    if (message.outputLogs) {
-      obj.outputLogs = message.outputLogs.map((e) =>
-        e ? StringEvent.toJSON(e) : undefined,
-      );
-    } else {
-      obj.outputLogs = [];
-    }
-    message.outputError !== undefined &&
-      (obj.outputError = base64FromBytes(
-        message.outputError !== undefined
-          ? message.outputError
-          : new Uint8Array(),
-      ));
-    message.plaintextError !== undefined &&
-      (obj.plaintextError = message.plaintextError);
     return obj;
   },
 
@@ -1169,9 +1123,108 @@ export const DecryptedAnswer = {
     message.input = object.input ?? "";
     message.outputData = object.outputData ?? "";
     message.outputDataAsString = object.outputDataAsString ?? "";
+    return message;
+  },
+};
+
+function createBaseDecryptedAnswers(): DecryptedAnswers {
+  return { answers: [], outputLogs: [], outputError: "", plaintextError: "" };
+}
+
+export const DecryptedAnswers = {
+  encode(
+    message: DecryptedAnswers,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.answers) {
+      DecryptedAnswer.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.outputLogs) {
+      StringEvent.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.outputError !== "") {
+      writer.uint32(26).string(message.outputError);
+    }
+    if (message.plaintextError !== "") {
+      writer.uint32(34).string(message.plaintextError);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DecryptedAnswers {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecryptedAnswers();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.answers.push(DecryptedAnswer.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.outputLogs.push(StringEvent.decode(reader, reader.uint32()));
+          break;
+        case 3:
+          message.outputError = reader.string();
+          break;
+        case 4:
+          message.plaintextError = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecryptedAnswers {
+    return {
+      answers: Array.isArray(object?.answers)
+        ? object.answers.map((e: any) => DecryptedAnswer.fromJSON(e))
+        : [],
+      outputLogs: Array.isArray(object?.outputLogs)
+        ? object.outputLogs.map((e: any) => StringEvent.fromJSON(e))
+        : [],
+      outputError: isSet(object.outputError) ? String(object.outputError) : "",
+      plaintextError: isSet(object.plaintextError)
+        ? String(object.plaintextError)
+        : "",
+    };
+  },
+
+  toJSON(message: DecryptedAnswers): unknown {
+    const obj: any = {};
+    if (message.answers) {
+      obj.answers = message.answers.map((e) =>
+        e ? DecryptedAnswer.toJSON(e) : undefined,
+      );
+    } else {
+      obj.answers = [];
+    }
+    if (message.outputLogs) {
+      obj.outputLogs = message.outputLogs.map((e) =>
+        e ? StringEvent.toJSON(e) : undefined,
+      );
+    } else {
+      obj.outputLogs = [];
+    }
+    message.outputError !== undefined &&
+      (obj.outputError = message.outputError);
+    message.plaintextError !== undefined &&
+      (obj.plaintextError = message.plaintextError);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DecryptedAnswers>, I>>(
+    object: I,
+  ): DecryptedAnswers {
+    const message = createBaseDecryptedAnswers();
+    message.answers =
+      object.answers?.map((e) => DecryptedAnswer.fromPartial(e)) || [];
     message.outputLogs =
       object.outputLogs?.map((e) => StringEvent.fromPartial(e)) || [];
-    message.outputError = object.outputError ?? new Uint8Array();
+    message.outputError = object.outputError ?? "";
     message.plaintextError = object.plaintextError ?? "";
     return message;
   },
@@ -1185,10 +1238,10 @@ export interface Query {
     metadata?: grpc.Metadata,
   ): Promise<QueryContractInfoResponse>;
   /** Query code info by id */
-  contractsByCodeID(
-    request: DeepPartial<QueryByCodeIDRequest>,
+  contractsByCodeId(
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<QueryContractsByCodeIDResponse>;
+  ): Promise<QueryContractsByCodeIdResponse>;
   /** Query secret contract */
   querySecretContract(
     request: DeepPartial<QuerySecretContractRequest>,
@@ -1196,7 +1249,7 @@ export interface Query {
   ): Promise<QuerySecretContractResponse>;
   /** Query a specific contract code by id */
   code(
-    request: DeepPartial<QueryByCodeIDRequest>,
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryCodeResponse>;
   /** Query all contract codes on-chain */
@@ -1210,8 +1263,8 @@ export interface Query {
     metadata?: grpc.Metadata,
   ): Promise<QueryCodeHashResponse>;
   /** Query code hash by code id */
-  codeHashByCodeID(
-    request: DeepPartial<QueryByCodeIDRequest>,
+  codeHashByCodeId(
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryCodeHashResponse>;
   /** Query contract label by address */
@@ -1232,12 +1285,12 @@ export class QueryClientImpl implements Query {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.contractInfo = this.contractInfo.bind(this);
-    this.contractsByCodeID = this.contractsByCodeID.bind(this);
+    this.contractsByCodeId = this.contractsByCodeId.bind(this);
     this.querySecretContract = this.querySecretContract.bind(this);
     this.code = this.code.bind(this);
     this.codes = this.codes.bind(this);
     this.codeHashByContractAddress = this.codeHashByContractAddress.bind(this);
-    this.codeHashByCodeID = this.codeHashByCodeID.bind(this);
+    this.codeHashByCodeId = this.codeHashByCodeId.bind(this);
     this.labelByAddress = this.labelByAddress.bind(this);
     this.addressByLabel = this.addressByLabel.bind(this);
   }
@@ -1253,13 +1306,13 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  contractsByCodeID(
-    request: DeepPartial<QueryByCodeIDRequest>,
+  contractsByCodeId(
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<QueryContractsByCodeIDResponse> {
+  ): Promise<QueryContractsByCodeIdResponse> {
     return this.rpc.unary(
-      QueryContractsByCodeIDDesc,
-      QueryByCodeIDRequest.fromPartial(request),
+      QueryContractsByCodeIdDesc,
+      QueryByCodeIdRequest.fromPartial(request),
       metadata,
     );
   }
@@ -1276,12 +1329,12 @@ export class QueryClientImpl implements Query {
   }
 
   code(
-    request: DeepPartial<QueryByCodeIDRequest>,
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryCodeResponse> {
     return this.rpc.unary(
       QueryCodeDesc,
-      QueryByCodeIDRequest.fromPartial(request),
+      QueryByCodeIdRequest.fromPartial(request),
       metadata,
     );
   }
@@ -1304,13 +1357,13 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  codeHashByCodeID(
-    request: DeepPartial<QueryByCodeIDRequest>,
+  codeHashByCodeId(
+    request: DeepPartial<QueryByCodeIdRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryCodeHashResponse> {
     return this.rpc.unary(
-      QueryCodeHashByCodeIDDesc,
-      QueryByCodeIDRequest.fromPartial(request),
+      QueryCodeHashByCodeIdDesc,
+      QueryByCodeIdRequest.fromPartial(request),
       metadata,
     );
   }
@@ -1364,20 +1417,20 @@ export const QueryContractInfoDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const QueryContractsByCodeIDDesc: UnaryMethodDefinitionish = {
-  methodName: "ContractsByCodeID",
+export const QueryContractsByCodeIdDesc: UnaryMethodDefinitionish = {
+  methodName: "ContractsByCodeId",
   service: QueryDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return QueryByCodeIDRequest.encode(this).finish();
+      return QueryByCodeIdRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...QueryContractsByCodeIDResponse.decode(data),
+        ...QueryContractsByCodeIdResponse.decode(data),
         toObject() {
           return this;
         },
@@ -1415,7 +1468,7 @@ export const QueryCodeDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return QueryByCodeIDRequest.encode(this).finish();
+      return QueryByCodeIdRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -1474,14 +1527,14 @@ export const QueryCodeHashByContractAddressDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const QueryCodeHashByCodeIDDesc: UnaryMethodDefinitionish = {
-  methodName: "CodeHashByCodeID",
+export const QueryCodeHashByCodeIdDesc: UnaryMethodDefinitionish = {
+  methodName: "CodeHashByCodeId",
   service: QueryDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return QueryByCodeIDRequest.encode(this).finish();
+      return QueryByCodeIdRequest.encode(this).finish();
     },
   } as any,
   responseType: {
