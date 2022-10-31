@@ -1435,7 +1435,7 @@ export class SecretNetworkClient {
     } else if (msg instanceof MsgInstantiateContract) {
       if (!msg.codeHash) {
         msg.codeHash = (
-          await this.query.compute.codeHashByCodeID({
+          await this.query.compute.codeHashByCodeId({
             code_id: msg.codeId,
           })
         ).code_hash!;

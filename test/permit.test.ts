@@ -119,7 +119,7 @@ describe("permit", () => {
 
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
       code_id,
     });
 

@@ -4,6 +4,10 @@ import { exec, sleep } from "./utils";
 require("ts-node").register({ transpileOnly: true });
 
 module.exports = async () => {
+  if (process.env.SKIP_LOCALSECRET === "true") {
+    return;
+  }
+
   // init localsecret
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");

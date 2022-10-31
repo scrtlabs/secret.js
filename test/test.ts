@@ -107,8 +107,11 @@ beforeAll(async () => {
     };
   }
 
-  // Send 100k SCRT from account 0 to each of accounts 1-19
+  if (process.env.SKIP_LOCALSECRET === "true") {
+    return;
+  }
 
+  // Send 100k SCRT from account 0 to each of accounts 1-19
   const { secretjs } = accounts[0];
 
   let tx: TxResponse;
@@ -186,7 +189,7 @@ describe("query", () => {
 
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
       code_id,
     });
 
@@ -289,7 +292,7 @@ describe("query", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -702,7 +705,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -773,7 +776,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -826,7 +829,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -956,7 +959,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -1053,7 +1056,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -1149,7 +1152,7 @@ describe("tx.compute", () => {
     const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeID({
+      await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
@@ -2042,7 +2045,7 @@ describe("tx.distribution", () => {
 });
 
 describe("sanity", () => {
-  test.skip("Every msg a decoder registered in the registry", async () => {});
+  test.skip("Every msg has a decoder registered in the registry", async () => {});
 
   test.skip("Every msg has a Msg class", async () => {
     // TODO fix this test
@@ -2081,11 +2084,15 @@ describe("sanity", () => {
     const { secretjs } = accounts[0];
     const secretjsQueries: string[][] = [];
     for (const module of Object.keys(secretjs.query)) {
-      if (["getTx", "txsQuery"].includes(module)) {
+      if (["getTx", "txsQuery", "snip20", "snip721"].includes(module)) {
         continue;
       }
-      //@ts-ignore
-      secretjsQueries.push(getAllMethodNames(secretjs.query[module]).sort());
+      secretjsQueries.push(
+        //@ts-ignore
+        getAllMethodNames(secretjs.query[module])
+          .map((q) => q.replace(/^queryContract$/, "querySecretContract"))
+          .sort(),
+      );
     }
 
     for (const f of queryFiles) {
@@ -2133,7 +2140,7 @@ describe("sanity", () => {
 
     const code_id = getValueFromRawLog(tx.rawLog, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
       code_id,
     });
 
@@ -2850,7 +2857,7 @@ test("MetaMaskWallet", async () => {
   const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).code_id;
   expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 
-  const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+  const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id,
   });
 

@@ -62,7 +62,7 @@ export class ComputeQuerier {
     });
   }
 
-  contractsByCodeID(
+  contractsByCodeId(
     req: QueryByCodeIdRequest,
     headers?: HeadersInit,
   ): Promise<QueryContractsByCodeIdResponse> {
@@ -107,7 +107,7 @@ export class ComputeQuerier {
     return { code_hash };
   }
 
-  async codeHashByCodeID(
+  async codeHashByCodeId(
     req: QueryByCodeIdRequest,
     headers?: HeadersInit,
   ): Promise<QueryCodeHashResponse> {

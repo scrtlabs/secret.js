@@ -91,7 +91,7 @@ export async function initContract(
   label?: string,
 ): Promise<string> {
   const secretjs = account.secretjs;
-  const { code_hash } = await secretjs.query.compute.codeHashByCodeID({
+  const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id: String(code_id),
   });
 
