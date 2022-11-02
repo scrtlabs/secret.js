@@ -632,7 +632,7 @@ export class SecretNetworkClient {
 
   public utils: { accessControl: { permit: PermitSigner } };
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
+  /** Instantiates a new SecretNetworkClient client. For a readonly client pass just the `url` param. */
   constructor(options: CreateClientOptions) {
     this.url = options.url;
 
@@ -771,8 +771,17 @@ export class SecretNetworkClient {
       );
     }
 
-    // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, same seed)
+    // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, share same seed)
     this.query.compute = new ComputeQuerier(this.url, this.encryptionUtils);
+  }
+  /**
+   * @deprecated Please use `new SecretNetworkClient(options)` instead. This function will be removed in v1.6.
+   * Instantiates a new SecretNetworkClient client. For a readonly client pass just the `url` param.
+   */
+  public static async create(
+    options: CreateClientOptions,
+  ): Promise<SecretNetworkClient> {
+    return new SecretNetworkClient(options);
   }
 
   private async getTx(hash: string): Promise<TxResponse | null> {
