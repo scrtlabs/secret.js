@@ -60,8 +60,6 @@ Secret.js a JavaScript SDK for writing applications that interact with the Secre
 
 This library is still in beta, **APIs may break**. Beta testers are welcome!
 
-See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list of existing/missing features.
-
 # Installation
 
 ```bash
@@ -76,7 +74,7 @@ yarn add secretjs
 
 # Usage Examples
 
-Note: Public gRPC-web endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
+Note: Public LCD endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
 
 For a lot more usage examples [refer to the tests](./test/test.ts).
 
