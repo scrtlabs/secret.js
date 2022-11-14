@@ -616,7 +616,7 @@ describe("tx.snip1155", () => {
   });
 });
 
-describe("quer.snip1155", () => {
+describe("query.snip1155", () => {
   test("get publick token info", async () => {
     const { secretjs } = accounts[0];
 
@@ -632,20 +632,76 @@ describe("quer.snip1155", () => {
       publicTokenInfoQuery.token_id_public_info.token_id_info.name,
     ).toBeDefined();
   });
+
+
     
-      test("get publick token info", async () => {
+      test("get private token info", async () => {
+
         const { secretjs } = accounts[0];
 
-        const publicTokenInfoQuery =
-          await secretjs.query.snip1155.getPublicTokenInfo({
+
+        const txExec = await secretjs.tx.snip1155.setViewingKey(
+          {
+            sender: secretjs.address,
+            contractAddress,
+            msg: { set_viewing_key: { key: "hello" } },
+          },
+          { gasLimit: 5_000_000 },
+        );
+        if (txExec.code !== TxResultCode.Success) {
+          console.error(txExec.rawLog);
+        }
+        expect(txExec.code).toBe(TxResultCode.Success);
+
+
+
+        const privateTokenInfoQuery =
+          await secretjs.query.snip1155.getPrivateTokenInfo({
             contract: {
               address: contractAddress,
             },
             token_id: "2",
+            auth: {
+              viewer: {
+                viewing_key: 'hello',
+                address: secretjs.address
+              }
+            }
           });
 
         expect(
-          publicTokenInfoQuery.token_id_public_info.token_id_info.name,
+          privateTokenInfoQuery.token_id_private_info.token_id_info.private_metadata,
         ).toBeDefined();
+
+
+
+
+        const permit = await secretjs.utils.accessControl.permit.sign(
+          secretjs.address,
+          "secretdev-1",
+          "Test",
+          [contractAddress],
+          ["owner"],
+          false,
+        );
+   
+
+      const privateTokenInfoQuery2 = await secretjs.query.snip1155.getPrivateTokenInfo({
+        contract: {
+          address: contractAddress,
+        },
+        token_id: "2",
+        auth: {
+          permit
+        }
       });
+
+    expect(
+      privateTokenInfoQuery2.token_id_private_info.token_id_info.private_metadata,
+    ).toBeDefined();
+
+
+
+  });
+
 });
