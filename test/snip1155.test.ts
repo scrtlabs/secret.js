@@ -704,4 +704,72 @@ describe("query.snip1155", () => {
 
   });
 
+  test("get balance", async () => { 
+
+
+    const { secretjs } = accounts[0];
+
+
+    const txExec = await secretjs.tx.snip1155.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
+
+
+
+    const balanceInfoQueryViewingKey = await secretjs.query.snip1155.getBalance({
+      contract: {
+        address: contractAddress,
+      },
+      token_id: "1",
+      owner:secretjs.address,
+      auth: {
+        viewer: {
+          viewing_key: 'hello',
+          address: secretjs.address
+        }
+      }
+    });
+
+    expect(
+      balanceInfoQueryViewingKey.balance.amount,
+    ).toBeDefined();
+
+
+
+
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      secretjs.address,
+      "secretdev-1",
+      "Test",
+      [contractAddress],
+      ["owner"],
+      false,
+    );
+
+
+  const balanceInfoQueryPermit = await secretjs.query.snip1155.getBalance({
+    contract: {
+      address: contractAddress,
+    },
+    token_id: "1",
+    owner:secretjs.address,
+    auth: {
+       permit
+      }
+    });
+
+expect(
+  balanceInfoQueryPermit.balance.amount
+).toBeDefined();
+  });
+
 });

@@ -46,7 +46,6 @@ export class Snip1155Querier extends ComputeQuerier {
   }: {
     contract: SecretContract;
     token_id: string;
-    address: string;
     owner: string;
     auth: Auth;
   }): Promise<QueryBalanceResponse> => {
