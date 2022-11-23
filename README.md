@@ -74,6 +74,10 @@ or
 yarn add secretjs
 ```
 
+**Additional step for React Native:**  
+  
+Follow the instruction of [react-native-get-random-values](https://www.npmjs.com/package/react-native-get-random-values) package
+
 # Usage Examples
 
 Note: Public gRPC-web endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.

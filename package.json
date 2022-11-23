@@ -33,7 +33,7 @@
     "@improbable-eng/grpc-web": "0.15.0",
     "@improbable-eng/grpc-web-node-http-transport": "0.15.0",
     "@noble/hashes": "1.0.0",
-    "@noble/secp256k1": "1.6.3",
+    "@noble/secp256k1": "1.7.0",
     "@osmonauts/helpers": "0.3.8",
     "bech32": "2.0.0",
     "big-integer": "1.6.51",
