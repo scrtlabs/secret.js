@@ -66,7 +66,12 @@ export class MetaMaskWallet {
 
     // strip leading 0x and extract recovery id
     const sig = fromHex(sigResult.slice(2, -2));
-    const recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
+    let recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
+
+    // When a Ledger is used, this value doesn't need to be adjusted 
+    if (recoveryId < 0) {
+      recoveryId += 27;
+    }
 
     const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
     const rawMsgLength = toUtf8(String(rawMsg.length));
