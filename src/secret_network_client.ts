@@ -146,6 +146,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import {RaAuthenticate} from "./tx/registration";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
@@ -596,6 +597,9 @@ export type TxSender = {
      */
     transfer: SingleMsgTx<MsgTransferParams>;
   };
+  registration: {
+    register: SingleMsgTx<RaAuthenticate>;
+  };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
     unjail: SingleMsgTx<MsgUnjailParams>;
@@ -745,6 +749,9 @@ export class SecretNetworkClient {
       },
       ibc: {
         transfer: doMsg(MsgTransfer),
+      },
+      registration: {
+        register: doMsg(RaAuthenticate),
       },
       slashing: {
         unjail: doMsg(MsgUnjail),

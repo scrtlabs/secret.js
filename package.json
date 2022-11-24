@@ -1,7 +1,7 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
@@ -39,6 +39,7 @@
     "bip39": "3.0.4",
     "cross-fetch": "3.1.5",
     "curve25519-js": "0.0.4",
+    "google-protobuf": "^3.14.0",
     "is-gzip": "2.0.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
@@ -48,7 +49,7 @@
   "devDependencies": {
     "@types/is-gzip": "2.0.0",
     "@types/jest": "27.4.0",
-    "@types/node": "18.8.4",
+    "@types/node": "18.11.2",
     "@types/pako": "1.0.3",
     "@types/protobufjs": "6.0.0",
     "@types/secure-random": "1.1.0",
