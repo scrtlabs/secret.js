@@ -20,4 +20,4 @@ export {
   MsgStoreCodeResponse,
   MsgInstantiateContractResponse,
   MsgExecuteContractResponse,
-} from "./protobuf_stuff/secret/compute/v1beta1/msg";
+} from "./protobuf/secret/compute/v1beta1/msg";
