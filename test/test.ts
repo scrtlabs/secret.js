@@ -36,7 +36,7 @@ import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
   MsgStoreCodeResponse,
-} from "../src/protobuf/secret/compute/v1beta1/msg";
+} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   Account,
@@ -107,9 +107,9 @@ beforeAll(async () => {
     };
   }
 
-  if (process.env.SKIP_LOCALSECRET === "true") {
-    return;
-  }
+  // if (process.env.SKIP_LOCALSECRET === "true") {
+  //   return;
+  // }
 
   // Send 100k SCRT from account 0 to each of accounts 1-19
   const { secretjs } = accounts[0];

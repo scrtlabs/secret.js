@@ -4,7 +4,7 @@ import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf/secret/compute/v1beta1/msg";
+} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
