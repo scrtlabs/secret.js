@@ -1,4 +1,4 @@
-import { fromBase64, fromHex, fromUtf8, toHex } from "@cosmjs/encoding";
+import { fromBase64, toBase64, fromHex, fromUtf8, toHex } from "@cosmjs/encoding";
 import { grpc } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import { sha256 } from "@noble/hashes/sha256";
@@ -486,7 +486,10 @@ export type TxSender = {
    *   - staking         {@link MsgUndelegate}
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
-
+  
+  signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
+  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<Tx>;
+  
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
    * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
@@ -800,6 +803,9 @@ export class SecretNetworkClient {
     };
 
     this.tx = {
+      signTx: this.signTx.bind(this),
+      broadcastSignedTx: this.broadcastSignedTx.bind(this),      
+      
       broadcast: this.signAndBroadcast.bind(this),
       simulate: this.simulate.bind(this),
 
@@ -1250,6 +1256,33 @@ export class SecretNetworkClient {
       await sleep(checkIntervalMs);
     }
   }
+
+  private async signTx(    
+    messages: Msg[],
+    txOptions?: TxOptions,
+    ): Promise<string> {
+      
+      let signed = await this.prepareAndSign(messages, txOptions)
+
+      return toBase64(signed);
+  }
+
+  private async broadcastSignedTx(
+    messages: string,
+    txOptions?: TxOptions,
+    ): Promise<Tx> {
+    
+      let txBytes = fromBase64(messages);
+      return this.broadcastTx(
+        txBytes,
+        txOptions?.broadcastTimeoutMs ?? 60_000,
+        txOptions?.broadcastCheckIntervalMs ?? 6_000,
+        txOptions?.broadcastMode ?? BroadcastMode.Block,
+        txOptions?.waitForCommit ?? true,
+      );
+  }  
+
+
 
   public async prepareAndSign(
     messages: Msg[],

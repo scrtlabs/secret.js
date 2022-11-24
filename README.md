@@ -1032,6 +1032,32 @@ const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
 });
 ```
 
+#### `secretjs.tx.signTx()`
+
+Used to sign transactions independently from the broadcast process.  
+This is useful when you want to keep your seed safe and sign transactions offline.  
+
+#### `secretjs.tx.broadcastSignedTx()`
+
+Used to send offline signed transactions.
+
+```ts
+const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
+const msg = new MsgSend({
+  fromAddress: myAddress,
+  toAddress: bob,
+  amount: [{ denom: "uscrt", amount: "1000000" }],
+});
+
+let signedTX = await secretjs.tx.signTx([msg], {
+  gasLimit: 20_000,
+  gasPriceInFeeDenom: 0.1,
+  feeDenom: "uscrt",
+});
+
+let tx = await secretjs.tx.broadcastSignedTx(signedTX);
+```
+
 #### `secretjs.tx.authz.exec()`
 
 MsgExec attempts to execute the provided messages using authorizations granted to the grantee. Each message should have only one signer corresponding to the granter of the authorization.
