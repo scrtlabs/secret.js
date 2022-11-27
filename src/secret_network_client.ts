@@ -472,7 +472,7 @@ export type TxSender = {
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
   
   signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
-  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<Tx>;
+  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<TxResponse>;
   
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
@@ -1255,7 +1255,7 @@ export class SecretNetworkClient {
   private async broadcastSignedTx(
     messages: string,
     txOptions?: TxOptions,
-    ): Promise<Tx> {
+    ): Promise<TxResponse> {
     
       let txBytes = fromBase64(messages);
       return this.broadcastTx(

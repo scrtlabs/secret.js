@@ -1044,8 +1044,8 @@ Used to send offline signed transactions.
 ```ts
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
-  fromAddress: myAddress,
-  toAddress: bob,
+  from_address: myAddress,
+  to_address: bob,
   amount: [{ denom: "uscrt", amount: "1000000" }],
 });
 
