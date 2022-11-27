@@ -588,8 +588,13 @@ describe("tx", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     const cAfter = await getBalance(secretjs, accounts[2].address);
-
     expect(cAfter - cBefore).toBe(BigInt(1));
+
+    // Double use of the same message
+    let tx_double = await secretjs.tx.broadcastSignedTx(signedTX);
+    if (tx_double.code === TxResultCode.Success) {
+      console.error(tx_double.rawLog);
+    }
 
   });
 });
