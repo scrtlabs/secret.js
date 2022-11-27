@@ -563,6 +563,44 @@ describe("query.compute", () => {
   });
 });
 
+describe("tx", () => {
+  test("Offline Signing", async () => {
+    const { secretjs } = accounts[0];
+
+    const cBefore = await getBalance(secretjs, accounts[2].address);
+
+    const msg = new MsgSend({
+      from_address: accounts[0].address,
+      to_address: accounts[2].address,
+      amount: [{ denom: "uscrt", amount: "1" }],
+    });
+
+    let signedTX = await secretjs.tx.signTx([msg], {
+      gasLimit: 20_000,
+      gasPriceInFeeDenom: 0.1,
+      feeDenom: "uscrt",
+    });
+
+    let tx = await secretjs.tx.broadcastSignedTx(signedTX);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const cAfter = await getBalance(secretjs, accounts[2].address);
+    expect(cAfter - cBefore).toBe(BigInt(1));
+
+    // Double use of the same message
+    let tx_double = await secretjs.tx.broadcastSignedTx(signedTX);
+    if (tx_double.code === TxResultCode.Success) {
+      console.error(tx_double.rawLog);
+    }
+
+  });
+});
+
+
+
 describe("tx.bank", () => {
   test("MsgSend", async () => {
     const { secretjs } = accounts[0];
