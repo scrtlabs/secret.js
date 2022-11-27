@@ -1,9 +1,17 @@
-import { fromBase64, fromHex, fromUtf8, toHex } from "@cosmjs/encoding";
-import { grpc } from "@improbable-eng/grpc-web";
-import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
+import fetch from 'cross-fetch';
+global.fetch = fetch;
+
+import {
+  fromBase64,
+  fromHex,
+  fromUtf8,
+  toBase64,
+  toHex,
+} from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Coin,
+  MauthQuerier,
   MsgBeginRedelegate,
   MsgBeginRedelegateParams,
   MsgCreateValidator,
@@ -60,6 +68,7 @@ import {
   MsgWithdrawDelegatorRewardParams,
   MsgWithdrawValidatorCommission,
   MsgWithdrawValidatorCommissionParams,
+  NodeQuerier,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
@@ -67,6 +76,7 @@ import {
   MsgCreateViewingKey,
   MsgSetViewingKey,
 } from "./extensions/access_control/viewing_key/msgs";
+import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   CreateViewingKeyContractParams,
   SetViewingKeyContractParams,
@@ -90,15 +100,43 @@ import {
   Snip721MintOptions,
   Snip721SendOptions,
 } from "./extensions/snip721/types";
-import { AuthQuerier, ComputeQuerier } from "./query";
+import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import {
-  AminoMsg,
-  getMsgDecoderRegistry,
-  Msg,
-  MsgDecoder,
-  MsgParams,
-  ProtoMsg,
-} from "./tx";
+  Service as TxService,
+  SimulateResponse,
+} from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
+import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
+import {
+  AuthInfo,
+  SignerInfo,
+  TxBody as TxBodyPb,
+  TxRaw,
+} from "./protobuf/cosmos/tx/v1beta1/tx";
+import { Any } from "./protobuf/google/protobuf/any";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "./protobuf/secret/compute/v1beta1/msg";
+import { AuthQuerier } from "./query/auth";
+import { AuthzQuerier } from "./query/authz";
+import { BankQuerier } from "./query/bank";
+import { bytesToAddress, ComputeQuerier } from "./query/compute";
+import { DistributionQuerier } from "./query/distribution";
+import { EvidenceQuerier } from "./query/evidence";
+import { FeegrantQuerier } from "./query/feegrant";
+import { GovQuerier } from "./query/gov";
+import { IbcChannelQuerier } from "./query/ibc_channel";
+import { IbcClientQuerier } from "./query/ibc_client";
+import { IbcConnectionQuerier } from "./query/ibc_connection";
+import { IbcTransferQuerier } from "./query/ibc_transfer";
+import { MintQuerier } from "./query/mint";
+import { ParamsQuerier } from "./query/params";
+import { RegistrationQuerier } from "./query/registration";
+import { SlashingQuerier } from "./query/slashing";
+import { StakingQuerier } from "./query/staking";
+import { TendermintQuerier } from "./query/tendermint";
+import { UpgradeQuerier } from "./query/upgrade";
+import { AminoMsg, Msg, MsgParams, MsgRegistry, ProtoMsg } from "./tx";
 import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
@@ -111,10 +149,16 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import {RaAuthenticate} from "./tx/registration";
+import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
+import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
+import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
+import { resolve } from "path";
+import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
 
 export type CreateClientOptions = {
-  /** A gRPC-web url, by default on port 9091 */
-  grpcWebUrl: string;
+  /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
+  url: string;
   /** The chain-id is used in encryption code & when signing txs. */
   chainId: string;
   /** A wallet for signing transactions & permits. When `wallet` is supplied, `walletAddress` & `chainId` must be supplied too. */
@@ -133,13 +177,8 @@ export type CreateClientOptions = {
  * committing it on-chain. This is helpful for gas estimation.
  */
 export type SingleMsgTx<T> = {
-  (params: T, txOptions?: TxOptions): Promise<Tx>;
-  simulate(
-    params: T,
-    txOptions?: TxOptions,
-  ): Promise<
-    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
-  >;
+  (params: T, txOptions?: TxOptions): Promise<TxResponse>;
+  simulate(params: T, txOptions?: TxOptions): Promise<SimulateResponse>;
 };
 
 export enum BroadcastMode {
@@ -233,7 +272,7 @@ export class ReadonlySigner implements AminoSigner {
 
 export type Querier = {
   /** Returns a transaction with a txhash. Must be 64 character upper-case hex string */
-  getTx: (hash: string) => Promise<Tx | null>;
+  getTx: (hash: string) => Promise<TxResponse | null>;
   /**
    * To tell which events you want, you need to provide a query. query is a string, which has a form: "condition AND condition ..." (no OR at the moment).
    *
@@ -255,28 +294,30 @@ export type Querier = {
    * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
    *
    */
-  txsQuery: (query: string) => Promise<Tx[]>;
+  txsQuery: (query: string) => Promise<TxResponse[]>;
   auth: AuthQuerier;
-  authz: import("./protobuf_stuff/cosmos/authz/v1beta1/query").Query;
-  bank: import("./protobuf_stuff/cosmos/bank/v1beta1/query").Query;
+  authz: AuthzQuerier;
+  bank: BankQuerier;
   compute: ComputeQuerier;
-  distribution: import("./protobuf_stuff/cosmos/distribution/v1beta1/query").Query;
-  evidence: import("./protobuf_stuff/cosmos/evidence/v1beta1/query").Query;
-  feegrant: import("./protobuf_stuff/cosmos/feegrant/v1beta1/query").Query;
-  gov: import("./protobuf_stuff/cosmos/gov/v1beta1/query").Query;
-  ibc_channel: import("./protobuf_stuff/ibc/core/channel/v1/query").Query;
-  ibc_client: import("./protobuf_stuff/ibc/core/client/v1/query").Query;
-  ibc_connection: import("./protobuf_stuff/ibc/core/connection/v1/query").Query;
-  ibc_transfer: import("./protobuf_stuff/ibc/applications/transfer/v1/query").Query;
-  mint: import("./protobuf_stuff/cosmos/mint/v1beta1/query").Query;
-  params: import("./protobuf_stuff/cosmos/params/v1beta1/query").Query;
-  registration: import("./protobuf_stuff/secret/registration/v1beta1/query").Query;
-  slashing: import("./protobuf_stuff/cosmos/slashing/v1beta1/query").Query;
-  staking: import("./protobuf_stuff/cosmos/staking/v1beta1/query").Query;
-  tendermint: import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query").Service;
-  upgrade: import("./protobuf_stuff/cosmos/upgrade/v1beta1/query").Query;
   snip20: Snip20Querier;
   snip721: Snip721Querier;
+  distribution: DistributionQuerier;
+  evidence: EvidenceQuerier;
+  feegrant: FeegrantQuerier;
+  gov: GovQuerier;
+  ibc_channel: IbcChannelQuerier;
+  ibc_client: IbcClientQuerier;
+  ibc_connection: IbcConnectionQuerier;
+  ibc_transfer: IbcTransferQuerier;
+  mauth: MauthQuerier;
+  mint: MintQuerier;
+  node: NodeQuerier;
+  params: ParamsQuerier;
+  registration: RegistrationQuerier;
+  slashing: SlashingQuerier;
+  staking: StakingQuerier;
+  tendermint: TendermintQuerier;
+  upgrade: UpgradeQuerier;
 };
 
 export type ArrayLog = Array<{
@@ -303,61 +344,10 @@ export type MsgData = {
   data: Uint8Array;
 };
 
-/** TxBody is the body of a transaction that all signers sign over. */
-export interface TxBody {
-  /**
-   * messages is a list of messages to be executed. The required signers of
-   * those messages define the number and order of elements in AuthInfo's
-   * signer_infos and Tx's signatures. Each required signer address is added to
-   * the list only the first time it occurs.
-   * By convention, the first required signer (usually from the first message)
-   * is referred to as the primary signer and pays the fee for the whole
-   * transaction.
-   */
-  messages: Array<{ typeUrl: string; value: any }>;
-  /**
-   * memo is any arbitrary note/comment to be added to the transaction.
-   * WARNING: in clients, any publicly exposed text should not be called memo,
-   * but should be called `note` instead (see https://github.com/cosmos/cosmos-sdk/issues/9122).
-   */
-  memo: string;
-  /**
-   * timeout is the block height after which this transaction will not
-   * be processed by the chain
-   */
-  timeoutHeight: string;
-  /**
-   * extension_options are arbitrary options that can be added by chains
-   * when the default options are not sufficient. If any of these are present
-   * and can't be handled, the transaction will be rejected
-   */
-  extensionOptions: import("./protobuf_stuff/google/protobuf/any").Any[];
-  /**
-   * extension_options are arbitrary options that can be added by chains
-   * when the default options are not sufficient. If any of these are present
-   * and can't be handled, they will be ignored
-   */
-  nonCriticalExtensionOptions: import("./protobuf_stuff/google/protobuf/any").Any[];
-}
-
-export type TxContent = {
-  /** body is the processable content of the transaction */
-  body: TxBody;
-  /**
-   * auth_info is the authorization related content of the transaction,
-   * specifically signers, signer modes and fee
-   */
-  authInfo: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").AuthInfo;
-  /**
-   * signatures is a list of signatures that matches the length and order of
-   * AuthInfo's signer_infos to allow connecting signature meta information like
-   * public key and signing mode by position.
-   */
-  signatures: Uint8Array[];
-};
+export type AnyJson = { "@type": string } & any;
 
 /** A transaction that is indexed as part of the transaction history */
-export type Tx = {
+export type TxResponse = {
   /** Block height in which the tx was committed on-chain */
   readonly height: number;
   /** An RFC 3339 timestamp of when the tx was committed on-chain.
@@ -368,6 +358,10 @@ export type Tx = {
   readonly transactionHash: string;
   /** Transaction execution error code. 0 on success. See {@link TxResultCode}. */
   readonly code: TxResultCode;
+  /** Namespace for the Code */
+  readonly codespace: string;
+  /** Additional information. May be non-deterministic. */
+  readonly info: string;
   /**
    * If code != 0, rawLog contains the error.
    *
@@ -388,27 +382,14 @@ export type Tx = {
    * Note: events are not decrypted.
    */
   readonly events: Array<
-    import("./protobuf_stuff/tendermint/abci/types").Event
+    import("./grpc_gateway/tendermint/abci/types.pb").Event
   >;
   /** Return value (if there's any) for each input message */
   readonly data: Array<Uint8Array>;
   /**
    * Decoded transaction input.
    */
-  readonly tx: TxContent;
-  /**
-   * Raw transaction bytes stored in Tendermint.
-   *
-   * If you hash this, you get the transaction hash (= transaction ID):
-   *
-   * ```js
-   * import { sha256 } from "@noble/hashes/sha256";
-   * import { toHex } from "@cosmjs/encoding";
-   *
-   * const transactionHash = toHex(sha256(indexTx.tx)).toUpperCase();
-   * ```
-   */
-  readonly txBytes: Uint8Array;
+  readonly tx: TxPb;
   /**
    * Amount of gas that was actually used by the transaction.
    */
@@ -436,7 +417,7 @@ export type TxSender = {
    * @param {Number} [options.explicitSignerData.accountNumber]
    * @param {Number} [options.explicitSignerData.sequence]
    * @param {String} [options.explicitSignerData.chainId]
-   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link Tx} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link Tx} `code` field will not be `0`.
+   * @param {Msg[]} messages A list of messages, executed sequentially. If all messages succeeds then the transaction succeed, and the resulting {@link TxResponse} object will have `code = 0`. If at lease one message fails, the entire transaction is reverted and {@link TxResponse} `code` field will not be `0`.
    *
    * List of possible Msgs:
    *   - authz           {@link MsgExec}
@@ -485,7 +466,7 @@ export type TxSender = {
    *   - staking         {@link MsgEditValidator}
    *   - staking         {@link MsgUndelegate}
    */
-  broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<Tx>;
+  broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
 
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
@@ -495,9 +476,7 @@ export type TxSender = {
   simulate: (
     messages: Msg[],
     txOptions?: TxOptions,
-  ) => Promise<
-    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
-  >;
+  ) => Promise<SimulateResponse>;
 
   snip721: {
     send: SingleMsgTx<MsgExecuteContractParams<Snip721SendOptions>>;
@@ -615,6 +594,9 @@ export type TxSender = {
      */
     transfer: SingleMsgTx<MsgTransferParams>;
   };
+  registration: {
+    register: SingleMsgTx<RaAuthenticate>;
+  };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
     unjail: SingleMsgTx<MsgUnjailParams>;
@@ -643,137 +625,45 @@ export class SecretNetworkClient {
   public readonly query: Querier;
   public readonly tx: TxSender;
   public readonly address: string;
-  private readonly txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl;
+  private readonly url: string;
   private readonly wallet: Signer;
   private readonly chainId: string;
-  private readonly msgDecoderRegistry: Map<string, MsgDecoder>;
 
   private encryptionUtils: EncryptionUtils;
 
   public utils: { accessControl: { permit: PermitSigner } };
 
   /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
-  public static async create(
-    options: CreateClientOptions,
-  ): Promise<SecretNetworkClient> {
-    const { GrpcWebImpl } = await import(
-      "./protobuf_stuff/secret/compute/v1beta1/query"
-    );
-    let grpcWeb: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
+  constructor(options: CreateClientOptions) {
+    this.url = options.url;
 
-    options.grpcWebUrl = options.grpcWebUrl.replace(/\/*$/, ""); // remove trailing slash
-
-    if (typeof document !== "undefined") {
-      // browser
-      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
-        // debug: true,
-      });
-    } else if (
-      typeof navigator !== "undefined" &&
-      navigator.product === "ReactNative"
-    ) {
-      // react-native
-      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: NodeHttpTransport(),
-        // debug: true,
-      });
-    } else {
-      // node.js
-      grpcWeb = new GrpcWebImpl(options.grpcWebUrl, {
-        transport: NodeHttpTransport(),
-        // debug: true,
-      });
-    }
-
-    const { ServiceClientImpl } = await import(
-      "./protobuf_stuff/cosmos/tx/v1beta1/service"
-    );
-    const txService = new ServiceClientImpl(grpcWeb);
-
-    const query: Querier = {
-      auth: new AuthQuerier(grpcWeb),
-      authz: new (
-        await import("./protobuf_stuff/cosmos/authz/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      bank: new (
-        await import("./protobuf_stuff/cosmos/bank/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      compute: new ComputeQuerier(grpcWeb),
-      snip20: new Snip20Querier(grpcWeb),
-      snip721: new Snip721Querier(grpcWeb),
-      distribution: new (
-        await import("./protobuf_stuff/cosmos/distribution/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      evidence: new (
-        await import("./protobuf_stuff/cosmos/evidence/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      feegrant: new (
-        await import("./protobuf_stuff/cosmos/feegrant/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      gov: new (
-        await import("./protobuf_stuff/cosmos/gov/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      ibc_channel: new (
-        await import("./protobuf_stuff/ibc/core/channel/v1/query")
-      ).QueryClientImpl(grpcWeb),
-      ibc_client: new (
-        await import("./protobuf_stuff/ibc/core/client/v1/query")
-      ).QueryClientImpl(grpcWeb),
-      ibc_connection: new (
-        await import("./protobuf_stuff/ibc/core/connection/v1/query")
-      ).QueryClientImpl(grpcWeb),
-      ibc_transfer: new (
-        await import("./protobuf_stuff/ibc/applications/transfer/v1/query")
-      ).QueryClientImpl(grpcWeb),
-      mint: new (
-        await import("./protobuf_stuff/cosmos/mint/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      params: new (
-        await import("./protobuf_stuff/cosmos/params/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      registration: new (
-        await import("./protobuf_stuff/secret/registration/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      slashing: new (
-        await import("./protobuf_stuff/cosmos/slashing/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      staking: new (
-        await import("./protobuf_stuff/cosmos/staking/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      tendermint: new (
-        await import("./protobuf_stuff/cosmos/base/tendermint/v1beta1/query")
-      ).ServiceClientImpl(grpcWeb),
-      upgrade: new (
-        await import("./protobuf_stuff/cosmos/upgrade/v1beta1/query")
-      ).QueryClientImpl(grpcWeb),
-      getTx: async () => null, // stub until we can set this in the constructor
-      txsQuery: async () => [], // stub until we can set this in the constructor
+    this.query = {
+      auth: new AuthQuerier(options.url),
+      authz: new AuthzQuerier(options.url),
+      bank: new BankQuerier(options.url),
+      compute: new ComputeQuerier(options.url),
+      snip20: new Snip20Querier(options.url),
+      snip721: new Snip721Querier(options.url),
+      distribution: new DistributionQuerier(options.url),
+      evidence: new EvidenceQuerier(options.url),
+      feegrant: new FeegrantQuerier(options.url),
+      gov: new GovQuerier(options.url),
+      ibc_channel: new IbcChannelQuerier(options.url),
+      ibc_client: new IbcClientQuerier(options.url),
+      ibc_connection: new IbcConnectionQuerier(options.url),
+      ibc_transfer: new IbcTransferQuerier(options.url),
+      mauth: new MauthQuerier(options.url),
+      mint: new MintQuerier(options.url),
+      node: new NodeQuerier(options.url),
+      params: new ParamsQuerier(options.url),
+      registration: new RegistrationQuerier(options.url),
+      slashing: new SlashingQuerier(options.url),
+      staking: new StakingQuerier(options.url),
+      tendermint: new TendermintQuerier(options.url),
+      upgrade: new UpgradeQuerier(options.url),
+      getTx: (hash) => this.getTx(hash),
+      txsQuery: (query) => this.txsQuery(query),
     };
-
-    const msgDecoderRegistry = await getMsgDecoderRegistry();
-
-    return new SecretNetworkClient(
-      grpcWeb,
-      txService,
-      query,
-      msgDecoderRegistry,
-      options,
-    );
-  }
-
-  private constructor(
-    grpc: import("./protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
-    txService: import("./protobuf_stuff/cosmos/tx/v1beta1/service").ServiceClientImpl,
-    query: Querier,
-    msgDecoderRegistry: Map<string, MsgDecoder>,
-    options: CreateClientOptions,
-  ) {
-    this.txService = txService;
-
-    this.query = query;
-    this.query.getTx = (hash) => this.getTx(hash);
-    this.query.txsQuery = (query) => this.txsQuery(query);
 
     if (options.wallet && options.walletAddress === undefined) {
       throw new Error("Must also pass 'walletAddress' when passing 'wallet'");
@@ -785,9 +675,7 @@ export class SecretNetworkClient {
 
     this.utils = { accessControl: { permit: new PermitSigner(this.wallet) } };
 
-    this.msgDecoderRegistry = msgDecoderRegistry;
-
-    // TODO fix this any
+    // TODO fix this "any"
     const doMsg = (msgClass: any): SingleMsgTx<any> => {
       const func = (params: MsgParams, options?: TxOptions) => {
         return this.tx.broadcast([new msgClass(params)], options);
@@ -859,6 +747,9 @@ export class SecretNetworkClient {
       ibc: {
         transfer: doMsg(MsgTransfer),
       },
+      registration: {
+        register: doMsg(RaAuthenticate),
+      },
       slashing: {
         unjail: doMsg(MsgUnjail),
       },
@@ -878,252 +769,232 @@ export class SecretNetworkClient {
       this.encryptionUtils = options.encryptionUtils;
     } else {
       this.encryptionUtils = new EncryptionUtilsImpl(
-        this.query.registration,
+        this.url,
         options.encryptionSeed,
         this.chainId,
       );
     }
 
     // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, same seed)
-    this.query.compute = new ComputeQuerier(grpc, this.encryptionUtils);
+    this.query.compute = new ComputeQuerier(this.url, this.encryptionUtils);
   }
 
-  private async getTx(hash: string): Promise<Tx | null> {
-    const results = await this.txsQuery(`tx.hash='${hash}'`);
-    return results[0] ?? null;
+  private async getTx(hash: string): Promise<TxResponse | null> {
+    const { tx_response } = await TxService.GetTx(
+      {
+        hash,
+      },
+      { pathPrefix: this.url },
+    );
+
+    return tx_response ? this.decodeTxResponse(tx_response) : null;
   }
 
-  private async txsQuery(query: string): Promise<Tx[]> {
-    const { txResponses } = await this.txService.getTxsEvent({
-      events: query.split(" AND ").map((q) => q.trim()),
-    });
+  private async txsQuery(query: string): Promise<TxResponse[]> {
+    const { tx_responses } = await TxService.GetTxsEvent(
+      {
+        events: query.split(" AND ").map((q) => q.trim()),
+      },
+      { pathPrefix: this.url },
+    );
 
-    return this.decodeTxResponses(txResponses);
+    return this.decodeTxResponses(tx_responses ?? []);
   }
 
   private async decodeTxResponses(
-    txResponses: import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse[],
-  ): Promise<Tx[]> {
-    let nonces: ComputeMsgToNonce = [];
+    txResponses: TxResponsePb[],
+  ): Promise<TxResponse[]> {
+    return await Promise.all(txResponses.map(this.decodeTxResponse));
+  }
 
-    return await Promise.all(
-      txResponses.map(async (txResp) => {
-        // Decode input tx
+  private async decodeTxResponse(txResp: TxResponsePb): Promise<TxResponse> {
+    const nonces: ComputeMsgToNonce = [];
 
-        const decodedTx = (
-          await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-        ).Tx.decode(txResp.tx!.value) as TxContent;
+    const tx = txResp.tx as TxPb;
 
-        // Decoded input tx messages
-        for (let i = 0; i < decodedTx.body!.messages.length; i++) {
-          const { typeUrl: msgType, value: msgBytes } =
-            decodedTx.body!.messages[i];
+    // Decoded input tx messages
+    for (
+      let i = 0;
+      !isNaN(Number(tx?.body?.messages?.length)) &&
+      i < Number(tx?.body?.messages?.length);
+      i++
+    ) {
+      const msg: AnyJson = tx.body!.messages![i];
 
-          const msgDecoder = this.msgDecoderRegistry.get(msgType);
-          if (!msgDecoder) {
-            continue;
-          }
+      // Check if the message needs decryption
+      let contractInputMsgFieldName = "";
+      if (msg["@type"] === "/secret.compute.v1beta1.MsgInstantiateContract") {
+        contractInputMsgFieldName = "init_msg";
+      } else if (
+        msg["@type"] === "/secret.compute.v1beta1.MsgExecuteContract"
+      ) {
+        contractInputMsgFieldName = "msg";
+      }
 
-          const msg = {
-            typeUrl: msgType,
-            value: msgDecoder.decode(msgBytes as Uint8Array),
-          };
+      if (contractInputMsgFieldName !== "") {
+        // Encrypted, try to decrypt
+        try {
+          const contractInputMsgBytes = fromBase64(
+            msg[contractInputMsgFieldName],
+          );
 
-          // Check if the message needs decryption
-          let contractInputMsgFieldName = "";
-          if (
-            msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
-          ) {
-            contractInputMsgFieldName = "initMsg";
-          } else if (
-            msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
-          ) {
-            contractInputMsgFieldName = "msg";
-          }
+          const nonce = contractInputMsgBytes.slice(0, 32);
+          const ciphertext = contractInputMsgBytes.slice(64);
 
-          if (contractInputMsgFieldName !== "") {
-            // Encrypted, try to decrypt
-            try {
-              const contractInputMsgBytes: Uint8Array =
-                msg.value[contractInputMsgFieldName];
+          const plaintext = await this.encryptionUtils.decrypt(
+            ciphertext,
+            nonce,
+          );
+          msg[contractInputMsgFieldName] = JSON.parse(
+            fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
+          );
 
-              const nonce = contractInputMsgBytes.slice(0, 32);
-              const accountPubkey = contractInputMsgBytes.slice(32, 64); // unused in decryption
-              const ciphertext = contractInputMsgBytes.slice(64);
+          nonces[i] = nonce; // Fill nonces array to later use it in output decryption
+        } catch (decryptionError) {
+          // Not encrypted or can't decrypt because not original sender
+        }
+      }
 
-              const plaintext = await this.encryptionUtils.decrypt(
-                ciphertext,
-                nonce,
-              );
-              msg.value[contractInputMsgFieldName] = JSON.parse(
-                fromUtf8(plaintext).slice(64), // first 64 chars is the codeHash as a hex string
-              );
+      tx.body!.messages![i] = msg;
+    }
 
-              nonces[i] = nonce; // Fill nonces array to later use it in output decryption
-            } catch (decryptionError) {
-              // Not encrypted or can't decrypt because not original sender
-            }
-          }
+    let rawLog: string = txResp.raw_log!;
+    let jsonLog: JsonLog | undefined;
+    let arrayLog: ArrayLog | undefined;
+    if (txResp.code === 0 && rawLog !== "") {
+      jsonLog = JSON.parse(rawLog) as JsonLog;
 
-          decodedTx.body!.messages[i] = msg;
+      arrayLog = [];
+      for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
+        if (jsonLog[msgIndex].msg_index === undefined) {
+          jsonLog[msgIndex].msg_index = msgIndex;
+          // See https://github.com/cosmos/cosmos-sdk/pull/11147
         }
 
-        let rawLog: string = txResp.rawLog;
-        let jsonLog: JsonLog | undefined;
-        let arrayLog: ArrayLog | undefined;
-        if (txResp.code === 0 && rawLog !== "") {
-          jsonLog = JSON.parse(rawLog) as JsonLog;
-
-          arrayLog = [];
-          for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
-            if (jsonLog[msgIndex].msg_index === undefined) {
-              jsonLog[msgIndex].msg_index = msgIndex;
-              // See https://github.com/cosmos/cosmos-sdk/pull/11147
-            }
-
-            const log = jsonLog[msgIndex];
-            for (const event of log.events) {
-              for (const attr of event.attributes) {
-                // Try to decrypt
-                if (event.type === "wasm") {
-                  const nonce = nonces[msgIndex];
-                  if (nonce && nonce.length === 32) {
-                    try {
-                      attr.key = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.key),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                    try {
-                      attr.value = fromUtf8(
-                        await this.encryptionUtils.decrypt(
-                          fromBase64(attr.value),
-                          nonce,
-                        ),
-                      ).trim();
-                    } catch (e) {}
-                  }
-                }
-
-                arrayLog.push({
-                  msg: msgIndex,
-                  type: event.type,
-                  key: attr.key,
-                  value: attr.value,
-                });
+        const log = jsonLog[msgIndex];
+        for (const event of log.events) {
+          for (const attr of event.attributes) {
+            // Try to decrypt
+            if (event.type === "wasm") {
+              const nonce = nonces[msgIndex];
+              if (nonce && nonce.length === 32) {
+                try {
+                  attr.key = fromUtf8(
+                    await this.encryptionUtils.decrypt(
+                      fromBase64(attr.key),
+                      nonce,
+                    ),
+                  ).trim();
+                } catch (e) {}
+                try {
+                  attr.value = fromUtf8(
+                    await this.encryptionUtils.decrypt(
+                      fromBase64(attr.value),
+                      nonce,
+                    ),
+                  ).trim();
+                } catch (e) {}
               }
             }
+
+            arrayLog.push({
+              msg: msgIndex,
+              type: event.type,
+              key: attr.key,
+              value: attr.value,
+            });
           }
-        } else if (txResp.code !== 0 && rawLog !== "") {
+        }
+      }
+    } else if (txResp.code !== 0 && rawLog !== "") {
+      try {
+        const errorMessageRgx =
+          /; message index: (\d+):(?: dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
+        const rgxMatches = errorMessageRgx.exec(rawLog);
+        if (rgxMatches?.length === 3) {
+          const encryptedError = fromBase64(rgxMatches[2]);
+          const msgIndex = Number(rgxMatches[1]);
+
+          const decryptedBase64Error = await this.encryptionUtils.decrypt(
+            encryptedError,
+            nonces[msgIndex],
+          );
+
+          const decryptedError = fromUtf8(decryptedBase64Error);
+
+          rawLog = rawLog.replace(
+            `encrypted: ${rgxMatches[2]}`,
+            decryptedError,
+          );
+
           try {
-            const errorMessageRgx =
-              /; message index: (\d+):(?: dispatch: submessages:)* encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
-            const rgxMatches = errorMessageRgx.exec(rawLog);
-            if (rgxMatches?.length === 3) {
-              const encryptedError = fromBase64(rgxMatches[2]);
-              const msgIndex = Number(rgxMatches[1]);
-
-              const decryptedBase64Error = await this.encryptionUtils.decrypt(
-                encryptedError,
-                nonces[msgIndex],
-              );
-
-              const decryptedError = fromUtf8(decryptedBase64Error);
-
-              rawLog = rawLog.replace(
-                `encrypted: ${rgxMatches[2]}`,
-                decryptedError,
-              );
-
-              try {
-                jsonLog = JSON.parse(decryptedError);
-              } catch (e) {}
-            }
-          } catch (decryptionError) {
-            // Not encrypted or can't decrypt because not original sender
-          }
+            jsonLog = JSON.parse(decryptedError);
+          } catch (e) {}
         }
+      } catch (decryptionError) {
+        // Not encrypted or can't decrypt because not original sender
+      }
+    }
 
-        const { TxMsgData } = await import(
-          "./protobuf_stuff/cosmos/base/abci/v1beta1/abci"
-        );
+    const txMsgData = TxMsgData.decode(fromHex(txResp.data!));
+    const data = new Array<Uint8Array>(txMsgData.data.length);
 
-        const txMsgData = TxMsgData.decode(fromHex(txResp.data));
-        const data = new Array<Uint8Array>(txMsgData.data.length);
+    for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
+      data[msgIndex] = txMsgData.data[msgIndex].data;
 
-        for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
-          data[msgIndex] = txMsgData.data[msgIndex].data;
+      const nonce = nonces[msgIndex];
+      if (nonce && nonce.length === 32) {
+        // Check if the output data needs decryption
 
-          const nonce = nonces[msgIndex];
-          if (nonce && nonce.length === 32) {
-            // Check if the message needs decryption
+        try {
+          const { "@type": type_url } = tx.body!.messages![msgIndex] as AnyJson;
 
-            try {
-              const { typeUrl } = decodedTx.body!.messages[msgIndex];
-
-              if (
-                typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract"
-              ) {
-                const decoded = (
-                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
-                ).MsgInstantiateContractResponse.decode(
-                  txMsgData.data[msgIndex].data,
-                );
-                const decrypted = fromBase64(
-                  fromUtf8(
-                    await this.encryptionUtils.decrypt(decoded.data, nonce),
-                  ),
-                );
-                data[msgIndex] = (
-                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
-                ).MsgInstantiateContractResponse.encode({
-                  address: decoded.address,
-                  data: decrypted,
-                }).finish();
-              } else if (
-                typeUrl === "/secret.compute.v1beta1.MsgExecuteContract"
-              ) {
-                const decoded = (
-                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
-                ).MsgExecuteContractResponse.decode(
-                  txMsgData.data[msgIndex].data,
-                );
-                const decrypted = fromBase64(
-                  fromUtf8(
-                    await this.encryptionUtils.decrypt(decoded.data, nonce),
-                  ),
-                );
-                data[msgIndex] = (
-                  await import("./protobuf_stuff/secret/compute/v1beta1/msg")
-                ).MsgExecuteContractResponse.encode({
-                  data: decrypted,
-                }).finish();
-              }
-            } catch (decryptionError) {
-              // Not encrypted or can't decrypt because not original sender
-            }
+          if (type_url === "/secret.compute.v1beta1.MsgInstantiateContract") {
+            const decoded = MsgInstantiateContractResponse.decode(
+              txMsgData.data[msgIndex].data,
+            );
+            const decrypted = fromBase64(
+              fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
+            );
+            data[msgIndex] = MsgInstantiateContractResponse.encode({
+              address: decoded.address,
+              data: decrypted,
+            }).finish();
+          } else if (
+            type_url === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
+            const decoded = MsgExecuteContractResponse.decode(
+              txMsgData.data[msgIndex].data,
+            );
+            const decrypted = fromBase64(
+              fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
+            );
+            data[msgIndex] = MsgExecuteContractResponse.encode({
+              data: decrypted,
+            }).finish();
           }
+        } catch (decryptionError) {
+          // Not encrypted or can't decrypt because not original sender
         }
+      }
+    }
 
-        return {
-          height: Number(txResp.height),
-          timestamp: txResp.timestamp,
-          transactionHash: txResp.txhash,
-          code: txResp.code,
-          tx: decodedTx,
-          txBytes: txResp.tx!.value,
-          rawLog,
-          jsonLog,
-          arrayLog,
-          events: txResp.events,
-          data,
-          gasUsed: Number(txResp.gasUsed),
-          gasWanted: Number(txResp.gasWanted),
-        };
-      }),
-    );
+    return {
+      height: Number(txResp.height),
+      timestamp: txResp.timestamp!,
+      transactionHash: txResp.txhash!,
+      code: txResp.code!,
+      codespace: txResp.codespace!,
+      info: txResp.info!,
+      tx,
+      rawLog,
+      jsonLog,
+      arrayLog,
+      events: txResp.events!,
+      data,
+      gasUsed: Number(txResp.gas_used),
+      gasWanted: Number(txResp.gas_wanted),
+    };
   }
 
   /**
@@ -1134,46 +1005,49 @@ export class SecretNetworkClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a {@link Tx} is returned. The caller then
+   * If the transaction is included in a block, a {@link TxResponse} is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   private async broadcastTx(
-    tx: Uint8Array,
+    txBytes: Uint8Array,
     timeoutMs: number,
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
-  ): Promise<Tx> {
+  ): Promise<TxResponse> {
     const start = Date.now();
 
-    const txhash = toHex(sha256(tx)).toUpperCase();
+    const txhash = toHex(sha256(txBytes)).toUpperCase();
 
     if (!waitForCommit && mode == BroadcastMode.Block) {
       mode = BroadcastMode.Sync;
     }
 
+    let tx_response: TxResponsePb | undefined;
+
     if (mode === BroadcastMode.Block) {
       waitForCommit = true;
 
       const { BroadcastMode } = await import(
-        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+        "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
-
-      let txResponse:
-        | import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse
-        | undefined;
 
       let isBroadcastTimedOut = false;
       try {
-        ({ txResponse } = await this.txService.broadcastTx({
-          txBytes: tx,
-          mode: BroadcastMode.BROADCAST_MODE_BLOCK,
-        }));
+        //@ts-ignore
+        ({ tx_response } = await TxService.BroadcastTx(
+          {
+            //@ts-ignore
+            txBytes: toBase64(txBytes),
+            mode: BroadcastMode.BROADCAST_MODE_BLOCK,
+          },
+          { pathPrefix: this.url },
+        ));
       } catch (e) {
         if (
-          JSON.stringify(e).includes(
-            "timed out waiting for tx to be included in a block",
-          )
+          JSON.stringify(e)
+            .toLowerCase()
+            .includes("timed out waiting for tx to be included in a block")
         ) {
           isBroadcastTimedOut = true;
         } else {
@@ -1186,36 +1060,144 @@ export class SecretNetworkClient {
       }
 
       if (!isBroadcastTimedOut) {
-        txResponse!.tx = {
-          typeUrl: "/cosmos.tx.v1beta1.Tx", // not sure, not used in decodeTxResponses anyway
-          value: tx,
+        tx_response!.tx = (
+          await import("./protobuf/cosmos/tx/v1beta1/tx")
+        ).Tx.toJSON(
+          (await import("./protobuf/cosmos/tx/v1beta1/tx")).Tx.decode(txBytes),
+        ) as AnyJson;
+
+        const tx = tx_response!.tx as TxPb;
+
+        const resolvePubkey = (pubkey: Any) => {
+          if (pubkey.type_url === "/cosmos.crypto.secp256k1.PubKey") {
+            return {
+              type_url: "/cosmos.crypto.secp256k1.PubKey",
+              value: Secp256k1PubkeyProto.toJSON(
+                Secp256k1PubkeyProto.decode(
+                  //@ts-ignore
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
+          }
+
+          if (pubkey.type_url === "/cosmos.crypto.secp256r1.PubKey") {
+            return {
+              type_url: "/cosmos.crypto.secp256r1.PubKey",
+              value: Secp256r1PubkeyProto.toJSON(
+                Secp256r1PubkeyProto.decode(
+                  //@ts-ignore
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
+          }
+
+          if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
+            const multisig = LegacyAminoPubKey.decode(
+              //@ts-ignore
+              fromBase64(pubkey.value),
+            );
+            for (let i = 0; i < multisig.public_keys.length; i++) {
+              //@ts-ignore
+              multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
+            }
+
+            return LegacyAminoPubKey.toJSON(multisig);
+          }
+
+          throw new Error(`unknown pubkey type '${pubkey.type_url}'`);
         };
-        return (await this.decodeTxResponses([txResponse!]))[0];
+
+        //@ts-ignore
+        tx.auth_info!.signer_infos! = tx.auth_info?.signer_infos?.map((si) => {
+          //@ts-ignore
+          si.public_key = resolvePubkey(si.public_key);
+          return si;
+        });
+
+        for (
+          let i = 0;
+          !isNaN(Number(tx.body?.messages?.length)) &&
+          i < Number(tx.body?.messages?.length);
+          i++
+        ) {
+          //@ts-ignore
+          let msg: { type_url: string; value: any } = tx.body!.messages![i];
+
+          const { type_url: msgType, value: msgBytes } = msg;
+
+          const msgDecoder = MsgRegistry.get(msgType);
+          if (!msgDecoder) {
+            continue;
+          }
+
+          msg = {
+            type_url: msgType,
+            value: msgDecoder.decode(fromBase64(msgBytes)),
+          };
+
+          if (
+            msg.type_url === "/secret.compute.v1beta1.MsgInstantiateContract"
+          ) {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.init_msg = toBase64(msg.value.init_msg);
+            msg.value.callback_sig = null;
+          } else if (
+            msg.type_url === "/secret.compute.v1beta1.MsgExecuteContract"
+          ) {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.contract = bytesToAddress(msg.value.contract);
+            msg.value.msg = toBase64(msg.value.msg);
+            msg.value.callback_sig = null;
+          } else if (msg.type_url === "/secret.compute.v1beta1.MsgStoreCode") {
+            msg.value.sender = bytesToAddress(msg.value.sender);
+            msg.value.wasm_byte_code = toBase64(msg.value.wasm_byte_code);
+          }
+
+          tx.body!.messages![i] = msg;
+        }
+
+        tx_response!.tx = {
+          "@type": "/cosmos.tx.v1beta1.Tx",
+          ...protobufJsonToGrpcGatewayJson(tx_response!.tx),
+        };
+
+        return await this.decodeTxResponse(tx_response!);
       }
     } else if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
-        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+        "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
 
-      const { txResponse } = await this.txService.broadcastTx({
-        txBytes: tx,
-        mode: BroadcastMode.BROADCAST_MODE_SYNC,
-      });
+      //@ts-ignore
+      ({ tx_response } = await TxService.BroadcastTx(
+        {
+          //@ts-ignore
+          txBytes: toBase64(txBytes),
+          mode: BroadcastMode.BROADCAST_MODE_SYNC,
+        },
+        { pathPrefix: this.url },
+      ));
 
-      if (txResponse?.code !== 0) {
+      if (tx_response?.code !== 0) {
         throw new Error(
-          `Broadcasting transaction failed with code ${txResponse?.code} (codespace: ${txResponse?.codespace}). Log: ${txResponse?.rawLog}`,
+          `Broadcasting transaction failed with code ${tx_response?.code} (codespace: ${tx_response?.codespace}). Log: ${tx_response?.raw_log}`,
         );
       }
     } else if (mode === BroadcastMode.Async) {
       const { BroadcastMode } = await import(
-        "./protobuf_stuff/cosmos/tx/v1beta1/service"
+        "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
 
-      this.txService.broadcastTx({
-        txBytes: tx,
-        mode: BroadcastMode.BROADCAST_MODE_ASYNC,
-      });
+      TxService.BroadcastTx(
+        {
+          //@ts-ignore
+          txBytes: toBase64(txBytes),
+          mode: BroadcastMode.BROADCAST_MODE_ASYNC,
+        },
+        { pathPrefix: this.url },
+      );
     } else {
       throw new Error(
         `Unknown broadcast mode "${String(mode)}", must be either "${String(
@@ -1279,17 +1261,13 @@ export class SecretNetworkClient {
       explicitSignerData,
     );
 
-    const txBytes = (
-      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-    ).TxRaw.encode(txRaw).finish();
-
-    return txBytes;
+    return TxRaw.encode(txRaw).finish();
   }
 
   private async signAndBroadcast(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<Tx> {
+  ): Promise<TxResponse> {
     const txBytes = await this.prepareAndSign(messages, txOptions);
 
     return this.broadcastTx(
@@ -1304,11 +1282,13 @@ export class SecretNetworkClient {
   private async simulate(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<
-    import("./protobuf_stuff/cosmos/tx/v1beta1/service").SimulateResponse
-  > {
-    const txBytes = await this.prepareAndSign(messages, txOptions);
-    return this.txService.simulate({ txBytes });
+  ): Promise<SimulateResponse> {
+    const tx_bytes = await this.prepareAndSign(messages, txOptions);
+    return TxService.Simulate(
+      //@ts-ignore
+      { tx_bytes: toBase64(tx_bytes) },
+      { pathPrefix: this.url },
+    );
   }
 
   /**
@@ -1326,7 +1306,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
-  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
+  ): Promise<TxRaw> {
     const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === this.address,
     );
@@ -1338,7 +1318,7 @@ export class SecretNetworkClient {
     if (explicitSignerData) {
       signerData = explicitSignerData;
     } else {
-      const account = await this.query.auth.account({
+      const { account } = await this.query.auth.account({
         address: this.address,
       });
 
@@ -1348,19 +1328,17 @@ export class SecretNetworkClient {
         );
       }
 
-      if (account.type !== "BaseAccount") {
+      if (account["@type"] !== "/cosmos.auth.v1beta1.BaseAccount") {
         throw new Error(
-          `Cannot sign with account of type "${account.type}", can only sign with "BaseAccount".`,
+          `Cannot sign with account of type "${account["@type"]}", can only sign with "/cosmos.auth.v1beta1.BaseAccount".`,
         );
       }
 
-      const chainId = this.chainId;
-      const baseAccount =
-        account.account as import("./protobuf_stuff/cosmos/auth/v1beta1/auth").BaseAccount;
+      const baseAccount = account as BaseAccount;
       signerData = {
-        accountNumber: Number(baseAccount.accountNumber),
+        accountNumber: Number(baseAccount.account_number),
         sequence: Number(baseAccount.sequence),
-        chainId: chainId,
+        chainId: this.chainId,
       };
     }
 
@@ -1383,7 +1361,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
+  ): Promise<TxRaw> {
     if (isDirectSigner(this.wallet)) {
       throw new Error(
         "Wrong signer type! Expected AminoSigner or AminoEip191Signer.",
@@ -1391,7 +1369,7 @@ export class SecretNetworkClient {
     }
 
     let signMode = (
-      await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
+      await import("./protobuf/cosmos/tx/signing/v1beta1/signing")
     ).SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     if (typeof this.wallet.getSignMode === "function") {
       signMode = await this.wallet.getSignMode();
@@ -1418,12 +1396,12 @@ export class SecretNetworkClient {
     );
 
     const txBody = {
-      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      type_url: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
             await this.populateCodeHash(msg);
-            const asProto = await msg.toProto(this.encryptionUtils);
+            const asProto: ProtoMsg = await msg.toProto(this.encryptionUtils);
 
             return asProto;
           }),
@@ -1442,11 +1420,9 @@ export class SecretNetworkClient {
       signed.fee.granter,
       signMode,
     );
-    return (
-      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-    ).TxRaw.fromPartial({
-      bodyBytes: txBodyBytes,
-      authInfoBytes: signedAuthInfoBytes,
+    return TxRaw.fromPartial({
+      body_bytes: txBodyBytes,
+      auth_info_bytes: signedAuthInfoBytes,
       signatures: [fromBase64(signature.signature)],
     });
   }
@@ -1454,43 +1430,45 @@ export class SecretNetworkClient {
   private async populateCodeHash(msg: Msg) {
     if (msg instanceof MsgExecuteContract) {
       if (!msg.codeHash) {
-        msg.codeHash = await this.query.compute.contractCodeHash(
-          msg.contractAddress,
-        );
+        msg.codeHash = (
+          await this.query.compute.codeHashByContractAddress({
+            contract_address: msg.contractAddress,
+          })
+        ).code_hash!;
       }
     } else if (msg instanceof MsgInstantiateContract) {
       if (!msg.codeHash) {
-        msg.codeHash = await this.query.compute.codeHash(Number(msg.codeId));
+        msg.codeHash = (
+          await this.query.compute.codeHashByCodeId({
+            code_id: msg.codeId,
+          })
+        ).code_hash!;
       }
     }
   }
 
   private async encodeTx(txBody: {
-    typeUrl: string;
+    type_url: string;
     value: {
       messages: ProtoMsg[];
       memo: string;
     };
   }): Promise<Uint8Array> {
-    const { Any } = await import("./protobuf_stuff/google/protobuf/any");
-
     const wrappedMessages = await Promise.all(
       txBody.value.messages.map(async (message) => {
         const binaryValue = await message.encode();
         return Any.fromPartial({
-          typeUrl: message.typeUrl,
+          type_url: message.type_url,
           value: binaryValue,
         });
       }),
     );
 
-    const { TxBody } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
-
-    const txBodyEncoded = TxBody.fromPartial({
+    const txBodyEncoded = TxBodyPb.fromPartial({
       ...txBody.value,
       messages: wrappedMessages,
     });
-    return TxBody.encode(txBodyEncoded).finish();
+    return TxBodyPb.encode(txBodyEncoded).finish();
   }
 
   private async signDirect(
@@ -1499,13 +1477,13 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
-  ): Promise<import("./protobuf_stuff/cosmos/tx/v1beta1/tx").TxRaw> {
+  ): Promise<TxRaw> {
     if (!isDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
     }
 
     const txBody = {
-      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      type_url: "/cosmos.tx.v1beta1.TxBody",
       value: {
         messages: await Promise.all(
           messages.map(async (msg, index) => {
@@ -1537,11 +1515,9 @@ export class SecretNetworkClient {
       account.address,
       signDoc,
     );
-    return (
-      await import("./protobuf_stuff/cosmos/tx/v1beta1/tx")
-    ).TxRaw.fromPartial({
-      bodyBytes: signed.bodyBytes,
-      authInfoBytes: signed.authInfoBytes,
+    return TxRaw.fromPartial({
+      body_bytes: signed.body_bytes,
+      auth_info_bytes: signed.auth_info_bytes,
       signatures: [fromBase64(signature.signature)],
     });
   }
@@ -1555,16 +1531,6 @@ export function gasToFee(gasLimit: number, gasPrice: number): number {
   return Math.ceil(gasLimit * gasPrice);
 }
 
-function extractNonce(msg: ProtoMsg): Uint8Array {
-  if (msg.typeUrl === "/secret.compute.v1beta1.MsgInstantiateContract") {
-    return msg.value.initMsg.slice(0, 32);
-  }
-  if (msg.typeUrl === "/secret.compute.v1beta1.MsgExecuteContract") {
-    return msg.value.msg.slice(0, 32);
-  }
-  return new Uint8Array();
-}
-
 /**
  * Creates and serializes an AuthInfo document.
  *
@@ -1572,30 +1538,30 @@ function extractNonce(msg: ProtoMsg): Uint8Array {
  */
 async function makeAuthInfoBytes(
   signers: ReadonlyArray<{
-    readonly pubkey: import("./protobuf_stuff/google/protobuf/any").Any;
+    readonly pubkey: import("./protobuf/google/protobuf/any").Any;
     readonly sequence: number;
   }>,
   feeAmount: readonly Coin[],
   gasLimit: number,
   feeGranter?: string,
-  signMode?: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
+  signMode?: import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode,
 ): Promise<Uint8Array> {
   if (!signMode) {
-    signMode = (
-      await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing")
-    ).SignMode.SIGN_MODE_DIRECT;
+    signMode = (await import("./protobuf/cosmos/tx/signing/v1beta1/signing"))
+      .SignMode.SIGN_MODE_DIRECT;
   }
 
-  const authInfo = {
-    signerInfos: makeSignerInfos(signers, signMode),
+  const authInfo: AuthInfo = {
+    signer_infos: makeSignerInfos(signers, signMode),
     fee: {
       amount: [...feeAmount],
-      gasLimit: String(gasLimit),
-      granter: feeGranter,
+      gas_limit: String(gasLimit),
+      granter: feeGranter ?? "",
+      payer: "",
     },
   };
 
-  const { AuthInfo } = await import("./protobuf_stuff/cosmos/tx/v1beta1/tx");
+  const { AuthInfo } = await import("./protobuf/cosmos/tx/v1beta1/tx");
   return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
 }
 
@@ -1606,18 +1572,18 @@ async function makeAuthInfoBytes(
  */
 function makeSignerInfos(
   signers: ReadonlyArray<{
-    readonly pubkey: import("./protobuf_stuff/google/protobuf/any").Any;
+    readonly pubkey: import("./protobuf/google/protobuf/any").Any;
     readonly sequence: number;
   }>,
-  signMode: import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode,
-): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignerInfo[] {
+  signMode: import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode,
+): import("./protobuf/cosmos/tx/v1beta1/tx").SignerInfo[] {
   return signers.map(
     ({
       pubkey,
       sequence,
-    }): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignerInfo => ({
-      publicKey: pubkey,
-      modeInfo: {
+    }): import("./protobuf/cosmos/tx/v1beta1/tx").SignerInfo => ({
+      public_key: pubkey,
+      mode_info: {
         single: { mode: signMode },
       },
       sequence: String(sequence),
@@ -1630,43 +1596,41 @@ function makeSignDocProto(
   authInfoBytes: Uint8Array,
   chainId: string,
   accountNumber: number,
-): import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc {
+): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
   return {
-    bodyBytes: bodyBytes,
-    authInfoBytes: authInfoBytes,
-    chainId: chainId,
-    accountNumber: String(accountNumber),
+    body_bytes: bodyBytes,
+    auth_info_bytes: authInfoBytes,
+    chain_id: chainId,
+    account_number: String(accountNumber),
   };
 }
 
 async function encodePubkey(
   pubkey: Pubkey,
-): Promise<import("./protobuf_stuff/google/protobuf/any").Any> {
-  const { Any } = await import("./protobuf_stuff/google/protobuf/any");
+): Promise<import("./protobuf/google/protobuf/any").Any> {
+  const { Any } = await import("./protobuf/google/protobuf/any");
 
   if (isSecp256k1Pubkey(pubkey)) {
-    const { PubKey } = await import(
-      "./protobuf_stuff/cosmos/crypto/secp256k1/keys"
-    );
+    const { PubKey } = await import("./protobuf/cosmos/crypto/secp256k1/keys");
 
     const pubkeyProto = PubKey.fromPartial({
       key: fromBase64(pubkey.value),
     });
     return Any.fromPartial({
-      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+      type_url: "/cosmos.crypto.secp256k1.PubKey",
       value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
     });
   } else if (isMultisigThresholdPubkey(pubkey)) {
     const { LegacyAminoPubKey } = await import(
-      "./protobuf_stuff/cosmos/crypto/multisig/keys"
+      "./protobuf/cosmos/crypto/multisig/keys"
     );
 
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Number(pubkey.value.threshold),
-      publicKeys: pubkey.value.pubkeys.map(encodePubkey),
+      public_keys: pubkey.value.pubkeys.map(encodePubkey),
     });
     return Any.fromPartial({
-      typeUrl: "/cosmos.crypto.multisig.LegacyAminoPubKey",
+      type_url: "/cosmos.crypto.multisig.LegacyAminoPubKey",
       value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
     });
   } else {
@@ -1826,4 +1790,37 @@ export enum TxResultCode {
 
   /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
   ErrPanic = 111222,
+}
+
+/**
+ * Recursively converts an object of type `{ type_url: string; value: any; }`
+ * to type `{ "@type": string; ...values }`
+ */
+function protobufJsonToGrpcGatewayJson(obj: any): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(protobufJsonToGrpcGatewayJson);
+  }
+
+  if (
+    Object.keys(obj).length === 2 &&
+    typeof obj["type_url"] === "string" &&
+    typeof obj["value"] === "object"
+  ) {
+    return Object.assign(
+      { "@type": obj["type_url"] },
+      protobufJsonToGrpcGatewayJson(obj["value"]),
+    );
+  }
+
+  const result: Record<string, any> = {};
+
+  Object.keys(obj).forEach((key) => {
+    result[key] = protobufJsonToGrpcGatewayJson(obj[key]);
+  });
+
+  return result;
 }

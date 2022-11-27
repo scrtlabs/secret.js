@@ -21,7 +21,7 @@ export interface Snip721GetTokensRequestWithPermit {
       tokens: {
         owner: string;
       };
-    },
+    };
     permit: Permit;
   };
 }
