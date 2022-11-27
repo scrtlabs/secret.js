@@ -903,6 +903,26 @@ export class SecretNetworkClient {
     return this.decodeTxResponses(txResponses);
   }
 
+  private async waitForIBCAcK(packetSequence: string, packetSrcChannel: string ) : Promise<Tx> {
+    return new Promise(async (resolve, reject) => {
+        let tries = 20; // 2 min (TODO: Make it configurable param)
+        
+        while (tries > 0) {
+          const txs = await this.txsQuery(
+            `acknowledge_packet.packet_sequence = '${packetSequence}' AND acknowledge_packet.packet_src_channel = '${packetSrcChannel}'`
+          );
+          const ackTx = txs.find((x) => x.code === 0); 
+          
+          if (ackTx) {
+            resolve(ackTx);
+          }
+          tries--;
+          await sleep(6_000); // (TODO: Make it configurable param)
+        }
+        reject();              
+      });    
+  }  
+
   private async decodeTxResponses(
     txResponses: import("./protobuf_stuff/cosmos/base/abci/v1beta1/abci").TxResponse[],
   ): Promise<Tx[]> {
@@ -973,8 +993,9 @@ export class SecretNetworkClient {
         let rawLog: string = txResp.rawLog;
         let jsonLog: JsonLog | undefined;
         let arrayLog: ArrayLog | undefined;
+        let ibcAckTxs: Array<Promise<Tx>> = [];
         if (txResp.code === 0 && rawLog !== "") {
-          jsonLog = JSON.parse(rawLog) as JsonLog;
+          jsonLog = JSON.parse(rawLog) as JsonLog; 
 
           arrayLog = [];
           for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
@@ -1109,6 +1130,21 @@ export class SecretNetworkClient {
           }
         }
 
+        //IBC ACKs:
+        if (txResp.code === TxResultCode.Success) {
+          const packetSequences = arrayLog?.filter(
+            (x) => x.type === "send_packet" && x.key === "packet_sequence",
+          ) || [];
+      
+          const packetSrcChannels = arrayLog?.filter(
+            (x) => x.type === "send_packet" && x.key === "packet_src_channel",
+          ) || [];
+
+          for (var msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
+            ibcAckTxs.push(this.waitForIBCAcK(packetSequences[msgIndex].value, packetSrcChannels[msgIndex].value));        
+          }
+        }        
+
         return {
           height: Number(txResp.height),
           timestamp: txResp.timestamp,
@@ -1123,7 +1159,7 @@ export class SecretNetworkClient {
           data,
           gasUsed: Number(txResp.gasUsed),
           gasWanted: Number(txResp.gasWanted),
-          ibcAckTxs: [], // TODO
+          ibcAckTxs
         };
       }),
     );
