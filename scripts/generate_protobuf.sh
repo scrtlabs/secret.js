@@ -39,7 +39,7 @@ rm -rf "$GRPC_GATEWAY_OUT_DIR"
 mkdir -p "$GRPC_GATEWAY_OUT_DIR"
 
 # go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@latest
-PLUGIN_PATH_GRPC_GATEWAY="$(which protoc-gen-grpc-gateway-ts)"
+PLUGIN_PATH_GRPC_GATEWAY="/home/bob/go/bin/protoc-gen-grpc-gateway-ts"
 
 protoc \
   --plugin="protoc-gen-grpc_gateway_ts=${PLUGIN_PATH_GRPC_GATEWAY}" \
