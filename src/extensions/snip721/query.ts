@@ -1,10 +1,6 @@
 import { ComputeQuerier } from "../../query";
 import { Permit, ViewingKey } from "../access_control";
 import {
-  GetTokenParamsRequest,
-  Snip721TokenInfo,
-} from "./msg/GetSnip721Params";
-import {
   GetTokenInfoRequest,
   GetTokenInfoRequestWithPermit,
   GetTokenInfoResponse,
@@ -31,20 +27,6 @@ interface Auth {
 }
 
 export class Snip721Querier extends ComputeQuerier {
-  getSnip721Params = async ({
-    contract,
-  }: {
-    contract: SecretContract;
-  }): Promise<Snip721TokenInfo> => {
-    return await this.queryContract<GetTokenParamsRequest, Snip721TokenInfo>({
-      contractAddress: contract.address,
-      codeHash: contract.codeHash,
-      query: {
-        token_info: {},
-      },
-    });
-  };
-
   GetTokenInfo = async ({
     contract,
     auth,
@@ -59,8 +41,8 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequest,
         GetTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           all_nft_info: {
             token_id,
@@ -73,8 +55,8 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequestWithPermit,
         GetTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           with_permit: {
             permit: auth.permit,
@@ -107,8 +89,8 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequest,
         Snip721GetTokensResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           tokens: {
             owner,
@@ -121,8 +103,8 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequestWithPermit,
         Snip721GetTokensResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           with_permit: {
             permit: auth.permit,

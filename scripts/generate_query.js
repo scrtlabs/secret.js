@@ -13,7 +13,7 @@ const exec = util.promisify(require("child_process").exec);
   await exec(`echo '// See scripts/generate_query.js' >> "${outputFile}"`);
 
   const { stdout } = await exec(
-    `find "${__dirname}/../src/protobuf_stuff" -name query.ts`,
+    `find "${__dirname}/../src/protobuf" -name query.ts`,
   );
   const modulesPaths = stdout
     .split("\n")

@@ -1,66 +1,36 @@
 // For future wanderers:
 // This file is written manually with a few goals in mind:
-// 1. Proxy the auto-generated QueryClientImpl from "src/protobuf_stuff/secret/compute/v1beta1/query.tx" (See the "scripts/generate_protobuf.sh" script)
+// 1. Proxy the auto-generated QueryClientImpl from "src/protobuf/secret/compute/v1beta1/query.tx" (See the "scripts/generate_protobuf.sh" script)
 // 2. Abstract "address: Uint8Array" in the underlying types as "address: string".
 // 3. Add Secret Network encryption
 
-import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
-import { grpc } from "@improbable-eng/grpc-web";
+import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
 import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
-
-/** QueryContractInfoRequest is the request type for the Query/ContractInfo RPC method */
-export type QueryContractInfoRequest = {
-  /** address is the address of the contract to query */
-  address: string;
-};
-
-/** QueryContractInfoResponse is the response type for the Query/ContractInfo RPC method */
-export type QueryContractInfoResponse = {
-  /** address is the address of the contract */
-  address: string;
-  ContractInfo: ContractInfo;
-};
-
-/** ContractInfo stores a WASM contract instance */
-export type ContractInfo = {
-  codeId: string;
-  creator: string;
-  label: string;
-  ibcPortId: string;
-};
-
-/** AbsoluteTxPosition can be used to sort contracts */
-export type AbsoluteTxPosition = {
-  /** BlockHeight is the block the contract was created at */
-  blockHeight: string;
-  /** TxIndex is a monotonic counter within the block (actual transaction index, or gas consumed) */
-  txIndex: string;
-};
-
-export type QueryContractsByCodeRequest = {
-  codeId: string;
-};
-
-export type QueryContractsByCodeResponse = {
-  contractInfos: ContractInfoWithAddress[];
-};
-
-/** ContractInfoWithAddress adds the address (key) to the ContractInfo representation */
-export type ContractInfoWithAddress = {
-  address: string;
-  ContractInfo?: ContractInfo;
-};
+import { Empty } from "../grpc_gateway/google/protobuf/empty.pb";
+import {
+  Query,
+  QueryByCodeIdRequest,
+  QueryByContractAddressRequest,
+  QueryByLabelRequest,
+  QueryCodeHashResponse,
+  QueryCodeResponse,
+  QueryCodesResponse,
+  QueryContractAddressResponse,
+  QueryContractInfoResponse,
+  QueryContractLabelResponse,
+  QueryContractsByCodeIdResponse,
+} from "../grpc_gateway/secret/compute/v1beta1/query.pb";
 
 export type QueryContractRequest<T> = {
   /** The address of the contract */
-  contractAddress: string;
+  contract_address: string;
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * code_hash is an optional parameter but using it will result in way faster execution time.
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -68,143 +38,114 @@ export type QueryContractRequest<T> = {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash?: string;
+  code_hash?: string;
   /** A JSON object that will be passed to the contract as a query */
   query: T;
 };
 
-export type CodeInfoResponse = {
-  codeId: string;
-  creator: string;
-  codeHash: string;
-  source: string;
-  builder: string;
-};
-
-export type QueryCodeResponse = {
-  codeInfo: CodeInfoResponse;
-  data: Uint8Array;
-};
-
 export class ComputeQuerier {
-  private readonly grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl;
-  private encryption?: EncryptionUtils;
-  private client?: import("../protobuf_stuff/secret/compute/v1beta1/query").QueryClientImpl;
   private codeHashCache = new Map<string | number, string>();
 
-  constructor(
-    grpc: import("../protobuf_stuff/secret/compute/v1beta1/query").GrpcWebImpl,
-    encryption?: EncryptionUtils,
-  ) {
-    this.grpc = grpc;
-    this.encryption = encryption;
-  }
-
-  private async init() {
-    if (!this.client) {
-      this.client = new (
-        await import("../protobuf_stuff/secret/compute/v1beta1/query")
-      ).QueryClientImpl(this.grpc);
-    }
-
+  constructor(private url: string, private encryption?: EncryptionUtils) {
     if (!this.encryption) {
-      this.encryption = new EncryptionUtilsImpl(
-        new (
-          await import("../protobuf_stuff/secret/registration/v1beta1/query")
-        ).QueryClientImpl(this.grpc),
-      );
+      this.encryption = new EncryptionUtilsImpl(url);
     }
   }
 
-  /* 
-    TODO expose all of these while making sure codeHashCache is efficient
-    
-    contractInfo
-    contractsByCodeID
-    querySecretContract
-    code
-    codes
-    codeHashByContractAddress
-    codeHashByCodeID
-    labelByAddress
-    addressByLabel
-  */
-
-  /** Get codeHash of a Secret Contract */
-  async contractCodeHash(
-    address: string,
-    metadata?: grpc.Metadata,
-  ): Promise<string> {
-    await this.init();
-
-    let codeHash = this.codeHashCache.get(address);
-    if (!codeHash) {
-      const { ContractInfo } = await this.contractInfo(address, metadata);
-      codeHash = (await this.codeHash(Number(ContractInfo.codeId), metadata))
-        .replace("0x", "")
-        .toLowerCase();
-      this.codeHashCache.set(address, codeHash);
-    }
-
-    return codeHash;
-  }
-
-  /** Get codeHash from a code id */
-  async codeHash(codeId: number, metadata?: grpc.Metadata): Promise<string> {
-    await this.init();
-
-    let codeHash = this.codeHashCache.get(codeId);
-    if (!codeHash) {
-      const { codeInfo } = await this.code(codeId, metadata);
-      codeHash = codeInfo.codeHash;
-      this.codeHashCache.set(codeId, codeHash);
-    }
-
-    return codeHash;
-  }
-
-  /** Get metadata of a Secret Contract */
-  async contractInfo(
-    address: string,
-    metadata?: grpc.Metadata,
+  contractInfo(
+    req: QueryByContractAddressRequest,
+    headers?: HeadersInit,
   ): Promise<QueryContractInfoResponse> {
-    await this.init();
-
-    const response = await this.client!.contractInfo(
-      {
-        contractAddress: address,
-      },
-      metadata,
-    );
-
-    return {
-      address: response.contractAddress,
-      ContractInfo: contractInfoFromProtobuf(response.ContractInfo!),
-    };
+    return Query.ContractInfo(req, {
+      headers,
+      pathPrefix: this.url,
+    });
   }
 
-  /** Get all contracts that were instantiated from a code id */
-  async contractsByCode(
-    codeId: number,
-    metadata?: grpc.Metadata,
-  ): Promise<QueryContractsByCodeResponse> {
-    await this.init();
+  contractsByCodeId(
+    req: QueryByCodeIdRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryContractsByCodeIdResponse> {
+    return Query.ContractsByCodeId(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 
-    const response = await this.client!.contractsByCodeID(
-      {
-        codeId: String(codeId),
-      },
-      metadata,
-    );
+  code(
+    req: QueryByCodeIdRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryCodeResponse> {
+    return Query.Code(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 
-    return {
-      contractInfos: response.contractInfos.map((x) => ({
-        address: x.contractAddress,
-        ContractInfo: x.ContractInfo
-          ? contractInfoFromProtobuf(x.ContractInfo)
-          : undefined,
-      })),
-    };
+  codes(req: Empty, headers?: HeadersInit): Promise<QueryCodesResponse> {
+    return Query.Codes(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  async codeHashByContractAddress(
+    req: QueryByContractAddressRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryCodeHashResponse> {
+    let code_hash = this.codeHashCache.get(req.contract_address!);
+
+    if (!code_hash) {
+      ({ code_hash } = await Query.CodeHashByContractAddress(req, {
+        headers,
+        pathPrefix: this.url,
+      }));
+
+      this.codeHashCache.set(req.contract_address!, code_hash!);
+    }
+
+    return { code_hash };
+  }
+
+  async codeHashByCodeId(
+    req: QueryByCodeIdRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryCodeHashResponse> {
+    let code_hash = this.codeHashCache.get(req.code_id!);
+
+    if (!code_hash) {
+      ({ code_hash } = await Query.CodeHashByCodeId(
+        { code_id: req.code_id },
+        {
+          headers,
+          pathPrefix: this.url,
+        },
+      ));
+
+      this.codeHashCache.set(req.code_id!, code_hash!);
+    }
+
+    return { code_hash };
+  }
+
+  labelByAddress(
+    req: QueryByContractAddressRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryContractLabelResponse> {
+    return Query.LabelByAddress(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  addressByLabel(
+    req: QueryByLabelRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryContractAddressResponse> {
+    return Query.AddressByLabel(req, {
+      headers,
+      pathPrefix: this.url,
+    });
   }
 
   /**
@@ -212,31 +153,39 @@ export class ComputeQuerier {
    * May return a string on error.
    */
   async queryContract<T extends object, R extends any>(
-    { contractAddress, codeHash, query }: QueryContractRequest<T>,
-    metadata?: grpc.Metadata,
+    {
+      contract_address: contractAddress,
+      code_hash: codeHash,
+      query,
+    }: QueryContractRequest<T>,
+    headers?: HeadersInit,
   ): Promise<R> {
-    await this.init();
-
     if (!codeHash) {
       console.warn(getMissingCodeHashWarning("queryContract()"));
-      codeHash = await this.contractCodeHash(contractAddress);
+      ({ code_hash: codeHash } = await this.codeHashByContractAddress({
+        contract_address: contractAddress,
+      }));
     }
-    codeHash = codeHash.replace("0x", "").toLowerCase();
+    codeHash = codeHash!.replace("0x", "").toLowerCase();
 
     const encryptedQuery = await this.encryption!.encrypt(codeHash, query);
     const nonce = encryptedQuery.slice(0, 32);
 
     try {
-      const { data: encryptedResult } = await this.client!.querySecretContract(
+      const { data: encryptedResult } = await Query.QuerySecretContract(
         {
-          contractAddress,
-          query: encryptedQuery,
+          contract_address: contractAddress,
+          //@ts-ignore
+          query: toBase64(encryptedQuery),
         },
-        metadata,
+        {
+          headers,
+          pathPrefix: this.url,
+        },
       );
 
       const decryptedBase64Result = await this.encryption!.decrypt(
-        encryptedResult,
+        fromBase64(encryptedResult as unknown as string)!,
         nonce,
       );
 
@@ -275,40 +224,6 @@ export class ComputeQuerier {
       }
     }
   }
-
-  /** Get WASM bytecode and metadata for a code id */
-  async code(
-    codeId: number,
-    metadata?: grpc.Metadata,
-  ): Promise<QueryCodeResponse> {
-    await this.init();
-
-    const response = await this.client!.code(
-      { codeId: String(codeId) },
-      metadata,
-    );
-    const codeInfo = codeInfoResponseFromProtobuf(response.codeInfo);
-
-    this.codeHashCache.set(
-      codeId,
-      codeInfo.codeHash.replace("0x", "").toLowerCase(),
-    );
-
-    return {
-      codeInfo,
-      data: response.wasm,
-    };
-  }
-
-  async codes(metadata?: grpc.Metadata): Promise<CodeInfoResponse[]> {
-    await this.init();
-
-    const response = await this.client!.codes({}, metadata);
-
-    return response.codeInfos.map((codeInfo) =>
-      codeInfoResponseFromProtobuf(codeInfo),
-    );
-  }
 }
 
 export function addressToBytes(address: string): Uint8Array {
@@ -320,36 +235,4 @@ export function bytesToAddress(
   prefix: string = "secret",
 ): string {
   return bech32.encode(prefix, bech32.toWords(bytes));
-}
-
-function contractInfoFromProtobuf(
-  contractInfo: import("../protobuf_stuff/secret/compute/v1beta1/types").ContractInfo,
-): ContractInfo {
-  return {
-    codeId: contractInfo.codeId,
-    creator: bytesToAddress(contractInfo.creator),
-    label: contractInfo.label,
-    ibcPortId: contractInfo.ibcPortId,
-  };
-}
-
-function codeInfoResponseFromProtobuf(
-  codeInfo?: import("../protobuf_stuff/secret/compute/v1beta1/query").CodeInfoResponse,
-): CodeInfoResponse {
-  return codeInfo
-    ? {
-        codeId: codeInfo.codeId,
-        creator: codeInfo.creator,
-        codeHash: codeInfo.codeHash,
-        source: codeInfo.source,
-        builder: codeInfo.builder,
-      }
-    : {
-        // This should never happen
-        codeId: "",
-        creator: "",
-        codeHash: "",
-        source: "",
-        builder: "",
-      };
 }

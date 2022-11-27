@@ -1,10 +1,13 @@
-import { AminoSigner, StdSignDoc } from "../../../wallet_amino";
-import { AminoWallet, serializeStdSignDoc } from "../../../wallet_amino";
-import { bech32 } from "bech32";
-import { base64PubkeyToAddress } from "../../../index";
-import * as secp256k1 from "@noble/secp256k1";
 import { fromBase64 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
+import * as secp256k1 from "@noble/secp256k1";
+import { bech32 } from "bech32";
+import { base64PubkeyToAddress } from "../../../index";
+import {
+  AminoSigner,
+  serializeStdSignDoc,
+  StdSignDoc,
+} from "../../../wallet_amino";
 
 export class PermitError extends Error {
   readonly type = "PermitError";
@@ -121,20 +124,24 @@ export const newPermit = async (
   permissions: Permission[],
   keplr: boolean,
 ): Promise<Permit> => {
-
   let signature;
   if (!keplr) {
-    signature = (await signer.signAmino(
+    signature = (
+      await signer.signAmino(
         owner,
         newSignDoc(chainId, permitName, allowedTokens, permissions),
-    )).signature;
+      )
+    ).signature;
   }
   //@ts-ignore
   else if (!window?.keplr) {
-    throw new Error("Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode")
+    throw new Error(
+      "Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode",
+    );
   } else {
-    //@ts-ignore
-    signature = (await window.keplr.signAmino(
+    signature = (
+      //@ts-ignore
+      await window.keplr.signAmino(
         chainId,
         owner,
         {
@@ -160,12 +167,10 @@ export const newPermit = async (
         {
           preferNoSetFee: true, // Fee must be 0, so hide it from the user
           preferNoSetMemo: true, // Memo must be empty, so hide it from the user
-        }
-    )).signature;
+        },
+      )
+    ).signature;
   }
-
-
-
 
   return {
     params: {

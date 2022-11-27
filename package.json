@@ -1,7 +1,7 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
@@ -30,29 +30,29 @@
   "dependencies": {
     "@cosmjs/encoding": "0.27.1",
     "@cosmjs/math": "0.27.1",
-    "@improbable-eng/grpc-web": "0.15.0",
-    "@improbable-eng/grpc-web-node-http-transport": "0.15.0",
     "@noble/hashes": "1.0.0",
     "@noble/secp256k1": "1.6.3",
-    "@osmonauts/helpers": "0.3.8",
     "bech32": "2.0.0",
     "big-integer": "1.6.51",
     "bignumber.js": "9.0.2",
     "bip32": "2.0.6",
     "bip39": "3.0.4",
+    "cross-fetch": "3.1.5",
     "curve25519-js": "0.0.4",
+    "google-protobuf": "^3.14.0",
     "is-gzip": "2.0.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
     "protobufjs": "6.11.3",
     "secure-random": "1.1.2",
-    "sinon": "14.0.0"    
+    "sinon": "14.0.0"
   },
   "devDependencies": {
     "@confio/relayer": "0.6.1",
     "@osmonauts/telescope": "0.4.44",
     "@types/is-gzip": "2.0.0",
     "@types/jest": "27.4.0",
+    "@types/node": "18.11.2",
     "@types/pako": "1.0.3",
     "@types/protobufjs": "6.0.0",
     "@types/secure-random": "1.1.0",

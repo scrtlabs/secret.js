@@ -224,7 +224,7 @@ export type DirectSigner = {
   readonly getAccounts: () => Promise<readonly AccountData[]>;
   readonly signDirect: (
     signerAddress: string,
-    signDoc: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc,
+    signDoc: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc,
   ) => Promise<DirectSignResponse>;
 };
 
@@ -233,7 +233,7 @@ export type DirectSignResponse = {
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
-  readonly signed: import("./protobuf_stuff/cosmos/tx/v1beta1/tx").SignDoc;
+  readonly signed: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc;
   readonly signature: StdSignature;
 };
 
@@ -248,7 +248,7 @@ export interface AminoSigner {
    * Get SignMode for signing a tx.
    */
   readonly getSignMode?: () => Promise<
-    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+    import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode
   >;
 
   /**

@@ -4,11 +4,15 @@ import { exec, sleep } from "./utils";
 require("ts-node").register({ transpileOnly: true });
 
 module.exports = async () => {
+  if (process.env.SKIP_LOCALSECRET === "true") {
+    return;
+  }
+
   // init localsecret
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 9091:9091 -p 26657:26657 --name localsecret ghcr.io/scrtlabs/localsecret:v1.4.0",
+    "docker run -it -d -p 1317:1316 --name localsecret ghcr.io/scrtlabs/localsecret:v1.6.0-alpha.4",
   );
 
   // console.log("stdout (testnet container id?):", stdout);
@@ -38,9 +42,9 @@ async function waitForBlocks(options?: {
   chainId?: string;
 }) {
   while (true) {
-    const secretjs = await SecretNetworkClient.create({
-      grpcWebUrl: options?.grpcWebUrl ?? "http://localhost:9091",
-      chainId: options?.chainId ?? "secretdev-1",
+    const secretjs = new SecretNetworkClient({
+      url: "http://localhost:1317",
+      chainId: "secretdev-1",
     });
 
     try {
@@ -50,7 +54,7 @@ async function waitForBlocks(options?: {
         break;
       }
     } catch (e) {
-      // console.error(e);
+      // console.eerror(e);
     }
     await sleep(250);
   }

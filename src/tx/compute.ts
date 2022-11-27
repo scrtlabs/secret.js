@@ -8,13 +8,13 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 export interface MsgInstantiateContractParams extends MsgParams {
   sender: string;
   /** The id of the contract's WASM code */
-  codeId: number;
+  code_id: number | string;
   /** A unique label across all contracts */
   label: string;
   /** The input message to the contract's constructor */
-  initMsg: any;
+  init_msg: any;
   /** Funds to send to the contract */
-  initFunds?: Coin[];
+  init_funds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
@@ -27,7 +27,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash?: string;
+  code_hash?: string;
 }
 
 export function getMissingCodeHashWarning(method: string): string {
@@ -47,21 +47,21 @@ export class MsgInstantiateContract implements Msg {
 
   constructor({
     sender,
-    codeId,
+    code_id,
     label,
-    initMsg,
-    initFunds,
-    codeHash,
+    init_msg,
+    init_funds,
+    code_hash,
   }: MsgInstantiateContractParams) {
     this.sender = sender;
-    this.codeId = String(codeId);
+    this.codeId = String(code_id);
     this.label = label;
-    this.initMsg = initMsg;
+    this.initMsg = init_msg;
     this.initMsgEncrypted = null;
-    this.initFunds = initFunds ?? [];
+    this.initFunds = init_funds ?? [];
 
-    if (codeHash) {
-      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+    if (code_hash) {
+      this.codeHash = code_hash.replace("0x", "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
@@ -84,21 +84,21 @@ export class MsgInstantiateContract implements Msg {
 
     const msgContent = {
       sender: addressToBytes(this.sender),
-      codeId: this.codeId,
+      code_id: this.codeId,
       label: this.label,
-      initMsg: this.initMsgEncrypted,
-      initFunds: this.initFunds,
-      // callbackSig & callbackCodeHash are internal stuff that doesn't matter here
-      callbackSig: new Uint8Array(),
-      callbackCodeHash: "",
+      init_msg: this.initMsgEncrypted,
+      init_funds: this.initFunds,
+      // callback_sig & callback_code_hash are internal stuff that doesn't matter here
+      callback_sig: new Uint8Array(),
+      callback_code_hash: "",
     };
 
     return {
-      typeUrl: "/secret.compute.v1beta1.MsgInstantiateContract",
+      type_url: "/secret.compute.v1beta1.MsgInstantiateContract",
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgInstantiateContract.encode(msgContent).finish(),
     };
   }
@@ -131,11 +131,11 @@ export class MsgInstantiateContract implements Msg {
 export interface MsgExecuteContractParams<T> extends MsgParams {
   sender: string;
   /** The contract's address */
-  contractAddress: string;
+  contract_address: string;
   /** The input message */
   msg: T;
   /** Funds to send to the contract */
-  sentFunds?: Coin[];
+  sent_funds?: Coin[];
   /** The SHA256 hash value of the contract's WASM bytecode, represented as case-insensitive 64
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
@@ -148,7 +148,7 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  codeHash?: string;
+  code_hash?: string;
 }
 
 /** Execute a function on a contract */
@@ -163,10 +163,10 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
   constructor({
     sender,
-    contractAddress,
+    contract_address: contractAddress,
     msg,
-    sentFunds,
-    codeHash,
+    sent_funds: sentFunds,
+    code_hash: codeHash,
   }: MsgExecuteContractParams<T>) {
     this.sender = sender;
     this.contractAddress = contractAddress;
@@ -200,18 +200,18 @@ export class MsgExecuteContract<T extends object> implements Msg {
       sender: addressToBytes(this.sender),
       contract: addressToBytes(this.contractAddress),
       msg: this.msgEncrypted,
-      sentFunds: this.sentFunds,
-      // callbackSig & callbackCodeHash are internal stuff that doesn't matter here
-      callbackSig: new Uint8Array(),
-      callbackCodeHash: "",
+      sent_funds: this.sentFunds,
+      // callback_sig & callback_code_hash are internal stuff that doesn't matter here
+      callback_sig: new Uint8Array(),
+      callback_code_hash: "",
     };
 
     return {
-      typeUrl: "/secret.compute.v1beta1.MsgExecuteContract",
+      type_url: "/secret.compute.v1beta1.MsgExecuteContract",
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgExecuteContract.encode(msgContent).finish(),
     };
   }
@@ -242,7 +242,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 export interface MsgStoreCodeParams extends MsgParams {
   sender: string;
   /** WASMByteCode can be raw or gzip compressed */
-  wasmByteCode: Uint8Array;
+  wasm_byte_code: Uint8Array;
   /** Source is a valid absolute HTTPS URI to the contract's source code, optional */
   source: string;
   /** Builder is a valid docker image name with tag, optional */
@@ -256,7 +256,12 @@ export class MsgStoreCode implements Msg {
   public source: string;
   public builder: string;
 
-  constructor({ sender, wasmByteCode, source, builder }: MsgStoreCodeParams) {
+  constructor({
+    sender,
+    wasm_byte_code: wasmByteCode,
+    source,
+    builder,
+  }: MsgStoreCodeParams) {
     this.sender = sender;
     this.source = source;
     this.builder = builder;
@@ -275,17 +280,17 @@ export class MsgStoreCode implements Msg {
 
     const msgContent = {
       sender: addressToBytes(this.sender),
-      wasmByteCode: this.wasmByteCode,
+      wasm_byte_code: this.wasmByteCode,
       source: this.source,
       builder: this.builder,
     };
 
     return {
-      typeUrl: "/secret.compute.v1beta1.MsgStoreCode",
+      type_url: "/secret.compute.v1beta1.MsgStoreCode",
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/compute/v1beta1/msg")
+          await import("../protobuf/secret/compute/v1beta1/msg")
         ).MsgStoreCode.encode(msgContent).finish(),
     };
   }

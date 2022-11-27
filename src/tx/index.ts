@@ -1,3 +1,67 @@
+import {
+  MsgExec,
+  MsgGrant,
+  MsgRevoke,
+} from "../protobuf/cosmos/authz/v1beta1/tx";
+import { MsgMultiSend, MsgSend } from "../protobuf/cosmos/bank/v1beta1/tx";
+import { MsgVerifyInvariant } from "../protobuf/cosmos/crisis/v1beta1/tx";
+import {
+  MsgFundCommunityPool,
+  MsgSetWithdrawAddress,
+  MsgWithdrawDelegatorReward,
+  MsgWithdrawValidatorCommission,
+} from "../protobuf/cosmos/distribution/v1beta1/tx";
+import { MsgSubmitEvidence } from "../protobuf/cosmos/evidence/v1beta1/tx";
+import {
+  MsgGrantAllowance,
+  MsgRevokeAllowance,
+} from "../protobuf/cosmos/feegrant/v1beta1/tx";
+import {
+  MsgDeposit,
+  MsgSubmitProposal,
+  MsgVote,
+  MsgVoteWeighted,
+} from "../protobuf/cosmos/gov/v1beta1/tx";
+import { MsgUnjail } from "../protobuf/cosmos/slashing/v1beta1/tx";
+import {
+  MsgBeginRedelegate,
+  MsgCreateValidator,
+  MsgDelegate,
+  MsgEditValidator,
+  MsgUndelegate,
+} from "../protobuf/cosmos/staking/v1beta1/tx";
+import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
+import {
+  MsgAcknowledgement,
+  MsgChannelCloseConfirm,
+  MsgChannelCloseInit,
+  MsgChannelOpenAck,
+  MsgChannelOpenConfirm,
+  MsgChannelOpenInit,
+  MsgChannelOpenTry,
+  MsgRecvPacket,
+  MsgTimeout,
+  MsgTimeoutOnClose,
+} from "../protobuf/ibc/core/channel/v1/tx";
+import {
+  MsgCreateClient,
+  MsgSubmitMisbehaviour,
+  MsgUpdateClient,
+  MsgUpgradeClient,
+} from "../protobuf/ibc/core/client/v1/tx";
+import {
+  MsgConnectionOpenAck,
+  MsgConnectionOpenConfirm,
+  MsgConnectionOpenInit,
+  MsgConnectionOpenTry,
+} from "../protobuf/ibc/core/connection/v1/tx";
+import {
+  MsgExecuteContract,
+  MsgInstantiateContract,
+  MsgStoreCode,
+} from "../protobuf/secret/compute/v1beta1/msg";
+import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
+
 export * from "./authz";
 export * from "./bank";
 export * from "./compute";
@@ -18,223 +82,60 @@ export type MsgDecoder = {
   decode(input: Uint8Array): any;
 };
 
-export async function getMsgDecoderRegistry(): Promise<
-  Map<string, MsgDecoder>
-> {
-  const registry = new Map<string, MsgDecoder>();
-
-  registry.set(
-    "/cosmos.authz.v1beta1.MsgGrant",
-    (await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")).MsgGrant,
-  );
-  registry.set(
-    "/cosmos.authz.v1beta1.MsgExec",
-    (await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")).MsgExec,
-  );
-  registry.set(
-    "/cosmos.authz.v1beta1.MsgRevoke",
-    (await import("../protobuf_stuff/cosmos/authz/v1beta1/tx")).MsgRevoke,
-  );
-  registry.set(
-    "/cosmos.bank.v1beta1.MsgSend",
-    (await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")).MsgSend,
-  );
-  registry.set(
-    "/cosmos.bank.v1beta1.MsgMultiSend",
-    (await import("../protobuf_stuff/cosmos/bank/v1beta1/tx")).MsgMultiSend,
-  );
-  registry.set(
-    "/cosmos.crisis.v1beta1.MsgVerifyInvariant",
-    (await import("../protobuf_stuff/cosmos/crisis/v1beta1/tx"))
-      .MsgVerifyInvariant,
-  );
-  registry.set(
-    "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
-    (await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx"))
-      .MsgSetWithdrawAddress,
-  );
-  registry.set(
+export const MsgRegistry = new Map<string, MsgDecoder>([
+  ["/cosmos.authz.v1beta1.MsgGrant", MsgGrant],
+  ["/cosmos.authz.v1beta1.MsgExec", MsgExec],
+  ["/cosmos.authz.v1beta1.MsgRevoke", MsgRevoke],
+  ["/cosmos.bank.v1beta1.MsgSend", MsgSend],
+  ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend],
+  ["/cosmos.crisis.v1beta1.MsgVerifyInvariant", MsgVerifyInvariant],
+  ["/cosmos.distribution.v1beta1.MsgSetWithdrawAddress", MsgSetWithdrawAddress],
+  [
     "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-    (await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx"))
-      .MsgWithdrawDelegatorReward,
-  );
-  registry.set(
+    MsgWithdrawDelegatorReward,
+  ],
+  [
     "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
-    (await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx"))
-      .MsgWithdrawValidatorCommission,
-  );
-  registry.set(
-    "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
-    (await import("../protobuf_stuff/cosmos/distribution/v1beta1/tx"))
-      .MsgFundCommunityPool,
-  );
-  registry.set(
-    "/cosmos.evidence.v1beta1.MsgSubmitEvidence",
-    (await import("../protobuf_stuff/cosmos/evidence/v1beta1/tx"))
-      .MsgSubmitEvidence,
-  );
-  registry.set(
-    "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
-    (await import("../protobuf_stuff/cosmos/feegrant/v1beta1/tx"))
-      .MsgGrantAllowance,
-  );
-  registry.set(
-    "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
-    (await import("../protobuf_stuff/cosmos/feegrant/v1beta1/tx"))
-      .MsgRevokeAllowance,
-  );
-  registry.set(
-    "/cosmos.gov.v1beta1.MsgSubmitProposal",
-    (await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")).MsgSubmitProposal,
-  );
-  registry.set(
-    "/cosmos.gov.v1beta1.MsgVote",
-    (await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")).MsgVote,
-  );
-  registry.set(
-    "/cosmos.gov.v1beta1.MsgVoteWeighted",
-    (await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")).MsgVoteWeighted,
-  );
-  registry.set(
-    "/cosmos.gov.v1beta1.MsgDeposit",
-    (await import("../protobuf_stuff/cosmos/gov/v1beta1/tx")).MsgDeposit,
-  );
-  registry.set(
-    "/cosmos.slashing.v1beta1.MsgUnjail",
-    (await import("../protobuf_stuff/cosmos/slashing/v1beta1/tx")).MsgUnjail,
-  );
-  registry.set(
-    "/cosmos.staking.v1beta1.MsgCreateValidator",
-    (await import("../protobuf_stuff/cosmos/staking/v1beta1/tx"))
-      .MsgCreateValidator,
-  );
-  registry.set(
-    "/cosmos.staking.v1beta1.MsgEditValidator",
-    (await import("../protobuf_stuff/cosmos/staking/v1beta1/tx"))
-      .MsgEditValidator,
-  );
-  registry.set(
-    "/cosmos.staking.v1beta1.MsgDelegate",
-    (await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")).MsgDelegate,
-  );
-  registry.set(
-    "/cosmos.staking.v1beta1.MsgBeginRedelegate",
-    (await import("../protobuf_stuff/cosmos/staking/v1beta1/tx"))
-      .MsgBeginRedelegate,
-  );
-  registry.set(
-    "/cosmos.staking.v1beta1.MsgUndelegate",
-    (await import("../protobuf_stuff/cosmos/staking/v1beta1/tx")).MsgUndelegate,
-  );
-  registry.set(
-    "/ibc.applications.transfer.v1.MsgTransfer",
-    (await import("../protobuf_stuff/ibc/applications/transfer/v1/tx"))
-      .MsgTransfer,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelOpenInit",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelOpenInit,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelOpenTry",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelOpenTry,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelOpenAck",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelOpenAck,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelOpenConfirm",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelOpenConfirm,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelCloseInit",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelCloseInit,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgChannelCloseConfirm",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgChannelCloseConfirm,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgRecvPacket",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx")).MsgRecvPacket,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgTimeout",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx")).MsgTimeout,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgTimeoutOnClose",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgTimeoutOnClose,
-  );
-  registry.set(
-    "/ibc.core.channel.v1.MsgAcknowledgement",
-    (await import("../protobuf_stuff/ibc/core/channel/v1/tx"))
-      .MsgAcknowledgement,
-  );
-  registry.set(
-    "/ibc.core.client.v1.MsgCreateClient",
-    (await import("../protobuf_stuff/ibc/core/client/v1/tx")).MsgCreateClient,
-  );
-  registry.set(
-    "/ibc.core.client.v1.MsgUpdateClient",
-    (await import("../protobuf_stuff/ibc/core/client/v1/tx")).MsgUpdateClient,
-  );
-  registry.set(
-    "/ibc.core.client.v1.MsgUpgradeClient",
-    (await import("../protobuf_stuff/ibc/core/client/v1/tx")).MsgUpgradeClient,
-  );
-  registry.set(
-    "/ibc.core.client.v1.MsgSubmitMisbehaviour",
-    (await import("../protobuf_stuff/ibc/core/client/v1/tx"))
-      .MsgSubmitMisbehaviour,
-  );
-  registry.set(
-    "/ibc.core.connection.v1.MsgConnectionOpenInit",
-    (await import("../protobuf_stuff/ibc/core/connection/v1/tx"))
-      .MsgConnectionOpenInit,
-  );
-  registry.set(
-    "/ibc.core.connection.v1.MsgConnectionOpenTry",
-    (await import("../protobuf_stuff/ibc/core/connection/v1/tx"))
-      .MsgConnectionOpenTry,
-  );
-  registry.set(
-    "/ibc.core.connection.v1.MsgConnectionOpenAck",
-    (await import("../protobuf_stuff/ibc/core/connection/v1/tx"))
-      .MsgConnectionOpenAck,
-  );
-  registry.set(
+    MsgWithdrawValidatorCommission,
+  ],
+  ["/cosmos.distribution.v1beta1.MsgFundCommunityPool", MsgFundCommunityPool],
+  ["/cosmos.evidence.v1beta1.MsgSubmitEvidence", MsgSubmitEvidence],
+  ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
+  ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
+  ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
+  ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
+  ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
+  ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
+  ["/cosmos.slashing.v1beta1.MsgUnjail", MsgUnjail],
+  ["/cosmos.staking.v1beta1.MsgCreateValidator", MsgCreateValidator],
+  ["/cosmos.staking.v1beta1.MsgEditValidator", MsgEditValidator],
+  ["/cosmos.staking.v1beta1.MsgDelegate", MsgDelegate],
+  ["/cosmos.staking.v1beta1.MsgBeginRedelegate", MsgBeginRedelegate],
+  ["/cosmos.staking.v1beta1.MsgUndelegate", MsgUndelegate],
+  ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
+  ["/ibc.core.channel.v1.MsgChannelOpenInit", MsgChannelOpenInit],
+  ["/ibc.core.channel.v1.MsgChannelOpenTry", MsgChannelOpenTry],
+  ["/ibc.core.channel.v1.MsgChannelOpenAck", MsgChannelOpenAck],
+  ["/ibc.core.channel.v1.MsgChannelOpenConfirm", MsgChannelOpenConfirm],
+  ["/ibc.core.channel.v1.MsgChannelCloseInit", MsgChannelCloseInit],
+  ["/ibc.core.channel.v1.MsgChannelCloseConfirm", MsgChannelCloseConfirm],
+  ["/ibc.core.channel.v1.MsgRecvPacket", MsgRecvPacket],
+  ["/ibc.core.channel.v1.MsgTimeout", MsgTimeout],
+  ["/ibc.core.channel.v1.MsgTimeoutOnClose", MsgTimeoutOnClose],
+  ["/ibc.core.channel.v1.MsgAcknowledgement", MsgAcknowledgement],
+  ["/ibc.core.client.v1.MsgCreateClient", MsgCreateClient],
+  ["/ibc.core.client.v1.MsgUpdateClient", MsgUpdateClient],
+  ["/ibc.core.client.v1.MsgUpgradeClient", MsgUpgradeClient],
+  ["/ibc.core.client.v1.MsgSubmitMisbehaviour", MsgSubmitMisbehaviour],
+  ["/ibc.core.connection.v1.MsgConnectionOpenInit", MsgConnectionOpenInit],
+  ["/ibc.core.connection.v1.MsgConnectionOpenTry", MsgConnectionOpenTry],
+  ["/ibc.core.connection.v1.MsgConnectionOpenAck", MsgConnectionOpenAck],
+  [
     "/ibc.core.connection.v1.MsgConnectionOpenConfirm",
-    (await import("../protobuf_stuff/ibc/core/connection/v1/tx"))
-      .MsgConnectionOpenConfirm,
-  );
-  registry.set(
-    "/secret.compute.v1beta1.MsgStoreCode",
-    (await import("../protobuf_stuff/secret/compute/v1beta1/msg")).MsgStoreCode,
-  );
-  registry.set(
-    "/secret.compute.v1beta1.MsgInstantiateContract",
-    (await import("../protobuf_stuff/secret/compute/v1beta1/msg"))
-      .MsgInstantiateContract,
-  );
-  registry.set(
-    "/secret.compute.v1beta1.MsgExecuteContract",
-    (await import("../protobuf_stuff/secret/compute/v1beta1/msg"))
-      .MsgExecuteContract,
-  );
-  registry.set(
-    "/secret.registration.v1beta1.RaAuthenticate",
-    (await import("../protobuf_stuff/secret/registration/v1beta1/msg"))
-      .RaAuthenticate,
-  );
-
-  return registry;
-}
+    MsgConnectionOpenConfirm,
+  ],
+  ["/secret.compute.v1beta1.MsgStoreCode", MsgStoreCode],
+  ["/secret.compute.v1beta1.MsgInstantiateContract", MsgInstantiateContract],
+  ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
+  ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
+]);
