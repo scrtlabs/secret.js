@@ -48,7 +48,7 @@
     "sinon": "14.0.0"
   },
   "devDependencies": {
-    "@confio/relayer": "0.6.1",
+    "@confio/relayer": "0.7.0",
     "@osmonauts/telescope": "0.4.44",
     "@cosmjs/stargate": "0.29.4",
     "@types/is-gzip": "2.0.0",
