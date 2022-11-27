@@ -4,11 +4,11 @@ import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
 import { GasPrice } from "@cosmjs/stargate";
+import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import {
-  Order,
   State as ChannelState,
-} from "../src/protobuf/ibc/core/channel/v1/channel";
-import { State as ConnectionState } from "../src/protobuf/ibc/core/connection/v1/connection";
+} from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
+import { State as ConnectionState } from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -160,7 +160,7 @@ export async function waitForIBCConnection(
       );
 
       if (
-        connections.length >= 1 &&
+          connections && connections[0].state &&
         connections[0].state === ConnectionState.STATE_OPEN
       ) {
         console.log("Found an open connection on", chainId);
@@ -184,14 +184,18 @@ export async function waitForIBCChannel(
   });
 
   console.log(`Waiting for ${channelId} on ${chainId}...`);
-  outter: while (true) {
+  outer: while (true) {
     try {
       const { channels } = await secretjs.query.ibc_channel.channels({});
 
+      if (!channels) {
+        break;
+      }
+
       for (const c of channels) {
-        if (c.channelId === channelId && c.state == ChannelState.STATE_OPEN) {
+        if (c.channel_id === channelId && c.state == ChannelState.STATE_OPEN) {
           console.log(`${channelId} is open on ${chainId}`);
-          break outter;
+          break outer;
         }
       }
     } catch (e) {
@@ -241,7 +245,7 @@ export async function createIbcConnection(): Promise<Link> {
   // console.log(JSON.stringify(clientB));
   // console.groupEnd();
 
-  // Create new connectiosn for the 2 clients
+  // Create new connection for the 2 clients
   const link = await Link.createWithNewConnections(clientA, clientB);
 
   // console.group("IBC link details");
