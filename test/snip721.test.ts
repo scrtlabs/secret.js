@@ -1,17 +1,16 @@
 import { fromUtf8 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
 import fs from "fs";
 import {
   MsgExecuteContract,
   SecretNetworkClient,
-  Tx,
+  TxResponse,
   TxResultCode,
   Wallet,
 } from "../src";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+} from "../src/protobuf/secret/compute/v1beta1/msg";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -38,8 +37,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -58,8 +57,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -71,7 +70,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -107,7 +106,7 @@ describe("tx.snip721", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip721.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -122,20 +121,18 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
+        code_id,
         // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
+        init_msg: {
           name: "SecretJS NFTs",
           symbol: "YOLO",
           admin: accounts[0].address,
@@ -147,7 +144,7 @@ describe("tx.snip721", () => {
           config: { public_token_supply: true },
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -158,26 +155,26 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const addMinterMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress,
+      contract_address,
       // codeHash, // Test MsgExecuteContract without codeHash
       msg: { add_minters: { minters: [accounts[0].address] } },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const mintMsg = new MsgExecuteContract({
       sender: accounts[0].address,
-      contractAddress,
-      codeHash,
+      contract_address,
+      code_hash,
       msg: {
         mint_nft: {
           token_id: "1",
@@ -198,7 +195,7 @@ describe("tx.snip721", () => {
           },
         },
       },
-      sentFunds: [],
+      sent_funds: [],
     });
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
@@ -212,7 +209,7 @@ describe("tx.snip721", () => {
     const txExec = await secretjs.tx.snip721.send(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address,
         msg: {
           send_nft: {
             contract: accounts[1].address,
@@ -240,7 +237,7 @@ describe("tx.snip721", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip721.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -255,20 +252,18 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
+        code_id,
         // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
+        init_msg: {
           name: "SecretJS NFTs",
           symbol: "YOLO",
           admin: accounts[0].address,
@@ -280,7 +275,7 @@ describe("tx.snip721", () => {
           config: { public_token_supply: true },
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -291,18 +286,18 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
 
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
-        contractAddress,
+        contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
@@ -326,7 +321,7 @@ describe("tx.snip721", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip721.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -341,20 +336,18 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id: code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
+        code_id,
         // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
+        init_msg: {
           name: "SecretJS NFTs",
           symbol: "YOLO",
           admin: accounts[0].address,
@@ -366,7 +359,7 @@ describe("tx.snip721", () => {
           config: { public_token_supply: true },
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -377,17 +370,17 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const addMinterTx = await secretjs.tx.snip721.addMinter(
       {
-        contractAddress,
+        contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
@@ -406,7 +399,7 @@ describe("tx.snip721", () => {
 
     const mintTx = await secretjs.tx.snip721.mint(
       {
-        contractAddress,
+        contract_address,
         sender: accounts[0].address,
         msg: {
           mint_nft: {
@@ -436,7 +429,7 @@ describe("query.snip721", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip721.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -451,20 +444,19 @@ describe("query.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: codeHash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
+        code_id,
         // codeHash, // Test MsgInstantiateContract without codeHash
-        initMsg: {
+        init_msg: {
           name: "SecretJS NFTs",
           symbol: "YOLO",
           admin: accounts[0].address,
@@ -476,7 +468,7 @@ describe("query.snip721", () => {
           config: { public_token_supply: true },
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -487,17 +479,17 @@ describe("query.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     let tx = await secretjs.tx.snip721.setViewingKey(
       {
-        contractAddress,
+        contract_address,
         sender: accounts[0].address,
         msg: {
           set_viewing_key: {
@@ -516,7 +508,7 @@ describe("query.snip721", () => {
 
     tx = await secretjs.tx.snip721.addMinter(
       {
-        contractAddress,
+        contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
         sender: accounts[0].address,
       },
@@ -531,7 +523,7 @@ describe("query.snip721", () => {
 
     tx = await secretjs.tx.snip721.mint(
       {
-        contractAddress,
+        contract_address,
         sender: accounts[0].address,
         msg: {
           mint_nft: {
@@ -549,7 +541,7 @@ describe("query.snip721", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     const tokens = await secretjs.query.snip721.GetOwnedTokens({
-      contract: { address: contractAddress, codeHash },
+      contract: { address: contract_address, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: { viewer: { viewing_key: "hello", address: accounts[0].address } },
     });
@@ -560,13 +552,13 @@ describe("query.snip721", () => {
       accounts[0].address,
       "secretdev-1",
       "Test",
-      [contractAddress],
+      [contract_address],
       ["owner"],
       false,
     );
 
     const tokens2 = await secretjs.query.snip721.GetOwnedTokens({
-      contract: { address: contractAddress, codeHash },
+      contract: { address: contract_address, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: { permit: permit },
     });

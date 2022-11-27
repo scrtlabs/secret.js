@@ -89,11 +89,11 @@ For a lot more usage examples [refer to the tests](./test/test.ts).
 ```ts
 import { SecretNetworkClient, grpc } from "secretjs";
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: "secret-4",
 });
 
@@ -135,11 +135,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a signer secret.js client, also pass in a wallet
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -173,8 +173,8 @@ const [ethAddress] = await window.ethereum.request({
 
 const wallet = await MetaMaskWallet.create(window.ethereum, ethAddress);
 
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl: "TODO get from https://github.com/scrtlabs/api-registry",
+const secretjs = new SecretNetworkClient({
+  url: "TODO get from https://github.com/scrtlabs/api-registry",
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: wallet.address,
@@ -214,10 +214,10 @@ await window.keplr.enable(CHAIN_ID);
 const keplrOfflineSigner = window.keplr.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: CHAIN_ID,
   wallet: keplrOfflineSigner,
   walletAddress: myAddress,
@@ -313,10 +313,10 @@ await window.leap.enable(CHAIN_ID);
 const leapOfflineSigner = window.leap.getOfflineSignerOnlyAmino(CHAIN_ID);
 const [{ address: myAddress }] = await leapOfflineSigner.getAccounts();
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: CHAIN_ID,
   wallet: leapOfflineSigner,
   walletAddress: myAddress,
@@ -384,12 +384,12 @@ A querier client can only send queries and get chain information. Access to all 
 ```ts
 import { SecretNetworkClient } from "secretjs";
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a readonly secret.js client, just pass in a gRPC-web endpoint
-const secretjs = await SecretNetworkClient.create({
+const secretjs = new SecretNetworkClient({
   chainId: "secret-4",
-  grpcWebUrl,
+  url,
 });
 ```
 
@@ -407,11 +407,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a signer secret.js client you must also pass in `wallet`, `walletAddress` and `chainId`
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -940,11 +940,11 @@ const wallet = new Wallet(
 );
 const myAddress = wallet.address;
 
-const grpcWebUrl = "TODO get from https://github.com/scrtlabs/api-registry";
+const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
 // To create a signer secret.js client, also pass in a wallet
-const secretjs = await SecretNetworkClient.create({
-  grpcWebUrl,
+const secretjs = new SecretNetworkClient({
+  url,
   chainId: "secret-4",
   wallet: wallet,
   walletAddress: myAddress,
@@ -1376,8 +1376,8 @@ const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
   },
 });
 
-const secretjsGrantee = await SecretNetworkClient.create({
-  grpcWebUrl: "http://localhost:9091",
+const secretjsGrantee = new SecretNetworkClient({
+  url: "http://localhost:1317",
   chainId: "secretdev-1",
   wallet: newWallet,
   walletAddress: newWallet.address,

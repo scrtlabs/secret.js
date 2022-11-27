@@ -3,12 +3,12 @@ import {
   AllowedMsgAllowance as AllowedMsgAllowanceProto,
   BasicAllowance,
   PeriodicAllowance,
-} from "../protobuf_stuff/cosmos/feegrant/v1beta1/feegrant";
+} from "../protobuf/cosmos/feegrant/v1beta1/feegrant";
 import {
   MsgGrantAllowance as MsgGrantAllowanceProto,
   MsgRevokeAllowance as MsgRevokeAllowanceProto,
-} from "../protobuf_stuff/cosmos/feegrant/v1beta1/tx";
-import { Any } from "../protobuf_stuff/google/protobuf/any";
+} from "../protobuf/cosmos/feegrant/v1beta1/tx";
+import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface MsgGrantAllowanceParams extends MsgParams {
@@ -24,19 +24,19 @@ export interface AllowedMsgAllowance {
   /** allowance can be any of basic and filtered fee allowance. */
   allowance: BasicAllowance | PeriodicAllowance;
   /** allowed_messages are the messages for which the grantee has the access. */
-  allowedMessages: string[];
+  allowed_messages: string[];
 }
 
 function isBasicAllowance(obj: any): obj is BasicAllowance {
-  return "spendLimit" in obj;
+  return "spend_limit" in obj;
 }
 
 function isPeriodicAllowance(obj: any): obj is PeriodicAllowance {
-  return "periodSpendLimit" in obj;
+  return "period_spend_limit" in obj;
 }
 
 function isAllowedMsgAllowance(obj: any): obj is AllowedMsgAllowanceProto {
-  return "allowedMessages" in obj;
+  return "allowed_messages" in obj;
 }
 
 /**
@@ -50,26 +50,26 @@ export class MsgGrantAllowance implements Msg {
     let allowance: Any;
     if (isBasicAllowance(this.params.allowance)) {
       allowance = {
-        typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
+        type_url: "/cosmos.feegrant.v1beta1.BasicAllowance",
         value: BasicAllowance.encode(this.params.allowance).finish(),
       };
     } else if (isPeriodicAllowance(this.params.allowance)) {
       allowance = {
-        typeUrl: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
+        type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
         value: PeriodicAllowance.encode(this.params.allowance).finish(),
       };
     } else if (isAllowedMsgAllowance(this.params.allowance)) {
       let internalAllowance: Any;
       if (isBasicAllowance(this.params.allowance.allowance)) {
         internalAllowance = {
-          typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
+          type_url: "/cosmos.feegrant.v1beta1.BasicAllowance",
           value: BasicAllowance.encode(
             this.params.allowance.allowance,
           ).finish(),
         };
       } else if (isPeriodicAllowance(this.params.allowance.allowance)) {
         internalAllowance = {
-          typeUrl: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
+          type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance",
           value: PeriodicAllowance.encode(
             this.params.allowance.allowance,
           ).finish(),
@@ -83,9 +83,9 @@ export class MsgGrantAllowance implements Msg {
       }
 
       allowance = {
-        typeUrl: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+        type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
         value: AllowedMsgAllowanceProto.encode({
-          allowedMessages: this.params.allowance.allowedMessages,
+          allowed_messages: this.params.allowance.allowed_messages,
           allowance: internalAllowance,
         }).finish(),
       };
@@ -98,7 +98,7 @@ export class MsgGrantAllowance implements Msg {
     }
 
     return {
-      typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
+      type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
       value: this.params,
       encode: async () =>
         MsgGrantAllowanceProto.encode({
@@ -115,7 +115,7 @@ export class MsgGrantAllowance implements Msg {
       allowance = {
         type: "cosmos-sdk/BasicAllowance",
         value: {
-          spend_limit: this.params.allowance.spendLimit,
+          spend_limit: this.params.allowance.spend_limit,
           expiration: this.params.allowance.expiration,
         },
       };
@@ -125,9 +125,9 @@ export class MsgGrantAllowance implements Msg {
         value: {
           basic: this.params.allowance.basic,
           period: this.params.allowance.period,
-          period_spend_limit: this.params.allowance.periodSpendLimit,
-          period_can_spend: this.params.allowance.periodCanSpend,
-          period_reset: this.params.allowance.periodReset,
+          period_spend_limit: this.params.allowance.period_spend_limit,
+          period_can_spend: this.params.allowance.period_can_spend,
+          period_reset: this.params.allowance.period_reset,
         },
       };
     } else if (isAllowedMsgAllowance(this.params.allowance)) {
@@ -136,7 +136,7 @@ export class MsgGrantAllowance implements Msg {
         internalAllowance = {
           type: "cosmos-sdk/BasicAllowance",
           value: {
-            spend_limit: this.params.allowance.allowance.spendLimit,
+            spend_limit: this.params.allowance.allowance.spend_limit,
             expiration: this.params.allowance.allowance.expiration,
           },
         };
@@ -147,9 +147,9 @@ export class MsgGrantAllowance implements Msg {
             basic: this.params.allowance.allowance.basic,
             period: this.params.allowance.allowance.period,
             period_spend_limit:
-              this.params.allowance.allowance.periodSpendLimit,
-            period_can_spend: this.params.allowance.allowance.periodCanSpend,
-            period_reset: this.params.allowance.allowance.periodReset,
+              this.params.allowance.allowance.period_spend_limit,
+            period_can_spend: this.params.allowance.allowance.period_can_spend,
+            period_reset: this.params.allowance.allowance.period_reset,
           },
         };
       } else {
@@ -163,7 +163,7 @@ export class MsgGrantAllowance implements Msg {
       allowance = {
         type: "cosmos-sdk/AllowedMsgAllowance",
         value: {
-          allowed_messages: this.params.allowance.allowedMessages,
+          allowed_messages: this.params.allowance.allowed_messages,
           allowance: internalAllowance,
         },
       };
@@ -199,7 +199,7 @@ export class MsgRevokeAllowance implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
+      type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
       value: this.params,
       encode: async () => MsgRevokeAllowanceProto.encode(this.params).finish(),
     };

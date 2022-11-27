@@ -101,9 +101,9 @@ export class MetaMaskWallet {
   }
 
   public async getSignMode(): Promise<
-    import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing").SignMode
+    import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode
   > {
-    return (await import("./protobuf_stuff/cosmos/tx/signing/v1beta1/signing"))
+    return (await import("./protobuf/cosmos/tx/signing/v1beta1/signing"))
       .SignMode.SIGN_MODE_EIP_191;
   }
 
