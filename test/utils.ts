@@ -7,8 +7,8 @@ import { GasPrice } from "@cosmjs/stargate";
 import {
   Order,
   State as ChannelState,
-} from "../src/protobuf_stuff/ibc/core/channel/v1/channel";
-import { State as ConnectionState } from "../src/protobuf_stuff/ibc/core/connection/v1/connection";
+} from "../src/protobuf/ibc/core/channel/v1/channel";
+import { State as ConnectionState } from "../src/protobuf/ibc/core/connection/v1/connection";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -175,11 +175,11 @@ export async function waitForIBCConnection(
 
 export async function waitForIBCChannel(
   chainId: string,
-  grpcWebUrl: string,
+  url: string,
   channelId: string,
 ) {
-  const secretjs = await SecretNetworkClient.create({
-    grpcWebUrl,
+  const secretjs = new SecretNetworkClient({
+    url,
     chainId,
   });
 
