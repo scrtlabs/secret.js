@@ -19,11 +19,11 @@ export class RaAuthenticate implements Msg {
     };
 
     return {
-      typeUrl: "/secret.registration.v1beta1.RaAuthenticate",
+      type_url: "/secret.registration.v1beta1.RaAuthenticate",
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf_stuff/secret/registration/v1beta1/msg")
+          await import("../protobuf/secret/registration/v1beta1/msg")
         ).RaAuthenticate.encode(msgContent).finish(),
     };
   }

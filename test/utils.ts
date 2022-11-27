@@ -68,7 +68,7 @@ export async function storeContract(
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: account.address,
-      wasmByteCode: fs.readFileSync(wasmPath) as Uint8Array,
+      wasm_byte_code: fs.readFileSync(wasmPath) as Uint8Array,
       source: "",
       builder: "",
     },
@@ -85,24 +85,24 @@ export async function storeContract(
 }
 
 export async function initContract(
-  codeId: number,
-  initMsg: object,
+  code_id: number,
+  init_msg: object,
   account: Account,
   label?: string,
 ): Promise<string> {
   const secretjs = account.secretjs;
-  const {
-    codeInfo: { codeHash },
-  } = await secretjs.query.compute.code(codeId);
+  const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    code_id: String(code_id),
+  });
 
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
       sender: account.address,
-      codeId,
-      codeHash,
-      initMsg,
+      code_id,
+      code_hash,
+      init_msg,
       label: label || `label-${Date.now()}`,
-      initFunds: [],
+      init_funds: [],
     },
     {
       gasLimit: 5_000_000,
@@ -129,8 +129,35 @@ export async function getBalance(
   });
 
   if (response.balance) {
-    return BigInt(response.balance.amount);
+    return BigInt(response.balance.amount!);
   } else {
     return BigInt(0);
   }
+}
+
+export function getAllMethodNames(obj: any): Array<string> {
+  const methods = new Set<string>();
+  while ((obj = Reflect.getPrototypeOf(obj))) {
+    Reflect.ownKeys(obj).forEach((k) => {
+      if (
+        ![
+          "__defineGetter__",
+          "__defineSetter__",
+          "__lookupGetter__",
+          "__lookupSetter__",
+          "__proto__",
+          "constructor",
+          "hasOwnProperty",
+          "isPrototypeOf",
+          "propertyIsEnumerable",
+          "toLocaleString",
+          "toString",
+          "valueOf",
+        ].includes(k.toString())
+      ) {
+        methods.add(k.toString());
+      }
+    });
+  }
+  return Array.from(methods);
 }

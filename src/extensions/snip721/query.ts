@@ -41,8 +41,8 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequest,
         GetTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           all_nft_info: {
             token_id,
@@ -55,8 +55,8 @@ export class Snip721Querier extends ComputeQuerier {
         GetTokenInfoRequestWithPermit,
         GetTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           with_permit: {
             permit: auth.permit,
@@ -89,8 +89,8 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequest,
         Snip721GetTokensResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           tokens: {
             owner,
@@ -103,8 +103,8 @@ export class Snip721Querier extends ComputeQuerier {
         Snip721GetTokensRequestWithPermit,
         Snip721GetTokensResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.codeHash,
         query: {
           with_permit: {
             permit: auth.permit,

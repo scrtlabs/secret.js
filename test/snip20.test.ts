@@ -1,10 +1,10 @@
 import { fromUtf8 } from "@cosmjs/encoding";
 import fs from "fs";
-import { SecretNetworkClient, Tx, TxResultCode, Wallet } from "../src";
+import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
+} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
@@ -31,8 +31,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -51,8 +51,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -64,7 +64,7 @@ beforeAll(async () => {
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -100,7 +100,7 @@ describe("tx.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -116,20 +116,18 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id: code_id,
+    });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -146,7 +144,7 @@ describe("tx.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -161,18 +159,18 @@ describe("tx.snip20", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.snip20.transfer(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address,
         msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
       },
       {
@@ -191,7 +189,7 @@ describe("tx.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -207,20 +205,19 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -237,7 +234,7 @@ describe("tx.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -252,18 +249,18 @@ describe("tx.snip20", () => {
     expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
+    const contract_address = getValueFromRawLog(
       txInit.rawLog,
       "message.contract_address",
     );
-    expect(contractAddress).toBe(
+    expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
     const txExec = await secretjs.tx.snip20.send(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address,
         msg: { send: { recipient: accounts[1].address, amount: "2" } },
       },
       {
@@ -282,7 +279,7 @@ describe("tx.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -298,20 +295,19 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -328,7 +324,7 @@ describe("tx.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -353,7 +349,7 @@ describe("tx.snip20", () => {
     let txExec = await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -374,7 +370,7 @@ describe("tx.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -389,20 +385,19 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -419,7 +414,7 @@ describe("tx.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -444,7 +439,7 @@ describe("tx.snip20", () => {
     let txExec = await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -461,7 +456,7 @@ describe("tx.snip20", () => {
     txExec = await secretjs.tx.snip20.decreaseAllowance(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: {
           decrease_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -484,7 +479,7 @@ describe("query.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -499,20 +494,19 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -529,7 +523,7 @@ describe("query.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -554,7 +548,7 @@ describe("query.snip20", () => {
     const txExec = await secretjs.tx.snip20.setViewingKey(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
       { gasLimit: 5_000_000 },
@@ -566,7 +560,7 @@ describe("query.snip20", () => {
 
     const txQuery = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, code_hash: code_hash! },
       auth: { key: "hello" },
     });
 
@@ -579,7 +573,7 @@ describe("query.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -594,20 +588,19 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -624,7 +617,7 @@ describe("query.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -647,7 +640,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.getSnip20Params({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, code_hash: code_hash! },
     });
 
     expect(txQuery).toEqual({
@@ -666,7 +659,7 @@ describe("query.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -681,20 +674,19 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -711,7 +703,7 @@ describe("query.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -736,7 +728,7 @@ describe("query.snip20", () => {
     await secretjs.tx.snip20.increaseAllowance(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: {
           increase_allowance: { spender: accounts[1].address, amount: "2" },
         },
@@ -749,7 +741,7 @@ describe("query.snip20", () => {
     await secretjs.tx.snip20.setViewingKey(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
       {
@@ -758,7 +750,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.GetAllowance({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, code_hash: code_hash! },
       owner: secretjs.address,
       spender: accounts[1].address,
       auth: { key: "hello" },
@@ -778,7 +770,7 @@ describe("query.snip20", () => {
     const txStore = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
-        wasmByteCode: fs.readFileSync(
+        wasm_byte_code: fs.readFileSync(
           `${__dirname}/snip20-ibc.wasm.gz`,
         ) as Uint8Array,
         source: "",
@@ -793,20 +785,19 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const codeId = Number(
-      getValueFromRawLog(txStore.rawLog, "message.code_id"),
-    );
+    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
-    const {
-      codeInfo: { codeHash },
-    } = await secretjs.query.compute.code(codeId);
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     const txInit = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
-        codeId,
-        codeHash,
-        initMsg: {
+        code_id,
+        code_hash,
+        init_msg: {
           name: "Secret SCRT",
           admin: accounts[0].address,
           symbol: "SSCRT",
@@ -823,7 +814,7 @@ describe("query.snip20", () => {
           supported_denoms: ["uscrt"],
         },
         label: `label-${Date.now()}`,
-        initFunds: [],
+        init_funds: [],
       },
       {
         gasLimit: 5_000_000,
@@ -848,7 +839,7 @@ describe("query.snip20", () => {
     await secretjs.tx.snip20.setViewingKey(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
       {
@@ -859,7 +850,7 @@ describe("query.snip20", () => {
     await secretjs.tx.snip20.transfer(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address: contractAddress,
         msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
       },
       {
@@ -868,7 +859,7 @@ describe("query.snip20", () => {
     );
 
     const txQuery = await secretjs.query.snip20.getTransactionHistory({
-      contract: { address: contractAddress, codeHash: codeHash },
+      contract: { address: contractAddress, code_hash: code_hash! },
       address: secretjs.address,
       auth: { key: "hello" },
       page_size: 10,

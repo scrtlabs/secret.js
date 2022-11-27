@@ -2,10 +2,10 @@ import { MsgParams } from ".";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgCreateVestingAccountParams extends MsgParams {
-  fromAddress: string;
-  toAddress: string;
+  from_address: string;
+  to_address: string;
   amount: Coin[];
-  endTime: string;
+  end_time: string;
   delayed: boolean;
 }
 
@@ -15,11 +15,11 @@ export class MsgCreateVestingAccount implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      typeUrl: "/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
+      type_url: "/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
       value: this.params,
       encode: async () =>
         (
-          await import("../protobuf_stuff/cosmos/vesting/v1beta1/tx")
+          await import("../protobuf/cosmos/vesting/v1beta1/tx")
         ).MsgCreateVestingAccount.encode(this.params).finish(),
     };
   }

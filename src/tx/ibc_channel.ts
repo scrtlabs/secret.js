@@ -3,7 +3,7 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 /** MsgRecvPacket receives incoming IBC packet */
 export class MsgRecvPacket implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgRecvPacket,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgRecvPacket,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -17,9 +17,7 @@ export class MsgRecvPacket implements Msg {
 
 /** MsgTimeout receives timed-out packet */
 export class MsgTimeout implements Msg {
-  constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgTimeout,
-  ) {}
+  constructor(msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeout) {}
 
   async toProto(): Promise<ProtoMsg> {
     throw new Error("MsgTimeout not implemented.");
@@ -33,7 +31,7 @@ export class MsgTimeout implements Msg {
 /** MsgTimeoutOnClose timed-out packet upon counterparty channel closure. */
 export class MsgTimeoutOnClose implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -51,7 +49,7 @@ export class MsgTimeoutOnClose implements Msg {
  */
 export class MsgChannelOpenInit implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenInit,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenInit,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -66,7 +64,7 @@ export class MsgChannelOpenInit implements Msg {
 /** MsgAcknowledgement receives incoming IBC acknowledgement */
 export class MsgAcknowledgement implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgAcknowledgement,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgAcknowledgement,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -84,7 +82,7 @@ export class MsgAcknowledgement implements Msg {
  */
 export class MsgChannelOpenTry implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenTry,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenTry,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -102,7 +100,7 @@ export class MsgChannelOpenTry implements Msg {
  */
 export class MsgChannelOpenAck implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenAck,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenAck,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -120,7 +118,7 @@ export class MsgChannelOpenAck implements Msg {
  */
 export class MsgChannelOpenConfirm implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -138,7 +136,7 @@ export class MsgChannelOpenConfirm implements Msg {
  */
 export class MsgChannelCloseInit implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelCloseInit,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseInit,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
@@ -153,7 +151,7 @@ export class MsgChannelCloseInit implements Msg {
 /** MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B to acknowledge the change of channel state to CLOSED on Chain A. */
 export class MsgChannelCloseConfirm implements Msg {
   constructor(
-    msg: import("../protobuf_stuff/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,
+    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
