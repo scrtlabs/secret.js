@@ -402,7 +402,7 @@ export type TxResponse = {
    */
   readonly gasWanted: number;
   /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
-  readonly ibcAckTxs: Array<Promise<Tx>>;
+  readonly ibcAckTxs: Array<Promise<TxResponse>>;
 };
 
 export type TxSender = {
@@ -806,7 +806,7 @@ export class SecretNetworkClient {
     return this.decodeTxResponses(tx_responses ?? []);
   }
 
-  private async waitForIBCAcK(packetSequence: string, packetSrcChannel: string ) : Promise<Tx> {
+  private async waitForIBCAcK(packetSequence: string, packetSrcChannel: string ) : Promise<TxResponse> {
     return new Promise(async (resolve, reject) => {
         let tries = 20; // 2 min (TODO: Make it configurable param)
 
@@ -886,7 +886,7 @@ export class SecretNetworkClient {
     let rawLog: string = txResp.raw_log!;
     let jsonLog: JsonLog | undefined;
     let arrayLog: ArrayLog | undefined;
-    let ibcAckTxs: Array<Promise<Tx>> = [];
+    let ibcAckTxs: Array<Promise<TxResponse>> = [];
     if (txResp.code === 0 && rawLog !== "") {
       jsonLog = JSON.parse(rawLog) as JsonLog;
 
@@ -1015,7 +1015,7 @@ export class SecretNetworkClient {
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
       ) || [];
 
-      for (var msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
+      for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
         ibcAckTxs.push(this.waitForIBCAcK(packetSequences[msgIndex].value, packetSrcChannels[msgIndex].value));
       }
     }
