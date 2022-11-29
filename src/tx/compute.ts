@@ -1,8 +1,8 @@
 import { toBase64 } from "@cosmjs/encoding";
-import is_gzip from "is-gzip";
+import { is_gzip } from "../utils";
 import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
-import { addressToBytes } from "../query/compute";
+import { addressToBytes } from "../query";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
