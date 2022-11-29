@@ -1,3 +1,6 @@
+import fetch from 'cross-fetch';
+global.fetch = fetch;
+
 import {
   fromBase64,
   fromHex,
@@ -152,12 +155,6 @@ import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256
 import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
 import { resolve } from "path";
 import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
-
-(async () => {
-  if (typeof fetch === "undefined") {
-    global.fetch = (await import("cross-fetch")).fetch;
-  }
-})();
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */

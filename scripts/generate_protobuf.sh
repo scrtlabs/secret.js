@@ -38,7 +38,7 @@ GRPC_GATEWAY_OUT_DIR="${SCRIPT_PATH}/../src/grpc_gateway"
 rm -rf "$GRPC_GATEWAY_OUT_DIR"
 mkdir -p "$GRPC_GATEWAY_OUT_DIR"
 
-# go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@latest
+# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@023bb64690374101738201ec4e8ea568489a9b5c
 PLUGIN_PATH_GRPC_GATEWAY="$(which protoc-gen-grpc-gateway-ts)"
 
 protoc \
