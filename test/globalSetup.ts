@@ -12,7 +12,7 @@ module.exports = async () => {
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 1317:1316 --name localsecret ghcr.io/scrtlabs/localsecret:v1.6.0-alpha.4",
+    "docker run -it -d -p 1317:1316 --name localsecret ghcr.io/scrtlabs/localsecret:latest",
   );
 
   // console.log("stdout (testnet container id?):", stdout);
@@ -33,7 +33,7 @@ module.exports = async () => {
   await exec("docker start localsecret");
 
   await waitForBlocks();
-
+  await sleep(5000);
   console.log(`LocalSecret is running`);
 };
 
