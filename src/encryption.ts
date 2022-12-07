@@ -47,11 +47,11 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     this.pubkey = pubkey;
 
     // todo: add this again post upgrade
-    // if (chainId && mainnetChainIds.has(chainId)) {
-    //   // Major speedup
-    //   // TODO: not sure if this is the best approach for detecting mainnet
-    //   this.consensusIoPubKey = mainnetConsensusIoPubKey;
-    // }
+    if (chainId && mainnetChainIds.has(chainId)) {
+      // Major speedup
+      // TODO: not sure if this is the best approach for detecting mainnet
+      this.consensusIoPubKey = mainnetConsensusIoPubKey;
+    }
   }
 
   public static GenerateNewKeyPair(): {
