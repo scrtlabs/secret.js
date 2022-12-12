@@ -767,9 +767,80 @@ describe("query.snip1155", () => {
       }
     });
 
-expect(
-  balanceInfoQueryPermit.balance.amount
-).toBeDefined();
+    expect(
+      balanceInfoQueryPermit.balance.amount
+    ).toBeDefined();
+      
+  });
+
+  test("get all balance", async () => { 
+
+
+    const { secretjs } = accounts[0];
+
+
+    const txExec = await secretjs.tx.snip1155.setViewingKey(
+      {
+        sender: secretjs.address,
+        contractAddress,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
+
+
+
+    const allBalanceInfoQueryViewingKey = await secretjs.query.snip1155.getAllBalances({
+      contract: {
+        address: contractAddress,
+      },
+      owner:secretjs.address,
+      auth: {
+        viewer: {
+          viewing_key: "hello",
+          address: secretjs.address
+        }
+      }
+    });
+
+    console.log(allBalanceInfoQueryViewingKey)
+    expect(
+      allBalanceInfoQueryViewingKey.all_balances.every( balance => balance.amount && balance.token_id ),
+    ).toBeTruthy();
+
+
+
+
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      secretjs.address,
+      "secretdev-1",
+      "Test",
+      [contractAddress],
+      ["owner"],
+      false,
+    );
+
+
+  const allBalanceInfoQueryPermit = await secretjs.query.snip1155.getAllBalances({
+    contract: {
+      address: contractAddress,
+    },
+    owner:secretjs.address,
+    auth: {
+       permit
+      }
+    });
+
+    console.log(allBalanceInfoQueryPermit);
+
+    expect(
+      allBalanceInfoQueryPermit.all_balances.every( balance => balance.amount && balance.token_id)
+    ).toBeTruthy();
+      
   });
 
 });

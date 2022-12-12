@@ -102,6 +102,9 @@ export class Snip1155Querier extends ComputeQuerier {
     tx_history_page_size?: number;
   }): Promise<QueryAllBalancesResponse> => {
     if (auth.viewer && owner) {
+      if (auth.viewer.address !== owner) {
+        throw new Error("only owner can query all balances")
+      }
       return await this.queryContract<
         QueryAllBalancesWithViewingKey,
         QueryAllBalancesResponse
@@ -111,7 +114,7 @@ export class Snip1155Querier extends ComputeQuerier {
         query: {
           all_balances: {
             owner,
-            key: auth.viewer.address,
+            key: auth.viewer.viewing_key,
             tx_history_page,
             tx_history_page_size,
           },
