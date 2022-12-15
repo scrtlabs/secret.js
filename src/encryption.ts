@@ -81,9 +81,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     }
 
     const { key } = await Query.TxKey({}, { pathPrefix: this.url });
-    this.consensusIoPubKey = extractConsensusIoPubkey(
-      fromBase64(key as unknown as string),
-    );
+    this.consensusIoPubKey = fromBase64(key as unknown as string);
 
     return this.consensusIoPubKey;
   }
@@ -147,69 +145,4 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
   getPubkey(): Promise<Uint8Array> {
     return Promise.resolve(this.pubkey);
   }
-}
-
-// extractPubkey ported from https://github.com/enigmampc/SecretNetwork/blob/8ab20a273570bfb3d55d67e0300ecbdc67e0e739/x/registration/remote_attestation/remote_attestation.go#L25
-export function extractConsensusIoPubkey(cert: Uint8Array): Uint8Array {
-  const nsCmtOid = new Uint8Array([
-    0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x86, 0xf8, 0x42, 0x01, 0x0d,
-  ]); // Netscape Comment OID
-  const payload = extractAsn1Value(cert, nsCmtOid);
-
-  try {
-    // Try SW mode
-
-    const pubkey = fromBase64(fromUtf8(payload));
-    if (pubkey.length === 32) {
-      return pubkey;
-    }
-  } catch (e) {
-    // Not SW mode
-  }
-
-  try {
-    // Try HW mode
-    // Ported from https://github.com/scrtlabs/SecretNetwork/blob/8ab20a273570bfb3d55d67e0300ecbdc67e0e739/x/registration/remote_attestation/remote_attestation.go#L110
-
-    const quoteHex = fromBase64(
-      JSON.parse(fromUtf8(fromBase64(JSON.parse(fromUtf8(payload)).report)))
-        .isvEnclaveQuoteBody,
-    );
-
-    const reportData = quoteHex.slice(368, 400);
-    return reportData;
-  } catch (e) {
-    throw new Error(
-      "Cannot extract tx io pubkey: error parsing certificate - malformed certificate",
-    );
-  }
-}
-
-function extractAsn1Value(cert: Uint8Array, oid: Uint8Array): Uint8Array {
-  let offset = toHex(cert).indexOf(toHex(oid)) / 2;
-  if (!Number.isInteger(offset)) {
-    throw new Error("Error parsing certificate - malformed certificate");
-  }
-  offset += 12; // 11 + TAG (0x04)
-
-  // we will be accessing offset + 2, so make sure it's not out-of-bounds
-  if (offset + 2 >= cert.length) {
-    throw new Error("Error parsing certificate - malformed certificate");
-  }
-
-  let length = cert[offset];
-  if (length > 0x80) {
-    length = cert[offset + 1] * 0x100 + cert[offset + 2];
-    offset += 2;
-  }
-
-  if (offset + length + 1 >= cert.length) {
-    throw new Error("Error parsing certificate - malformed certificate");
-  }
-
-  // Obtain Netscape Comment
-  offset += 1;
-  const payload = cert.slice(offset, offset + length);
-
-  return payload;
 }
