@@ -34,7 +34,7 @@ interface Auth {
 interface SecretContract {
   address: string;
   // switch this to optional after we enable automatic code hash
-  codeHash?: string;
+  code_hash?: string;
 }
 
 export class Snip1155Querier extends ComputeQuerier {
@@ -54,8 +54,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryBalanceWithViewingKey,
         QueryBalanceResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           balance: {
             token_id,
@@ -70,8 +70,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryBalanceWithPermit,
         QueryBalanceResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           with_permit: {
             permit: auth.permit,
@@ -109,8 +109,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryAllBalancesWithViewingKey,
         QueryAllBalancesResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           all_balances: {
             owner,
@@ -125,8 +125,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryAllBalancesWithPermit,
         QueryAllBalancesResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           with_permit: {
             permit: auth.permit,
@@ -161,8 +161,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryTransactionHistoryWithViewingKey,
         QueryTransactionHistoryResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           transaction_history: {
             key: auth.viewer.viewing_key,
@@ -177,8 +177,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryTransactionHistoryWithPermit,
         QueryTransactionHistoryResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           with_permit: {
             permit: auth.permit,
@@ -208,8 +208,8 @@ export class Snip1155Querier extends ComputeQuerier {
       QueryTokenIdPublicInfo,
       QueryTokenIdPublicInfoResponse
     >({
-      contractAddress: contract.address,
-      codeHash: contract.codeHash,
+      contract_address: contract.address,
+      code_hash: contract.code_hash,
       query: {
         token_id_public_info: {
           token_id,
@@ -232,8 +232,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryPrivateTokenInfoWithViewingKey,
         QueryPrivateTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           token_id_private_info: {
             token_id,
@@ -247,8 +247,8 @@ export class Snip1155Querier extends ComputeQuerier {
         QueryPrivateTokenInfoWithPermit,
         QueryPrivateTokenInfoResponse
       >({
-        contractAddress: contract.address,
-        codeHash: contract.codeHash,
+        contract_address: contract.address,
+        code_hash: contract.code_hash,
         query: {
           with_permit: {
             permit: auth.permit,
