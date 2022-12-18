@@ -807,7 +807,6 @@ describe("query.snip1155", () => {
       }
     });
 
-    console.log(allBalanceInfoQueryViewingKey)
     expect(
       allBalanceInfoQueryViewingKey.all_balances.every( balance => balance.amount && balance.token_id ),
     ).toBeTruthy();
@@ -835,7 +834,6 @@ describe("query.snip1155", () => {
       }
     });
 
-    console.log(allBalanceInfoQueryPermit);
 
     expect(
       allBalanceInfoQueryPermit.all_balances.every( balance => balance.amount && balance.token_id)
