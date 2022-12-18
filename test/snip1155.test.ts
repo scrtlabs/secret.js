@@ -2,7 +2,7 @@ import fs from "fs";
 import {
   fromUtf8,
   SecretNetworkClient,
-  Tx,
+  TxResponse,
   TxResultCode,
   Wallet,
 } from "../src";
@@ -20,14 +20,15 @@ import {
   Snip1155SendOptions,
   Snip1155TransferOptions,
 } from "../src/extensions/snip1155/types";
-import { MsgExecuteContractResponse } from "../src/protobuf_stuff/secret/compute/v1beta1/msg";
-import { AminoWallet } from "../src/wallet_amino";
+import {
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
+} from "../src/protobuf/secret/compute/v1beta1/msg";import { AminoWallet } from "../src/wallet_amino";
 import { Account, getValueFromRawLog } from "./utils";
 
 let accounts: Account[];
-let contractAddress: string;
-let codeId: number;
-let codeHash: string;
+let contract_address: string;
+let code_id: number;
 
 beforeAll(async () => {
   //@ts-ignore
@@ -49,8 +50,8 @@ beforeAll(async () => {
       mnemonic: mnemonic,
       walletAmino,
       walletProto: new Wallet(mnemonic),
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -69,8 +70,8 @@ beforeAll(async () => {
       mnemonic: wallet.mnemonic,
       walletAmino: wallet,
       walletProto: walletProto,
-      secretjs: await SecretNetworkClient.create({
-        grpcWebUrl: "http://localhost:9091",
+      secretjs: new SecretNetworkClient({
+        url: "http://localhost:1317",
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,
@@ -78,11 +79,12 @@ beforeAll(async () => {
     };
   }
 
+
   // Send 100k SCRT from account 0 to each of accounts 1-19
 
   const { secretjs } = accounts[0];
 
-  let tx: Tx;
+  let tx: TxResponse;
   try {
     tx = await secretjs.tx.bank.multiSend(
       {
@@ -118,7 +120,7 @@ beforeEach(async () => {
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: accounts[0].address,
-      wasmByteCode: fs.readFileSync(
+      wasm_byte_code: fs.readFileSync(
         `${__dirname}/snip1155.wasm.gz`,
       ) as Uint8Array,
       source: "",
@@ -132,11 +134,9 @@ beforeEach(async () => {
     console.error(txStore.rawLog);
   }
 
-  codeId = Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
+  code_id = Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
 
-  ({
-    codeInfo: { codeHash },
-  } = await secretjs.query.compute.code(codeId));
+
 
   const initMessage: Snip1155InitMessageOptions = {
     has_admin: true,
@@ -186,8 +186,8 @@ beforeEach(async () => {
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
       sender: accounts[0].address,
-      codeId,
-      initMsg: initMessage,
+      code_id,
+      init_msg: initMessage,
       label: `label-${Date.now()}`,
     },
     {
@@ -198,7 +198,7 @@ beforeEach(async () => {
     console.error(txInit.rawLog);
   }
 
-  contractAddress = getValueFromRawLog(
+  contract_address = getValueFromRawLog(
     txInit.rawLog,
     "message.contract_address",
   );
@@ -216,7 +216,7 @@ describe("tx.snip1155", () => {
 
     const addCuratorTx = await secretjs.tx.snip1155.addCurator(
       {
-        contractAddress,
+        contract_address,
         msg: addCuratorMsg,
         sender: accounts[0].address,
       },
@@ -244,7 +244,7 @@ describe("tx.snip1155", () => {
 
     const addMinterTx = await secretjs.tx.snip1155.addMinter(
       {
-        contractAddress,
+        contract_address,
         msg: addMinterMsg,
         sender: accounts[0].address,
       },
@@ -276,7 +276,7 @@ describe("tx.snip1155", () => {
 
     const removeMinterTx = await secretjs.tx.snip1155.removeMinter(
       {
-        contractAddress,
+        contract_address,
         msg: removeMinterMsg,
         sender: accounts[0].address,
       },
@@ -312,7 +312,7 @@ describe("tx.snip1155", () => {
 
     const mintTx = await secretjs.tx.snip1155.mint(
       {
-        contractAddress,
+        contract_address,
         msg: mintMsg,
         sender: accounts[0].address,
       },
@@ -348,7 +348,7 @@ describe("tx.snip1155", () => {
 
     const burnTx = await secretjs.tx.snip1155.burn(
       {
-        contractAddress,
+        contract_address,
         msg: burnMsg,
         sender: accounts[0].address,
       },
@@ -382,7 +382,7 @@ describe("tx.snip1155", () => {
 
     const sendTx = await secretjs.tx.snip1155.send(
       {
-        contractAddress,
+        contract_address,
         msg: sendMsg,
         sender: accounts[0].address,
       },
@@ -416,7 +416,7 @@ describe("tx.snip1155", () => {
 
     const transferTx = await secretjs.tx.snip1155.transfer(
       {
-        contractAddress,
+        contract_address,
         msg: transferMsg,
         sender: accounts[0].address,
       },
@@ -460,7 +460,7 @@ describe("tx.snip1155", () => {
 
     const batchTransferTx = await secretjs.tx.snip1155.batchTransfer(
       {
-        contractAddress,
+        contract_address,
         msg: batchTransferMsg,
         sender: accounts[0].address,
       },
@@ -504,7 +504,7 @@ describe("tx.snip1155", () => {
 
     const batchSendTx = await secretjs.tx.snip1155.batchSend(
       {
-        contractAddress,
+        contract_address,
         msg: batchSendMsg,
         sender: accounts[0].address,
       },
@@ -554,7 +554,7 @@ describe("tx.snip1155", () => {
 
     const curateTokensTx = await secretjs.tx.snip1155.curate(
       {
-        contractAddress,
+        contract_address,
         msg: curateTokensMsg,
         sender: accounts[0].address,
       },
@@ -593,7 +593,7 @@ describe("tx.snip1155", () => {
 
     const changeMetadataTx = await secretjs.tx.snip1155.changeMetaData(
       {
-        contractAddress,
+        contract_address,
         msg: changeMetadatMsg,
         sender: accounts[0].address,
       },
@@ -623,7 +623,7 @@ describe("query.snip1155", () => {
     const publicTokenInfoQuery =
       await secretjs.query.snip1155.getPublicTokenInfo({
         contract: {
-          address: contractAddress,
+          address: contract_address,
         },
         token_id: "2",
       });
@@ -643,7 +643,7 @@ describe("query.snip1155", () => {
         const txExec = await secretjs.tx.snip1155.setViewingKey(
           {
             sender: secretjs.address,
-            contractAddress,
+            contract_address,
             msg: { set_viewing_key: { key: "hello" } },
           },
           { gasLimit: 5_000_000 },
@@ -658,7 +658,7 @@ describe("query.snip1155", () => {
         const privateTokenInfoQuery =
           await secretjs.query.snip1155.getPrivateTokenInfo({
             contract: {
-              address: contractAddress,
+              address: contract_address,
             },
             token_id: "2",
             auth: {
@@ -680,7 +680,7 @@ describe("query.snip1155", () => {
           secretjs.address,
           "secretdev-1",
           "Test",
-          [contractAddress],
+          [contract_address],
           ["owner"],
           false,
         );
@@ -688,7 +688,7 @@ describe("query.snip1155", () => {
 
       const privateTokenInfoQuery2 = await secretjs.query.snip1155.getPrivateTokenInfo({
         contract: {
-          address: contractAddress,
+          address: contract_address,
         },
         token_id: "2",
         auth: {
@@ -713,7 +713,7 @@ describe("query.snip1155", () => {
     const txExec = await secretjs.tx.snip1155.setViewingKey(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address,
         msg: { set_viewing_key: { key: "hello" } },
       },
       { gasLimit: 5_000_000 },
@@ -727,7 +727,7 @@ describe("query.snip1155", () => {
 
     const balanceInfoQueryViewingKey = await secretjs.query.snip1155.getBalance({
       contract: {
-        address: contractAddress,
+        address: contract_address,
       },
       token_id: "1",
       owner:secretjs.address,
@@ -750,7 +750,7 @@ describe("query.snip1155", () => {
       secretjs.address,
       "secretdev-1",
       "Test",
-      [contractAddress],
+      [contract_address],
       ["owner"],
       false,
     );
@@ -758,7 +758,7 @@ describe("query.snip1155", () => {
 
   const balanceInfoQueryPermit = await secretjs.query.snip1155.getBalance({
     contract: {
-      address: contractAddress,
+      address: contract_address,
     },
     token_id: "1",
     owner:secretjs.address,
@@ -782,7 +782,7 @@ describe("query.snip1155", () => {
     const txExec = await secretjs.tx.snip1155.setViewingKey(
       {
         sender: secretjs.address,
-        contractAddress,
+        contract_address,
         msg: { set_viewing_key: { key: "hello" } },
       },
       { gasLimit: 5_000_000 },
@@ -796,7 +796,7 @@ describe("query.snip1155", () => {
 
     const allBalanceInfoQueryViewingKey = await secretjs.query.snip1155.getAllBalances({
       contract: {
-        address: contractAddress,
+        address: contract_address,
       },
       owner:secretjs.address,
       auth: {
@@ -819,7 +819,7 @@ describe("query.snip1155", () => {
       secretjs.address,
       "secretdev-1",
       "Test",
-      [contractAddress],
+      [contract_address],
       ["owner"],
       false,
     );
@@ -827,7 +827,7 @@ describe("query.snip1155", () => {
 
   const allBalanceInfoQueryPermit = await secretjs.query.snip1155.getAllBalances({
     contract: {
-      address: contractAddress,
+      address: contract_address,
     },
     owner:secretjs.address,
     auth: {
@@ -839,6 +839,101 @@ describe("query.snip1155", () => {
 
     expect(
       allBalanceInfoQueryPermit.all_balances.every( balance => balance.amount && balance.token_id)
+    ).toBeTruthy();
+      
+  });
+
+  test("get transfer history", async () => { 
+
+
+    const { secretjs } = accounts[0];
+
+    //one transfer
+    const transferMsg: Snip1155TransferOptions = {
+      transfer: {
+        token_id: "1",
+        from: accounts[0].address,
+        recipient: accounts[1].address,
+        amount: "100",
+      },
+    };
+
+    const transferTx = await secretjs.tx.snip1155.transfer(
+      {
+        contract_address,
+        msg: transferMsg,
+        sender: accounts[0].address,
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    if (transferTx.code !== TxResultCode.Success) {
+      console.error(transferTx.rawLog);
+    }
+
+    expect(transferTx.code).toBe(TxResultCode.Success);
+
+
+    const txExec = await secretjs.tx.snip1155.setViewingKey(
+      {
+        sender: secretjs.address,
+        contract_address,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
+
+
+
+    const transactionHistoryQueryViewingKey = await secretjs.query.snip1155.getTransactionHistory({
+      contract: {
+        address: contract_address,
+      },
+      page_size:5,
+      auth: {
+        viewer: {
+          viewing_key: "hello",
+          address: secretjs.address
+        }
+      }
+    });
+
+    expect(
+      transactionHistoryQueryViewingKey.transaction_history.txs.length > 0,
+    ).toBeTruthy();
+
+
+
+
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      secretjs.address,
+      "secretdev-1",
+      "Test",
+      [contract_address],
+      ["owner"],
+      false,
+    );
+
+
+  const transactionHistoryQueryPermit = await secretjs.query.snip1155.getTransactionHistory({
+    contract: {
+      address: contract_address,
+    },
+    page_size:1,
+    auth: {
+       permit
+      }
+    });
+
+
+    expect(
+      transactionHistoryQueryPermit.transaction_history.txs.length > 0
     ).toBeTruthy();
       
   });
