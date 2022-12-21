@@ -1,14 +1,14 @@
-import fs from "fs";
-import util from "util";
-import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
 import { GasPrice } from "@cosmjs/stargate";
-import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
-import {
-  State as ChannelState,
-} from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
+import { stringToPath } from "@cosmjs/proto-signing/node_modules/@cosmjs/crypto";
+import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import fs from "fs";
+import util from "util";
+import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
+import { State as ChannelState } from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
 import { State as ConnectionState } from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
+import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -143,10 +143,7 @@ export async function getBalance(
   }
 }
 
-export async function waitForIBCConnection(
-  chainId: string,
-  url: string,
-) {
+export async function waitForIBCConnection(chainId: string, url: string) {
   const secretjs = new SecretNetworkClient({
     url,
     chainId,
@@ -160,7 +157,8 @@ export async function waitForIBCConnection(
       );
 
       if (
-          connections && connections[0].state &&
+        connections &&
+        connections[0].state &&
         connections[0].state === ConnectionState.STATE_OPEN
       ) {
         console.log("Found an open connection on", chainId);
@@ -208,20 +206,23 @@ export async function waitForIBCChannel(
 export async function createIbcConnection(): Promise<Link> {
   // Create signers as LocalSecret account d
   // (Both sides are localsecret so same account can be used on both sides)
-  const signerA = new Wallet(
-    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
+  const signerA = await DirectSecp256k1HdWallet.fromMnemonic(
+    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick", // account d
+    { hdPaths: [stringToPath("m/44'/529'/0'/0/0")], prefix: "secret" },
   );
+  const [account] = await signerA.getAccounts();
+
   const signerB = signerA;
 
   // Create IBC Client for chain A
   const clientA = await IbcClient.connectWithSigner(
     "http://localhost:26657",
     signerA,
-    signerA.address,
+    account.address,
     {
       prefix: "secret",
       gasPrice: GasPrice.fromString("0.25uscrt"),
-      estimatedBlockTime: 5750,
+      estimatedBlockTime: 750,
       estimatedIndexerTime: 500,
     },
   );
@@ -233,11 +234,11 @@ export async function createIbcConnection(): Promise<Link> {
   const clientB = await IbcClient.connectWithSigner(
     "http://localhost:36657",
     signerB,
-    signerB.address,
+    account.address,
     {
       prefix: "secret",
       gasPrice: GasPrice.fromString("0.25uscrt"),
-      estimatedBlockTime: 5750,
+      estimatedBlockTime: 750,
       estimatedIndexerTime: 500,
     },
   );
@@ -255,15 +256,17 @@ export async function createIbcConnection(): Promise<Link> {
   return link;
 }
 export async function createIbcChannel(
-  link: Link,
-  contractPort: string,
+  ibcConnection: Link,
 ): Promise<ChannelPair> {
-  await Promise.all([link.updateClient("A"), link.updateClient("B")]);
+  await Promise.all([
+    ibcConnection.updateClient("A"),
+    ibcConnection.updateClient("B"),
+  ]);
 
   // Create a channel for the connections
-  const channels = await link.createChannel(
+  const channelPair = await ibcConnection.createChannel(
     "A",
-    contractPort,
+    "transfer",
     "transfer",
     Order.ORDER_UNORDERED,
     "ics20-1",
@@ -273,22 +276,23 @@ export async function createIbcChannel(
   // console.log(JSON.stringify(channels));
   // console.groupEnd();
 
-  return channels;
+  return channelPair;
 }
 
-export async function loopRelayer(link: Link) {
+export async function loopRelayer(connection: Link) {
   while (true) {
     try {
-      let nextRelay = await link.relayAll();
-      // console.group("Next relay:");
+      const nextRelay = await connection.relayAll();
       // console.log(nextRelay);
-      // console.groupEnd();
 
-      await Promise.all([link.updateClient("A"), link.updateClient("B")]);
+      await Promise.all([
+        connection.updateClient("A"),
+        connection.updateClient("B"),
+      ]);
     } catch (e) {
-      console.error(`Caught error: `, e);
+      console.error(`loopRelayer: caught error: `, e);
     }
-    await sleep(5000);
+    await sleep(750);
   }
 }
 
@@ -317,4 +321,40 @@ export function getAllMethodNames(obj: any): Array<string> {
     });
   }
   return Array.from(methods);
+}
+
+export async function waitForChainToStart({
+  url,
+  chainId,
+}: {
+  url?: string;
+  chainId?: string;
+}) {
+  while (true) {
+    const wallet = new AminoWallet(
+      "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+    ); // account a
+
+    const secretjs = new SecretNetworkClient({
+      url: url ?? "http://localhost:1317",
+      chainId: chainId ?? "secretdev-1",
+      wallet,
+      walletAddress: wallet.address,
+    });
+
+    try {
+      const tx = await secretjs.tx.bank.send({
+        amount: [{ amount: "1", denom: "uscrt" }],
+        from_address: wallet.address,
+        to_address: wallet.address,
+      });
+
+      if (tx.code === TxResultCode.Success) {
+        break;
+      }
+    } catch (e) {
+      // console.eerror(e);
+    }
+    await sleep(250);
+  }
 }

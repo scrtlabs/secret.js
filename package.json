@@ -49,8 +49,9 @@
   },
   "devDependencies": {
     "@confio/relayer": "0.7.0",
-    "@osmonauts/telescope": "0.4.44",
+    "@cosmjs/proto-signing": "^0.29.5",
     "@cosmjs/stargate": "0.29.4",
+    "@osmonauts/telescope": "0.4.44",
     "@types/is-gzip": "2.0.0",
     "@types/jest": "27.4.0",
     "@types/node": "18.11.2",
