@@ -23,6 +23,7 @@ import {
   MsgInstantiateContractResponse,
   MsgSend,
   MsgStoreCodeResponse,
+  MsgTransfer,
   ProposalType,
   pubkeyToAddress,
   SecretNetworkClient,
@@ -2969,15 +2970,64 @@ describe("ibc", () => {
     );
 
     expect(tx.ibcAckTxs.length).toBe(1);
-    const ibcAckTx = await tx.ibcAckTxs[0];
+    const ackTx = await tx.ibcAckTxs[0];
 
     expect(
-      ibcAckTx.arrayLog?.find(
+      ackTx.arrayLog?.find(
         (x) =>
           x.type === "fungible_token_packet" &&
           x.key === "success" &&
           x.value === "\x01",
       ),
     ).toBeTruthy();
+  }, 90_000);
+
+  test("multiple ibcAckTxs", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgTransfer({
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: {
+            amount: "1",
+            denom: "uscrt",
+          },
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        }),
+        new MsgTransfer({
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: {
+            amount: "1",
+            denom: "uscrt",
+          },
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 200_000,
+      },
+    );
+
+    expect(tx.ibcAckTxs.length).toBe(2);
+    const ibcAckTxs = await Promise.all(tx.ibcAckTxs);
+
+    for (const ackTx of ibcAckTxs) {
+      expect(
+        ackTx.arrayLog?.find(
+          (x) =>
+            x.type === "fungible_token_packet" &&
+            x.key === "success" &&
+            x.value === "\x01",
+        ),
+      ).toBeTruthy();
+    }
   }, 90_000);
 });
