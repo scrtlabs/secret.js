@@ -146,7 +146,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-import {RaAuthenticate} from "./tx/registration";
+import { RaAuthenticate } from "./tx/registration";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
@@ -806,24 +806,27 @@ export class SecretNetworkClient {
     return this.decodeTxResponses(tx_responses ?? []);
   }
 
-  private async waitForIBCAcK(packetSequence: string, packetSrcChannel: string ) : Promise<TxResponse> {
+  private async waitForIBCAcK(
+    packetSequence: string,
+    packetSrcChannel: string,
+  ): Promise<TxResponse> {
     return new Promise(async (resolve, reject) => {
-        let tries = 20; // 2 min (TODO: Make it configurable param)
+      let tries = 20; // 2 min (TODO: Make it configurable param)
 
-        while (tries > 0) {
-          const txs = await this.txsQuery(
-            `acknowledge_packet.packet_sequence = '${packetSequence}' AND acknowledge_packet.packet_src_channel = '${packetSrcChannel}'`
-          );
-          const ackTx = txs.find((x) => x.code === 0);
+      while (tries > 0) {
+        const txs = await this.txsQuery(
+          `acknowledge_packet.packet_sequence = '${packetSequence}' AND acknowledge_packet.packet_src_channel = '${packetSrcChannel}'`,
+        );
+        const ackTx = txs.find((x) => x.code === 0);
 
-          if (ackTx) {
-            resolve(ackTx);
-          }
-          tries--;
-          await sleep(6_000); // (TODO: Make it configurable param)
+        if (ackTx) {
+          resolve(ackTx);
         }
-        reject();
-      });
+        tries--;
+        await sleep(6_000); // (TODO: Make it configurable param)
+      }
+      reject();
+    });
   }
 
   private async decodeTxResponses(
@@ -1007,19 +1010,25 @@ export class SecretNetworkClient {
 
     //IBC ACKs:
     if (txResp.code === TxResultCode.Success) {
-      const packetSequences = arrayLog?.filter(
+      const packetSequences =
+        arrayLog?.filter(
           (x) => x.type === "send_packet" && x.key === "packet_sequence",
-      ) || [];
+        ) || [];
 
-      const packetSrcChannels = arrayLog?.filter(
+      const packetSrcChannels =
+        arrayLog?.filter(
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
-      ) || [];
+        ) || [];
 
       for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
-        ibcAckTxs.push(this.waitForIBCAcK(packetSequences[msgIndex].value, packetSrcChannels[msgIndex].value));
+        ibcAckTxs.push(
+          this.waitForIBCAcK(
+            packetSequences[msgIndex].value,
+            packetSrcChannels[msgIndex].value,
+          ),
+        );
       }
     }
-
 
     return {
       height: Number(txResp.height),
@@ -1036,7 +1045,7 @@ export class SecretNetworkClient {
       data,
       gasUsed: Number(txResp.gas_used),
       gasWanted: Number(txResp.gas_wanted),
-      ibcAckTxs
+      ibcAckTxs,
     };
   }
 
