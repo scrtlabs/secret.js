@@ -1734,7 +1734,7 @@ const tx = await secretjs.tx.ibc.transfer(
   {
     gasLimit: 100_000,
     ibcTxsOptions: {
-      resolveResponses: true, // enable IBC responses resulotion (defualt)
+      resolveResponses: true, // enable IBC responses resolution (defualt)
       resolveResponsesTimeoutMs: 12 * 60 * 1000, // stop checking after 12 minutes (default is 2 minutes)
       resolveResponsesCheckIntervalMs: 15_000, // check every 15 seconds (default)
     },
