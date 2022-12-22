@@ -76,7 +76,6 @@ import {
   MsgCreateViewingKey,
   MsgSetViewingKey,
 } from "./extensions/access_control/viewing_key/msgs";
-import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   CreateViewingKeyContractParams,
   SetViewingKeyContractParams,
@@ -101,14 +100,18 @@ import {
   Snip721SendOptions,
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   Service as TxService,
   SimulateResponse,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
+import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
+import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
+import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
+import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
 import {
   AuthInfo,
-  SignerInfo,
   TxBody as TxBodyPb,
   TxRaw,
 } from "./protobuf/cosmos/tx/v1beta1/tx";
@@ -137,6 +140,7 @@ import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
 import { AminoMsg, Msg, MsgParams, MsgRegistry, ProtoMsg } from "./tx";
+import { RaAuthenticate } from "./tx/registration";
 import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
@@ -149,12 +153,6 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-import {RaAuthenticate} from "./tx/registration";
-import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
-import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
-import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
-import { resolve } from "path";
-import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -202,6 +200,32 @@ export enum BroadcastMode {
   Async = "Async",
 }
 
+export type IbcTxOptions = {
+  /** If `false` skip resolving the IBC response txs (acknowledge/timeout). Defaults to `true`. */
+  resolveResponses?: boolean;
+  /**
+   * How much time (in milliseconds) to wait for IBC response txs (acknowledge/timeout).
+   *
+   * Defaults to `120_000` (2 minutes).
+   *
+   * */
+  resolveResponsesTimeoutMs?: number;
+  /**
+   * When waiting for the IBC response txs (acknowledge/timeout) to commit on-chain, how much time (in milliseconds) to wait between checks.
+   *
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize.
+   *
+   * Defaults to `15_000` (15 seconds).
+   */
+  resolveResponsesCheckIntervalMs?: number;
+};
+
+type ExplicitIbcTxOptions = {
+  resolveResponses: boolean;
+  resolveResponsesTimeoutMs: number;
+  resolveResponsesCheckIntervalMs: number;
+};
+
 export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
@@ -245,6 +269,10 @@ export type TxOptions = {
    * to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    */
   explicitSignerData?: SignerData;
+  /**
+   * Options for resolving IBC ack/timeout txs that resulted from this tx.
+   */
+  ibcTxsOptions?: IbcTxOptions;
 };
 
 /**
@@ -398,6 +426,13 @@ export type TxResponse = {
    * Gas limit that was originaly set by the transaction.
    */
   readonly gasWanted: number;
+  /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement or timeout transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
+  readonly ibcResponses: Array<Promise<IbcResponse>>;
+};
+
+export type IbcResponse = {
+  type: "ack" | "timeout";
+  tx: TxResponse;
 };
 
 export type TxSender = {
@@ -785,7 +820,10 @@ export class SecretNetworkClient {
     this.query.compute = new ComputeQuerier(this.url, this.encryptionUtils);
   }
 
-  private async getTx(hash: string): Promise<TxResponse | null> {
+  private async getTx(
+    hash: string,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse | null> {
     const { tx_response } = await TxService.GetTx(
       {
         hash,
@@ -793,10 +831,15 @@ export class SecretNetworkClient {
       { pathPrefix: this.url },
     );
 
-    return tx_response ? this.decodeTxResponse(tx_response) : null;
+    return tx_response
+      ? this.decodeTxResponse(tx_response, ibcTxOptions)
+      : null;
   }
 
-  private async txsQuery(query: string): Promise<TxResponse[]> {
+  private async txsQuery(
+    query: string,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse[]> {
     const { tx_responses } = await TxService.GetTxsEvent(
       {
         events: query.split(" AND ").map((q) => q.trim()),
@@ -804,16 +847,88 @@ export class SecretNetworkClient {
       { pathPrefix: this.url },
     );
 
-    return this.decodeTxResponses(tx_responses ?? []);
+    return this.decodeTxResponses(tx_responses ?? [], ibcTxOptions);
+  }
+
+  private async waitForIbcResponse(
+    packetSequence: string,
+    packetSrcChannel: string,
+    type: "ack" | "timeout",
+    ibcTxOptions: ExplicitIbcTxOptions,
+    isDoneObject: { isDone: boolean },
+  ): Promise<IbcResponse> {
+    return new Promise(async (resolve, reject) => {
+      let tries =
+        ibcTxOptions.resolveResponsesTimeoutMs /
+        ibcTxOptions.resolveResponsesCheckIntervalMs;
+
+      let txType: string = type;
+      if (type === "ack") {
+        txType = "acknowledge";
+      }
+
+      while (tries > 0 && !isDoneObject.isDone) {
+        const txs = await this.txsQuery(
+          `${txType}_packet.packet_src_channel = '${packetSrcChannel}' AND ${txType}_packet.packet_sequence = '${packetSequence}'`,
+        );
+
+        const ackTx = txs.find((x) => x.code === 0);
+        if (ackTx) {
+          isDoneObject.isDone = true;
+          resolve({
+            type,
+            tx: ackTx,
+          });
+        }
+
+        tries--;
+        await sleep(ibcTxOptions.resolveResponsesCheckIntervalMs);
+      }
+
+      reject(
+        `timed-out while trying to resolve IBC ${type} tx for packet_src_channel='${packetSrcChannel} and packet_sequence='${packetSequence}'`,
+      );
+    });
   }
 
   private async decodeTxResponses(
     txResponses: TxResponsePb[],
+    ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse[]> {
-    return await Promise.all(txResponses.map(this.decodeTxResponse));
+    return await Promise.all(
+      txResponses.map((x) => this.decodeTxResponse(x, ibcTxOptions)),
+    );
   }
 
-  private async decodeTxResponse(txResp: TxResponsePb): Promise<TxResponse> {
+  private async decodeTxResponse(
+    txResp: TxResponsePb,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse> {
+    let explicitIbcTxOptions: ExplicitIbcTxOptions;
+
+    if (!ibcTxOptions) {
+      explicitIbcTxOptions = {
+        resolveResponses: true,
+        resolveResponsesTimeoutMs: 120_000,
+        resolveResponsesCheckIntervalMs: 15_000,
+      };
+    } else {
+      explicitIbcTxOptions = {
+        resolveResponses:
+          typeof ibcTxOptions.resolveResponses === "boolean"
+            ? ibcTxOptions.resolveResponses
+            : true,
+        resolveResponsesTimeoutMs:
+          typeof ibcTxOptions.resolveResponsesTimeoutMs === "number"
+            ? ibcTxOptions.resolveResponsesTimeoutMs
+            : 120_000,
+        resolveResponsesCheckIntervalMs:
+          typeof ibcTxOptions.resolveResponsesCheckIntervalMs === "number"
+            ? ibcTxOptions.resolveResponsesCheckIntervalMs
+            : 15_000,
+      };
+    }
+
     const nonces: ComputeMsgToNonce = [];
 
     const tx = txResp.tx as TxPb;
@@ -867,6 +982,7 @@ export class SecretNetworkClient {
     let rawLog: string = txResp.raw_log!;
     let jsonLog: JsonLog | undefined;
     let arrayLog: ArrayLog | undefined;
+    let ibcResponses: Array<Promise<IbcResponse>> = [];
     if (txResp.code === 0 && rawLog !== "") {
       jsonLog = JSON.parse(rawLog) as JsonLog;
 
@@ -985,6 +1101,47 @@ export class SecretNetworkClient {
       }
     }
 
+    // IBC ACKs:
+    if (txResp.code === TxResultCode.Success) {
+      const packetSequences =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_sequence",
+        ) || [];
+
+      const packetSrcChannels =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_src_channel",
+        ) || [];
+
+      if (explicitIbcTxOptions.resolveResponses) {
+        for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
+          // isDoneObject is used to cancel the second promise if the first one is resolved
+          const isDoneObject = {
+            isDone: false,
+          };
+
+          ibcResponses.push(
+            Promise.race([
+              this.waitForIbcResponse(
+                packetSequences[msgIndex].value,
+                packetSrcChannels[msgIndex].value,
+                "ack",
+                explicitIbcTxOptions,
+                isDoneObject,
+              ),
+              this.waitForIbcResponse(
+                packetSequences[msgIndex].value,
+                packetSrcChannels[msgIndex].value,
+                "timeout",
+                explicitIbcTxOptions,
+                isDoneObject,
+              ),
+            ]),
+          );
+        }
+      }
+    }
+
     return {
       height: Number(txResp.height),
       timestamp: txResp.timestamp!,
@@ -1000,6 +1157,7 @@ export class SecretNetworkClient {
       data,
       gasUsed: Number(txResp.gas_used),
       gasWanted: Number(txResp.gas_wanted),
+      ibcResponses,
     };
   }
 
@@ -1020,6 +1178,7 @@ export class SecretNetworkClient {
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
+    ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse> {
     const start = Date.now();
 
@@ -1169,7 +1328,7 @@ export class SecretNetworkClient {
           ...protobufJsonToGrpcGatewayJson(tx_response!.tx),
         };
 
-        return await this.decodeTxResponse(tx_response!);
+        return await this.decodeTxResponse(tx_response!, ibcTxOptions);
       }
     } else if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
@@ -1309,6 +1468,7 @@ export class SecretNetworkClient {
       txOptions?.broadcastCheckIntervalMs ?? 6_000,
       txOptions?.broadcastMode ?? BroadcastMode.Block,
       txOptions?.waitForCommit ?? true,
+      txOptions?.ibcTxsOptions,
     );
   }
 

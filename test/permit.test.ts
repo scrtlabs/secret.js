@@ -18,10 +18,10 @@ beforeAll(async () => {
 
   // Initialize genesis accounts
   const mnemonics = [
-    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
-    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow",
-    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge",
-    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
+    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar", // account a
+    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow", // account b
+    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge", // account c
+    // account d is used by ts-relayer
   ];
 
   for (let i = 0; i < mnemonics.length; i++) {
@@ -42,7 +42,7 @@ beforeAll(async () => {
   }
 
   // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
-  for (let i = 4; i <= 19; i++) {
+  for (let i = 3; i <= 19; i++) {
     const wallet = new AminoWallet();
     const [{ address }] = await wallet.getAccounts();
     const walletProto = new Wallet(wallet.mnemonic);
@@ -85,7 +85,7 @@ beforeAll(async () => {
       },
     );
   } catch (e) {
-    throw new Error(`Failed to multisend: ${e.stack}`);
+    throw new Error(`Failed to multisend: ${JSON.stringify(e)}`);
   }
 
   if (tx.code !== 0) {
