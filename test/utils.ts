@@ -267,15 +267,13 @@ export async function loopRelayer(connection: Link) {
   const done = new Promise<void>(async (resolve) => {
     while (run) {
       try {
-        const nextRelay = await connection.relayAll();
-        // console.log(nextRelay);
-
         await Promise.all([
+          connection.relayAll(),
           connection.updateClient("A"),
           connection.updateClient("B"),
         ]);
       } catch (e) {
-        console.error(`loopRelayer: caught error: `, e);
+        console.error(`loopRelayer: caught error:`, e);
       }
       await sleep(750);
     }

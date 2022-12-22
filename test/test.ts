@@ -54,7 +54,6 @@ import {
   storeContract,
   waitForChainToStart,
 } from "./utils";
-import exp from "constants";
 
 //@ts-ignore
 let accounts: Account[];
@@ -3114,4 +3113,9 @@ describe("ibc", () => {
       ),
     ).toBeTruthy();
   }, 90_000);
+
+  describe("cw20-ics20", () => {
+    let contractAddress: string;
+    beforeAll(async () => {});
+  });
 });
