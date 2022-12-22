@@ -8,6 +8,7 @@ import {
 } from "@cosmjs/encoding";
 import * as secp256k1 from "@noble/secp256k1";
 
+import { jest } from "@jest/globals";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { bech32 } from "bech32";
 import fs from "fs";
@@ -59,6 +60,8 @@ import {
 let accounts: Account[];
 
 beforeAll(async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+
   //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
@@ -3114,8 +3117,8 @@ describe("ibc", () => {
     ).toBeTruthy();
   }, 90_000);
 
-  describe("cw20-ics20", () => {
-    let contractAddress: string;
-    beforeAll(async () => {});
-  });
+  // describe("cw20-ics20", () => {
+  //   let contractAddress: string;
+  //   beforeAll(async () => {});
+  // });
 });

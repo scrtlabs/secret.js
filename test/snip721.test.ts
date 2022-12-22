@@ -1,4 +1,5 @@
 import { fromUtf8 } from "@cosmjs/encoding";
+import { jest } from "@jest/globals";
 import fs from "fs";
 import {
   MsgExecuteContract,
@@ -18,6 +19,8 @@ import { Account, getValueFromRawLog } from "./utils";
 let accounts: Account[];
 
 beforeAll(async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+
   //@ts-ignore
   accounts = global.__SCRT_TEST_ACCOUNTS__;
 
