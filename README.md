@@ -1748,7 +1748,7 @@ if (tx.code !== 0) {
     const ibcResp = await tx.ibcResponses[0];
     if (ibcResp.type === "ack") {
       console.log("successfuly sent 1uscrt from Secret to Osmosis!");
-    } /* if (ibcResp.type === "timeout") */ else {
+    } else {
       console.error(
         "failed sending 1uscrt from Secret to Osmosis: IBC packet timed-out before committed on Osmosis",
       );
