@@ -267,8 +267,9 @@ export async function loopRelayer(connection: Link) {
   const done = new Promise<void>(async (resolve) => {
     while (run) {
       try {
+        await connection.relayAll();
+
         await Promise.all([
-          connection.relayAll(),
           connection.updateClient("A"),
           connection.updateClient("B"),
         ]);
