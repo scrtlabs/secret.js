@@ -1,7 +1,7 @@
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
-import { stringToPath } from "@cosmjs/proto-signing/node_modules/@cosmjs/crypto";
+import { stringToPath } from "@cosmjs/crypto";
 import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
