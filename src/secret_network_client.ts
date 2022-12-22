@@ -833,7 +833,10 @@ export class SecretNetworkClient {
       : null;
   }
 
-  private async txsQuery(query: string): Promise<TxResponse[]> {
+  private async txsQuery(
+    query: string,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse[]> {
     const { tx_responses } = await TxService.GetTxsEvent(
       {
         events: query.split(" AND ").map((q) => q.trim()),
@@ -841,7 +844,7 @@ export class SecretNetworkClient {
       { pathPrefix: this.url },
     );
 
-    return this.decodeTxResponses(tx_responses ?? []);
+    return this.decodeTxResponses(tx_responses ?? [], ibcTxOptions);
   }
 
   private async waitForIbcResponse(
@@ -849,6 +852,7 @@ export class SecretNetworkClient {
     packetSrcChannel: string,
     type: "ack" | "timeout",
     ibcTxOptions: ExplicitIbcTxOptions,
+    isDoneObject: { isDone: boolean },
   ): Promise<IbcResponse> {
     return new Promise(async (resolve, reject) => {
       let tries =
@@ -860,13 +864,14 @@ export class SecretNetworkClient {
         txType = "acknowledge";
       }
 
-      while (tries > 0) {
+      while (tries > 0 && !isDoneObject.isDone) {
         const txs = await this.txsQuery(
           `${txType}_packet.packet_src_channel = '${packetSrcChannel}' AND ${txType}_packet.packet_sequence = '${packetSequence}'`,
         );
 
         const ackTx = txs.find((x) => x.code === 0);
         if (ackTx) {
+          isDoneObject.isDone = true;
           resolve({
             type,
             tx: ackTx,
@@ -1107,6 +1112,11 @@ export class SecretNetworkClient {
 
       if (explicitIbcTxOptions.resolveResponses) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
+          // isDoneObject is used to cancel the second promise if the first one is resolved
+          const isDoneObject = {
+            isDone: false,
+          };
+
           ibcResponses.push(
             Promise.race([
               this.waitForIbcResponse(
@@ -1114,12 +1124,14 @@ export class SecretNetworkClient {
                 packetSrcChannels[msgIndex].value,
                 "ack",
                 explicitIbcTxOptions,
+                isDoneObject,
               ),
               this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
                 "timeout",
                 explicitIbcTxOptions,
+                isDoneObject,
               ),
             ]),
           );
