@@ -1,3 +1,6 @@
+import fetch from 'cross-fetch';
+global.fetch = fetch;
+
 import {
   fromBase64,
   fromHex,
@@ -150,12 +153,6 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-
-(async () => {
-  if (typeof fetch === "undefined") {
-    global.fetch = (await import("cross-fetch")).fetch;
-  }
-})();
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -505,7 +502,10 @@ export type TxSender = {
    *   - staking         {@link MsgUndelegate}
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
-
+  
+  signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
+  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<TxResponse>;
+  
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
    * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
@@ -726,6 +726,9 @@ export class SecretNetworkClient {
     };
 
     this.tx = {
+      signTx: this.signTx.bind(this),
+      broadcastSignedTx: this.broadcastSignedTx.bind(this),      
+      
       broadcast: this.signAndBroadcast.bind(this),
       simulate: this.simulate.bind(this),
 
@@ -1394,6 +1397,33 @@ export class SecretNetworkClient {
       await sleep(checkIntervalMs);
     }
   }
+
+  private async signTx(    
+    messages: Msg[],
+    txOptions?: TxOptions,
+    ): Promise<string> {
+      
+      let signed = await this.prepareAndSign(messages, txOptions)
+
+      return toBase64(signed);
+  }
+
+  private async broadcastSignedTx(
+    messages: string,
+    txOptions?: TxOptions,
+    ): Promise<TxResponse> {
+    
+      let txBytes = fromBase64(messages);
+      return this.broadcastTx(
+        txBytes,
+        txOptions?.broadcastTimeoutMs ?? 60_000,
+        txOptions?.broadcastCheckIntervalMs ?? 6_000,
+        txOptions?.broadcastMode ?? BroadcastMode.Block,
+        txOptions?.waitForCommit ?? true,
+      );
+  }  
+
+
 
   public async prepareAndSign(
     messages: Msg[],

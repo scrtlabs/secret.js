@@ -9,7 +9,7 @@ jobs:
       secretdev:
         # Docker Hub image
         options: --name secretdev
-        image: ghcr.io/scrtlabs/localsecret:v1.6.0-alpha.4
+        image: ghcr.io/scrtlabs/localsecret:v1.6.0
         volumes:
           - "/home/runner/work/snip20-reference-impl/snip20-reference-impl/:/root/code"
         ports:
