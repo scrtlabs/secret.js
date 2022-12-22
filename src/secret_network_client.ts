@@ -209,7 +209,7 @@ export type IbcTxOptions = {
   /**
    * How much time (in milliseconds) to wait for IBC acknowledge/timeout txs.
    *
-   * Defaults to `180_000` (3 minutes).
+   * Defaults to `120_000` (2 minutes).
    *
    * */
   ackCheckTimeoutMs?: number;
@@ -429,10 +429,13 @@ export type TxResponse = {
    * Gas limit that was originaly set by the transaction.
    */
   readonly gasWanted: number;
-  /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
-  readonly ibcAckTxs: Array<Promise<TxResponse>>;
-  /** If code = 0 and the tx resulted in sending IBC packets, `ibcTimeoutTxs` is a list of IBC timeout transactions which signal that the original IBC packet was timed-out on the receiving chain and thus canceled on the sending chain. */
-  readonly ibcTimeoutTxs: Array<Promise<TxResponse>>;
+  /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement or timeout transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
+  readonly ibcResponses: Array<Promise<IbcResponse>>;
+};
+
+export type IbcResponse = {
+  type: "ack" | "timeout";
+  tx: TxResponse;
 };
 
 export type TxSender = {
@@ -841,24 +844,32 @@ export class SecretNetworkClient {
     return this.decodeTxResponses(tx_responses ?? []);
   }
 
-  private async waitForIBCAcKOrTimeout(
+  private async waitForIbcResponse(
     packetSequence: string,
     packetSrcChannel: string,
-    type: "acknowledge" | "timeout",
+    type: "ack" | "timeout",
     ibcTxOptions: ExplicitIbcTxOptions,
-  ): Promise<TxResponse> {
+  ): Promise<IbcResponse> {
     return new Promise(async (resolve, reject) => {
       let tries =
         ibcTxOptions.ackCheckTimeoutMs / ibcTxOptions.ackCheckIntervalMs;
 
+      let txType: string = type;
+      if (type === "ack") {
+        txType = "acknowledge";
+      }
+
       while (tries > 0) {
         const txs = await this.txsQuery(
-          `${type}_packet.packet_src_channel = '${packetSrcChannel}' AND ${type}_packet.packet_sequence = '${packetSequence}'`,
+          `${txType}_packet.packet_src_channel = '${packetSrcChannel}' AND ${txType}_packet.packet_sequence = '${packetSequence}'`,
         );
 
         const ackTx = txs.find((x) => x.code === 0);
         if (ackTx) {
-          resolve(ackTx);
+          resolve({
+            type,
+            tx: ackTx,
+          });
         }
 
         tries--;
@@ -889,7 +900,7 @@ export class SecretNetworkClient {
     if (!ibcTxOptions) {
       explicitIbcTxOptions = {
         resolveAcks: true,
-        ackCheckTimeoutMs: 180_000,
+        ackCheckTimeoutMs: 120_000,
         ackCheckIntervalMs: 15_000,
       };
     } else {
@@ -901,7 +912,7 @@ export class SecretNetworkClient {
         ackCheckTimeoutMs:
           typeof ibcTxOptions.ackCheckTimeoutMs === "number"
             ? ibcTxOptions.ackCheckTimeoutMs
-            : 180_000,
+            : 120_000,
         ackCheckIntervalMs:
           typeof ibcTxOptions.ackCheckIntervalMs === "number"
             ? ibcTxOptions.ackCheckIntervalMs
@@ -962,8 +973,7 @@ export class SecretNetworkClient {
     let rawLog: string = txResp.raw_log!;
     let jsonLog: JsonLog | undefined;
     let arrayLog: ArrayLog | undefined;
-    let ibcAckTxs: Array<Promise<TxResponse>> = [];
-    let ibcTimeoutTxs: Array<Promise<TxResponse>> = [];
+    let ibcResponses: Array<Promise<IbcResponse>> = [];
     if (txResp.code === 0 && rawLog !== "") {
       jsonLog = JSON.parse(rawLog) as JsonLog;
 
@@ -1096,15 +1106,15 @@ export class SecretNetworkClient {
 
       if (explicitIbcTxOptions.resolveAcks) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
-          ibcAckTxs.push(
+          ibcResponses.push(
             Promise.race([
-              this.waitForIBCAcKOrTimeout(
+              this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
-                "acknowledge",
+                "ack",
                 explicitIbcTxOptions,
               ),
-              this.waitForIBCAcKOrTimeout(
+              this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
                 "timeout",
@@ -1131,8 +1141,7 @@ export class SecretNetworkClient {
       data,
       gasUsed: Number(txResp.gas_used),
       gasWanted: Number(txResp.gas_wanted),
-      ibcAckTxs,
-      ibcTimeoutTxs,
+      ibcResponses,
     };
   }
 

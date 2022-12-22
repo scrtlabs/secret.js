@@ -54,6 +54,7 @@ import {
   storeContract,
   waitForChainToStart,
 } from "./utils";
+import exp from "constants";
 
 //@ts-ignore
 let accounts: Account[];
@@ -2954,7 +2955,7 @@ describe("ibc", () => {
     await done;
   });
 
-  test("ibcAckTxs", async () => {
+  test("ibcResponses", async () => {
     const { secretjs } = accounts[0];
 
     const tx = await secretjs.tx.ibc.transfer(
@@ -2983,11 +2984,13 @@ describe("ibc", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    expect(tx.ibcAckTxs.length).toBe(1);
-    const ackTx = await tx.ibcAckTxs[0];
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+
+    expect(ibcResp.type).toBe("ack");
 
     expect(
-      ackTx.arrayLog?.find(
+      ibcResp.tx.arrayLog?.find(
         (x) =>
           x.type === "fungible_token_packet" &&
           x.key === "success" &&
@@ -2996,7 +2999,7 @@ describe("ibc", () => {
     ).toBeTruthy();
   }, 90_000);
 
-  test("multiple ibcAckTxs", async () => {
+  test("multiple ibcResponses", async () => {
     const { secretjs } = accounts[0];
 
     const tx = await secretjs.tx.broadcast(
@@ -3038,12 +3041,13 @@ describe("ibc", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    expect(tx.ibcAckTxs.length).toBe(2);
-    const ibcAckTxs = await Promise.all(tx.ibcAckTxs);
+    expect(tx.ibcResponses.length).toBe(2);
+    const ibcResponses = await Promise.all(tx.ibcResponses);
 
-    for (const ackTx of ibcAckTxs) {
+    for (const ibcResp of ibcResponses) {
+      expect(ibcResp.type).toBe("ack");
       expect(
-        ackTx.arrayLog?.find(
+        ibcResp.tx.arrayLog?.find(
           (x) =>
             x.type === "fungible_token_packet" &&
             x.key === "success" &&
@@ -3053,7 +3057,7 @@ describe("ibc", () => {
     }
   }, 90_000);
 
-  test("ibcAckTxs timeout", async () => {
+  test("ibcResponses timeout", async () => {
     const { secretjs } = accounts[0];
 
     const tx = await secretjs.tx.ibc.transfer(
@@ -3082,17 +3086,19 @@ describe("ibc", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    expect(tx.ibcAckTxs.length).toBe(1);
-    const ackTx = await tx.ibcAckTxs[0];
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+
+    expect(ibcResp.type).toBe("timeout");
 
     expect(
-      ackTx.arrayLog?.find(
+      ibcResp.tx.arrayLog?.find(
         (x) =>
           x.type === "timeout" && x.key === "refund_amount" && x.value === "1",
       ),
     ).toBeTruthy();
     expect(
-      ackTx.arrayLog?.find(
+      ibcResp.tx.arrayLog?.find(
         (x) =>
           x.type === "timeout" &&
           x.key === "refund_denom" &&
@@ -3100,7 +3106,7 @@ describe("ibc", () => {
       ),
     ).toBeTruthy();
     expect(
-      ackTx.arrayLog?.find(
+      ibcResp.tx.arrayLog?.find(
         (x) =>
           x.type === "timeout" &&
           x.key === "refund_receiver" &&
