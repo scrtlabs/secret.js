@@ -204,29 +204,29 @@ export enum BroadcastMode {
 }
 
 export type IbcTxOptions = {
-  /** If `false` skip resolving the IBC acknowledge/timeout txs. Defaults to `true`. */
-  resolveAcks?: boolean;
+  /** If `false` skip resolving the IBC response txs (acknowledge/timeout). Defaults to `true`. */
+  resolveResponses?: boolean;
   /**
-   * How much time (in milliseconds) to wait for IBC acknowledge/timeout txs.
+   * How much time (in milliseconds) to wait for IBC response txs (acknowledge/timeout).
    *
    * Defaults to `120_000` (2 minutes).
    *
    * */
-  ackCheckTimeoutMs?: number;
+  resolveResponsesTimeoutMs?: number;
   /**
-   * When waiting for the IBC acknowledge/timeout txs to commit on-chain, how much time (in milliseconds) to wait between checks.
+   * When waiting for the IBC response txs (acknowledge/timeout) to commit on-chain, how much time (in milliseconds) to wait between checks.
    *
    * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize.
    *
    * Defaults to `15_000` (15 seconds).
    */
-  ackCheckIntervalMs?: number;
+  resolveResponsesCheckIntervalMs?: number;
 };
 
 type ExplicitIbcTxOptions = {
-  resolveAcks: boolean;
-  ackCheckTimeoutMs: number;
-  ackCheckIntervalMs: number;
+  resolveResponses: boolean;
+  resolveResponsesTimeoutMs: number;
+  resolveResponsesCheckIntervalMs: number;
 };
 
 export type TxOptions = {
@@ -852,7 +852,8 @@ export class SecretNetworkClient {
   ): Promise<IbcResponse> {
     return new Promise(async (resolve, reject) => {
       let tries =
-        ibcTxOptions.ackCheckTimeoutMs / ibcTxOptions.ackCheckIntervalMs;
+        ibcTxOptions.resolveResponsesTimeoutMs /
+        ibcTxOptions.resolveResponsesCheckIntervalMs;
 
       let txType: string = type;
       if (type === "ack") {
@@ -873,7 +874,7 @@ export class SecretNetworkClient {
         }
 
         tries--;
-        await sleep(ibcTxOptions.ackCheckIntervalMs);
+        await sleep(ibcTxOptions.resolveResponsesCheckIntervalMs);
       }
 
       reject(
@@ -899,23 +900,23 @@ export class SecretNetworkClient {
 
     if (!ibcTxOptions) {
       explicitIbcTxOptions = {
-        resolveAcks: true,
-        ackCheckTimeoutMs: 120_000,
-        ackCheckIntervalMs: 15_000,
+        resolveResponses: true,
+        resolveResponsesTimeoutMs: 120_000,
+        resolveResponsesCheckIntervalMs: 15_000,
       };
     } else {
       explicitIbcTxOptions = {
-        resolveAcks:
-          typeof ibcTxOptions.resolveAcks === "boolean"
-            ? ibcTxOptions.resolveAcks
+        resolveResponses:
+          typeof ibcTxOptions.resolveResponses === "boolean"
+            ? ibcTxOptions.resolveResponses
             : true,
-        ackCheckTimeoutMs:
-          typeof ibcTxOptions.ackCheckTimeoutMs === "number"
-            ? ibcTxOptions.ackCheckTimeoutMs
+        resolveResponsesTimeoutMs:
+          typeof ibcTxOptions.resolveResponsesTimeoutMs === "number"
+            ? ibcTxOptions.resolveResponsesTimeoutMs
             : 120_000,
-        ackCheckIntervalMs:
-          typeof ibcTxOptions.ackCheckIntervalMs === "number"
-            ? ibcTxOptions.ackCheckIntervalMs
+        resolveResponsesCheckIntervalMs:
+          typeof ibcTxOptions.resolveResponsesCheckIntervalMs === "number"
+            ? ibcTxOptions.resolveResponsesCheckIntervalMs
             : 15_000,
       };
     }
@@ -1104,7 +1105,7 @@ export class SecretNetworkClient {
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
         ) || [];
 
-      if (explicitIbcTxOptions.resolveAcks) {
+      if (explicitIbcTxOptions.resolveResponses) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
           ibcResponses.push(
             Promise.race([

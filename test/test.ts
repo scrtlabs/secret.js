@@ -2974,7 +2974,7 @@ describe("ibc", () => {
         broadcastCheckIntervalMs: 100,
         gasLimit: 100_000,
         ibcTxsOptions: {
-          ackCheckIntervalMs: 250,
+          resolveResponsesCheckIntervalMs: 250,
         },
       },
     );
@@ -3031,7 +3031,7 @@ describe("ibc", () => {
         broadcastCheckIntervalMs: 100,
         gasLimit: 200_000,
         ibcTxsOptions: {
-          ackCheckIntervalMs: 250,
+          resolveResponsesCheckIntervalMs: 250,
         },
       },
     );
@@ -3076,7 +3076,7 @@ describe("ibc", () => {
         broadcastCheckIntervalMs: 100,
         gasLimit: 100_000,
         ibcTxsOptions: {
-          ackCheckIntervalMs: 250,
+          resolveResponsesCheckIntervalMs: 250,
         },
       },
     );

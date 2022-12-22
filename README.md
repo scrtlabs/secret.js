@@ -44,6 +44,7 @@
     - [`secretjs.query`](#secretjsquery)
     - [`secretjs.address`](#secretjsaddress)
     - [`secretjs.tx`](#secretjstx)
+    - [Resolve IBC Responses](#resolve-ibc-responses)
 
 # Key Features
 
@@ -1691,3 +1692,71 @@ const tx = await secretjs.tx.staking.undelegate(
 ##### `secretjs.tx.staking.undelegate.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+### Resolve IBC Responses
+
+If a tx that was sent using secret.js resulted in IBC packets being sent to other chains, secret.js will resolve the IBC response (ack or timeout) inside `TxResponse`.
+
+```ts
+import { Wallet, SecretNetworkClient } from "secretjs";
+
+const wallet = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+);
+
+const osmoAddress = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+  {
+    bech32Prefix: "osmos",
+    coinType: 118,
+  },
+).address;
+
+const secretjs = new SecretNetworkClient({
+  url: "http://localhost:1317",
+  chainId: "secretdev-1",
+  wallet,
+  walletAddress: wallet.address,
+});
+
+const tx = await secretjs.tx.ibc.transfer(
+  {
+    sender: wallet.address,
+    receiver: osmoAddress,
+    source_channel: "channel-1",
+    source_port: "transfer",
+    token: {
+      amount: "1",
+      denom: "uscrt",
+    },
+    timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+  },
+  {
+    gasLimit: 100_000,
+    ibcTxsOptions: {
+      resolveResponses: true, // enable IBC responses resulotion (defualt)
+      resolveResponsesTimeoutMs: 12 * 60 * 1000, // stop checking after 12 minutes (default is 2 minutes)
+      resolveResponsesCheckIntervalMs: 15_000, // check every 15 seconds (default)
+    },
+  },
+);
+
+if (tx.code !== 0) {
+  console.error("failed sending 1uscrt from Secret to Osmosis:", tx.rawLog);
+} else {
+  try {
+    const ibcResp = await tx.ibcResponses[0];
+    if (ibcResp.type === "ack") {
+      console.log("successfuly sent 1uscrt from Secret to Osmosis!");
+    } /* if (ibcResp.type === "timeout") */ else {
+      console.error(
+        "failed sending 1uscrt from Secret to Osmosis: IBC packet timed-out before committed on Osmosis",
+      );
+    }
+  } catch (_error) {
+    console.error(
+      `timed-out while trying to resolve IBC response for txhash ${tx.transactionHash}`,
+    );
+  }
+}
+```

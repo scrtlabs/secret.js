@@ -48,5 +48,3 @@ protoc \
   --proto_path="$SECRET_DIR" \
   --proto_path="$SECRET_THIRD_PARTY_DIR" \
   $(find ${SECRET_DIR} ${SECRET_THIRD_PARTY_DIR} -path -prune -o -name '*.proto' -print0 | xargs -0)
-
-
