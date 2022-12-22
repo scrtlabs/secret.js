@@ -1,8 +1,8 @@
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
-import { GasPrice } from "@cosmjs/stargate";
-import { stringToPath } from "@cosmjs/proto-signing/node_modules/@cosmjs/crypto";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { stringToPath } from "@cosmjs/proto-signing/node_modules/@cosmjs/crypto";
+import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
@@ -226,9 +226,6 @@ export async function createIbcConnection(): Promise<Link> {
       estimatedIndexerTime: 500,
     },
   );
-  // console.group("IBC client for chain A");
-  // console.log(JSON.stringify(clientA));
-  // console.groupEnd();
 
   // Create IBC Client for chain A
   const clientB = await IbcClient.connectWithSigner(
@@ -242,18 +239,9 @@ export async function createIbcConnection(): Promise<Link> {
       estimatedIndexerTime: 500,
     },
   );
-  // console.group("IBC client for chain B");
-  // console.log(JSON.stringify(clientB));
-  // console.groupEnd();
 
   // Create new connection for the 2 clients
-  const link = await Link.createWithNewConnections(clientA, clientB);
-
-  // console.group("IBC link details");
-  // console.log(JSON.stringify(link));
-  // console.groupEnd();
-
-  return link;
+  return await Link.createWithNewConnections(clientA, clientB);
 }
 export async function createIbcChannel(
   ibcConnection: Link,
@@ -264,36 +252,47 @@ export async function createIbcChannel(
   ]);
 
   // Create a channel for the connections
-  const channelPair = await ibcConnection.createChannel(
+  return await ibcConnection.createChannel(
     "A",
     "transfer",
     "transfer",
     Order.ORDER_UNORDERED,
     "ics20-1",
   );
-
-  // console.group("IBC channel details");
-  // console.log(JSON.stringify(channels));
-  // console.groupEnd();
-
-  return channelPair;
 }
 
 export async function loopRelayer(connection: Link) {
-  while (true) {
-    try {
-      const nextRelay = await connection.relayAll();
-      // console.log(nextRelay);
+  let run = true;
 
-      await Promise.all([
-        connection.updateClient("A"),
-        connection.updateClient("B"),
-      ]);
-    } catch (e) {
-      console.error(`loopRelayer: caught error: `, e);
+  const done = new Promise<void>(async (resolve) => {
+    while (run) {
+      try {
+        const nextRelay = await connection.relayAll();
+        // console.log(nextRelay);
+
+        await Promise.all([
+          connection.updateClient("A"),
+          connection.updateClient("B"),
+        ]);
+      } catch (e) {
+        console.error(`loopRelayer: caught error: `, e);
+      }
+      await sleep(750);
     }
-    await sleep(750);
-  }
+
+    resolve();
+  });
+
+  return () => {
+    // 1. To stop the relayer, the caller needs to call this function
+    // which lets the relayer know to stop looping
+    run = false;
+    // 2. Then the caller needs to wait for this promise to resolve
+    // this promise resloves after all relayer txs have finished
+    // otherwise the test suite kills LocalSecret mid-tx which throw exceptions
+    // from inside the relayer loop
+    return done;
+  };
 }
 
 export function getAllMethodNames(obj: any): Array<string> {

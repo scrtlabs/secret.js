@@ -2892,6 +2892,7 @@ test("MetaMaskWallet", async () => {
 describe("ibc", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
+  let stopRelayer: () => Promise<void>;
 
   beforeAll(async () => {
     if (process.env.SKIP_LOCLSECRET === "true") {
@@ -2945,8 +2946,13 @@ describe("ibc", () => {
     expect(ibcChannelIdOnChain2).not.toBe("");
 
     console.log("Looping relayer...");
-    loopRelayer(ibcConnection);
+    stopRelayer = await loopRelayer(ibcConnection);
   }, 180_000);
+
+  afterAll(async () => {
+    const done = stopRelayer();
+    await done;
+  });
 
   test("ibcAckTxs", async () => {
     const { secretjs } = accounts[0];
@@ -2966,8 +2972,16 @@ describe("ibc", () => {
       {
         broadcastCheckIntervalMs: 100,
         gasLimit: 100_000,
+        ibcTxsOptions: {
+          ackCheckIntervalMs: 250,
+        },
       },
     );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(tx.ibcAckTxs.length).toBe(1);
     const ackTx = await tx.ibcAckTxs[0];
@@ -3013,8 +3027,16 @@ describe("ibc", () => {
       {
         broadcastCheckIntervalMs: 100,
         gasLimit: 200_000,
+        ibcTxsOptions: {
+          ackCheckIntervalMs: 250,
+        },
       },
     );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
     expect(tx.ibcAckTxs.length).toBe(2);
     const ibcAckTxs = await Promise.all(tx.ibcAckTxs);
@@ -3029,5 +3051,61 @@ describe("ibc", () => {
         ),
       ).toBeTruthy();
     }
+  }, 90_000);
+
+  test("ibcAckTxs timeout", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.ibc.transfer(
+      {
+        sender: secretjs.address,
+        receiver: secretjs.address,
+        source_channel: ibcChannelIdOnChain1,
+        source_port: "transfer",
+        token: {
+          amount: "1",
+          denom: "uscrt",
+        },
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second timeout
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 100_000,
+        ibcTxsOptions: {
+          ackCheckIntervalMs: 250,
+        },
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    expect(tx.ibcAckTxs.length).toBe(1);
+    const ackTx = await tx.ibcAckTxs[0];
+
+    expect(
+      ackTx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" && x.key === "refund_amount" && x.value === "1",
+      ),
+    ).toBeTruthy();
+    expect(
+      ackTx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" &&
+          x.key === "refund_denom" &&
+          x.value === "uscrt",
+      ),
+    ).toBeTruthy();
+    expect(
+      ackTx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" &&
+          x.key === "refund_receiver" &&
+          x.value === secretjs.address,
+      ),
+    ).toBeTruthy();
   }, 90_000);
 });
