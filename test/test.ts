@@ -584,11 +584,8 @@ describe("tx", () => {
     if (tx_double.code === TxResultCode.Success) {
       console.error(tx_double.rawLog);
     }
-
   });
 });
-
-
 
 describe("tx.bank", () => {
   test("MsgSend", async () => {
@@ -2944,7 +2941,7 @@ describe("ibc", () => {
     console.log("\nSetting up LocalSecret2...");
     await exec("docker rm -f localsecret2 || true");
     const { /* stdout, */ stderr } = await exec(
-      "docker run -it -d -p 1318:1316 -p 36657:26657 -e CHAINID=secretdev-2 --name localsecret2 ghcr.io/scrtlabs/localsecret:v1.6.0-patch.1",
+      `docker run -d -p 1318:1316 -p 36657:26657 -e CHAINID=secretdev-2 --name localsecret2 $(cat "${__dirname}/localsecret-version")`,
     );
 
     // console.log("stdout (testnet container id?):", stdout);

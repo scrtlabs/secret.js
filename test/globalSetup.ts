@@ -7,11 +7,13 @@ module.exports = async () => {
     return;
   }
 
+  await exec(`docker pull $(cat "${__dirname}/localsecret-version")`);
+
   // init localsecret
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 1317:1316 -p 26657:26657 --name localsecret ghcr.io/scrtlabs/localsecret:v1.6.0-patch.1",
+    `docker run -d -p 1317:1316 -p 26657:26657 --name localsecret $(cat "${__dirname}/localsecret-version")`,
   );
 
   // console.log("stdout (testnet container id?):", stdout);
@@ -19,7 +21,6 @@ module.exports = async () => {
     console.error("stderr:", stderr);
   }
 
-  // Wait for the network to start (i.e. block number >= 1)
   console.log("Waiting for LocalSecret to start...");
 
   await waitForChainToStart({});
