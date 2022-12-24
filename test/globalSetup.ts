@@ -29,8 +29,7 @@ module.exports = async () => {
   await exec(
     "docker exec localsecret sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml",
   );
-  await exec("docker stop localsecret");
-  await exec("docker start localsecret");
+  await exec("docker restart localsecret");
 
   await waitForChainToStart({});
 

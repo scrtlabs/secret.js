@@ -1,29 +1,18 @@
-import {
-  fromBase64,
-  fromHex,
-  fromUtf8,
-  toBase64,
-  toHex,
-  toUtf8,
-} from "@cosmjs/encoding";
-import * as secp256k1 from "@noble/secp256k1";
+import {fromBase64, fromUtf8, toBase64,} from "@cosmjs/encoding";
 
-import { jest } from "@jest/globals";
-import { keccak_256 } from "@noble/hashes/sha3";
-import { bech32 } from "bech32";
+import {jest} from "@jest/globals";
+import {bech32} from "bech32";
 import fs from "fs";
 import {
   base64PubkeyToAddress,
   base64TendermintPubkeyToValconsAddress,
   gasToFee,
-  MetaMaskWallet,
   MsgDelegate,
   MsgExecuteContract,
   MsgExecuteContractResponse,
   MsgGrantAuthorization,
   MsgInstantiateContractResponse,
   MsgSend,
-  MsgStoreCodeResponse,
   MsgTransfer,
   ProposalType,
   pubkeyToAddress,
@@ -37,22 +26,22 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
-import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
-import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
-import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
-import { AminoWallet } from "../src/wallet_amino";
+import {BaseAccount} from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import {Proposal} from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import {BondStatus} from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
+import {AminoWallet} from "../src/wallet_amino";
 import {
-  Account,
+  Account, checkInstantiateSuccess,
   createIbcChannel,
   createIbcConnection,
   exec,
   getAllMethodNames,
   getBalance,
   getValueFromRawLog,
-  initContract,
+  initContract, localsecretRestApi,
   loopRelayer,
   sleep,
-  storeContract,
+  storeContract, storeSnip20Ibc,
   waitForChainToStart,
 } from "./utils";
 
@@ -82,7 +71,7 @@ beforeAll(async () => {
       walletAmino,
       walletProto: new Wallet(mnemonic),
       secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
+        url: localsecretRestApi,
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -101,7 +90,7 @@ beforeAll(async () => {
       walletAmino,
       walletProto,
       secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
+        url: localsecretRestApi,
         chainId: "secretdev-1",
         wallet: walletAmino,
         walletAddress: walletAmino.address,
@@ -259,26 +248,7 @@ describe("query", () => {
   test("query.getTx error", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -707,26 +677,7 @@ describe("tx.compute", () => {
   test("MsgInstantiateContract", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -762,42 +713,13 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
-      "/secret.compute.v1beta1.MsgInstantiateContract",
-    );
-    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
-      "secret1",
-    );
+    checkInstantiateSuccess(tx);
   });
 
   test("MsgInstantiateContract VmError", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -961,26 +883,7 @@ describe("tx.compute", () => {
   test("MsgExecuteContract StdError", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -1058,27 +961,7 @@ describe("tx.compute", () => {
   test("MsgExecuteContract decrypt output data", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
-
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
@@ -2260,7 +2143,7 @@ describe("tx.feegrant", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     const secretjsGrantee = new SecretNetworkClient({
-      url: "http://localhost:1317",
+      url: localsecretRestApi,
       chainId: "secretdev-1",
       wallet: newWallet,
       walletAddress: newWallet.address,
@@ -2814,118 +2697,6 @@ describe("utils", () => {
   });
 });
 
-test("MetaMaskWallet", async () => {
-  //@ts-ignore
-  global.localStorage = {
-    getItem: () => {
-      // pubkey of account a
-      return toHex(accounts[0].walletAmino.publicKey);
-    },
-    removeItem: () => {},
-    setItem: () => {},
-  };
-
-  const ethProvider = {
-    request: async (req: {
-      method: "personal_sign";
-      params: [string /* msgToSign */, string /* ethAddress */];
-    }) => {
-      const msgData = fromUtf8(fromHex(req.params[0].slice(2)));
-      const length = msgData.length;
-      const eip191MessagePrefix = "\x19Ethereum Signed Message:\n";
-
-      const msgToSign = eip191MessagePrefix + length + msgData;
-
-      const msgHash = keccak_256(toUtf8(msgToSign));
-
-      const privkey = accounts[0].walletAmino.privateKey;
-
-      const signature = await secp256k1.sign(msgHash, privkey, {
-        extraEntropy: true,
-        der: false,
-      });
-
-      // add dummy leading 0x and trailing recovery id
-      return `0x${toHex(signature)}00`;
-    },
-  };
-
-  const wallet = await MetaMaskWallet.create(ethProvider, "blabla");
-
-  const secretjs = new SecretNetworkClient({
-    url: "http://localhost:1317",
-    wallet: wallet,
-    walletAddress: wallet.address,
-    chainId: "secretdev-1",
-  });
-
-  const txStore = await secretjs.tx.compute.storeCode(
-    {
-      sender: accounts[0].address,
-      wasm_byte_code: fs.readFileSync(
-        `${__dirname}/snip20-ibc.wasm.gz`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    },
-    {
-      broadcastCheckIntervalMs: 100,
-      gasLimit: 5_000_000,
-    },
-  );
-  if (txStore.code !== TxResultCode.Success) {
-    console.error(txStore.rawLog);
-  }
-  expect(txStore.code).toBe(TxResultCode.Success);
-
-  const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).code_id;
-  expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
-
-  const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
-    code_id,
-  });
-
-  const tx = await secretjs.tx.compute.instantiateContract(
-    {
-      sender: accounts[0].address,
-      code_id: code_id,
-      code_hash: code_hash,
-      init_msg: {
-        name: "Secret SCRT",
-        admin: accounts[0].address,
-        symbol: "SSCRT",
-        decimals: 6,
-        initial_balances: [{ address: accounts[0].address, amount: "1" }],
-        prng_seed: "eW8=",
-        config: {
-          public_total_supply: true,
-          enable_deposit: true,
-          enable_redeem: true,
-          enable_mint: false,
-          enable_burn: false,
-        },
-        supported_denoms: ["uscrt"],
-      },
-      label: `label-${Date.now()}`,
-      init_funds: [],
-    },
-    {
-      broadcastCheckIntervalMs: 100,
-      gasLimit: 5_000_000,
-    },
-  );
-  if (tx.code !== TxResultCode.Success) {
-    console.error(tx.rawLog);
-  }
-  expect(tx.code).toBe(TxResultCode.Success);
-
-  expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
-    "/secret.compute.v1beta1.MsgInstantiateContract",
-  );
-  expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
-    "secret1",
-  );
-});
 
 describe("ibc", () => {
   let ibcChannelIdOnChain1 = "";

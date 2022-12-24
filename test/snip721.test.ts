@@ -11,9 +11,9 @@ import {
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf/secret/compute/v1beta1/msg";
+} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
-import { Account, getValueFromRawLog } from "./utils";
+import {Account, getValueFromRawLog, localsecretRestApi} from "./utils";
 
 //@ts-ignore
 let accounts: Account[];
@@ -41,7 +41,7 @@ beforeAll(async () => {
       walletAmino,
       walletProto: new Wallet(mnemonic),
       secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
+        url: localsecretRestApi,
         wallet: walletAmino,
         walletAddress: walletAmino.address,
         chainId: "secretdev-1",
@@ -61,7 +61,7 @@ beforeAll(async () => {
       walletAmino: wallet,
       walletProto: walletProto,
       secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
+        url: localsecretRestApi,
         chainId: "secretdev-1",
         wallet: wallet,
         walletAddress: address,

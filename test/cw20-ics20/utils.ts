@@ -168,7 +168,8 @@ export async function loopRelayer(link: Link) {
 
       await Promise.all([link.updateClient("A"), link.updateClient("B")]);
     } catch (e) {
-      console.error(`Caught error: `, e);
+      //console.error(`Caught error: `, e);
+      // console.log(`Shutdown relayer`);
     }
     await sleep(5000);
   }
