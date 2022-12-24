@@ -12,7 +12,7 @@ module.exports = async () => {
   // init localsecret
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
-  const { /* stdout, */ stderr } = await exec(
+  let { /* stdout, */ stderr } = await exec(
     `docker run -d -p 1317:1316 -p 26657:26657 --name localsecret $(cat "${__dirname}/localsecret-version")`,
   );
 
@@ -35,4 +35,16 @@ module.exports = async () => {
   await waitForChainToStart({});
 
   console.log(`LocalSecret is running`);
+
+  if (process.env.SKIP_IBC_COMPOSE === "true") {
+    return;
+  }
+
+  let { /* stdout, */ err } = await exec(
+      `docker-compose -f test/cw20-ics20/docker-compose.yml up -d`,
+  );
+  // console.log("stdout (testnet container id?):", stdout);
+  if (err) {
+    console.error("stderr:", err);
+  }
 };

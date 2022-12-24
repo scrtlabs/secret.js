@@ -67,6 +67,7 @@ export async function waitForIBCConnection(chainId: string, url: string) {
     try {
       const { connections } = await secretjs.query.ibc_connection.connections({});
 
+      // @ts-ignore
       if (connections.length >= 1 && connections[0].state === ConnectionState.STATE_OPEN) {
         console.log("Found an open connection on", chainId);
         break;
@@ -88,7 +89,7 @@ export async function waitForIBCChannel(chainId: string, url: string, channelId:
   outter: while (true) {
     try {
       const { channels } = await secretjs.query.ibc_channel.channels({});
-
+      // @ts-ignore
       for (const c of channels) {
         if (c.channel_id === channelId && c.state == ChannelState.STATE_OPEN) {
           console.log(`${channelId} is open on ${chainId}`);
@@ -115,7 +116,7 @@ export async function createIbcConnection(): Promise<Link> {
   const address = "secret1ldjxljw7v4vk6zhyduywh04hpj0jdwxsmrlatf";
 
   // Create IBC Client for chain A
-  const clientA = await IbcClient.connectWithSigner(`http://${networksAddress}:26657`, signerA, address, {
+  const clientA = await IbcClient.connectWithSigner(`http://${networksAddress}:46657`, signerA, address, {
     prefix: "secret",
     gasPrice: GasPrice.fromString("0.25uscrt"),
     estimatedBlockTime: 5750,

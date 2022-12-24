@@ -5,11 +5,11 @@ services:
     # ports are only here in case interaction
     # between localhost and container is desired
     ports:
-      - "26657:26657"
-      - "26656:26656"
-      - "9090:9090"
-      - "9091:9091"
-      - "1317:1317"
+      - "46657:26657"
+      - "46656:26656"
+      - "9094:9090"
+      - "9095:9091"
+      - "2317:1317"
       # faucet
       - "5000:5000"
     environment:

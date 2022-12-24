@@ -2941,7 +2941,7 @@ describe("ibc", () => {
     console.log("\nSetting up LocalSecret2...");
     await exec("docker rm -f localsecret2 || true");
     const { /* stdout, */ stderr } = await exec(
-      `docker run -d -p 1318:1316 -p 36657:26657 -e CHAINID=secretdev-2 --name localsecret2 $(cat "${__dirname}/localsecret-version")`,
+      `docker run -d -p 1318:1316 -p 36658:26657 -e CHAINID=secretdev-2 --name localsecret2 $(cat "${__dirname}/localsecret-version")`,
     );
 
     // console.log("stdout (testnet container id?):", stdout);

@@ -80,7 +80,7 @@ beforeAll(async () => {
             walletAmino,
             walletProto: new Wallet(mnemonic),
             secretjs: new SecretNetworkClient({
-                url: `http://${networksAddress}:1317`,
+                url: `http://${networksAddress}:2317`,
                 wallet: walletAmino,
                 walletAddress: walletAmino.address,
                 chainId: "secretdev-1",
@@ -106,11 +106,11 @@ beforeAll(async () => {
         };
     }
 
-    await waitForBlocks("secretdev-1", `http://${networksAddress}:1317`);
+    await waitForBlocks("secretdev-1", `http://${networksAddress}:2317`);
     await waitForBlocks("secretdev-2", `http://${networksAddress}:3317`);
 
     contracts.snip20.wasm = fs.readFileSync(`${__dirname}/snip20.wasm`) as Uint8Array;
-    contracts.ics20.wasm = fs.readFileSync(`${__dirname}/../contract.wasm`) as Uint8Array;
+    contracts.ics20.wasm = fs.readFileSync(`${__dirname}/contract.wasm`) as Uint8Array;
 
     contracts.snip20.codeHash = toHex(sha256(contracts.snip20.wasm));
     contracts.ics20.codeHash = toHex(sha256(contracts.ics20.wasm));
@@ -139,7 +139,9 @@ beforeAll(async () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
+    // @ts-ignore
     contracts.snip20.codeId = Number(tx.arrayLog.find((x) => x.key === "code_id").value);
+    // @ts-ignore
     contracts.ics20.codeId = Number(tx.arrayLog.reverse().find((x) => x.key === "code_id").value);
 
     console.log("Instantiating snip20 on secretdev-1...");
