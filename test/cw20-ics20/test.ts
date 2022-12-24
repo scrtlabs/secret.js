@@ -5,13 +5,17 @@ import {
   MsgInstantiateContract,
   MsgStoreCode,
   SecretNetworkClient,
-  toBase64,
-  toHex,
-  toUtf8,
   TxResultCode,
   Wallet,
   MsgInstantiateContractResponse
 } from "../../src";
+
+import {
+    toBase64,
+    toHex,
+    toUtf8,
+} from "@cosmjs/encoding";
+
 import { AminoWallet } from "../../src/wallet_amino";
 import { ibcDenom, loopRelayer, sleep, createIbcConnection, waitForBlocks, createIbcChannel } from "./utils";
 
