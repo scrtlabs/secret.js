@@ -44,11 +44,15 @@ export class MetaMaskWallet {
         ),
       ).toLocaleLowerCase();
 
-      if (derivedEthAddressBytes !== ethAddressBytes) {
-        localStorage.removeItem(localStorageKey);
+      if (derivedEthAddressBytes === ethAddressBytes) {
+        return new MetaMaskWallet(
+          ethProvider,
+          ethAddress,
+          fromHex(publicKeyHex),
+        );
       }
 
-      return new MetaMaskWallet(ethProvider, ethAddress, fromHex(publicKeyHex));
+      localStorage.removeItem(localStorageKey);
     }
 
     // On ETHland pubkeys are recovered from signatures, so we're going to:
@@ -68,7 +72,7 @@ export class MetaMaskWallet {
     const sig = fromHex(sigResult.slice(2, -2));
     let recoveryId = parseInt(sigResult.slice(-2), 16) - 27;
 
-    // When a Ledger is used, this value doesn't need to be adjusted 
+    // When a Ledger is used, this value doesn't need to be adjusted
     if (recoveryId < 0) {
       recoveryId += 27;
     }

@@ -1,5 +1,4 @@
-import { SecretNetworkClient } from "../src";
-import { exec, sleep } from "./utils";
+import { exec, waitForChainToStart } from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 
@@ -8,11 +7,13 @@ module.exports = async () => {
     return;
   }
 
+  await exec(`docker pull $(cat "${__dirname}/localsecret-version")`);
+
   // init localsecret
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 1317:1316 --name localsecret ghcr.io/scrtlabs/localsecret:latest",
+    `docker run -d -p 1317:1316 -p 26657:26657 --name localsecret $(cat "${__dirname}/localsecret-version")`,
   );
 
   // console.log("stdout (testnet container id?):", stdout);
@@ -20,10 +21,9 @@ module.exports = async () => {
     console.error("stderr:", stderr);
   }
 
-  // Wait for the network to start (i.e. block number >= 1)
-  console.log("Waiting for the network to start...");
+  console.log("Waiting for LocalSecret to start...");
 
-  await waitForBlocks();
+  await waitForChainToStart({});
 
   // set block time to 200ms
   await exec(
@@ -32,27 +32,7 @@ module.exports = async () => {
   await exec("docker stop localsecret");
   await exec("docker start localsecret");
 
-  await waitForBlocks();
-  await sleep(5000);
+  await waitForChainToStart({});
+
   console.log(`LocalSecret is running`);
 };
-
-async function waitForBlocks() {
-  while (true) {
-    const secretjs = new SecretNetworkClient({
-      url: "http://localhost:1317",
-      chainId: "secretdev-1",
-    });
-
-    try {
-      const { block } = await secretjs.query.tendermint.getLatestBlock({});
-
-      if (Number(block?.header?.height) >= 1) {
-        break;
-      }
-    } catch (e) {
-      // console.eerror(e);
-    }
-    await sleep(250);
-  }
-}

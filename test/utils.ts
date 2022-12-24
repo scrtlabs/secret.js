@@ -1,6 +1,14 @@
+import { IbcClient, Link } from "@confio/relayer";
+import { ChannelPair } from "@confio/relayer/build/lib/link";
+import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { stringToPath } from "@cosmjs/crypto";
+import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import { SecretNetworkClient, TxResultCode, Wallet } from "../src";
+import { State as ChannelState } from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
+import { State as ConnectionState } from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
+import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
 
 export const exec = util.promisify(require("child_process").exec);
@@ -135,6 +143,157 @@ export async function getBalance(
   }
 }
 
+export async function waitForIBCConnection(chainId: string, url: string) {
+  const secretjs = new SecretNetworkClient({
+    url,
+    chainId,
+  });
+
+  console.log("Waiting for open connections on", chainId + "...");
+  while (true) {
+    try {
+      const { connections } = await secretjs.query.ibc_connection.connections(
+        {},
+      );
+
+      if (
+        connections &&
+        connections[0].state &&
+        connections[0].state === ConnectionState.STATE_OPEN
+      ) {
+        console.log("Found an open connection on", chainId);
+        break;
+      }
+    } catch (e) {
+      // console.error("IBC error:", e, "on chain", chainId);
+    }
+    await sleep(100);
+  }
+}
+
+export async function waitForIBCChannel(
+  chainId: string,
+  url: string,
+  channelId: string,
+) {
+  const secretjs = new SecretNetworkClient({
+    url,
+    chainId,
+  });
+
+  console.log(`Waiting for ${channelId} on ${chainId}...`);
+  outer: while (true) {
+    try {
+      const { channels } = await secretjs.query.ibc_channel.channels({});
+
+      if (!channels) {
+        break;
+      }
+
+      for (const c of channels) {
+        if (c.channel_id === channelId && c.state == ChannelState.STATE_OPEN) {
+          console.log(`${channelId} is open on ${chainId}`);
+          break outer;
+        }
+      }
+    } catch (e) {
+      // console.error("IBC error:", e, "on chain", chainId);
+    }
+    await sleep(100);
+  }
+}
+
+export async function createIbcConnection(): Promise<Link> {
+  // Create signers as LocalSecret account d
+  // (Both sides are localsecret so same account can be used on both sides)
+  const signerA = await DirectSecp256k1HdWallet.fromMnemonic(
+    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick", // account d
+    { hdPaths: [stringToPath("m/44'/529'/0'/0/0")], prefix: "secret" },
+  );
+  const [account] = await signerA.getAccounts();
+
+  const signerB = signerA;
+
+  // Create IBC Client for chain A
+  const clientA = await IbcClient.connectWithSigner(
+    "http://localhost:26657",
+    signerA,
+    account.address,
+    {
+      prefix: "secret",
+      gasPrice: GasPrice.fromString("0.25uscrt"),
+      estimatedBlockTime: 750,
+      estimatedIndexerTime: 500,
+    },
+  );
+
+  // Create IBC Client for chain A
+  const clientB = await IbcClient.connectWithSigner(
+    "http://localhost:36657",
+    signerB,
+    account.address,
+    {
+      prefix: "secret",
+      gasPrice: GasPrice.fromString("0.25uscrt"),
+      estimatedBlockTime: 750,
+      estimatedIndexerTime: 500,
+    },
+  );
+
+  // Create new connection for the 2 clients
+  return await Link.createWithNewConnections(clientA, clientB);
+}
+export async function createIbcChannel(
+  ibcConnection: Link,
+): Promise<ChannelPair> {
+  await Promise.all([
+    ibcConnection.updateClient("A"),
+    ibcConnection.updateClient("B"),
+  ]);
+
+  // Create a channel for the connections
+  return await ibcConnection.createChannel(
+    "A",
+    "transfer",
+    "transfer",
+    Order.ORDER_UNORDERED,
+    "ics20-1",
+  );
+}
+
+export async function loopRelayer(connection: Link) {
+  let run = true;
+
+  const done = new Promise<void>(async (resolve) => {
+    while (run) {
+      try {
+        await connection.relayAll();
+
+        await Promise.all([
+          connection.updateClient("A"),
+          connection.updateClient("B"),
+        ]);
+      } catch (e) {
+        console.error(`loopRelayer: caught error:`, e);
+      }
+      await sleep(750);
+    }
+
+    resolve();
+  });
+
+  return () => {
+    // 1. To stop the relayer, the caller needs to call this function
+    // which lets the relayer know to stop looping
+    run = false;
+    // 2. Then the caller needs to wait for this promise to resolve
+    // this promise resloves after all relayer txs have finished
+    // otherwise the test suite kills LocalSecret mid-tx which throw exceptions
+    // from inside the relayer loop
+    return done;
+  };
+}
+
 export function getAllMethodNames(obj: any): Array<string> {
   const methods = new Set<string>();
   while ((obj = Reflect.getPrototypeOf(obj))) {
@@ -160,4 +319,40 @@ export function getAllMethodNames(obj: any): Array<string> {
     });
   }
   return Array.from(methods);
+}
+
+export async function waitForChainToStart({
+  url,
+  chainId,
+}: {
+  url?: string;
+  chainId?: string;
+}) {
+  while (true) {
+    const wallet = new AminoWallet(
+      "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+    ); // account a
+
+    const secretjs = new SecretNetworkClient({
+      url: url ?? "http://localhost:1317",
+      chainId: chainId ?? "secretdev-1",
+      wallet,
+      walletAddress: wallet.address,
+    });
+
+    try {
+      const tx = await secretjs.tx.bank.send({
+        amount: [{ amount: "1", denom: "uscrt" }],
+        from_address: wallet.address,
+        to_address: wallet.address,
+      });
+
+      if (tx.code === TxResultCode.Success) {
+        break;
+      }
+    } catch (e) {
+      // console.eerror(e);
+    }
+    await sleep(250);
+  }
 }
