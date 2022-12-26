@@ -189,6 +189,13 @@ export class ComputeQuerier {
         nonce,
       );
 
+      // Don't try to parse JSON in case the result is empty.
+      // This seems kinda stupid but if the contract for some reason returns `Binary::default()`
+      // the JSON parsing will fail (empty bytes)
+      if (!decryptedBase64Result?.length) {
+        return {} as R;
+      }
+
       return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Result))));
     } catch (err) {
       try {
