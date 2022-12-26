@@ -1,17 +1,17 @@
-import {IbcClient, Link} from "@confio/relayer";
-import {ChannelPair} from "@confio/relayer/build/lib/link";
-import {DirectSecp256k1HdWallet} from "@cosmjs/proto-signing";
-import {stringToPath} from "@cosmjs/crypto";
-import {GasPrice} from "@cosmjs/stargate";
+import { IbcClient, Link } from "@confio/relayer";
+import { ChannelPair } from "@confio/relayer/build/lib/link";
+import { stringToPath } from "@cosmjs/crypto";
+import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
-import {SecretNetworkClient, TxResponse, TxResultCode, Wallet} from "../src";
-import {State as ChannelState} from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
-import {State as ConnectionState} from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
-import {Order} from "../src/protobuf/ibc/core/channel/v1/channel";
-import {AminoWallet} from "../src/wallet_amino";
+import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
+import { State as ChannelState } from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
+import { State as ConnectionState } from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
+import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
+import { AminoWallet } from "../src/wallet_amino";
 
-export const localsecretRestApi = "http://localhost:1317"
+export const localsecretRestApi = "http://localhost:1317";
 
 export const exec = util.promisify(require("child_process").exec);
 
@@ -27,20 +27,23 @@ export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function storeSnip20Ibc(secretjs: SecretNetworkClient, address: string) {
+export async function storeSnip20Ibc(
+  secretjs: SecretNetworkClient,
+  address: string,
+) {
   const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: address,
-        wasm_byte_code: fs.readFileSync(
-            `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
+    {
+      sender: address,
+      wasm_byte_code: fs.readFileSync(
+        `${__dirname}/snip20-ibc.wasm.gz`,
+      ) as Uint8Array,
+      source: "",
+      builder: "",
+    },
+    {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    },
   );
   if (txStore.code !== TxResultCode.Success) {
     console.error(txStore.rawLog);
@@ -57,10 +60,10 @@ export function checkInstantiateSuccess(tx: TxResponse) {
   expect(tx.code).toBe(TxResultCode.Success);
 
   expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
-      "/secret.compute.v1beta1.MsgInstantiateContract",
+    "/secret.compute.v1beta1.MsgInstantiateContract",
   );
   expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
-      "secret1",
+    "secret1",
   );
 }
 

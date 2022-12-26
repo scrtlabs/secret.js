@@ -40,7 +40,7 @@ module.exports = async () => {
   }
 
   let { /* stdout, */ err } = await exec(
-      `docker-compose -f test/cw20-ics20/docker-compose.yml up -d`,
+    `docker-compose -f test/cw20-ics20/docker-compose.yml up -d`,
   );
   // console.log("stdout (testnet container id?):", stdout);
   if (err) {

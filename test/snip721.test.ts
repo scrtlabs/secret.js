@@ -3,17 +3,15 @@ import { jest } from "@jest/globals";
 import fs from "fs";
 import {
   MsgExecuteContract,
+  MsgExecuteContractResponse,
+  MsgInstantiateContractResponse,
   SecretNetworkClient,
   TxResponse,
   TxResultCode,
   Wallet,
 } from "../src";
-import {
-  MsgExecuteContractResponse,
-  MsgInstantiateContractResponse,
-} from "../src";
 import { AminoWallet } from "../src/wallet_amino";
-import {Account, getValueFromRawLog, localsecretRestApi} from "./utils";
+import { Account, getValueFromRawLog, localsecretRestApi } from "./utils";
 
 //@ts-ignore
 let accounts: Account[];

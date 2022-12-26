@@ -7,7 +7,7 @@ import {
   Wallet,
 } from "../src";
 import { AminoWallet } from "../src/wallet_amino";
-import {Account, getValueFromRawLog, localsecretRestApi} from "./utils";
+import { Account, getValueFromRawLog, localsecretRestApi } from "./utils";
 
 //@ts-ignore
 let accounts: Account[];

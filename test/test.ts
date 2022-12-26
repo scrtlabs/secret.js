@@ -1,7 +1,7 @@
-import {fromBase64, fromUtf8, toBase64,} from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
 
-import {jest} from "@jest/globals";
-import {bech32} from "bech32";
+import { jest } from "@jest/globals";
+import { bech32 } from "bech32";
 import fs from "fs";
 import {
   base64PubkeyToAddress,
@@ -26,22 +26,25 @@ import {
   VoteOption,
   Wallet,
 } from "../src";
-import {BaseAccount} from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
-import {Proposal} from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
-import {BondStatus} from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
-import {AminoWallet} from "../src/wallet_amino";
+import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
+import { AminoWallet } from "../src/wallet_amino";
 import {
-  Account, checkInstantiateSuccess,
+  Account,
+  checkInstantiateSuccess,
   createIbcChannel,
   createIbcConnection,
   exec,
   getAllMethodNames,
   getBalance,
   getValueFromRawLog,
-  initContract, localsecretRestApi,
+  initContract,
+  localsecretRestApi,
   loopRelayer,
   sleep,
-  storeContract, storeSnip20Ibc,
+  storeContract,
+  storeSnip20Ibc,
   waitForChainToStart,
 } from "./utils";
 
@@ -2696,7 +2699,6 @@ describe("utils", () => {
     ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
   });
 });
-
 
 describe("ibc", () => {
   let ibcChannelIdOnChain1 = "";
