@@ -2814,7 +2814,16 @@ describe("utils", () => {
   });
 });
 
-test("MetaMaskWallet", async () => {
+test.skip("MetaMaskWallet account derivation", async () => {
+  // TODO
+  // The "MetaMaskWallet signer" test only tests the signer part of the wallet
+  // it gets the account/pubkey from localStorage
+  // To test the account derivation code of MetaMaskWallet.create() we need to fix
+  // the personal_sign function in "MetaMaskWallet signer" which sets dummy recovery id
+  // when signing stuff
+});
+
+test("MetaMaskWallet signer", async () => {
   //@ts-ignore
   global.localStorage = {
     getItem: () => {
@@ -2845,12 +2854,16 @@ test("MetaMaskWallet", async () => {
         der: false,
       });
 
-      // add dummy leading 0x and trailing recovery id
+      // add dummy leading 0x and dummy trailing recovery id
+      // this needs to be fixed to test the address derivation code
       return `0x${toHex(signature)}00`;
     },
   };
 
-  const wallet = await MetaMaskWallet.create(ethProvider, "blabla");
+  const wallet = await MetaMaskWallet.create(
+    ethProvider,
+    "0x087114fb337980d7b96098785f19345531816b6d", // derived ETH address for account a
+  );
 
   const secretjs = new SecretNetworkClient({
     url: "http://localhost:1317",
