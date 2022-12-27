@@ -1,5 +1,10 @@
 # Changelog & Version Info
 
+## 1.6.1
+
+- Fix handling of empty response on `secretjs.query.compute.queryContract()`.
+- Add the `ibcDenom()` util function for calculating the IBC denom of a token that was sent over IBC.
+
 ## 1.6.0
 
 Add `ibcResponses` to `TxResponse` - if a tx results in IBC packets being sent, `ibcResponses` contains the IBC ack/timeout txs, Making it easy to verify the success of an IBC operations.
