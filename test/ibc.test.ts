@@ -1,33 +1,32 @@
 import { Link } from "@confio/relayer";
+import { sha256 } from "@noble/hashes/sha256";
+import fs from "fs";
+import pako from "pako";
 import {
-  TxResultCode,
-  MsgTransfer,
+  ibcDenom,
   MsgExecuteContract,
   MsgInstantiateContractResponse,
   MsgStoreCode,
+  MsgStoreCodeResponse,
+  MsgTransfer,
+  SecretNetworkClient,
   toBase64,
   toHex,
   toUtf8,
   TxResponse,
-  MsgStoreCodeResponse,
-  ibcDenom,
-  SecretNetworkClient,
+  TxResultCode,
 } from "../src";
-import {
-  waitForChainToStart,
-  chain2LCD,
-  exec,
-  createIbcConnection,
-  createIbcChannel,
-  loopRelayer,
-  accounts,
-  sleep,
-  Account,
-} from "./utils";
-import fs from "fs";
-import { sha256 } from "@noble/hashes/sha256";
-import pako from "pako";
 import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
+import {
+  Account,
+  accounts,
+  chain2LCD,
+  createIbcChannel,
+  createIbcConnection,
+  exec,
+  loopRelayer,
+  waitForChainToStart,
+} from "./utils";
 
 let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
@@ -504,9 +503,9 @@ describe("cw20-ics20", () => {
       expect((await tx.ibcResponses[0]).type).toBe("ack");
 
       // the balance query is lagging for some reason (on mainnet too!)
-      // so we;ll wait for it to update
+      // so we'll wait for it to update
       let balance: Coin | undefined;
-      while (balance?.amount === "0") {
+      while (balance?.amount === "0" || !balance) {
         ({ balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
           denom: expectedIbcDenom,
           address: accountOnSecretdev2.address,
