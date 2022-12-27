@@ -1,102 +1,14 @@
 import { fromUtf8 } from "@cosmjs/encoding";
-import { jest } from "@jest/globals";
 import fs from "fs";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-  SecretNetworkClient,
-  TxResponse,
   TxResultCode,
-  Wallet,
 } from "../src";
-import { AminoWallet } from "../src/wallet_amino";
-import { Account, getValueFromRawLog, localsecretRestApi } from "./utils";
+import { accounts, getValueFromRawLog } from "./utils";
 
-//@ts-ignore
-let accounts: Account[];
-
-beforeAll(async () => {
+beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
-
-  //@ts-ignore
-  accounts = global.__SCRT_TEST_ACCOUNTS__;
-
-  // Initialize genesis accounts
-  const mnemonics = [
-    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar", // account a
-    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow", // account b
-    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge", // account c
-    // account d is used by ts-relayer
-  ];
-
-  for (let i = 0; i < mnemonics.length; i++) {
-    const mnemonic = mnemonics[i];
-    const walletAmino = new AminoWallet(mnemonic);
-    accounts[i] = {
-      address: walletAmino.address,
-      mnemonic: mnemonic,
-      walletAmino,
-      walletProto: new Wallet(mnemonic),
-      secretjs: new SecretNetworkClient({
-        url: localsecretRestApi,
-        wallet: walletAmino,
-        walletAddress: walletAmino.address,
-        chainId: "secretdev-1",
-      }),
-    };
-  }
-
-  // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
-  for (let i = 3; i <= 19; i++) {
-    const wallet = new AminoWallet();
-    const [{ address }] = await wallet.getAccounts();
-    const walletProto = new Wallet(wallet.mnemonic);
-
-    accounts[i] = {
-      address: address,
-      mnemonic: wallet.mnemonic,
-      walletAmino: wallet,
-      walletProto: walletProto,
-      secretjs: new SecretNetworkClient({
-        url: localsecretRestApi,
-        chainId: "secretdev-1",
-        wallet: wallet,
-        walletAddress: address,
-      }),
-    };
-  }
-
-  // Send 100k SCRT from account 0 to each of accounts 1-19
-
-  const { secretjs } = accounts[0];
-
-  let tx: TxResponse;
-  try {
-    tx = await secretjs.tx.bank.multiSend(
-      {
-        inputs: [
-          {
-            address: accounts[0].address,
-            coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
-          },
-        ],
-        outputs: accounts.slice(1).map(({ address }) => ({
-          address,
-          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
-        })),
-      },
-      {
-        gasLimit: 200_000,
-      },
-    );
-  } catch (e) {
-    throw new Error(`Failed to multisend: ${JSON.stringify(e)}`);
-  }
-
-  if (tx.code !== 0) {
-    console.error(`failed to multisend coins`);
-    throw new Error("Failed to multisend coins to initial accounts");
-  }
 });
 
 describe("tx.snip20", () => {
@@ -177,7 +89,9 @@ describe("tx.snip20", () => {
       {
         sender: secretjs.address,
         contract_address,
-        msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
+        msg: {
+          transfer: { recipient: accounts[1].address, amount: "2" },
+        },
       },
       {
         gasLimit: 5_000_000,
@@ -357,7 +271,10 @@ describe("tx.snip20", () => {
         sender: secretjs.address,
         contract_address: contractAddress,
         msg: {
-          increase_allowance: { spender: accounts[1].address, amount: "2" },
+          increase_allowance: {
+            spender: accounts[1].address,
+            amount: "2",
+          },
         },
       },
       {
@@ -447,7 +364,10 @@ describe("tx.snip20", () => {
         sender: secretjs.address,
         contract_address: contractAddress,
         msg: {
-          increase_allowance: { spender: accounts[1].address, amount: "2" },
+          increase_allowance: {
+            spender: accounts[1].address,
+            amount: "2",
+          },
         },
       },
       {
@@ -464,7 +384,10 @@ describe("tx.snip20", () => {
         sender: secretjs.address,
         contract_address: contractAddress,
         msg: {
-          decrease_allowance: { spender: accounts[1].address, amount: "2" },
+          decrease_allowance: {
+            spender: accounts[1].address,
+            amount: "2",
+          },
         },
       },
       {
@@ -736,7 +659,10 @@ describe("query.snip20", () => {
         sender: secretjs.address,
         contract_address: contractAddress,
         msg: {
-          increase_allowance: { spender: accounts[1].address, amount: "2" },
+          increase_allowance: {
+            spender: accounts[1].address,
+            amount: "2",
+          },
         },
       },
       {
@@ -857,7 +783,9 @@ describe("query.snip20", () => {
       {
         sender: secretjs.address,
         contract_address: contractAddress,
-        msg: { transfer: { recipient: accounts[1].address, amount: "2" } },
+        msg: {
+          transfer: { recipient: accounts[1].address, amount: "2" },
+        },
       },
       {
         gasLimit: 5_000_000,

@@ -6,12 +6,8 @@ import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
-import { State as ChannelState } from "../src/grpc_gateway/ibc/core/channel/v1/channel.pb";
-import { State as ConnectionState } from "../src/grpc_gateway/ibc/core/connection/v1/connection.pb";
 import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
-
-export const localsecretRestApi = "http://localhost:1317";
 
 export const exec = util.promisify(require("child_process").exec);
 
@@ -22,6 +18,60 @@ export type Account = {
   walletProto: Wallet;
   secretjs: SecretNetworkClient;
 };
+
+export const accounts: Account[] = [];
+
+export const chain1LCD = "http://localhost:1317";
+export const chain2LCD = "http://localhost:2317";
+
+export const chain1RPC = "http://localhost:26657";
+export const chain2RPC = "http://localhost:36657";
+
+// Initialize genesis accounts
+const mnemonics = [
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar", // account a
+  "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow", // account b
+  "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge", // account c
+  // account d is used by ts-relayer
+
+  // more test accounts for when we need fresh accounts (like when creating a validator)
+  // this needs to be hard coded so we could fund the accounts once and share them between all test suites
+  // (jest runs each test file in a different process and there's no good way of sharing global state)
+  "road comfort vague essay seven dinosaur throw year crater amazing card shrug method large spatial rifle initial fade harsh clap control action average praise",
+  "magic leisure piano time kangaroo consider cross settle cute expose fossil company used this connect garbage inject coach vendor slot antenna nerve love slush",
+  "lake wink moment volume danger custom wheat trip trophy job clown robust clay script image degree wisdom magnet proof age universe under fox venture",
+  "employ similar canoe mammal degree bacon fold auto butter airport skate athlete screen wool off tribe isolate misery aisle risk expose treat wrong drop",
+  "mushroom crouch prepare hole install soda fetch night clean devote viable fork junk magic tragic expire boost cradle morning chapter odor kidney profit unique",
+  "vanish soon ketchup acid twist someone burger dolphin sugar brand dose inflict remember control wool remain time glad harvest wonder alert lawsuit myself network",
+  "duck illegal remove walk job control fever amateur vocal stand rescue pupil forest limit shoe churn ill then ill tool wise task federal visa",
+  "planet unique bachelor hero glance apology nothing duty bracket until short faculty clay service sustain goose remember fork memory hockey peanut voyage benefit trip",
+  "guitar milk brief roast mutual only kiwi position slush must reduce liberty dizzy mix nut caught ethics struggle wrist run proud jeans lens pretty",
+  "police magnet impose senior opera west avoid can civil surge film outer swap replace sentence whale runway side ring raise table fox draft dynamic",
+  "balance crawl leisure settle version lemon goat indicate inflict news sense spend public wrist quarter nominee mammal barely hedgehog jaguar quality screen squirrel hotel",
+  "minor neglect obscure taste happy human truck pair solve weapon blade diamond bamboo draft siege page rocket license design nation collect equal champion jealous",
+  "giraffe truck mention slim you music scrap elder swear latin festival hurdle museum disease rocket book diagram capital creek useful problem seminar razor world",
+  "clock involve govern nurse kiss butter hockey hill hub hurry palace error moon asset learn health slam amateur lava zone this jelly toy essay",
+  "culture possible muffin nut ocean nut frame dinosaur melody border oven crumble pumpkin normal zone prosper auction series time spray stage unveil whale inner",
+  "lens upon insect rescue marriage wolf uphold sniff wine humor grass reflect rough belt labor quantum school imitate baby weasel destroy leg adapt parade",
+  "popular famous wine robot melody warm sad suit never absurd fat flush into space question mechanic cactus coast couple outdoor ribbon town transfer fix",
+];
+
+for (let i = 0; i < mnemonics.length; i++) {
+  const mnemonic = mnemonics[i];
+  const walletAmino = new AminoWallet(mnemonic);
+  accounts[i] = {
+    address: walletAmino.address,
+    mnemonic: mnemonic,
+    walletAmino,
+    walletProto: new Wallet(mnemonic),
+    secretjs: new SecretNetworkClient({
+      url: chain1LCD,
+      wallet: walletAmino,
+      walletAddress: walletAmino.address,
+      chainId: "secretdev-1",
+    }),
+  };
+}
 
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -90,24 +140,6 @@ export function getValueFromRawLog(
   }
 
   return "";
-}
-
-export async function waitForTx(txhash: string): Promise<any> {
-  while (true) {
-    try {
-      const { stdout } = await exec(
-        `docker exec -i localsecret secretd q tx ${txhash}`,
-      );
-
-      if (Number(JSON.parse(stdout)?.code) === 0) {
-        return JSON.parse(stdout);
-      }
-    } catch (error) {
-      // console.error("q tx:", error);
-    }
-
-    await sleep(1000);
-  }
 }
 
 export async function storeContract(
@@ -185,66 +217,6 @@ export async function getBalance(
   }
 }
 
-export async function waitForIBCConnection(chainId: string, url: string) {
-  const secretjs = new SecretNetworkClient({
-    url,
-    chainId,
-  });
-
-  console.log("Waiting for open connections on", chainId + "...");
-  while (true) {
-    try {
-      const { connections } = await secretjs.query.ibc_connection.connections(
-        {},
-      );
-
-      if (
-        connections &&
-        connections[0].state &&
-        connections[0].state === ConnectionState.STATE_OPEN
-      ) {
-        console.log("Found an open connection on", chainId);
-        break;
-      }
-    } catch (e) {
-      // console.error("IBC error:", e, "on chain", chainId);
-    }
-    await sleep(100);
-  }
-}
-
-export async function waitForIBCChannel(
-  chainId: string,
-  url: string,
-  channelId: string,
-) {
-  const secretjs = new SecretNetworkClient({
-    url,
-    chainId,
-  });
-
-  console.log(`Waiting for ${channelId} on ${chainId}...`);
-  outer: while (true) {
-    try {
-      const { channels } = await secretjs.query.ibc_channel.channels({});
-
-      if (!channels) {
-        break;
-      }
-
-      for (const c of channels) {
-        if (c.channel_id === channelId && c.state == ChannelState.STATE_OPEN) {
-          console.log(`${channelId} is open on ${chainId}`);
-          break outer;
-        }
-      }
-    } catch (e) {
-      // console.error("IBC error:", e, "on chain", chainId);
-    }
-    await sleep(100);
-  }
-}
-
 export async function createIbcConnection(): Promise<Link> {
   // Create signers as LocalSecret account d
   // (Both sides are localsecret so same account can be used on both sides)
@@ -258,7 +230,7 @@ export async function createIbcConnection(): Promise<Link> {
 
   // Create IBC Client for chain A
   const clientA = await IbcClient.connectWithSigner(
-    "http://localhost:26657",
+    chain1RPC,
     signerA,
     account.address,
     {
@@ -271,7 +243,7 @@ export async function createIbcConnection(): Promise<Link> {
 
   // Create IBC Client for chain A
   const clientB = await IbcClient.connectWithSigner(
-    "http://localhost:36657",
+    chain2RPC,
     signerB,
     account.address,
     {
@@ -367,26 +339,24 @@ export async function waitForChainToStart({
   url,
   chainId,
 }: {
-  url?: string;
-  chainId?: string;
+  url: string;
+  chainId: string;
 }) {
+  const { walletAmino: wallet, address: walletAddress } = accounts[0];
+
+  const secretjs = new SecretNetworkClient({
+    url: url,
+    chainId: chainId,
+    wallet,
+    walletAddress,
+  });
+
   while (true) {
-    const wallet = new AminoWallet(
-      "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
-    ); // account a
-
-    const secretjs = new SecretNetworkClient({
-      url: url ?? localsecretRestApi,
-      chainId: chainId ?? "secretdev-1",
-      wallet,
-      walletAddress: wallet.address,
-    });
-
     try {
       const tx = await secretjs.tx.bank.send({
         amount: [{ amount: "1", denom: "uscrt" }],
-        from_address: wallet.address,
-        to_address: wallet.address,
+        from_address: walletAddress,
+        to_address: walletAddress,
       });
 
       if (tx.code === TxResultCode.Success) {

@@ -1,4 +1,11 @@
-import { exec, waitForChainToStart } from "./utils";
+import { TxResponse, TxResultCode } from "../src";
+import {
+  accounts,
+  chain1LCD,
+  chain2LCD,
+  exec,
+  waitForChainToStart,
+} from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 
@@ -7,43 +14,68 @@ module.exports = async () => {
     return;
   }
 
-  await exec(`docker pull $(cat "${__dirname}/localsecret-version")`);
+  console.log("\nWaiting for LocalSecret to start...");
 
-  // init localsecret
-  console.log("\nSetting up LocalSecret...");
-  await exec("docker rm -f localsecret || true");
-  let { /* stdout, */ stderr } = await exec(
-    `docker run -d -p 1317:1316 -p 26657:26657 --name localsecret $(cat "${__dirname}/localsecret-version")`,
-  );
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
 
-  // console.log("stdout (testnet container id?):", stdout);
-  if (stderr) {
-    console.error("stderr:", stderr);
-  }
-
-  console.log("Waiting for LocalSecret to start...");
-
-  await waitForChainToStart({});
-
-  // set block time to 200ms
+  // set block time to 600ms
   await exec(
-    "docker exec localsecret sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml",
+    `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-1 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
   );
-  await exec("docker restart localsecret");
-
-  await waitForChainToStart({});
-
-  console.log(`LocalSecret is running`);
-
-  if (process.env.SKIP_IBC_COMPOSE === "true") {
-    return;
-  }
-
-  let { /* stdout, */ err } = await exec(
-    `docker-compose -f test/cw20-ics20/docker-compose.yml up -d`,
+  await exec(
+    `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-1`,
   );
-  // console.log("stdout (testnet container id?):", stdout);
-  if (err) {
-    console.error("stderr:", err);
+
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
+
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
+
+  console.log("Funding test accounts...");
+
+  // Send 100k SCRT from account a to each of accounts 3-19
+  const { secretjs } = accounts[0];
+
+  let tx: TxResponse;
+  try {
+    tx = await secretjs.tx.bank.multiSend(
+      {
+        inputs: [
+          {
+            address: accounts[0].address,
+            coins: [
+              {
+                denom: "uscrt",
+                amount: String(100_000 * 1e6 * (accounts.length - 3)),
+              },
+            ],
+          },
+        ],
+        outputs: accounts.slice(3).map(({ address }) => ({
+          address,
+          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
+        })),
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 200_000,
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(`Failed to multisend: ${tx.rawLog}`);
+      throw new Error(`Failed to multisend: ${tx.rawLog}`);
+    }
+  } catch (e) {
+    console.error(`Failed to multisend: ${JSON.stringify(e)}`);
+    throw new Error(`Failed to multisend: ${JSON.stringify(e)}`);
   }
 };
