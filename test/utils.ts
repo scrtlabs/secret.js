@@ -259,6 +259,7 @@ export async function createIbcConnection(): Promise<Link> {
 }
 export async function createIbcChannel(
   ibcConnection: Link,
+  srcPort?: string,
 ): Promise<ChannelPair> {
   await Promise.all([
     ibcConnection.updateClient("A"),
@@ -268,7 +269,7 @@ export async function createIbcChannel(
   // Create a channel for the connections
   return await ibcConnection.createChannel(
     "A",
-    "transfer",
+    srcPort ?? "transfer",
     "transfer",
     Order.ORDER_UNORDERED,
     "ics20-1",

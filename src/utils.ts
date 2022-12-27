@@ -1,4 +1,4 @@
-import { fromBase64 } from "@cosmjs/encoding";
+import { fromBase64, toHex, toUtf8 } from "@cosmjs/encoding";
 import { ripemd160 } from "@noble/hashes/ripemd160";
 import { sha256 } from "@noble/hashes/sha256";
 import { bech32 } from "bech32";
@@ -23,7 +23,7 @@ export const is_gzip = (buf: Buffer | Uint8Array): boolean => {
     return false;
   }
 
-  return buf[0] === 0x1F && buf[1] === 0x8B && buf[2] === 0x08;
+  return buf[0] === 0x1f && buf[1] === 0x8b && buf[2] === 0x08;
 };
 
 /**
@@ -112,3 +112,29 @@ export function base64TendermintPubkeyToValconsAddress(
 ): string {
   return tendermintPubkeyToValconsAddress(fromBase64(pubkey), prefix);
 }
+
+/**
+ * Compute the IBC denom of a token that was sent over IBC.
+ *
+ * For example, to get the IBC denom of SCRT on mainnet Osmosis:
+ * ```
+ * ibcDenom([{incomingPortId: "transfer", incomingChannelId: "channel-88"}], "uscrt")
+ * ```
+ */
+export const ibcDenom = (
+  paths: {
+    incomingPortId: string;
+    incomingChannelId: string;
+  }[],
+  coinMinimalDenom: string,
+): string => {
+  const prefixes = [];
+  for (const path of paths) {
+    prefixes.push(`${path.incomingPortId}/${path.incomingChannelId}`);
+  }
+
+  const prefix = prefixes.join("/");
+  const denom = `${prefix}/${coinMinimalDenom}`;
+
+  return "ibc/" + toHex(sha256(toUtf8(denom))).toUpperCase();
+};
