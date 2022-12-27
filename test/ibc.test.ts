@@ -27,6 +27,7 @@ import {
 import fs from "fs";
 import { sha256 } from "@noble/hashes/sha256";
 import pako from "pako";
+import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
 
 let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
@@ -502,10 +503,15 @@ describe("cw20-ics20", () => {
       // wait for tokens to arrive on secretdev-2
       expect((await tx.ibcResponses[0]).type).toBe("ack");
 
-      let { balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
-        denom: expectedIbcDenom,
-        address: accountOnSecretdev2.address,
-      });
+      // the balance query is lagging for some reason (on mainnet too!)
+      // so we;ll wait for it to update
+      let balance: Coin | undefined;
+      while (balance?.amount === "0") {
+        ({ balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
+          denom: expectedIbcDenom,
+          address: accountOnSecretdev2.address,
+        }));
+      }
 
       expect(balance?.amount).toBe("1");
 
