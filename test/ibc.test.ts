@@ -568,7 +568,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 1, // 1 second
+                      timeout: 0, // 0 seconds - this is possible here because the contract uses the block time so we don't get an error that we're setting the timeout in the past
                     }),
                   ),
                 ),
