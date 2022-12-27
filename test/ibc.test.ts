@@ -415,6 +415,19 @@ describe("cw20-ics20", () => {
   test(
     "send from secretdev-1 to secretdev-2 then back to secretdev-1",
     async () => {
+      const accountOnSecretdev2: Account = {
+        address: accounts[0].address,
+        mnemonic: accounts[0].mnemonic,
+        walletAmino: accounts[0].walletAmino,
+        walletProto: accounts[0].walletProto,
+        secretjs: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+      };
+
       // register snip20 on cw20-ics20, then send tokens from secretdev-1
       console.log("Sending tokens from secretdev-1...");
 
@@ -443,7 +456,7 @@ describe("cw20-ics20", () => {
                   toUtf8(
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
-                      remote_address: accounts[0].address,
+                      remote_address: accountOnSecretdev2.address,
                       timeout: 10 * 60, // 10 minutes
                     }),
                   ),
@@ -474,7 +487,7 @@ describe("cw20-ics20", () => {
         });
       expect(snip20Balance.balance.amount).toBe("999");
 
-      console.log("Waiting for tokens to arrive to secretdev-2...");
+      console.log("Waiting for tokens to arrive on secretdev-2...");
 
       const expectedIbcDenom = ibcDenom(
         [
@@ -486,21 +499,8 @@ describe("cw20-ics20", () => {
         `cw20:${contracts.snip20.address}`,
       );
 
-      // wait for tokens to arrive to secretdev-2
+      // wait for tokens to arrive on secretdev-2
       expect((await tx.ibcResponses[0]).type).toBe("ack");
-
-      const accountOnSecretdev2: Account = {
-        address: accounts[0].address,
-        mnemonic: accounts[0].mnemonic,
-        walletAmino: accounts[0].walletAmino,
-        walletProto: accounts[0].walletProto,
-        secretjs: new SecretNetworkClient({
-          url: chain2LCD,
-          wallet: accounts[0].walletAmino,
-          walletAddress: accounts[0].address,
-          chainId: "secretdev-2",
-        }),
-      };
 
       let { balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
         denom: expectedIbcDenom,
