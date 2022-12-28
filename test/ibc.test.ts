@@ -25,6 +25,7 @@ import {
   createIbcConnection,
   exec,
   loopRelayer,
+  sleep,
   waitForChainToStart,
 } from "./utils";
 
@@ -571,7 +572,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 1, // 1 second
+                      timeout: 5, // 5 seconds
                     }),
                   ),
                 ),
@@ -600,6 +601,8 @@ describe("cw20-ics20", () => {
         },
       });
       expect(snip20Balance.balance.amount).toBe("999");
+
+      await sleep(5000);
 
       // restart relayer
       stopRelayer = await loopRelayer(ibcConnection);
