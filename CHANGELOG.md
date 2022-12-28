@@ -1,6 +1,6 @@
 # Changelog & Version Info
 
-## 1.6.2
+## 1.6.3
 
 Fix a bug in `ibcResponses` where it sometimes returns a wrong ack/timeout tx.
 
