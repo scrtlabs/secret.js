@@ -23,6 +23,7 @@ import {
   chain2LCD,
   createIbcChannel,
   createIbcConnection,
+  exec,
   loopRelayer,
   waitForChainToStart,
 } from "./utils";
