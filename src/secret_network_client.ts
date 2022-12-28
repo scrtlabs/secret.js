@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch';
+import fetch from "cross-fetch";
 global.fetch = fetch;
 
 import {
@@ -502,10 +502,13 @@ export type TxSender = {
    *   - staking         {@link MsgUndelegate}
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
-  
+
   signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
-  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<TxResponse>;
-  
+  broadcastSignedTx: (
+    signedMessage: string,
+    txOptions?: TxOptions,
+  ) => Promise<TxResponse>;
+
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
    * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
@@ -727,8 +730,8 @@ export class SecretNetworkClient {
 
     this.tx = {
       signTx: this.signTx.bind(this),
-      broadcastSignedTx: this.broadcastSignedTx.bind(this),      
-      
+      broadcastSignedTx: this.broadcastSignedTx.bind(this),
+
       broadcast: this.signAndBroadcast.bind(this),
       simulate: this.simulate.bind(this),
 
@@ -853,6 +856,9 @@ export class SecretNetworkClient {
   private async waitForIbcResponse(
     packetSequence: string,
     packetSrcChannel: string,
+    packetSrcPort: string,
+    packetDstChannel: string,
+    packetDstPort: string,
     type: "ack" | "timeout",
     ibcTxOptions: ExplicitIbcTxOptions,
     isDoneObject: { isDone: boolean },
@@ -869,7 +875,13 @@ export class SecretNetworkClient {
 
       while (tries > 0 && !isDoneObject.isDone) {
         const txs = await this.txsQuery(
-          `${txType}_packet.packet_src_channel = '${packetSrcChannel}' AND ${txType}_packet.packet_sequence = '${packetSequence}'`,
+          [
+            `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
+            `${txType}_packet.packet_src_port = '${packetSrcPort}'`,
+            `${txType}_packet.packet_dst_channel = '${packetDstChannel}'`,
+            `${txType}_packet.packet_dst_port = '${packetDstPort}'`,
+            `${txType}_packet.packet_sequence = '${packetSequence}'`,
+          ].join(" AND "),
         );
 
         const ackTx = txs.find((x) => x.code === 0);
@@ -1113,6 +1125,21 @@ export class SecretNetworkClient {
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
         ) || [];
 
+      const packetSrcPorts =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_src_port",
+        ) || [];
+
+      const packetDstChannels =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_dst_channel",
+        ) || [];
+
+      const packetDstPorts =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_dst_port",
+        ) || [];
+
       if (explicitIbcTxOptions.resolveResponses) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
           // isDoneObject is used to cancel the second promise if the first one is resolved
@@ -1125,6 +1152,9 @@ export class SecretNetworkClient {
               this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
+                packetSrcPorts[msgIndex].value,
+                packetDstChannels[msgIndex].value,
+                packetDstPorts[msgIndex].value,
                 "ack",
                 explicitIbcTxOptions,
                 isDoneObject,
@@ -1132,6 +1162,9 @@ export class SecretNetworkClient {
               this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
+                packetSrcPorts[msgIndex].value,
+                packetDstChannels[msgIndex].value,
+                packetDstPorts[msgIndex].value,
                 "timeout",
                 explicitIbcTxOptions,
                 isDoneObject,
@@ -1398,32 +1431,28 @@ export class SecretNetworkClient {
     }
   }
 
-  private async signTx(    
+  private async signTx(
     messages: Msg[],
     txOptions?: TxOptions,
-    ): Promise<string> {
-      
-      let signed = await this.prepareAndSign(messages, txOptions)
+  ): Promise<string> {
+    let signed = await this.prepareAndSign(messages, txOptions);
 
-      return toBase64(signed);
+    return toBase64(signed);
   }
 
   private async broadcastSignedTx(
     messages: string,
     txOptions?: TxOptions,
-    ): Promise<TxResponse> {
-    
-      let txBytes = fromBase64(messages);
-      return this.broadcastTx(
-        txBytes,
-        txOptions?.broadcastTimeoutMs ?? 60_000,
-        txOptions?.broadcastCheckIntervalMs ?? 6_000,
-        txOptions?.broadcastMode ?? BroadcastMode.Block,
-        txOptions?.waitForCommit ?? true,
-      );
-  }  
-
-
+  ): Promise<TxResponse> {
+    let txBytes = fromBase64(messages);
+    return this.broadcastTx(
+      txBytes,
+      txOptions?.broadcastTimeoutMs ?? 60_000,
+      txOptions?.broadcastCheckIntervalMs ?? 6_000,
+      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.waitForCommit ?? true,
+    );
+  }
 
   public async prepareAndSign(
     messages: Msg[],
