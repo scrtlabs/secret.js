@@ -553,10 +553,6 @@ describe("cw20-ics20", () => {
 
       console.log("Sending tokens from secretdev-1 with a short timeout...");
 
-      // pausing relayer to hit the timeout, otherwise with fast blocks we might miss it
-      await stopRelayer();
-      await sleep(5000);
-
       tx = await accounts[0].secretjs.tx.broadcast(
         [
           new MsgExecuteContract({
@@ -602,9 +598,6 @@ describe("cw20-ics20", () => {
         },
       });
       expect(snip20Balance.balance.amount).toBe("999");
-
-      // restart relayer
-      stopRelayer = loopRelayer(ibcConnection);
 
       console.log(
         "Waiting for tokens refund to secretdev-1 after the timeout...",
