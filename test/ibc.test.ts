@@ -572,7 +572,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 5, // 5 seconds
+                      timeout: 3, // 3 seconds
                     }),
                   ),
                 ),
