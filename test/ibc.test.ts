@@ -419,7 +419,7 @@ describe("cw20-ics20", () => {
       // register snip20 on cw20-ics20, then send tokens from secretdev-1
       console.log("Sending tokens from secretdev-1...");
 
-      let tx = await accounts[0].secretjs.tx.broadcast(
+      const sendTokensTx = await accounts[0].secretjs.tx.broadcast(
         [
           new MsgExecuteContract({
             sender: accounts[0].address,
@@ -457,12 +457,12 @@ describe("cw20-ics20", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
+      if (sendTokensTx.code !== TxResultCode.Success) {
+        console.error(sendTokensTx.rawLog);
       }
-      expect(tx.code).toBe(TxResultCode.Success);
+      expect(sendTokensTx.code).toBe(TxResultCode.Success);
 
-      let snip20Balance: any =
+      let snip20Balance: { balance: { amount: string } } =
         await accounts[0].secretjs.query.compute.queryContract({
           contract_address: contracts.snip20.address,
           code_hash: contracts.snip20.codeHash,
@@ -488,7 +488,7 @@ describe("cw20-ics20", () => {
       );
 
       // wait for tokens to arrive on secretdev-2
-      expect((await tx.ibcResponses[0]).type).toBe("ack");
+      expect((await sendTokensTx.ibcResponses[0]).type).toBe("ack");
 
       // the balance query is lagging for some reason (on mainnet too!)
       // so we'll wait for it to update
@@ -505,28 +505,29 @@ describe("cw20-ics20", () => {
       console.log("Sending tokens back from secretdev-2...");
 
       // send tokens back from secretdev-2
-      tx = await accountOnSecretdev2.secretjs.tx.ibc.transfer({
-        sender: accountOnSecretdev2.address,
-        source_port: "transfer",
-        source_channel: ibcChannelIdOnChain2,
-        token: {
-          denom: expectedIbcDenom,
-          amount: "1",
-        },
-        receiver: accounts[0].address,
-        timeout_timestamp: String(
-          Math.floor(Date.now() / 1000) + 10 * 60,
-        ) /* 10 minutes */,
-      });
+      const sendTokensBackTx =
+        await accountOnSecretdev2.secretjs.tx.ibc.transfer({
+          sender: accountOnSecretdev2.address,
+          source_port: "transfer",
+          source_channel: ibcChannelIdOnChain2,
+          token: {
+            denom: expectedIbcDenom,
+            amount: "1",
+          },
+          receiver: accounts[0].address,
+          timeout_timestamp: String(
+            Math.floor(Date.now() / 1000) + 10 * 60,
+          ) /* 10 minutes */,
+        });
 
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
+      if (sendTokensBackTx.code !== TxResultCode.Success) {
+        console.error(sendTokensBackTx.rawLog);
       }
-      expect(tx.code).toBe(TxResultCode.Success);
+      expect(sendTokensBackTx.code).toBe(TxResultCode.Success);
 
       console.log("Waiting for tokens to arrive back to secretdev-1...");
 
-      expect((await tx.ibcResponses[0]).type).toBe("ack");
+      expect((await sendTokensBackTx.ibcResponses[0]).type).toBe("ack");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
@@ -540,7 +541,7 @@ describe("cw20-ics20", () => {
 
       console.log("Sending tokens from secretdev-1 with a short timeout...");
 
-      tx = await accounts[0].secretjs.tx.broadcast(
+      const sendTokensTimeoutTx = await accounts[0].secretjs.tx.broadcast(
         [
           new MsgExecuteContract({
             sender: accounts[0].address,
@@ -568,10 +569,10 @@ describe("cw20-ics20", () => {
           gasLimit: 5_000_000,
         },
       );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
+      if (sendTokensTimeoutTx.code !== TxResultCode.Success) {
+        console.error(sendTokensTimeoutTx.rawLog);
       }
-      expect(tx.code).toBe(TxResultCode.Success);
+      expect(sendTokensTimeoutTx.code).toBe(TxResultCode.Success);
 
       // Balance is deducted optimistically so we should see 999 right away
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
@@ -590,7 +591,7 @@ describe("cw20-ics20", () => {
         "Waiting for tokens refund to secretdev-1 after the timeout...",
       );
 
-      const ibcResp = await tx.ibcResponses[0];
+      const ibcResp = await sendTokensTimeoutTx.ibcResponses[0];
       if (ibcResp.type !== "timeout") {
         console.log(JSON.stringify(ibcResp, null, 4));
       }
