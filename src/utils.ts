@@ -27,7 +27,7 @@ export const is_gzip = (buf: Buffer | Uint8Array): boolean => {
 };
 
 /**
- * Convert a secp256k1 compressed public key to a address
+ * Convert a secp256k1 compressed public key to an address
  *
  * @param {Uint8Array} pubkey The account's pubkey, should be 33 bytes (compressed secp256k1)
  * @param {String} [prefix="secret"] The address' bech32 prefix. Defaults to `"secret"`.
@@ -41,7 +41,7 @@ export function pubkeyToAddress(
 }
 
 /**
- * Convert a secp256k1 compressed public key to a address
+ * Convert a secp256k1 compressed public key to an address
  *
  * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
  * @param {String} [prefix="secret"] The address' bech32 prefix. Defaults to `"secret"`.
@@ -100,7 +100,7 @@ export function tendermintPubkeyToValconsAddress(
 }
 
 /**
- * Convert a secp256k1 compressed public key to a address
+ * Convert a secp256k1 compressed public key to an address
  *
  * @param {Uint8Array} pubkey The account's pubkey as base64 string, should be 33 bytes (compressed secp256k1)
  * @param {String} [prefix="secret"] The address' bech32 prefix. Defaults to `"secret"`.

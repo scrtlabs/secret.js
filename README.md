@@ -45,6 +45,14 @@
     - [`secretjs.address`](#secretjsaddress)
     - [`secretjs.tx`](#secretjstx)
     - [Resolve IBC Responses](#resolve-ibc-responses)
+  - [Helper Functions](#helper-functions)
+    - [`pubkeyToAddress()`](#pubkeytoaddress)
+    - [`base64PubkeyToAddress()`](#base64pubkeytoaddress)
+    - [`selfDelegatorAddressToValidatorAddress()`](#selfdelegatoraddresstovalidatoraddress)
+    - [`validatorAddressToSelfDelegatorAddress()`](#validatoraddresstoselfdelegatoraddress)
+    - [`tendermintPubkeyToValconsAddress()`](#tendermintpubkeytovalconsaddress)
+    - [`base64TendermintPubkeyToValconsAddress()`](#base64tendermintpubkeytovalconsaddress)
+    - [`ibcDenom()`](#ibcdenom)
 
 # Key Features
 
@@ -75,8 +83,8 @@ or
 yarn add secretjs
 ```
 
-**Additional step for React Native:**  
-  
+**Additional step for React Native:**
+
 Follow the instruction of [react-native-get-random-values](https://www.npmjs.com/package/react-native-get-random-values) package
 
 # Usage Examples
@@ -1040,7 +1048,7 @@ const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
 #### `secretjs.tx.signTx()`
 
 Used to sign transactions independently from the broadcast process.  
-This is useful when you want to keep your seed safe and sign transactions offline.  
+This is useful when you want to keep your seed safe and sign transactions offline.
 
 #### `secretjs.tx.broadcastSignedTx()`
 
@@ -1790,3 +1798,47 @@ if (tx.code !== 0) {
   }
 }
 ```
+
+## Helper Functions
+
+### `pubkeyToAddress()`
+
+Convert a secp256k1 compressed public key to an account address.
+
+https://secretjs.scrt.network/modules#pubkeyToAddress
+
+### `base64PubkeyToAddress()`
+
+Convert a secp256k1 compressed base64 encoded public key to an account address.
+
+https://secretjs.scrt.network/modules#base64PubkeyToAddress
+
+### `selfDelegatorAddressToValidatorAddress()`
+
+Convert a self delegator address to a validator address.
+
+https://secretjs.scrt.network/modules#selfDelegatorAddressToValidatorAddress
+
+### `validatorAddressToSelfDelegatorAddress()`
+
+Convert a validator address to a self delegator address.
+
+https://secretjs.scrt.network/modules#validatorAddressToSelfDelegatorAddress
+
+### `tendermintPubkeyToValconsAddress()`
+
+Convert a Tendermint ed25519 public key to a consensus address.
+
+https://secretjs.scrt.network/modules#tendermintPubkeyToValconsAddress
+
+### `base64TendermintPubkeyToValconsAddress()`
+
+Convert a secp256k1 compressed public key to an account address.
+
+https://secretjs.scrt.network/modules#base64TendermintPubkeyToValconsAddress
+
+### `ibcDenom()`
+
+Compute the IBC denom of a token that was sent over IBC.
+
+https://secretjs.scrt.network/modules#ibcDenom

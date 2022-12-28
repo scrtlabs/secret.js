@@ -25,6 +25,7 @@
   "scripts": {
     "build": "rm -rf ./dist && webpack && tsc",
     "test": "./test.sh",
+    "test-ci": "jest --forceExit --runInBand",
     "gen-docs": "typedoc"
   },
   "dependencies": {

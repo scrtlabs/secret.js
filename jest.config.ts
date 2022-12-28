@@ -1,4 +1,5 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
@@ -6,8 +7,4 @@ module.exports = {
   verbose: true,
   modulePathIgnorePatterns: ["dist", "scripts"],
   globalSetup: "<rootDir>/test/globalSetup.ts",
-  globalTeardown: "<rootDir>/test/globalTeardown.js",
-  globals: {
-    __SCRT_TEST_ACCOUNTS__: [],
-  },
 };
