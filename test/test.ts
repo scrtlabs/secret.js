@@ -310,6 +310,7 @@ describe("query.auth", () => {
 
 describe("query.compute", () => {
   let sSCRT: string;
+  let benchContract: string;
 
   beforeAll(async () => {
     const code_id = await storeContract(
@@ -335,6 +336,17 @@ describe("query.compute", () => {
         },
         supported_denoms: ["uscrt"],
       },
+      accounts[0],
+    );
+
+    const code_id_bench = await storeContract(
+      `${__dirname}/bench-contract.wasm.gz`,
+      accounts[0],
+    );
+
+    benchContract = await initContract(
+      code_id_bench,
+      { init: {} },
       accounts[0],
     );
   });
@@ -365,6 +377,17 @@ describe("query.compute", () => {
         total_supply: "1",
       },
     });
+  });
+
+  test("queryContract() empty response", async () => {
+    const { secretjs } = accounts[0];
+
+    const result = await secretjs.query.compute.queryContract({
+      contract_address: benchContract,
+      query: { noop_query: {} },
+    });
+
+    expect(result).toStrictEqual({});
   });
 
   test("queryContract() StdError", async () => {
