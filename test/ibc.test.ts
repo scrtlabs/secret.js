@@ -86,7 +86,7 @@ describe("ibcResponses", () => {
     expect(ibcChannelIdOnChain2).not.toBe("");
 
     console.log("Looping relayer...");
-    stopRelayer = await loopRelayer(ibcConnection);
+    stopRelayer = loopRelayer(ibcConnection);
   });
 
   test("ibcResponses", async () => {
@@ -410,7 +410,7 @@ describe("cw20-ics20", () => {
     expect(ibcChannelIdOnChain2).not.toBe("");
 
     console.log("Looping relayer...");
-    stopRelayer = await loopRelayer(ibcConnection);
+    stopRelayer = loopRelayer(ibcConnection);
   }, 180_000 /* 3 minutes timeout */);
 
   test(
@@ -555,6 +555,7 @@ describe("cw20-ics20", () => {
 
       // pausing relayer to hit the timeout, otherwise with fast blocks we might miss it
       await stopRelayer();
+      await sleep(5000);
 
       tx = await accounts[0].secretjs.tx.broadcast(
         [
@@ -572,7 +573,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 3, // 3 seconds
+                      timeout: 1, // 1 second
                     }),
                   ),
                 ),
@@ -602,15 +603,18 @@ describe("cw20-ics20", () => {
       });
       expect(snip20Balance.balance.amount).toBe("999");
 
-      await sleep(5000);
-
       // restart relayer
-      stopRelayer = await loopRelayer(ibcConnection);
+      stopRelayer = loopRelayer(ibcConnection);
 
       console.log(
         "Waiting for tokens refund to secretdev-1 after the timeout...",
       );
-      expect((await tx.ibcResponses[0]).type).toBe("timeout");
+
+      const ibcResp = await tx.ibcResponses[0];
+      if (ibcResp.type !== "timeout") {
+        console.log(JSON.stringify(ibcResp, null, 4));
+      }
+      expect(ibcResp.type).toBe("timeout");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,

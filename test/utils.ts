@@ -276,7 +276,7 @@ export async function createIbcChannel(
   );
 }
 
-export async function loopRelayer(connection: Link) {
+export function loopRelayer(connection: Link) {
   let run = true;
 
   const done = new Promise<void>(async (resolve) => {
