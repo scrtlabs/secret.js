@@ -604,9 +604,6 @@ describe("cw20-ics20", () => {
       );
 
       const ibcResp = await sendTokensTimeoutTx.ibcResponses[0];
-      if (ibcResp.type !== "timeout") {
-        console.log(JSON.stringify(ibcResp, null, 4));
-      }
       expect(ibcResp.type).toBe("timeout");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({

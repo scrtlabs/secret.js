@@ -856,9 +856,6 @@ export class SecretNetworkClient {
   private async waitForIbcResponse(
     packetSequence: string,
     packetSrcChannel: string,
-    packetSrcPort: string,
-    packetDstChannel: string,
-    packetDstPort: string,
     type: "ack" | "timeout",
     ibcTxOptions: ExplicitIbcTxOptions,
     isDoneObject: { isDone: boolean },
@@ -873,23 +870,35 @@ export class SecretNetworkClient {
         txType = "acknowledge";
       }
 
+      const query = [
+        `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
+        `${txType}_packet.packet_sequence = '${packetSequence}'`,
+      ].join(" AND ");
+
       while (tries > 0 && !isDoneObject.isDone) {
-        const txs = await this.txsQuery(
-          [
-            `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
-            `${txType}_packet.packet_src_port = '${packetSrcPort}'`,
-            `${txType}_packet.packet_dst_channel = '${packetDstChannel}'`,
-            `${txType}_packet.packet_dst_port = '${packetDstPort}'`,
-            `${txType}_packet.packet_sequence = '${packetSequence}'`,
-          ].join(" AND "),
+        const txs = await this.txsQuery(query);
+
+        const ibcResp = txs.find(
+          (x) =>
+            x.arrayLog?.find(
+              (x) =>
+                x.type === `${txType}_packet` &&
+                x.key === "packet_src_channel" &&
+                x.value === packetSrcChannel,
+            ) &&
+            x.arrayLog?.find(
+              (x) =>
+                x.type === `${txType}_packet` &&
+                x.key === "packet_sequence" &&
+                x.value === packetSequence,
+            ),
         );
 
-        const ackTx = txs.find((x) => x.code === 0);
-        if (ackTx) {
+        if (ibcResp) {
           isDoneObject.isDone = true;
           resolve({
             type,
-            tx: ackTx,
+            tx: ibcResp,
           });
         }
 
@@ -1125,21 +1134,6 @@ export class SecretNetworkClient {
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
         ) || [];
 
-      const packetSrcPorts =
-        arrayLog?.filter(
-          (x) => x.type === "send_packet" && x.key === "packet_src_port",
-        ) || [];
-
-      const packetDstChannels =
-        arrayLog?.filter(
-          (x) => x.type === "send_packet" && x.key === "packet_dst_channel",
-        ) || [];
-
-      const packetDstPorts =
-        arrayLog?.filter(
-          (x) => x.type === "send_packet" && x.key === "packet_dst_port",
-        ) || [];
-
       if (explicitIbcTxOptions.resolveResponses) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
           // isDoneObject is used to cancel the second promise if the first one is resolved
@@ -1152,9 +1146,6 @@ export class SecretNetworkClient {
               this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
-                packetSrcPorts[msgIndex].value,
-                packetDstChannels[msgIndex].value,
-                packetDstPorts[msgIndex].value,
                 "ack",
                 explicitIbcTxOptions,
                 isDoneObject,
@@ -1162,9 +1153,6 @@ export class SecretNetworkClient {
               this.waitForIbcResponse(
                 packetSequences[msgIndex].value,
                 packetSrcChannels[msgIndex].value,
-                packetSrcPorts[msgIndex].value,
-                packetDstChannels[msgIndex].value,
-                packetDstPorts[msgIndex].value,
                 "timeout",
                 explicitIbcTxOptions,
                 isDoneObject,
