@@ -552,6 +552,9 @@ describe("cw20-ics20", () => {
 
       console.log("Sending tokens from secretdev-1 with a short timeout...");
 
+      // pausing relayer to hit the timeout, otherwise with fast blocks we might miss it
+      await stopRelayer();
+
       tx = await accounts[0].secretjs.tx.broadcast(
         [
           new MsgExecuteContract({
@@ -568,7 +571,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 0, // 0 seconds - this is possible here because the contract uses the block time so we don't get an error that we're setting the timeout in the past
+                      timeout: 1, // 1 second
                     }),
                   ),
                 ),
@@ -597,6 +600,9 @@ describe("cw20-ics20", () => {
         },
       });
       expect(snip20Balance.balance.amount).toBe("999");
+
+      // restart relayer
+      stopRelayer = await loopRelayer(ibcConnection);
 
       console.log(
         "Waiting for tokens refund to secretdev-1 after the timeout...",
