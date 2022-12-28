@@ -249,7 +249,7 @@ export async function createIbcConnection(): Promise<Link> {
     {
       prefix: "secret",
       gasPrice: GasPrice.fromString("0.25uscrt"),
-      estimatedBlockTime: 750,
+      estimatedBlockTime: 5700,
       estimatedIndexerTime: 500,
     },
   );

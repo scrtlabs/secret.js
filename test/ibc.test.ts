@@ -42,19 +42,6 @@ beforeAll(async () => {
     url: chain2LCD,
   });
 
-  // set block time to 600ms
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-2 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
-  );
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-2`,
-  );
-
-  await waitForChainToStart({
-    chainId: "secretdev-2",
-    url: chain2LCD,
-  });
-
   console.log("Creating IBC connection...");
   ibcConnection = await createIbcConnection();
 }, 180_000);
@@ -569,7 +556,7 @@ describe("cw20-ics20", () => {
                     JSON.stringify({
                       channel: ibcChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
-                      timeout: 1, // 1 second
+                      timeout: 0,
                     }),
                   ),
                 ),
