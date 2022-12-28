@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.6.2
+
+Fix a bug in `ibcResponses` where it sometimes returns a wrong ack/timeout tx.
+
 ## 1.6.1
 
 - Fix handling of empty response on `secretjs.query.compute.queryContract()`.
