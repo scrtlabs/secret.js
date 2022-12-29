@@ -878,27 +878,13 @@ export class SecretNetworkClient {
       while (tries > 0 && !isDoneObject.isDone) {
         const txs = await this.txsQuery(query);
 
-        const ibcResp = txs.find(
-          (x) =>
-            x.arrayLog?.find(
-              (x) =>
-                x.type === `${txType}_packet` &&
-                x.key === "packet_src_channel" &&
-                x.value === packetSrcChannel,
-            ) &&
-            x.arrayLog?.find(
-              (x) =>
-                x.type === `${txType}_packet` &&
-                x.key === "packet_sequence" &&
-                x.value === packetSequence,
-            ),
-        );
+        const ibcRespTx = txs.find((tx) => tx.code === 0);
 
-        if (ibcResp) {
+        if (ibcRespTx) {
           isDoneObject.isDone = true;
           resolve({
             type,
-            tx: ibcResp,
+            tx: ibcRespTx,
           });
         }
 
