@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.6.6
+
+Support sending txs that were signed with an Ethermint pubkey.
+
 ## 1.6.5
 
 Fix a bug in `ibcResponses` where it sometimes returns a wrong ack/timeout tx.
