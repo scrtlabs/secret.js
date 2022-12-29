@@ -108,8 +108,7 @@ import {
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
 import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
-import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
-import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
+import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import {
   AuthInfo,
   TxBody as TxBodyPb,
@@ -1241,44 +1240,32 @@ export class SecretNetworkClient {
         const tx = tx_response!.tx as TxPb;
 
         const resolvePubkey = (pubkey: Any) => {
-          if (pubkey.type_url === "/cosmos.crypto.secp256k1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256k1.PubKey",
-              value: Secp256k1PubkeyProto.toJSON(
-                Secp256k1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
-          if (pubkey.type_url === "/cosmos.crypto.secp256r1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256r1.PubKey",
-              value: Secp256r1PubkeyProto.toJSON(
-                Secp256r1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
           if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
             const multisig = LegacyAminoPubKey.decode(
-              //@ts-ignore
+              // @ts-expect-error
               fromBase64(pubkey.value),
             );
             for (let i = 0; i < multisig.public_keys.length; i++) {
-              //@ts-ignore
+              // @ts-expect-error
               multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
             }
 
             return LegacyAminoPubKey.toJSON(multisig);
+          } else {
+            return {
+              type_url: pubkey.type_url,
+              // assuming all single pubkeys have the same protobuf type
+              // this works for secp256k1, secp256r1 & ethermint pubkeys
+              value: PubKey.toJSON(
+                PubKey.decode(
+                  // @ts-expect-error
+                  // pubkey.value is actually a base64 string but it's Any
+                  // so Typescript thinks it's a Uint8Array
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
           }
-
-          throw new Error(`unknown pubkey type '${pubkey.type_url}'`);
         };
 
         //@ts-ignore
