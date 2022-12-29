@@ -8,6 +8,8 @@ Support sending txs that were signed with an Ethermint pubkey.
 
 Fix a bug in `ibcResponses` where it sometimes returns a wrong ack/timeout tx.
 
+Note: versions 1.6.2 through 1.6.4 are deprecated due to an NPM upload issue.
+
 ## 1.6.1
 
 - Fix handling of empty response on `secretjs.query.compute.queryContract()`.
