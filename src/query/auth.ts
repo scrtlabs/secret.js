@@ -11,7 +11,6 @@ import {
   Query,
   QueryAccountRequest,
   QueryAccountsRequest,
-  QueryModuleAccountByNameResponse,
   QueryParamsRequest,
   QueryParamsResponse,
 } from "../grpc_gateway/cosmos/auth/v1beta1/query.pb";

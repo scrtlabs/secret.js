@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch';
+import fetch from "cross-fetch";
 global.fetch = fetch;
 
 import {
@@ -141,8 +141,7 @@ import {
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
 import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
-import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
-import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
+import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import {
   AuthInfo,
   TxBody as TxBodyPb,
@@ -536,10 +535,13 @@ export type TxSender = {
    *   - staking         {@link MsgUndelegate}
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
-  
+
   signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
-  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<TxResponse>;
-  
+  broadcastSignedTx: (
+    signedMessage: string,
+    txOptions?: TxOptions,
+  ) => Promise<TxResponse>;
+
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
    * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
@@ -795,8 +797,8 @@ export class SecretNetworkClient {
 
     this.tx = {
       signTx: this.signTx.bind(this),
-      broadcastSignedTx: this.broadcastSignedTx.bind(this),      
-      
+      broadcastSignedTx: this.broadcastSignedTx.bind(this),
+
       broadcast: this.signAndBroadcast.bind(this),
       simulate: this.simulate.bind(this),
 
@@ -954,17 +956,21 @@ export class SecretNetworkClient {
         txType = "acknowledge";
       }
 
-      while (tries > 0 && !isDoneObject.isDone) {
-        const txs = await this.txsQuery(
-          `${txType}_packet.packet_src_channel = '${packetSrcChannel}' AND ${txType}_packet.packet_sequence = '${packetSequence}'`,
-        );
+      const query = [
+        `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
+        `${txType}_packet.packet_sequence = '${packetSequence}'`,
+      ].join(" AND ");
 
-        const ackTx = txs.find((x) => x.code === 0);
-        if (ackTx) {
+      while (tries > 0 && !isDoneObject.isDone) {
+        const txs = await this.txsQuery(query);
+
+        const ibcRespTx = txs.find((tx) => tx.code === 0);
+
+        if (ibcRespTx) {
           isDoneObject.isDone = true;
           resolve({
             type,
-            tx: ackTx,
+            tx: ibcRespTx,
           });
         }
 
@@ -1321,44 +1327,32 @@ export class SecretNetworkClient {
         const tx = tx_response!.tx as TxPb;
 
         const resolvePubkey = (pubkey: Any) => {
-          if (pubkey.type_url === "/cosmos.crypto.secp256k1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256k1.PubKey",
-              value: Secp256k1PubkeyProto.toJSON(
-                Secp256k1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
-          if (pubkey.type_url === "/cosmos.crypto.secp256r1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256r1.PubKey",
-              value: Secp256r1PubkeyProto.toJSON(
-                Secp256r1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
           if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
             const multisig = LegacyAminoPubKey.decode(
-              //@ts-ignore
+              // @ts-expect-error
               fromBase64(pubkey.value),
             );
             for (let i = 0; i < multisig.public_keys.length; i++) {
-              //@ts-ignore
+              // @ts-expect-error
               multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
             }
 
             return LegacyAminoPubKey.toJSON(multisig);
+          } else {
+            return {
+              type_url: pubkey.type_url,
+              // assuming all single pubkeys have the same protobuf type
+              // this works for secp256k1, secp256r1 & ethermint pubkeys
+              value: PubKey.toJSON(
+                PubKey.decode(
+                  // @ts-expect-error
+                  // pubkey.value is actually a base64 string but it's Any
+                  // so Typescript thinks it's a Uint8Array
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
           }
-
-          throw new Error(`unknown pubkey type '${pubkey.type_url}'`);
         };
 
         //@ts-ignore
@@ -1485,32 +1479,28 @@ export class SecretNetworkClient {
     }
   }
 
-  private async signTx(    
+  private async signTx(
     messages: Msg[],
     txOptions?: TxOptions,
-    ): Promise<string> {
-      
-      let signed = await this.prepareAndSign(messages, txOptions)
+  ): Promise<string> {
+    let signed = await this.prepareAndSign(messages, txOptions);
 
-      return toBase64(signed);
+    return toBase64(signed);
   }
 
   private async broadcastSignedTx(
     messages: string,
     txOptions?: TxOptions,
-    ): Promise<TxResponse> {
-    
-      let txBytes = fromBase64(messages);
-      return this.broadcastTx(
-        txBytes,
-        txOptions?.broadcastTimeoutMs ?? 60_000,
-        txOptions?.broadcastCheckIntervalMs ?? 6_000,
-        txOptions?.broadcastMode ?? BroadcastMode.Block,
-        txOptions?.waitForCommit ?? true,
-      );
-  }  
-
-
+  ): Promise<TxResponse> {
+    let txBytes = fromBase64(messages);
+    return this.broadcastTx(
+      txBytes,
+      txOptions?.broadcastTimeoutMs ?? 60_000,
+      txOptions?.broadcastCheckIntervalMs ?? 6_000,
+      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.waitForCommit ?? true,
+    );
+  }
 
   public async prepareAndSign(
     messages: Msg[],

@@ -1,7 +1,7 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.6.0",
+  "version": "1.6.6",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
@@ -25,6 +25,7 @@
   "scripts": {
     "build": "rm -rf ./dist && webpack && tsc",
     "test": "./test.sh",
+    "test-ci": "jest --forceExit --runInBand",
     "gen-docs": "typedoc"
   },
   "dependencies": {

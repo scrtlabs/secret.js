@@ -1,5 +1,20 @@
 # Changelog & Version Info
 
+## 1.6.6
+
+Support sending txs that were signed with an Ethermint pubkey.
+
+## 1.6.5
+
+Fix a bug in `ibcResponses` where it sometimes returns a wrong ack/timeout tx.
+
+Note: versions 1.6.2 through 1.6.4 are deprecated due to an NPM upload issue.
+
+## 1.6.1
+
+- Fix handling of empty response on `secretjs.query.compute.queryContract()`.
+- Add the `ibcDenom()` util function for calculating the IBC denom of a token that was sent over IBC.
+
 ## 1.6.0
 
 Add `ibcResponses` to `TxResponse` - if a tx results in IBC packets being sent, `ibcResponses` contains the IBC ack/timeout txs, Making it easy to verify the success of an IBC operations.
