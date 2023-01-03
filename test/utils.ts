@@ -103,7 +103,7 @@ export async function storeSnip20Ibc(
   return getValueFromRawLog(txStore.rawLog, "message.code_id");
 }
 
-export function checkInstantiateSuccess(tx: TxResponse) {
+export function checkInstantiateSuccess(tx: TxResponse): string {
   if (tx.code !== TxResultCode.Success) {
     console.error(tx.rawLog);
   }
@@ -115,6 +115,8 @@ export function checkInstantiateSuccess(tx: TxResponse) {
   expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
     "secret1",
   );
+
+  return getValueFromRawLog(tx.rawLog, "message.contract_address")
 }
 
 export function getMnemonicRegexForAccountName(account: string) {

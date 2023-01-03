@@ -2627,3 +2627,81 @@ describe("utils", () => {
     ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
   });
 });
+
+
+describe("tx broadcast multi", () => {
+  test("Send Multiple Messages Amino", async () => {
+    const {secretjs} = accounts[0];
+
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
+
+    const { code_hash: code_hash } =
+        await secretjs.query.compute.codeHashByCodeId({
+          code_id: code_id,
+        });
+
+    let tx = await secretjs.tx.compute.instantiateContract(
+        {
+          sender: accounts[0].address,
+          code_id,
+          code_hash,
+          init_msg: {
+            name: "Secret SCRT",
+            admin: accounts[0].address,
+            symbol: "SSCRT",
+            decimals: 6,
+            initial_balances: [{ address: accounts[0].address, amount: "1" }],
+            prng_seed: "eW8=",
+            config: {
+              public_total_supply: true,
+              enable_deposit: true,
+              enable_redeem: true,
+              enable_mint: false,
+              enable_burn: false,
+            },
+            supported_denoms: ["uscrt"],
+          },
+          label: `label-${Date.now()}`,
+          init_funds: [],
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+    );
+    let contract_address = checkInstantiateSuccess(tx);
+
+    tx = await secretjs.tx.broadcast(
+        [
+          new MsgSend({
+            from_address: accounts[0].address,
+            to_address: accounts[2].address,
+            amount: [{ denom: "uscrt", amount: "1" }],
+          }),
+          new MsgExecuteContract({
+            sender: secretjs.address,
+            contract_address,
+            msg: {
+              create_viewing_key: {
+                entropy: "bla bla",
+              },
+            },
+            code_hash,
+          }),
+        ],
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+});
