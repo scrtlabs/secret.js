@@ -12,7 +12,6 @@ import {
   MsgGrantAuthorization,
   MsgInstantiateContractResponse,
   MsgSend,
-  MsgTransfer,
   ProposalType,
   pubkeyToAddress,
   SecretNetworkClient,
@@ -29,21 +28,16 @@ import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.p
 import { AminoWallet } from "../src/wallet_amino";
 import {
   accounts,
+  chain1LCD,
   checkInstantiateSuccess,
-  createIbcChannel,
-  createIbcConnection,
   exec,
   getAllMethodNames,
   getBalance,
   getValueFromRawLog,
   initContract,
-  chain1LCD,
-  loopRelayer,
   sleep,
   storeContract,
   storeSnip20Ibc,
-  chain2LCD,
-  waitForChainToStart,
 } from "./utils";
 
 beforeAll(() => {
@@ -337,6 +331,7 @@ describe("query.compute", () => {
         supported_denoms: ["uscrt"],
       },
       accounts[0],
+      "blabla",
     );
 
     const code_id_bench = await storeContract(
@@ -451,6 +446,31 @@ describe("query.compute", () => {
       },
     });
   });
+
+  test("codes()", async () => {
+    const { secretjs } = accounts[0];
+
+    const codes = await secretjs.query.compute.codes({});
+
+    expect(codes.code_infos!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("addressByLabel()", async () => {
+    const { secretjs } = accounts[0];
+
+    const addressByLabel = await secretjs.query.compute.addressByLabel({
+      label: "blabla",
+    });
+
+    expect(addressByLabel.contract_address).toBe(sSCRT);
+  });
+
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
 });
 
 describe("tx", () => {
