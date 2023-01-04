@@ -23,96 +23,13 @@ import {
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
-} from "../src/protobuf/secret/compute/v1beta1/msg";import { AminoWallet } from "../src/wallet_amino";
-import { Account, getValueFromRawLog } from "./utils";
+} from "../src/protobuf/secret/compute/v1beta1/msg";
+import { AminoWallet } from "../src/wallet_amino";
+import { Account, getValueFromRawLog, accounts } from "./utils";
 
-let accounts: Account[];
 let contract_address: string;
 let code_id: string;
 let code_hash: string | undefined;
-
-beforeAll(async () => {
-  //@ts-ignore
-  accounts = global.__SCRT_TEST_ACCOUNTS__;
-
-  // Initialize genesis accounts
-  const mnemonics = [
-    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
-    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow",
-    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge",
-    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
-  ];
-
-  for (let i = 0; i < mnemonics.length; i++) {
-    const mnemonic = mnemonics[i];
-    const walletAmino = new AminoWallet(mnemonic);
-    accounts[i] = {
-      address: walletAmino.address,
-      mnemonic: mnemonic,
-      walletAmino,
-      walletProto: new Wallet(mnemonic),
-      secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
-        wallet: walletAmino,
-        walletAddress: walletAmino.address,
-        chainId: "secretdev-1",
-      }),
-    };
-  }
-
-  // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
-  for (let i = 4; i <= 19; i++) {
-    const wallet = new AminoWallet();
-    const [{ address }] = await wallet.getAccounts();
-    const walletProto = new Wallet(wallet.mnemonic);
-
-    accounts[i] = {
-      address: address,
-      mnemonic: wallet.mnemonic,
-      walletAmino: wallet,
-      walletProto: walletProto,
-      secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
-        chainId: "secretdev-1",
-        wallet: wallet,
-        walletAddress: address,
-      }),
-    };
-  }
-
-
-  // Send 100k SCRT from account 0 to each of accounts 1-19
-
-  const { secretjs } = accounts[0];
-
-  let tx: TxResponse;
-  try {
-    tx = await secretjs.tx.bank.multiSend(
-      {
-        inputs: [
-          {
-            address: accounts[0].address,
-            coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
-          },
-        ],
-        outputs: accounts.slice(1).map(({ address }) => ({
-          address,
-          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
-        })),
-      },
-      {
-        gasLimit: 200_000,
-      },
-    );
-  } catch (e) {
-    throw new Error(`Failed to multisend: ${e.stack}`);
-  }
-
-  if (tx.code !== 0) {
-    console.error(`failed to multisend coins`);
-    throw new Error("Failed to multisend coins to initial accounts");
-  }
-});
 
 beforeEach(async () => {
   const { secretjs } = accounts[0];
@@ -137,7 +54,7 @@ beforeEach(async () => {
 
   code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
 
- ({ code_hash } = await secretjs.query.compute.codeHashByCodeId({
+  ({ code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id,
   }));
 
@@ -648,85 +565,72 @@ describe("query.snip1155", () => {
     ).toBeDefined();
   });
 
+  test("get private token info", async () => {
+    const { secretjs } = accounts[0];
 
-    
-      test("get private token info", async () => {
+    const txExec = await secretjs.tx.snip1155.setViewingKey(
+      {
+        sender: secretjs.address,
+        code_hash,
+        contract_address,
+        msg: { set_viewing_key: { key: "hello" } },
+      },
+      { gasLimit: 5_000_000 },
+    );
+    if (txExec.code !== TxResultCode.Success) {
+      console.error(txExec.rawLog);
+    }
+    expect(txExec.code).toBe(TxResultCode.Success);
 
-        const { secretjs } = accounts[0];
-
-
-        const txExec = await secretjs.tx.snip1155.setViewingKey(
-          {
-            sender: secretjs.address,
-            code_hash,
-            contract_address,
-            msg: { set_viewing_key: { key: "hello" } },
-          },
-          { gasLimit: 5_000_000 },
-        );
-        if (txExec.code !== TxResultCode.Success) {
-          console.error(txExec.rawLog);
-        }
-        expect(txExec.code).toBe(TxResultCode.Success);
-
-
-
-        const privateTokenInfoQuery =
-          await secretjs.query.snip1155.getPrivateTokenInfo({
-            contract: {
-              address: contract_address,
-              code_hash,
-            },
-            token_id: "2",
-            auth: {
-              viewer: {
-                viewing_key: 'hello',
-                address: secretjs.address
-              }
-            }
-          });
-
-        expect(
-          privateTokenInfoQuery.token_id_private_info.token_id_info.private_metadata,
-        ).toBeDefined();
-
-
-
-
-        const permit = await secretjs.utils.accessControl.permit.sign(
-          secretjs.address,
-          "secretdev-1",
-          "Test",
-          [contract_address],
-          ["owner"],
-          false,
-        );
-   
-
-      const privateTokenInfoQuery2 = await secretjs.query.snip1155.getPrivateTokenInfo({
+    const privateTokenInfoQuery =
+      await secretjs.query.snip1155.getPrivateTokenInfo({
         contract: {
           address: contract_address,
           code_hash,
         },
         token_id: "2",
         auth: {
-          permit
-        }
+          viewer: {
+            viewing_key: "hello",
+            address: secretjs.address,
+          },
+        },
       });
 
     expect(
-      privateTokenInfoQuery2.token_id_private_info.token_id_info.private_metadata,
+      privateTokenInfoQuery.token_id_private_info.token_id_info
+        .private_metadata,
     ).toBeDefined();
 
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      secretjs.address,
+      "secretdev-1",
+      "Test",
+      [contract_address],
+      ["owner"],
+      false,
+    );
 
+    const privateTokenInfoQuery2 =
+      await secretjs.query.snip1155.getPrivateTokenInfo({
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        token_id: "2",
+        auth: {
+          permit,
+        },
+      });
 
+    expect(
+      privateTokenInfoQuery2.token_id_private_info.token_id_info
+        .private_metadata,
+    ).toBeDefined();
   });
 
-  test("get balance", async () => { 
-
-
+  test("get balance", async () => {
     const { secretjs } = accounts[0];
-
 
     const txExec = await secretjs.tx.snip1155.setViewingKey(
       {
@@ -742,63 +646,51 @@ describe("query.snip1155", () => {
     }
     expect(txExec.code).toBe(TxResultCode.Success);
 
+    const balanceInfoQueryViewingKey = await secretjs.query.snip1155.getBalance(
+      {
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        token_id: "1",
+        owner: secretjs.address,
+        auth: {
+          viewer: {
+            viewing_key: "hello",
+            address: secretjs.address,
+          },
+        },
+      },
+    );
 
+    expect(balanceInfoQueryViewingKey.balance.amount).toBeDefined();
 
-    const balanceInfoQueryViewingKey = await secretjs.query.snip1155.getBalance({
+    const permit = await secretjs.utils.accessControl.permit.sign(
+      secretjs.address,
+      "secretdev-1",
+      "Test",
+      [contract_address],
+      ["owner"],
+      false,
+    );
+
+    const balanceInfoQueryPermit = await secretjs.query.snip1155.getBalance({
       contract: {
         address: contract_address,
-        code_hash
+        code_hash,
       },
       token_id: "1",
-      owner:secretjs.address,
+      owner: secretjs.address,
       auth: {
-        viewer: {
-          viewing_key: 'hello',
-          address: secretjs.address
-        }
-      }
+        permit,
+      },
     });
 
-    expect(
-      balanceInfoQueryViewingKey.balance.amount,
-    ).toBeDefined();
-
-
-
-
-    const permit = await secretjs.utils.accessControl.permit.sign(
-      secretjs.address,
-      "secretdev-1",
-      "Test",
-      [contract_address],
-      ["owner"],
-      false,
-    );
-
-
-  const balanceInfoQueryPermit = await secretjs.query.snip1155.getBalance({
-    contract: {
-      address: contract_address,
-      code_hash
-    },
-    token_id: "1",
-    owner:secretjs.address,
-    auth: {
-       permit
-      }
-    });
-
-    expect(
-      balanceInfoQueryPermit.balance.amount
-    ).toBeDefined();
-      
+    expect(balanceInfoQueryPermit.balance.amount).toBeDefined();
   });
 
-  test("get all balance", async () => { 
-
-
+  test("get all balance", async () => {
     const { secretjs } = accounts[0];
-
 
     const txExec = await secretjs.tx.snip1155.setViewingKey(
       {
@@ -814,28 +706,26 @@ describe("query.snip1155", () => {
     }
     expect(txExec.code).toBe(TxResultCode.Success);
 
-
-
-    const allBalanceInfoQueryViewingKey = await secretjs.query.snip1155.getAllBalances({
-      contract: {
-        address: contract_address,
-        code_hash
-      },
-      owner:secretjs.address,
-      auth: {
-        viewer: {
-          viewing_key: "hello",
-          address: secretjs.address
-        }
-      }
-    });
+    const allBalanceInfoQueryViewingKey =
+      await secretjs.query.snip1155.getAllBalances({
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        owner: secretjs.address,
+        auth: {
+          viewer: {
+            viewing_key: "hello",
+            address: secretjs.address,
+          },
+        },
+      });
 
     expect(
-      allBalanceInfoQueryViewingKey.all_balances.every( balance => balance.amount && balance.token_id ),
+      allBalanceInfoQueryViewingKey.all_balances.every(
+        (balance) => balance.amount && balance.token_id,
+      ),
     ).toBeTruthy();
-
-
-
 
     const permit = await secretjs.utils.accessControl.permit.sign(
       secretjs.address,
@@ -846,28 +736,26 @@ describe("query.snip1155", () => {
       false,
     );
 
-
-  const allBalanceInfoQueryPermit = await secretjs.query.snip1155.getAllBalances({
-    contract: {
-      address: contract_address,
-      code_hash
-    },
-    owner:secretjs.address,
-    auth: {
-       permit
-      }
-    });
-
+    const allBalanceInfoQueryPermit =
+      await secretjs.query.snip1155.getAllBalances({
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        owner: secretjs.address,
+        auth: {
+          permit,
+        },
+      });
 
     expect(
-      allBalanceInfoQueryPermit.all_balances.every( balance => balance.amount && balance.token_id)
+      allBalanceInfoQueryPermit.all_balances.every(
+        (balance) => balance.amount && balance.token_id,
+      ),
     ).toBeTruthy();
-      
   });
 
-  test("get transfer history", async () => { 
-
-
+  test("get transfer history", async () => {
     const { secretjs } = accounts[0];
 
     //one transfer
@@ -898,7 +786,6 @@ describe("query.snip1155", () => {
 
     expect(transferTx.code).toBe(TxResultCode.Success);
 
-
     const txExec = await secretjs.tx.snip1155.setViewingKey(
       {
         sender: secretjs.address,
@@ -913,28 +800,24 @@ describe("query.snip1155", () => {
     }
     expect(txExec.code).toBe(TxResultCode.Success);
 
-
-
-    const transactionHistoryQueryViewingKey = await secretjs.query.snip1155.getTransactionHistory({
-      contract: {
-        address: contract_address,
-        code_hash,
-      },
-      page_size:5,
-      auth: {
-        viewer: {
-          viewing_key: "hello",
-          address: secretjs.address
-        }
-      }
-    });
+    const transactionHistoryQueryViewingKey =
+      await secretjs.query.snip1155.getTransactionHistory({
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        page_size: 5,
+        auth: {
+          viewer: {
+            viewing_key: "hello",
+            address: secretjs.address,
+          },
+        },
+      });
 
     expect(
       transactionHistoryQueryViewingKey.transaction_history.txs.length > 0,
     ).toBeTruthy();
-
-
-
 
     const permit = await secretjs.utils.accessControl.permit.sign(
       secretjs.address,
@@ -945,23 +828,20 @@ describe("query.snip1155", () => {
       false,
     );
 
-
-  const transactionHistoryQueryPermit = await secretjs.query.snip1155.getTransactionHistory({
-    contract: {
-      address: contract_address,
-      code_hash,
-    },
-    page_size:1,
-    auth: {
-       permit
-      }
-    });
-
+    const transactionHistoryQueryPermit =
+      await secretjs.query.snip1155.getTransactionHistory({
+        contract: {
+          address: contract_address,
+          code_hash,
+        },
+        page_size: 1,
+        auth: {
+          permit,
+        },
+      });
 
     expect(
-      transactionHistoryQueryPermit.transaction_history.txs.length > 0
+      transactionHistoryQueryPermit.transaction_history.txs.length > 0,
     ).toBeTruthy();
-      
   });
-
 });
