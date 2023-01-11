@@ -1,5 +1,13 @@
 # Changelog & Version Info
 
+## 1.6.7
+
+- `txsQuery()`:
+  - Add `pagination` & `order_by` options
+  - Add `ibcTxOptions` - control whether and how to resolve IBC response txs
+- Fix docs for how to query at a specific height
+- Add the `stringToCoins()` helper function
+
 ## 1.6.6
 
 Support sending txs that were signed with an Ethermint pubkey.

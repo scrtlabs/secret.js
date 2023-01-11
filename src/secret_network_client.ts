@@ -1365,7 +1365,7 @@ export class SecretNetworkClient {
                 PubKey.decode(
                   // @ts-expect-error
                   // pubkey.value is actually a base64 string but it's Any
-                  // so Typescript thinks it's a Uint8Array
+                  // so TypeScript thinks it's a Uint8Array
                   fromBase64(pubkey.value),
                 ),
               ),
