@@ -1,4 +1,5 @@
 import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
+import { notDeepEqual } from "assert";
 
 import { bech32 } from "bech32";
 import fs from "fs";
@@ -17,6 +18,7 @@ import {
   SecretNetworkClient,
   selfDelegatorAddressToValidatorAddress,
   StakeAuthorizationType,
+  stringToCoins,
   tendermintPubkeyToValconsAddress,
   TxResultCode,
   validatorAddressToSelfDelegatorAddress,
@@ -45,7 +47,7 @@ beforeAll(() => {
 });
 
 describe("query", () => {
-  test("query.getTx", async () => {
+  test("getTx", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -147,7 +149,7 @@ describe("query", () => {
     ).toContain('{"create_viewing_key":{"key":"');
   });
 
-  test("query.getTx error", async () => {
+  test("getTx error", async () => {
     const { secretjs } = accounts[0];
 
     const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
@@ -229,6 +231,85 @@ describe("query", () => {
     );
     expect(txExec.jsonLog).toStrictEqual({
       generic_err: { msg: "insufficient funds: balance=1, required=2" },
+    });
+  });
+
+  test("query at height", async () => {
+    const { secretjs } = accounts[accounts.length - 1];
+
+    let queryResultThen = await secretjs.query.bank.balance(
+      {
+        address: secretjs.address,
+        denom: "uscrt",
+      },
+      [["x-cosmos-block-height", "1"]],
+    );
+
+    // test account should not have a balance at first
+    expect(queryResultThen.balance!.amount).toBe("0");
+
+    let queryResultNow = await secretjs.query.bank.balance({
+      address: secretjs.address,
+      denom: "uscrt",
+    });
+
+    // by now test account should have a balance
+    expect(queryResultNow.balance!.amount).not.toBe("0");
+  });
+
+  describe("txsQuery", () => {
+    beforeAll(async () => {
+      // create a bunch of txs for us to query later
+      const txs = await Promise.all(
+        accounts.map((a) =>
+          a.secretjs.tx.bank.send({
+            amount: stringToCoins("1uscrt"),
+            from_address: a.address,
+            to_address: a.address,
+          }),
+        ),
+      );
+
+      txs.forEach((tx) => {
+        if (tx.code !== TxResultCode.Success) {
+          console.error(tx.rawLog);
+        }
+        expect(tx.code).toBe(TxResultCode.Success);
+      });
+    });
+
+    test("pagination.limit", async () => {
+      expect(accounts.length).toBeGreaterThan(10);
+
+      const { secretjs } = accounts[0];
+
+      let queryResult = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "10" },
+      );
+
+      expect(queryResult.length).toBe(10);
+    });
+
+    test("pagination.offset", async () => {
+      const { secretjs } = accounts[0];
+
+      const first = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "1" },
+      );
+
+      const second = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "1", offset: "1" },
+      );
+
+      expect(first.length).toBe(1);
+      expect(second.length).toBe(1);
+      expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
     });
   });
 });
@@ -2648,71 +2729,70 @@ describe("utils", () => {
   });
 });
 
-
 describe("tx broadcast multi", () => {
   test("Send Multiple Messages Amino", async () => {
-    const {secretjs} = accounts[0];
+    const { secretjs } = accounts[0];
 
     const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
-        await secretjs.query.compute.codeHashByCodeId({
-          code_id: code_id,
-        });
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
+      });
 
     let tx = await secretjs.tx.compute.instantiateContract(
-        {
-          sender: accounts[0].address,
-          code_id,
-          code_hash,
-          init_msg: {
-            name: "Secret SCRT",
-            admin: accounts[0].address,
-            symbol: "SSCRT",
-            decimals: 6,
-            initial_balances: [{ address: accounts[0].address, amount: "1" }],
-            prng_seed: "eW8=",
-            config: {
-              public_total_supply: true,
-              enable_deposit: true,
-              enable_redeem: true,
-              enable_mint: false,
-              enable_burn: false,
-            },
-            supported_denoms: ["uscrt"],
+      {
+        sender: accounts[0].address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
           },
-          label: `label-${Date.now()}`,
-          init_funds: [],
+          supported_denoms: ["uscrt"],
         },
-        {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
-        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
     );
     let contract_address = checkInstantiateSuccess(tx);
 
     tx = await secretjs.tx.broadcast(
-        [
-          new MsgSend({
-            from_address: accounts[0].address,
-            to_address: accounts[2].address,
-            amount: [{ denom: "uscrt", amount: "1" }],
-          }),
-          new MsgExecuteContract({
-            sender: secretjs.address,
-            contract_address,
-            msg: {
-              create_viewing_key: {
-                entropy: "bla bla",
-              },
+      [
+        new MsgSend({
+          from_address: accounts[0].address,
+          to_address: accounts[2].address,
+          amount: [{ denom: "uscrt", amount: "1" }],
+        }),
+        new MsgExecuteContract({
+          sender: secretjs.address,
+          contract_address,
+          msg: {
+            create_viewing_key: {
+              entropy: "bla bla",
             },
-            code_hash,
-          }),
-        ],
-        {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
-        },
+          },
+          code_hash,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
     );
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);

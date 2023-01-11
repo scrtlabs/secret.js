@@ -2,6 +2,7 @@ import { fromBase64, toHex, toUtf8 } from "@cosmjs/encoding";
 import { ripemd160 } from "@noble/hashes/ripemd160";
 import { sha256 } from "@noble/hashes/sha256";
 import { bech32 } from "bech32";
+import { Coin } from "./tx";
 
 /**
  *
@@ -138,3 +139,19 @@ export const ibcDenom = (
 
   return "ibc/" + toHex(sha256(toUtf8(denom))).toUpperCase();
 };
+
+/**
+ * E.g. "1uscrt,1uatom,1uosmo" =>
+ * [{amount:"1",denom:"uscrt"},{amount:"1",denom:"uatom"},{amount:"1",denom:"uosmo"}]
+ *
+ */
+export const stringToCoins = (coinsAsString: string): Coin[] =>
+  coinsAsString.split(",").map((cointAsStr) => {
+    const regexMatch = cointAsStr.match(/^(\d+)([a-z]+)$/);
+
+    if (regexMatch === null) {
+      throw new Error(`cannot extract denom & amount from '${cointAsStr}'`);
+    }
+
+    return { amount: regexMatch[1], denom: regexMatch[2] };
+  });

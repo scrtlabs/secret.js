@@ -135,6 +135,7 @@ import {
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
+  OrderBy,
   Service as TxService,
   SimulateResponse,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
@@ -185,6 +186,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -354,7 +356,12 @@ export type Querier = {
    * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
    *
    */
-  txsQuery: (query: string) => Promise<TxResponse[]>;
+  txsQuery: (
+    query: string,
+    ibcTxOptions?: IbcTxOptions,
+    pagination?: PageRequest,
+    order_by?: OrderBy,
+  ) => Promise<TxResponse[]>;
   auth: AuthQuerier;
   authz: AuthzQuerier;
   bank: BankQuerier;
@@ -770,7 +777,8 @@ export class SecretNetworkClient {
       tendermint: new TendermintQuerier(options.url),
       upgrade: new UpgradeQuerier(options.url),
       getTx: (hash) => this.getTx(hash),
-      txsQuery: (query) => this.txsQuery(query),
+      txsQuery: (query, ibcTxOptions, pagination, order_by) =>
+        this.txsQuery(query, ibcTxOptions, pagination, order_by),
     };
 
     if (options.wallet && options.walletAddress === undefined) {
@@ -928,10 +936,20 @@ export class SecretNetworkClient {
   private async txsQuery(
     query: string,
     ibcTxOptions?: IbcTxOptions,
+    pagination: PageRequest = {
+      key: undefined,
+      offset: undefined,
+      limit: undefined,
+      count_total: undefined,
+      reverse: undefined,
+    },
+    order_by?: OrderBy,
   ): Promise<TxResponse[]> {
     const { tx_responses } = await TxService.GetTxsEvent(
       {
         events: query.split(" AND ").map((q) => q.trim()),
+        pagination,
+        order_by,
       },
       { pathPrefix: this.url },
     );

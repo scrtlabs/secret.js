@@ -53,6 +53,7 @@
     - [`tendermintPubkeyToValconsAddress()`](#tendermintpubkeytovalconsaddress)
     - [`base64TendermintPubkeyToValconsAddress()`](#base64tendermintpubkeytovalconsaddress)
     - [`ibcDenom()`](#ibcdenom)
+    - [`stringToCoins()`](#stringtocoins)
 
 # Key Features
 
@@ -114,7 +115,7 @@ const {
     denom: "uscrt",
   } /*,
   // optional: query at a specific height (using an archive node) 
-  new grpc.Metadata({"x-cosmos-block-height": "2000000"})
+  [["x-cosmos-block-height", "2000000"]]
   */,
 );
 
@@ -1842,3 +1843,11 @@ https://secretjs.scrt.network/modules#base64TendermintPubkeyToValconsAddress
 Compute the IBC denom of a token that was sent over IBC.
 
 https://secretjs.scrt.network/modules#ibcDenom
+
+### `stringToCoins()`
+
+E.g.
+convert `"1uscrt,1uatom,1uosmo"`
+into `[{amount:"1",denom:"uscrt"}, {amount:"1",denom:"uatom"}, {amount:"1",denom:"uosmo"}]`
+
+https://secretjs.scrt.network/modules#stringToCoins
