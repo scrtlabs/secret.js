@@ -997,7 +997,7 @@ export class SecretNetworkClient {
       }
 
       reject(
-        `timed-out while trying to resolve IBC ${type} tx for packet_src_channel='${packetSrcChannel} and packet_sequence='${packetSequence}'`,
+        `timed-out while trying to resolve IBC ${type} tx for packet_src_channel='${packetSrcChannel}' and packet_sequence='${packetSequence}'`,
       );
     });
   }
