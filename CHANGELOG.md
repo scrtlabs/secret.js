@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.6.8
+
+- Turn off `ibcResponses` by default on `txsQuery()` as it can lead to request spamming when there are a lot of results
 - Add the `stringToCoin()` helper function
 - Alias `coinFromString()` => `stringToCoin()`
 - Alias `coinsFromString()` => `stringToCoins()`

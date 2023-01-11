@@ -236,6 +236,37 @@ describe("ibcResponses", () => {
       ),
     ).toBeTruthy();
   }, 90_000);
+
+  test("ibcResponses turned off by default on txsQuery", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.ibc.transfer(
+      {
+        sender: secretjs.address,
+        receiver: secretjs.address,
+        source_channel: ibcChannelIdOnChain1,
+        source_port: "transfer",
+        token: stringToCoin("1uscrt"),
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 100_000,
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const txs = await secretjs.query.txsQuery(
+      `tx.hash='${tx.transactionHash}'`,
+    );
+
+    expect(txs.length).toBe(1);
+    expect(txs[0].ibcResponses.length).toBe(0);
+  }, 90_000);
 });
 
 describe("cw20-ics20", () => {

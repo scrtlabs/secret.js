@@ -235,14 +235,19 @@ export enum BroadcastMode {
 }
 
 export type IbcTxOptions = {
-  /** If `false` skip resolving the IBC response txs (acknowledge/timeout). Defaults to `true`. */
+  /** If `false` skip resolving the IBC response txs (acknowledge/timeout).
+   *
+   * Defaults to `true` when broadcasting a tx or using `getTx()`.
+   * Defaults to `false` when using `txsQuery()`.
+   *
+   */
   resolveResponses?: boolean;
   /**
    * How much time (in milliseconds) to wait for IBC response txs (acknowledge/timeout).
    *
    * Defaults to `120_000` (2 minutes).
    *
-   * */
+   */
   resolveResponsesTimeoutMs?: number;
   /**
    * When waiting for the IBC response txs (acknowledge/timeout) to commit on-chain, how much time (in milliseconds) to wait between checks.
@@ -935,7 +940,9 @@ export class SecretNetworkClient {
 
   private async txsQuery(
     query: string,
-    ibcTxOptions?: IbcTxOptions,
+    ibcTxOptions: IbcTxOptions = {
+      resolveResponses: false,
+    },
     pagination: PageRequest = {
       key: undefined,
       offset: undefined,
