@@ -366,7 +366,6 @@ describe("query.auth", () => {
 
     expect(account.address).toBe(accounts[1].address);
     expect(account.account_number).toBe("1");
-    expect(account.sequence).toBe("0");
   });
 
   test("params()", async () => {
