@@ -1,4 +1,4 @@
-import { TxResponse, TxResultCode } from "../src";
+import { stringToCoins, TxResponse, TxResultCode } from "../src";
 import {
   accounts,
   chain1LCD,
@@ -51,17 +51,14 @@ module.exports = async () => {
         inputs: [
           {
             address: accounts[0].address,
-            coins: [
-              {
-                denom: "uscrt",
-                amount: String(100_000 * 1e6 * (accounts.length - 3)),
-              },
-            ],
+            coins: stringToCoins(
+              `${100_000 * 1e6 * (accounts.length - 3)}uscrt`,
+            ),
           },
         ],
         outputs: accounts.slice(3).map(({ address }) => ({
           address,
-          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
+          coins: stringToCoins(`${100_000 * 1e6}uscrt`),
         })),
       },
       {

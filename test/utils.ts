@@ -5,7 +5,13 @@ import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
-import { SecretNetworkClient, TxResponse, TxResultCode, Wallet } from "../src";
+import {
+  SecretNetworkClient,
+  stringToCoins,
+  TxResponse,
+  TxResultCode,
+  Wallet,
+} from "../src";
 import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
 
@@ -116,7 +122,7 @@ export function checkInstantiateSuccess(tx: TxResponse): string {
     "secret1",
   );
 
-  return getValueFromRawLog(tx.rawLog, "message.contract_address")
+  return getValueFromRawLog(tx.rawLog, "message.contract_address");
 }
 
 export function getMnemonicRegexForAccountName(account: string) {
@@ -357,7 +363,7 @@ export async function waitForChainToStart({
   while (true) {
     try {
       const tx = await secretjs.tx.bank.send({
-        amount: [{ amount: "1", denom: "uscrt" }],
+        amount: stringToCoins("1uscrt"),
         from_address: walletAddress,
         to_address: walletAddress,
       });

@@ -10,6 +10,7 @@ import {
   MsgStoreCodeResponse,
   MsgTransfer,
   SecretNetworkClient,
+  stringToCoin,
   toBase64,
   toHex,
   toUtf8,
@@ -97,10 +98,7 @@ describe("ibcResponses", () => {
         receiver: secretjs.address,
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
-        token: {
-          amount: "1",
-          denom: "uscrt",
-        },
+        token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
       },
       {
@@ -142,10 +140,7 @@ describe("ibcResponses", () => {
           receiver: secretjs.address,
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
-          token: {
-            amount: "1",
-            denom: "uscrt",
-          },
+          token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
         }),
         new MsgTransfer({
@@ -153,10 +148,7 @@ describe("ibcResponses", () => {
           receiver: secretjs.address,
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
-          token: {
-            amount: "1",
-            denom: "uscrt",
-          },
+          token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
         }),
       ],
@@ -199,10 +191,7 @@ describe("ibcResponses", () => {
         receiver: secretjs.address,
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
-        token: {
-          amount: "1",
-          denom: "uscrt",
-        },
+        token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second
       },
       {

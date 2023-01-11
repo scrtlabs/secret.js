@@ -18,6 +18,7 @@ import {
   SecretNetworkClient,
   selfDelegatorAddressToValidatorAddress,
   StakeAuthorizationType,
+  stringToCoin,
   stringToCoins,
   tendermintPubkeyToValconsAddress,
   TxResultCode,
@@ -562,7 +563,7 @@ describe("tx", () => {
     const msg = new MsgSend({
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     let signedTX = await secretjs.tx.signTx([msg], {
@@ -598,7 +599,7 @@ describe("tx.bank", () => {
     const sim = await secretjs.tx.bank.send.simulate({
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
@@ -606,7 +607,7 @@ describe("tx.bank", () => {
     const msg = {
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     };
     const tx = await secretjs.tx.bank.send(msg, {
       broadcastCheckIntervalMs: 100,
@@ -620,7 +621,7 @@ describe("tx.bank", () => {
       "@type": "/cosmos.bank.v1beta1.MsgSend",
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
@@ -644,17 +645,17 @@ describe("tx.bank", () => {
         inputs: [
           {
             address: accounts[0].address,
-            coins: [{ denom: "uscrt", amount: "2" }],
+            coins: stringToCoins("2uscrt"),
           },
         ],
         outputs: [
           {
             address: accounts[1].address,
-            coins: [{ denom: "uscrt", amount: "1" }],
+            coins: stringToCoins("1uscrt"),
           },
           {
             address: accounts[2].address,
-            coins: [{ denom: "uscrt", amount: "1" }],
+            coins: stringToCoins("1uscrt"),
           },
         ],
       },
@@ -1180,7 +1181,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.TextProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "Hello",
@@ -1218,12 +1219,12 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CommunityPoolSpendProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "Hello",
             recipient: accounts[1].address,
-            amount: [{ amount: "1", denom: "uscrt" }],
+            amount: stringToCoins("1uscrt"),
           },
         },
         {
@@ -1257,7 +1258,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.ParameterChangeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "YOLO",
@@ -1297,7 +1298,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.SoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi let's upgrade",
             description: "PROD NO FEAR",
@@ -1339,7 +1340,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CancelSoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi let's cancel",
             description: "PROD FEAR",
@@ -1375,7 +1376,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: stringToCoins("10000000uscrt"),
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1426,7 +1427,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: stringToCoins("10000000uscrt"),
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1506,7 +1507,7 @@ describe("tx.gov", () => {
       {
         depositor: accounts[0].address,
         proposal_id: proposal_id,
-        amount: [{ amount: "1", denom: "uscrt" }],
+        amount: stringToCoins("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1523,7 +1524,7 @@ describe("tx.gov", () => {
       proposal_id,
     });
 
-    expect(deposit?.amount).toStrictEqual([{ amount: "1", denom: "uscrt" }]);
+    expect(deposit?.amount).toStrictEqual(stringToCoins("1uscrt"));
   });
 });
 
@@ -1541,7 +1542,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1571,7 +1572,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1594,7 +1595,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1635,7 +1636,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(1)),
         min_self_delegation: "1",
-        initial_delegation: { amount: "1", denom: "uscrt" },
+        initial_delegation: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1673,7 +1674,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(2)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1749,7 +1750,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(3)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1769,7 +1770,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validators![0].operator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1786,7 +1787,7 @@ describe("tx.staking", () => {
         delegator_address: accounts[0].address,
         validator_src_address: validators![0].operator_address!,
         validator_dst_address: validators![1].operator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1821,7 +1822,7 @@ describe("tx.slashing", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(4)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1863,7 +1864,7 @@ describe("tx.distribution", () => {
     const tx = await secretjs.tx.distribution.fundCommunityPool(
       {
         depositor,
-        amount: [{ amount: "1", denom: "uscrt" }],
+        amount: stringToCoins("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1887,7 +1888,7 @@ describe("tx.distribution", () => {
       {
         delegator_address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2164,7 +2165,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: stringToCoins("1000000uscrt"),
       },
     });
 
@@ -2214,7 +2215,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: stringToCoins("1000000uscrt"),
       },
     });
 
@@ -2252,7 +2253,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2277,7 +2278,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2333,7 +2334,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2353,10 +2354,7 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgDelegate({
-              amount: {
-                amount: "1",
-                denom: "uscrt",
-              },
+              amount: stringToCoin("1uscrt"),
               delegator_address: secretjsGranter.address,
               validator_address: validator_address!,
             }),
@@ -2382,7 +2380,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2403,12 +2401,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2453,12 +2446,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2490,7 +2478,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2526,10 +2514,7 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgDelegate({
-              amount: {
-                amount: "1",
-                denom: "uscrt",
-              },
+              amount: stringToCoin("1uscrt"),
               delegator_address: secretjsGranter.address,
               validator_address: validator_address!,
             }),
@@ -2555,7 +2540,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2592,12 +2577,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2658,12 +2638,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2775,7 +2750,7 @@ describe("tx broadcast multi", () => {
         new MsgSend({
           from_address: accounts[0].address,
           to_address: accounts[2].address,
-          amount: [{ denom: "uscrt", amount: "1" }],
+          amount: stringToCoins("1uscrt"),
         }),
         new MsgExecuteContract({
           sender: secretjs.address,

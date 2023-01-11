@@ -141,17 +141,32 @@ export const ibcDenom = (
 };
 
 /**
- * E.g. "1uscrt,1uatom,1uosmo" =>
- * [{amount:"1",denom:"uscrt"},{amount:"1",denom:"uatom"},{amount:"1",denom:"uosmo"}]
- *
+ * E.g. `"1uscrt"` => `{amount:"1",denom:"uscrt"}`
+ */
+export const stringToCoin = (coinAsString: string): Coin => {
+  const regexMatch = coinAsString.match(/^(\d+)([a-z]+)$/);
+
+  if (regexMatch === null) {
+    throw new Error(`cannot extract denom & amount from '${coinAsString}'`);
+  }
+
+  return { amount: regexMatch[1], denom: regexMatch[2] };
+};
+
+/**
+ * E.g. `"1uscrt"` => `{amount:"1",denom:"uscrt"}`
+ */
+export const coinFromString = stringToCoin;
+
+/**
+ * E.g. `"1uscrt,1uatom,1uosmo"` =>
+ * `[{amount:"1",denom:"uscrt"},{amount:"1",denom:"uatom"},{amount:"1",denom:"uosmo"}]`
  */
 export const stringToCoins = (coinsAsString: string): Coin[] =>
-  coinsAsString.split(",").map((cointAsStr) => {
-    const regexMatch = cointAsStr.match(/^(\d+)([a-z]+)$/);
+  coinsAsString.split(",").map(stringToCoin);
 
-    if (regexMatch === null) {
-      throw new Error(`cannot extract denom & amount from '${cointAsStr}'`);
-    }
-
-    return { amount: regexMatch[1], denom: regexMatch[2] };
-  });
+/**
+ * E.g. `"1uscrt,1uatom,1uosmo"` =>
+ * `[{amount:"1",denom:"uscrt"},{amount:"1",denom:"uatom"},{amount:"1",denom:"uosmo"}]`
+ */
+export const coinsFromString = stringToCoins;

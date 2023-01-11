@@ -1,5 +1,11 @@
 # Changelog & Version Info
 
+## Unreleased
+
+- Add the `stringToCoin()` helper function
+- Alias `coinFromString()` => `stringToCoin()`
+- Alias `coinsFromString()` => `stringToCoins()`
+
 ## 1.6.7
 
 - `txsQuery()`:

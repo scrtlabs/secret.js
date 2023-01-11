@@ -159,7 +159,7 @@ const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
   from_address: myAddress,
   to_address: bob,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  amount: stringToCoins("1uscrt"),
 });
 
 const tx = await secretjs.tx.broadcast([msg], {
@@ -1029,13 +1029,13 @@ Notes:
 const sendToAlice = new MsgSend({
   from_address: bob,
   to_address: alice,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  amount: stringToCoins("1uscrt"),
 });
 
 const sendToEve = new MsgSend({
   from_address: bob,
   to_address: eve,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  amount: stringToCoins("1uscrt"),
 });
 
 const sim = await secretjs.tx.simulate([sendToAlice, sendToEve]);
@@ -1060,7 +1060,7 @@ const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
   from_address: myAddress,
   to_address: bob,
-  amount: [{ denom: "uscrt", amount: "1000000" }],
+  amount: stringToCoins("1000000uscrt"),
 });
 
 let signedTX = await secretjs.tx.signTx([msg], {
@@ -1114,17 +1114,17 @@ const tx = await secretjs.tx.bank.multiSend(
     inputs: [
       {
         address: myAddress,
-        coins: [{ denom: "uscrt", amount: "2" }],
+        coins: stringToCoins("2uscrt"),
       },
     ],
     outputs: [
       {
         address: alice,
-        coins: [{ denom: "uscrt", amount: "1" }],
+        coins: stringToCoins("1uscrt"),
       },
       {
         address: bob,
-        coins: [{ denom: "uscrt", amount: "1" }],
+        coins: stringToCoins("1uscrt"),
       },
     ],
   },
@@ -1149,7 +1149,7 @@ const tx = await secretjs.tx.bank.send(
   {
     from_address: myAddress,
     to_address: alice,
-    amount: [{ denom: "uscrt", amount: "1" }],
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1289,7 +1289,7 @@ Input: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/Msg
 const tx = await secretjs.tx.distribution.fundCommunityPool(
   {
     depositor: myAddress,
-    amount: [{ amount: "1", denom: "uscrt" }],
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1408,7 +1408,7 @@ const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
   granter: secretjsGranter.address,
   grantee: newWallet.address,
   allowance: {
-    spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+    spend_limit: stringToCoins("1000000uscrt"),
   },
 });
 
@@ -1468,7 +1468,7 @@ const tx = await secretjs.tx.gov.deposit(
   {
     depositor: myAddress,
     proposal_id: someProposalId,
-    amount: [{ amount: "1", denom: "uscrt" }],
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1491,7 +1491,7 @@ const tx = await secretjs.tx.gov.submitProposal(
   {
     type: ProposalType.TextProposal,
     proposer: myAddress,
-    initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+    initial_deposit: stringToCoins("100000000uscrt"),
     content: {
       title: "Hi",
       description: "Let's vote on this",
@@ -1607,7 +1607,7 @@ const tx = await secretjs.tx.staking.beginRedelegate(
     delegator_address: myAddress,
     validator_src_address: someValidator,
     validator_dst_address: someOtherValidator,
-    amount: { amount: "1", denom: "uscrt" },
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1643,7 +1643,7 @@ const tx = await secretjs.tx.staking.createValidator(
     },
     pubkey: toBase64(new Uint8Array(32).fill(1)), // validator's pubkey, to sign on validated blocks
     min_self_delegation: "1", // uscrt
-    initial_delegation: { amount: "1", denom: "uscrt" },
+    initial_delegation: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 100_000,
@@ -1666,7 +1666,7 @@ const tx = await secretjs.tx.staking.delegate(
   {
     delegator_address: myAddress,
     validator_address: someValidatorAddress,
-    amount: { amount: "1", denom: "uscrt" },
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1720,7 +1720,7 @@ const tx = await secretjs.tx.staking.undelegate(
   {
     delegator_address: myAddress,
     validator_address: someValidatorAddress,
-    amount: { amount: "1", denom: "uscrt" },
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1764,10 +1764,7 @@ const tx = await secretjs.tx.ibc.transfer(
     receiver: osmoAddress,
     source_channel: "channel-1",
     source_port: "transfer",
-    token: {
-      amount: "1",
-      denom: "uscrt",
-    },
+    token: stringToCoin("1uscrt"),
     timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
   },
   {
