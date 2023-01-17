@@ -170,3 +170,44 @@ export const stringToCoins = (coinsAsString: string): Coin[] =>
  * `[{amount:"1",denom:"uscrt"},{amount:"1",denom:"uatom"},{amount:"1",denom:"uosmo"}]`
  */
 export const coinsFromString = stringToCoins;
+
+/**
+ * validateAddress checks if a given address is a valid address
+ * @param {string} address the address to check
+ * @param {string?} prefix the address prefix, defaults to `"secret"`
+ * @returns `{ isValid: true }` if valid, `{ isValid: false, reason: "..." }` if not valid
+ */
+export const validateAddress = (
+  address: string,
+  prefix: string = "secret",
+): { isValid: boolean; reason?: string } => {
+  let decoded;
+  try {
+    decoded = bech32.decode(address);
+  } catch (e) {
+    let reason = "failed to decode address as a bech32";
+    if (e instanceof Error) {
+      reason += `: ${e.message}`;
+    }
+    return { isValid: false, reason };
+  }
+
+  if (decoded.prefix !== prefix) {
+    return {
+      isValid: false,
+      reason: `wrong bech32 prefix, expected '${prefix}', got '${decoded.prefix}'`,
+    };
+  }
+
+  const canonicalAddress = bech32.fromWords(decoded.words);
+  if (canonicalAddress.length !== 20 && canonicalAddress.length !== 32) {
+    return {
+      isValid: false,
+      reason: `wrong address length, expected 20 or 32 bytes, got ${canonicalAddress.length}`,
+    };
+  }
+
+  return {
+    isValid: true,
+  };
+};

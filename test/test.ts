@@ -22,6 +22,7 @@ import {
   stringToCoins,
   tendermintPubkeyToValconsAddress,
   TxResultCode,
+  validateAddress,
   validatorAddressToSelfDelegatorAddress,
   VoteOption,
 } from "../src";
@@ -2655,6 +2656,8 @@ describe("tx.authz", () => {
   });
 });
 
+// Utils tests don't require LocalSecret to run, so SKIP_LOCALSECRET=true
+// env variable can be used to run them faster
 describe("utils", () => {
   test("pubkeyToAddress", async () => {
     expect(
@@ -2700,6 +2703,55 @@ describe("utils", () => {
         "KgnRkdlLhDJT/9zxTl3YwUfXevNgYorFV7NjAflVkAg=",
       ),
     ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
+  });
+
+  describe("validateAddress", () => {
+    test("invalid bech32", async () => {
+      expect(validateAddress("asdasds")).toStrictEqual({
+        isValid: false,
+        reason: "failed to decode address as a bech32: asdasds too short",
+      });
+    });
+
+    test("wrong prefix", async () => {
+      expect(
+        validateAddress(
+          "secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v",
+          "cosmos",
+        ),
+      ).toStrictEqual({
+        isValid: false,
+        reason: "wrong bech32 prefix, expected 'cosmos', got 'secret'",
+      });
+    });
+
+    test("ok length 20", async () => {
+      expect(
+        validateAddress("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v"),
+      ).toStrictEqual({
+        isValid: true,
+      });
+    });
+
+    test("ok length 32", async () => {
+      expect(
+        validateAddress(
+          "blabla1r4pzw8f9z0sypct5l9j906d47z998ulwvhvqe5xdwgy8wf84583scvwdet",
+          "blabla",
+        ),
+      ).toStrictEqual({
+        isValid: true,
+      });
+    });
+
+    test("wrong length", async () => {
+      expect(
+        validateAddress("secret1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp3sprt"),
+      ).toStrictEqual({
+        isValid: false,
+        reason: "wrong address length, expected 20 or 32 bytes, got 21",
+      });
+    });
   });
 });
 

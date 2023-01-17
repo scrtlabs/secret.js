@@ -1,11 +1,5 @@
 import { stringToCoins, TxResponse, TxResultCode } from "../src";
-import {
-  accounts,
-  chain1LCD,
-  chain2LCD,
-  exec,
-  waitForChainToStart,
-} from "./utils";
+import { accounts, chain1LCD, exec, waitForChainToStart } from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 

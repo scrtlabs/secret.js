@@ -53,7 +53,9 @@
     - [`tendermintPubkeyToValconsAddress()`](#tendermintpubkeytovalconsaddress)
     - [`base64TendermintPubkeyToValconsAddress()`](#base64tendermintpubkeytovalconsaddress)
     - [`ibcDenom()`](#ibcdenom)
-    - [`stringToCoins()`](#stringtocoins)
+    - [`stringToCoins()` / `coinsFromString()`](#stringtocoins--coinsfromstring)
+    - [`stringToCoins()` / `coinFromString()`](#stringtocoins--coinfromstring)
+    - [`validateAddress()`](#validateaddress)
 
 # Key Features
 
@@ -1841,10 +1843,24 @@ Compute the IBC denom of a token that was sent over IBC.
 
 https://secretjs.scrt.network/modules#ibcDenom
 
-### `stringToCoins()`
+### `stringToCoins()` / `coinsFromString()`
 
 E.g.
 convert `"1uscrt,1uatom,1uosmo"`
 into `[{amount:"1",denom:"uscrt"}, {amount:"1",denom:"uatom"}, {amount:"1",denom:"uosmo"}]`
 
 https://secretjs.scrt.network/modules#stringToCoins
+
+### `stringToCoins()` / `coinFromString()`
+
+E.g.
+convert `"1uscrt,1uatom,1uosmo"`
+into `[{amount:"1",denom:"uscrt"}, {amount:"1",denom:"uatom"}, {amount:"1",denom:"uosmo"}]`
+
+https://secretjs.scrt.network/modules#stringToCoins
+
+### `validateAddress()`
+
+Checks if a given address is a valid address.
+
+https://secretjs.scrt.network/modules#validateAddress
