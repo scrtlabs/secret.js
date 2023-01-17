@@ -1187,6 +1187,7 @@ describe("tx.gov", () => {
             title: "Hi",
             description: "Hello",
           },
+          is_expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1227,6 +1228,7 @@ describe("tx.gov", () => {
             recipient: accounts[1].address,
             amount: stringToCoins("1uscrt"),
           },
+          is_expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1267,6 +1269,7 @@ describe("tx.gov", () => {
               { subspace: "auth", key: "MaxMemoCharacters", value: '"512"' },
             ],
           },
+          is_expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1309,6 +1312,7 @@ describe("tx.gov", () => {
               info: "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F",
             },
           },
+          is_expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1346,6 +1350,7 @@ describe("tx.gov", () => {
             title: "Hi let's cancel",
             description: "PROD FEAR",
           },
+          is_expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1382,6 +1387,7 @@ describe("tx.gov", () => {
           title: "Please vote yes",
           description: "Please don't vote no",
         },
+        is_expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1433,6 +1439,7 @@ describe("tx.gov", () => {
           title: "Please vote yes",
           description: "Please don't vote no",
         },
+        is_expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1489,6 +1496,7 @@ describe("tx.gov", () => {
           title: "Hi",
           description: "Hello",
         },
+        is_expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2195,6 +2203,7 @@ describe("tx.feegrant", () => {
           title: "Test Feegrant",
           description: "YOLO",
         },
+        is_expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
