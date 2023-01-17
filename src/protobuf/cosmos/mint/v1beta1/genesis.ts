@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Minter, Params } from "../../../cosmos/mint/v1beta1/mint";
+import { Minter, Params } from "./mint";
 
 export const protobufPackage = "cosmos.mint.v1beta1";
 

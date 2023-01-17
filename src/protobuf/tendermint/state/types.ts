@@ -5,11 +5,11 @@ import {
   ResponseEndBlock,
   ResponseBeginBlock,
   ResponseDeliverTx,
-} from "../../tendermint/abci/types";
-import { ValidatorSet } from "../../tendermint/types/validator";
-import { ConsensusParams } from "../../tendermint/types/params";
-import { Consensus } from "../../tendermint/version/types";
-import { BlockID } from "../../tendermint/types/types";
+} from "../abci/types";
+import { ValidatorSet } from "../types/validator";
+import { ConsensusParams } from "../types/params";
+import { Consensus } from "../version/types";
+import { BlockID } from "../types/types";
 import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "tendermint.state";

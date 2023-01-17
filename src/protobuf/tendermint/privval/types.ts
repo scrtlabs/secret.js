@@ -1,8 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { PublicKey } from "../../tendermint/crypto/keys";
-import { Vote, Proposal } from "../../tendermint/types/types";
+import { PublicKey } from "../crypto/keys";
+import { Vote, Proposal } from "../types/types";
 
 export const protobufPackage = "tendermint.privval";
 

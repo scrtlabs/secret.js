@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { ContractInfo } from "../../../secret/compute/v1beta1/types";
+import { ContractInfo } from "./types";
 import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Empty } from "../../../google/protobuf/empty";
 

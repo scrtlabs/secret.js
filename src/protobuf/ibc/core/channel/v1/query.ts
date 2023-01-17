@@ -1,15 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  Channel,
-  IdentifiedChannel,
-  PacketState,
-} from "../../../../ibc/core/channel/v1/channel";
-import {
-  Height,
-  IdentifiedClientState,
-} from "../../../../ibc/core/client/v1/client";
+import { Channel, IdentifiedChannel, PacketState } from "./channel";
+import { Height, IdentifiedClientState } from "../../client/v1/client";
 import {
   PageRequest,
   PageResponse,

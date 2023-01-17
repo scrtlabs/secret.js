@@ -4,7 +4,7 @@ import * as _m0 from "protobufjs/minimal";
 import { Any } from "../../../google/protobuf/any";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Duration } from "../../../google/protobuf/duration";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.gov.v1beta1";
 
@@ -182,6 +182,7 @@ export interface Proposal {
   total_deposit: Coin[];
   voting_start_time?: Timestamp;
   voting_end_time?: Timestamp;
+  is_expedited: boolean;
 }
 
 /** TallyResult defines a standard tally for a governance proposal. */
@@ -220,12 +221,16 @@ export interface DepositParams {
    *  months.
    */
   max_deposit_period?: Duration;
+  /** Minimum expedited deposit for a proposal to enter voting period. */
+  min_expedited_deposit: Coin[];
 }
 
 /** VotingParams defines the params for voting on governance proposals. */
 export interface VotingParams {
   /** Length of the voting period. */
   voting_period?: Duration;
+  /** Length of the expedited voting period. */
+  expedited_voting_period?: Duration;
 }
 
 /** TallyParams defines the params for tallying votes on governance proposals. */
@@ -242,6 +247,8 @@ export interface TallyParams {
    *  vetoed. Default value: 1/3.
    */
   veto_threshold: Uint8Array;
+  /** Minimum proportion of Yes votes for an expedited proposal to pass. Default value: 0.67. */
+  expedited_threshold: Uint8Array;
 }
 
 function createBaseWeightedVoteOption(): WeightedVoteOption {
@@ -460,6 +467,7 @@ function createBaseProposal(): Proposal {
     total_deposit: [],
     voting_start_time: undefined,
     voting_end_time: undefined,
+    is_expedited: false,
   };
 }
 
@@ -507,6 +515,9 @@ export const Proposal = {
         writer.uint32(74).fork(),
       ).ldelim();
     }
+    if (message.is_expedited === true) {
+      writer.uint32(80).bool(message.is_expedited);
+    }
     return writer;
   },
 
@@ -547,6 +558,9 @@ export const Proposal = {
         case 9:
           message.voting_end_time = Timestamp.decode(reader, reader.uint32());
           break;
+        case 10:
+          message.is_expedited = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -578,6 +592,9 @@ export const Proposal = {
       voting_end_time: isSet(object.voting_end_time)
         ? fromJsonTimestamp(object.voting_end_time)
         : undefined,
+      is_expedited: isSet(object.is_expedited)
+        ? Boolean(object.is_expedited)
+        : false,
     };
   },
 
@@ -614,6 +631,8 @@ export const Proposal = {
       (obj.voting_end_time = fromTimestamp(
         message.voting_end_time,
       ).toISOString());
+    message.is_expedited !== undefined &&
+      (obj.is_expedited = message.is_expedited);
     return obj;
   },
 
@@ -649,6 +668,7 @@ export const Proposal = {
       object.voting_end_time !== undefined && object.voting_end_time !== null
         ? Timestamp.fromPartial(object.voting_end_time)
         : undefined;
+    message.is_expedited = object.is_expedited ?? false;
     return message;
   },
 };
@@ -827,7 +847,11 @@ export const Vote = {
 };
 
 function createBaseDepositParams(): DepositParams {
-  return { min_deposit: [], max_deposit_period: undefined };
+  return {
+    min_deposit: [],
+    max_deposit_period: undefined,
+    min_expedited_deposit: [],
+  };
 }
 
 export const DepositParams = {
@@ -843,6 +867,9 @@ export const DepositParams = {
         message.max_deposit_period,
         writer.uint32(18).fork(),
       ).ldelim();
+    }
+    for (const v of message.min_expedited_deposit) {
+      Coin.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -860,6 +887,11 @@ export const DepositParams = {
         case 2:
           message.max_deposit_period = Duration.decode(reader, reader.uint32());
           break;
+        case 3:
+          message.min_expedited_deposit.push(
+            Coin.decode(reader, reader.uint32()),
+          );
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -876,6 +908,9 @@ export const DepositParams = {
       max_deposit_period: isSet(object.max_deposit_period)
         ? Duration.fromJSON(object.max_deposit_period)
         : undefined,
+      min_expedited_deposit: Array.isArray(object?.min_expedited_deposit)
+        ? object.min_expedited_deposit.map((e: any) => Coin.fromJSON(e))
+        : [],
     };
   },
 
@@ -892,6 +927,13 @@ export const DepositParams = {
       (obj.max_deposit_period = message.max_deposit_period
         ? Duration.toJSON(message.max_deposit_period)
         : undefined);
+    if (message.min_expedited_deposit) {
+      obj.min_expedited_deposit = message.min_expedited_deposit.map((e) =>
+        e ? Coin.toJSON(e) : undefined,
+      );
+    } else {
+      obj.min_expedited_deposit = [];
+    }
     return obj;
   },
 
@@ -906,12 +948,14 @@ export const DepositParams = {
       object.max_deposit_period !== null
         ? Duration.fromPartial(object.max_deposit_period)
         : undefined;
+    message.min_expedited_deposit =
+      object.min_expedited_deposit?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseVotingParams(): VotingParams {
-  return { voting_period: undefined };
+  return { voting_period: undefined, expedited_voting_period: undefined };
 }
 
 export const VotingParams = {
@@ -921,6 +965,12 @@ export const VotingParams = {
   ): _m0.Writer {
     if (message.voting_period !== undefined) {
       Duration.encode(message.voting_period, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.expedited_voting_period !== undefined) {
+      Duration.encode(
+        message.expedited_voting_period,
+        writer.uint32(26).fork(),
+      ).ldelim();
     }
     return writer;
   },
@@ -935,6 +985,12 @@ export const VotingParams = {
         case 1:
           message.voting_period = Duration.decode(reader, reader.uint32());
           break;
+        case 3:
+          message.expedited_voting_period = Duration.decode(
+            reader,
+            reader.uint32(),
+          );
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -948,6 +1004,9 @@ export const VotingParams = {
       voting_period: isSet(object.voting_period)
         ? Duration.fromJSON(object.voting_period)
         : undefined,
+      expedited_voting_period: isSet(object.expedited_voting_period)
+        ? Duration.fromJSON(object.expedited_voting_period)
+        : undefined,
     };
   },
 
@@ -956,6 +1015,10 @@ export const VotingParams = {
     message.voting_period !== undefined &&
       (obj.voting_period = message.voting_period
         ? Duration.toJSON(message.voting_period)
+        : undefined);
+    message.expedited_voting_period !== undefined &&
+      (obj.expedited_voting_period = message.expedited_voting_period
+        ? Duration.toJSON(message.expedited_voting_period)
         : undefined);
     return obj;
   },
@@ -968,6 +1031,11 @@ export const VotingParams = {
       object.voting_period !== undefined && object.voting_period !== null
         ? Duration.fromPartial(object.voting_period)
         : undefined;
+    message.expedited_voting_period =
+      object.expedited_voting_period !== undefined &&
+      object.expedited_voting_period !== null
+        ? Duration.fromPartial(object.expedited_voting_period)
+        : undefined;
     return message;
   },
 };
@@ -977,6 +1045,7 @@ function createBaseTallyParams(): TallyParams {
     quorum: new Uint8Array(),
     threshold: new Uint8Array(),
     veto_threshold: new Uint8Array(),
+    expedited_threshold: new Uint8Array(),
   };
 }
 
@@ -993,6 +1062,9 @@ export const TallyParams = {
     }
     if (message.veto_threshold.length !== 0) {
       writer.uint32(26).bytes(message.veto_threshold);
+    }
+    if (message.expedited_threshold.length !== 0) {
+      writer.uint32(34).bytes(message.expedited_threshold);
     }
     return writer;
   },
@@ -1013,6 +1085,9 @@ export const TallyParams = {
         case 3:
           message.veto_threshold = reader.bytes();
           break;
+        case 4:
+          message.expedited_threshold = reader.bytes();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1031,6 +1106,9 @@ export const TallyParams = {
         : new Uint8Array(),
       veto_threshold: isSet(object.veto_threshold)
         ? bytesFromBase64(object.veto_threshold)
+        : new Uint8Array(),
+      expedited_threshold: isSet(object.expedited_threshold)
+        ? bytesFromBase64(object.expedited_threshold)
         : new Uint8Array(),
     };
   },
@@ -1051,6 +1129,12 @@ export const TallyParams = {
           ? message.veto_threshold
           : new Uint8Array(),
       ));
+    message.expedited_threshold !== undefined &&
+      (obj.expedited_threshold = base64FromBytes(
+        message.expedited_threshold !== undefined
+          ? message.expedited_threshold
+          : new Uint8Array(),
+      ));
     return obj;
   },
 
@@ -1061,6 +1145,8 @@ export const TallyParams = {
     message.quorum = object.quorum ?? new Uint8Array();
     message.threshold = object.threshold ?? new Uint8Array();
     message.veto_threshold = object.veto_threshold ?? new Uint8Array();
+    message.expedited_threshold =
+      object.expedited_threshold ?? new Uint8Array();
     return message;
   },
 };

@@ -1,10 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  Params,
-  ValidatorSigningInfo,
-} from "../../../cosmos/slashing/v1beta1/slashing";
+import { Params, ValidatorSigningInfo } from "./slashing";
 
 export const protobufPackage = "cosmos.slashing.v1beta1";
 

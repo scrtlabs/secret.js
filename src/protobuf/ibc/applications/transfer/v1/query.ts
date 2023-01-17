@@ -1,10 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  DenomTrace,
-  Params,
-} from "../../../../ibc/applications/transfer/v1/transfer";
+import { DenomTrace, Params } from "./transfer";
 import {
   PageRequest,
   PageResponse,

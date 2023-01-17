@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Grant } from "../../../cosmos/authz/v1beta1/authz";
+import { Grant } from "./authz";
 import { Any } from "../../../google/protobuf/any";
 
 export const protobufPackage = "cosmos.authz.v1beta1";

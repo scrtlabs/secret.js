@@ -1,8 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Params } from "../../../../ibc/applications/interchain_accounts/controller/v1/controller";
-import { Params as Params1 } from "../../../../ibc/applications/interchain_accounts/host/v1/host";
+import { Params } from "../controller/v1/controller";
+import { Params as Params1 } from "../host/v1/host";
 
 export const protobufPackage = "ibc.applications.interchain_accounts.v1";
 

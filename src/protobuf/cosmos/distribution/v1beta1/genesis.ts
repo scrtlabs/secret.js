@@ -9,8 +9,8 @@ import {
   ValidatorSlashEvent,
   Params,
   FeePool,
-} from "../../../cosmos/distribution/v1beta1/distribution";
-import { DecCoin } from "../../../cosmos/base/v1beta1/coin";
+} from "./distribution";
+import { DecCoin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.distribution.v1beta1";
 

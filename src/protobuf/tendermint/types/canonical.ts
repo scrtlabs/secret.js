@@ -5,7 +5,7 @@ import {
   SignedMsgType,
   signedMsgTypeFromJSON,
   signedMsgTypeToJSON,
-} from "../../tendermint/types/types";
+} from "./types";
 import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "tendermint.types";

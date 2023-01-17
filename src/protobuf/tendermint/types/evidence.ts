@@ -1,9 +1,9 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Vote, LightBlock } from "../../tendermint/types/types";
+import { Vote, LightBlock } from "./types";
 import { Timestamp } from "../../google/protobuf/timestamp";
-import { Validator } from "../../tendermint/types/validator";
+import { Validator } from "./validator";
 
 export const protobufPackage = "tendermint.types";
 
