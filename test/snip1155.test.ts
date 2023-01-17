@@ -1,11 +1,5 @@
 import fs from "fs";
-import {
-  fromUtf8,
-  SecretNetworkClient,
-  TxResponse,
-  TxResultCode,
-  Wallet,
-} from "../src";
+import { fromUtf8, TxResultCode } from "../src";
 import {
   Snip1155AddCuratorOptions,
   Snip1155AddMinterOptions,
@@ -20,12 +14,12 @@ import {
   Snip1155SendOptions,
   Snip1155TransferOptions,
 } from "../src/extensions/snip1155/types";
-import {
-  MsgExecuteContractResponse,
-  MsgInstantiateContractResponse,
-} from "../src/protobuf/secret/compute/v1beta1/msg";
-import { AminoWallet } from "../src/wallet_amino";
-import { Account, getValueFromRawLog, accounts } from "./utils";
+import { MsgExecuteContractResponse } from "../src/protobuf/secret/compute/v1beta1/msg";
+import { accounts, getValueFromRawLog } from "./utils";
+
+beforeAll(() => {
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+});
 
 let contract_address: string;
 let code_id: string;
