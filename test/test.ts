@@ -546,13 +546,6 @@ describe("query.compute", () => {
 
     expect(addressByLabel.contract_address).toBe(sSCRT);
   });
-
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
 });
 
 describe("tx", () => {

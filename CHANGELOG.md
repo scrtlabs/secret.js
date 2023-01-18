@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.0
+
+Support Secret Network v1.7.
+
 ## 1.6.9
 
 Add the `validateAddress()` helper function.
