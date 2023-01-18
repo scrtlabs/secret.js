@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Support expedited governance proposals.
+
 ## 1.6.9
 
 Add the `validateAddress()` helper function.
