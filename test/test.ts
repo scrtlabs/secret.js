@@ -13,6 +13,7 @@ import {
   MsgGrantAuthorization,
   MsgInstantiateContractResponse,
   MsgSend,
+  MsgSubmitProposal,
   ProposalType,
   pubkeyToAddress,
   SecretNetworkClient,
@@ -29,6 +30,7 @@ import {
 import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
 import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
+import { MsgSubmitProposalResponse } from "../src/protobuf/cosmos/gov/v1beta1/tx";
 import { AminoWallet } from "../src/wallet_amino";
 import {
   accounts,
@@ -546,13 +548,6 @@ describe("query.compute", () => {
 
     expect(addressByLabel.contract_address).toBe(sSCRT);
   });
-
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
-  test("", async () => {});
 });
 
 describe("tx", () => {
@@ -1202,9 +1197,9 @@ describe("tx.gov", () => {
         getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
       ).toBe("Text");
 
-      expect(
-        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
-      ).toBeGreaterThanOrEqual(1);
+      const { proposal_id } = MsgSubmitProposalResponse.decode(tx.data[0]);
+
+      expect(Number(proposal_id)).toBeGreaterThanOrEqual(1);
 
       const proposalsAfter = await getAllProposals(secretjs);
 
@@ -1526,6 +1521,78 @@ describe("tx.gov", () => {
     });
 
     expect(deposit?.amount).toStrictEqual(stringToCoins("1uscrt"));
+  });
+
+  test("Expedited", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgSubmitProposal({
+          // expedited
+          type: ProposalType.TextProposal,
+          proposer: accounts[0].address,
+          initial_deposit: stringToCoins("50000000uscrt"),
+          content: {
+            title: "Expedited Hi",
+            description: "Expedited Hello",
+          },
+          is_expedited: true,
+        }),
+        new MsgSubmitProposal({
+          // expedited = false
+          type: ProposalType.TextProposal,
+          proposer: accounts[0].address,
+          initial_deposit: stringToCoins("10000000uscrt"),
+          content: {
+            title: "Hi",
+            description: "Hello",
+          },
+          is_expedited: false,
+        }),
+        new MsgSubmitProposal({
+          // expedited omitted
+          type: ProposalType.TextProposal,
+          proposer: accounts[0].address,
+          initial_deposit: stringToCoins("10000000uscrt"),
+          content: {
+            title: "Hi",
+            description: "Hello",
+          },
+        }),
+      ],
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let { proposal_id } = MsgSubmitProposalResponse.decode(tx.data[0]);
+
+    let { proposal } = await secretjs.query.gov.proposal({
+      proposal_id,
+    });
+
+    expect(proposal?.is_expedited).toBe(true);
+
+    ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[1]));
+
+    ({ proposal } = await secretjs.query.gov.proposal({
+      proposal_id,
+    }));
+
+    expect(proposal?.is_expedited).toBe(false);
+
+    ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[2]));
+
+    ({ proposal } = await secretjs.query.gov.proposal({
+      proposal_id,
+    }));
+
+    expect(proposal?.is_expedited).toBe(false);
   });
 });
 
