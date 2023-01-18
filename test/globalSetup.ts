@@ -1,5 +1,5 @@
-import { SecretNetworkClient } from "../src";
-import { exec, sleep } from "./utils";
+import { stringToCoins, TxResponse, TxResultCode } from "../src";
+import { accounts, chain1LCD, exec, waitForChainToStart } from "./utils";
 
 require("ts-node").register({ transpileOnly: true });
 
@@ -8,51 +8,65 @@ module.exports = async () => {
     return;
   }
 
-  // init localsecret
-  console.log("\nSetting up LocalSecret...");
-  await exec("docker rm -f localsecret || true");
-  const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 1317:1316 --name localsecret ghcr.io/scrtlabs/localsecret:latest",
-  );
+  console.log("\nWaiting for LocalSecret to start...");
 
-  // console.log("stdout (testnet container id?):", stdout);
-  if (stderr) {
-    console.error("stderr:", stderr);
-  }
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
 
-  // Wait for the network to start (i.e. block number >= 1)
-  console.log("Waiting for the network to start...");
-
-  await waitForBlocks();
-
-  // set block time to 200ms
+  // set block time to 600ms
   await exec(
-    "docker exec localsecret sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml",
+    `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-1 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
   );
-  await exec("docker stop localsecret");
-  await exec("docker start localsecret");
+  await exec(
+    `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-1`,
+  );
 
-  await waitForBlocks();
-  await sleep(5000);
-  console.log(`LocalSecret is running`);
-};
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
 
-async function waitForBlocks() {
-  while (true) {
-    const secretjs = new SecretNetworkClient({
-      url: "http://localhost:1317",
-      chainId: "secretdev-1",
-    });
+  await waitForChainToStart({
+    chainId: "secretdev-1",
+    url: chain1LCD,
+  });
 
-    try {
-      const { block } = await secretjs.query.tendermint.getLatestBlock({});
+  console.log("Funding test accounts...");
 
-      if (Number(block?.header?.height) >= 1) {
-        break;
-      }
-    } catch (e) {
-      // console.eerror(e);
+  // Send 100k SCRT from account a to each of accounts 3-19
+  const { secretjs } = accounts[0];
+
+  let tx: TxResponse;
+  try {
+    tx = await secretjs.tx.bank.multiSend(
+      {
+        inputs: [
+          {
+            address: accounts[0].address,
+            coins: stringToCoins(
+              `${100_000 * 1e6 * (accounts.length - 3)}uscrt`,
+            ),
+          },
+        ],
+        outputs: accounts.slice(3).map(({ address }) => ({
+          address,
+          coins: stringToCoins(`${100_000 * 1e6}uscrt`),
+        })),
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 200_000,
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(`Failed to multisend: ${tx.rawLog}`);
+      throw new Error(`Failed to multisend: ${tx.rawLog}`);
     }
-    await sleep(250);
+  } catch (e) {
+    console.error(`Failed to multisend: ${JSON.stringify(e)}`);
+    throw new Error(`Failed to multisend: ${JSON.stringify(e)}`);
   }
-}
+};

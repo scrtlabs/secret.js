@@ -1,45 +1,39 @@
-import {
-  fromBase64,
-  fromHex,
-  fromUtf8,
-  toBase64,
-  toHex,
-  toUtf8,
-} from "@cosmjs/encoding";
-import * as secp256k1 from "@noble/secp256k1";
+import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
+import { notDeepEqual } from "assert";
 
-import { keccak_256 } from "@noble/hashes/sha3";
 import { bech32 } from "bech32";
 import fs from "fs";
 import {
   base64PubkeyToAddress,
   base64TendermintPubkeyToValconsAddress,
   gasToFee,
-  MetaMaskWallet,
   MsgDelegate,
   MsgExecuteContract,
+  MsgExecuteContractResponse,
   MsgGrantAuthorization,
+  MsgInstantiateContractResponse,
   MsgSend,
   ProposalType,
   pubkeyToAddress,
   SecretNetworkClient,
   selfDelegatorAddressToValidatorAddress,
   StakeAuthorizationType,
+  stringToCoin,
+  stringToCoins,
   tendermintPubkeyToValconsAddress,
-  TxResponse,
   TxResultCode,
+  validateAddress,
   validatorAddressToSelfDelegatorAddress,
   VoteOption,
-  Wallet,
 } from "../src";
-import {
-  MsgExecuteContractResponse,
-  MsgInstantiateContractResponse,
-  MsgStoreCodeResponse,
-} from "../src";
+import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
 import { AminoWallet } from "../src/wallet_amino";
 import {
-  Account,
+  accounts,
+  chain1LCD,
+  checkInstantiateSuccess,
   exec,
   getAllMethodNames,
   getBalance,
@@ -47,125 +41,15 @@ import {
   initContract,
   sleep,
   storeContract,
+  storeSnip20Ibc,
 } from "./utils";
-import {
-  Proposal,
-  ProposalStatus,
-} from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
-import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
-import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 
-//@ts-ignore
-let accounts: Account[];
-
-beforeAll(async () => {
-  //@ts-ignore
-  accounts = global.__SCRT_TEST_ACCOUNTS__;
-
-  // Initialize genesis accounts
-  const mnemonics = [
-    "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
-    "jelly shadow frog dirt dragon use armed praise universe win jungle close inmate rain oil canvas beauty pioneer chef soccer icon dizzy thunder meadow",
-    "chair love bleak wonder skirt permit say assist aunt credit roast size obtain minute throw sand usual age smart exact enough room shadow charge",
-    "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
-  ];
-
-  for (let i = 0; i < mnemonics.length; i++) {
-    const mnemonic = mnemonics[i];
-    const walletAmino = new AminoWallet(mnemonic);
-    accounts[i] = {
-      address: walletAmino.address,
-      mnemonic: mnemonic,
-      walletAmino,
-      walletProto: new Wallet(mnemonic),
-      secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
-        wallet: walletAmino,
-        walletAddress: walletAmino.address,
-        chainId: "secretdev-1",
-      }),
-    };
-  }
-
-  // Generate a bunch of accounts because tx.staking tests require creating a bunch of validators
-  for (let i = 4; i <= 19; i++) {
-    const wallet = new AminoWallet();
-    const [{ address }] = await wallet.getAccounts();
-    const walletProto = new Wallet(wallet.mnemonic);
-
-    accounts[i] = {
-      address: address,
-      mnemonic: wallet.mnemonic,
-      walletAmino: wallet,
-      walletProto: walletProto,
-      secretjs: new SecretNetworkClient({
-        url: "http://localhost:1317",
-        chainId: "secretdev-1",
-        wallet: wallet,
-        walletAddress: address,
-      }),
-    };
-  }
-
-  // if (process.env.SKIP_LOCALSECRET === "true") {
-  //   return;
-  // }
-
-  // Send 100k SCRT from account 0 to each of accounts 1-19
-  const { secretjs } = accounts[0];
-
-  let tx: TxResponse;
-  try {
-    tx = await secretjs.tx.bank.multiSend(
-      {
-        inputs: [
-          {
-            address: accounts[0].address,
-            coins: [{ denom: "uscrt", amount: String(100_000 * 1e6 * 19) }],
-          },
-        ],
-        outputs: accounts.slice(1).map(({ address }) => ({
-          address,
-          coins: [{ denom: "uscrt", amount: String(100_000 * 1e6) }],
-        })),
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 200_000,
-      },
-    );
-  } catch (e) {
-    throw new Error(`Failed to multisend: ${e.stack}`);
-  }
-
-  if (tx.code !== TxResultCode.Success) {
-    throw new Error(
-      `Failed to multisend coins to initial accounts: ${tx.rawLog}`,
-    );
-  }
-
-  // for (let accountId = 0; accountId < 20; accountId++) {
-  //   console.log(
-  //     `account[${accountId}]:\n${JSON.stringify(
-  //       {
-  //         ...accounts[accountId],
-  //         walletAmino: undefined, // don't flood the screen with wallet object internals
-  //         walletProto: undefined, // don't flood the screen with wallet object internals
-  //         secretjs: undefined, // don't flood the screen with secretjs object internals
-  //       },
-  //       null,
-  //       2,
-  //     )}`,
-  //   );
-  // }
-
-  // console.log(`setting: global.__SCRT_TEST_ACCOUNTS__ ${accounts}`);
-  //@ts-ignore
-  // global.__SCRT_TEST_ACCOUNTS__ = accounts;
+beforeAll(() => {
+  jest.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 describe("query", () => {
-  test("query.getTx", async () => {
+  test("getTx", async () => {
     const { secretjs } = accounts[0];
 
     const txStore = await secretjs.tx.compute.storeCode(
@@ -267,29 +151,10 @@ describe("query", () => {
     ).toContain('{"create_viewing_key":{"key":"');
   });
 
-  test("query.getTx error", async () => {
+  test("getTx error", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -370,6 +235,85 @@ describe("query", () => {
       generic_err: { msg: "insufficient funds: balance=1, required=2" },
     });
   });
+
+  test("query at height", async () => {
+    const { secretjs } = accounts[accounts.length - 1];
+
+    let queryResultThen = await secretjs.query.bank.balance(
+      {
+        address: secretjs.address,
+        denom: "uscrt",
+      },
+      [["x-cosmos-block-height", "1"]],
+    );
+
+    // test account should not have a balance at first
+    expect(queryResultThen.balance!.amount).toBe("0");
+
+    let queryResultNow = await secretjs.query.bank.balance({
+      address: secretjs.address,
+      denom: "uscrt",
+    });
+
+    // by now test account should have a balance
+    expect(queryResultNow.balance!.amount).not.toBe("0");
+  });
+
+  describe("txsQuery", () => {
+    beforeAll(async () => {
+      // create a bunch of txs for us to query later
+      const txs = await Promise.all(
+        accounts.map((a) =>
+          a.secretjs.tx.bank.send({
+            amount: stringToCoins("1uscrt"),
+            from_address: a.address,
+            to_address: a.address,
+          }),
+        ),
+      );
+
+      txs.forEach((tx) => {
+        if (tx.code !== TxResultCode.Success) {
+          console.error(tx.rawLog);
+        }
+        expect(tx.code).toBe(TxResultCode.Success);
+      });
+    });
+
+    test("pagination.limit", async () => {
+      expect(accounts.length).toBeGreaterThan(10);
+
+      const { secretjs } = accounts[0];
+
+      let queryResult = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "10" },
+      );
+
+      expect(queryResult.length).toBe(10);
+    });
+
+    test("pagination.offset", async () => {
+      const { secretjs } = accounts[0];
+
+      const first = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "1" },
+      );
+
+      const second = await secretjs.query.txsQuery(
+        "message.action='/cosmos.bank.v1beta1.MsgSend'",
+        undefined,
+        { limit: "1", offset: "1" },
+      );
+
+      expect(first.length).toBe(1);
+      expect(second.length).toBe(1);
+      expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
+    });
+  });
 });
 
 describe("query.auth", () => {
@@ -424,7 +368,6 @@ describe("query.auth", () => {
 
     expect(account.address).toBe(accounts[1].address);
     expect(account.account_number).toBe("1");
-    expect(account.sequence).toBe("0");
   });
 
   test("params()", async () => {
@@ -443,6 +386,7 @@ describe("query.auth", () => {
 
 describe("query.compute", () => {
   let sSCRT: string;
+  let benchContract: string;
 
   beforeAll(async () => {
     const code_id = await storeContract(
@@ -468,6 +412,18 @@ describe("query.compute", () => {
         },
         supported_denoms: ["uscrt"],
       },
+      accounts[0],
+      "blabla",
+    );
+
+    const code_id_bench = await storeContract(
+      `${__dirname}/bench-contract.wasm.gz`,
+      accounts[0],
+    );
+
+    benchContract = await initContract(
+      code_id_bench,
+      { init: {} },
       accounts[0],
     );
   });
@@ -498,6 +454,17 @@ describe("query.compute", () => {
         total_supply: "1",
       },
     });
+  });
+
+  test("queryContract() empty response", async () => {
+    const { secretjs } = accounts[0];
+
+    const result = await secretjs.query.compute.queryContract({
+      contract_address: benchContract,
+      query: { noop_query: {} },
+    });
+
+    expect(result).toStrictEqual({});
   });
 
   test("queryContract() StdError", async () => {
@@ -561,6 +528,31 @@ describe("query.compute", () => {
       },
     });
   });
+
+  test("codes()", async () => {
+    const { secretjs } = accounts[0];
+
+    const codes = await secretjs.query.compute.codes({});
+
+    expect(codes.code_infos!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("addressByLabel()", async () => {
+    const { secretjs } = accounts[0];
+
+    const addressByLabel = await secretjs.query.compute.addressByLabel({
+      label: "blabla",
+    });
+
+    expect(addressByLabel.contract_address).toBe(sSCRT);
+  });
+
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
+  test("", async () => {});
 });
 
 describe("tx", () => {
@@ -572,7 +564,7 @@ describe("tx", () => {
     const msg = new MsgSend({
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     let signedTX = await secretjs.tx.signTx([msg], {
@@ -595,11 +587,8 @@ describe("tx", () => {
     if (tx_double.code === TxResultCode.Success) {
       console.error(tx_double.rawLog);
     }
-
   });
 });
-
-
 
 describe("tx.bank", () => {
   test("MsgSend", async () => {
@@ -611,7 +600,7 @@ describe("tx.bank", () => {
     const sim = await secretjs.tx.bank.send.simulate({
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
@@ -619,7 +608,7 @@ describe("tx.bank", () => {
     const msg = {
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     };
     const tx = await secretjs.tx.bank.send(msg, {
       broadcastCheckIntervalMs: 100,
@@ -633,7 +622,7 @@ describe("tx.bank", () => {
       "@type": "/cosmos.bank.v1beta1.MsgSend",
       from_address: accounts[0].address,
       to_address: accounts[2].address,
-      amount: [{ denom: "uscrt", amount: "1" }],
+      amount: stringToCoins("1uscrt"),
     });
 
     const aAfter = await getBalance(secretjs, accounts[0].address);
@@ -657,17 +646,17 @@ describe("tx.bank", () => {
         inputs: [
           {
             address: accounts[0].address,
-            coins: [{ denom: "uscrt", amount: "2" }],
+            coins: stringToCoins("2uscrt"),
           },
         ],
         outputs: [
           {
             address: accounts[1].address,
-            coins: [{ denom: "uscrt", amount: "1" }],
+            coins: stringToCoins("1uscrt"),
           },
           {
             address: accounts[2].address,
-            coins: [{ denom: "uscrt", amount: "1" }],
+            coins: stringToCoins("1uscrt"),
           },
         ],
       },
@@ -721,26 +710,7 @@ describe("tx.compute", () => {
   test("MsgInstantiateContract", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -776,42 +746,13 @@ describe("tx.compute", () => {
         gasLimit: 5_000_000,
       },
     );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
-    expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
-      "/secret.compute.v1beta1.MsgInstantiateContract",
-    );
-    expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
-      "secret1",
-    );
+    checkInstantiateSuccess(tx);
   });
 
   test("MsgInstantiateContract VmError", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -975,26 +916,7 @@ describe("tx.compute", () => {
   test("MsgExecuteContract StdError", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
@@ -1072,27 +994,7 @@ describe("tx.compute", () => {
   test("MsgExecuteContract decrypt output data", async () => {
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
-      {
-        sender: accounts[0].address,
-        wasm_byte_code: fs.readFileSync(
-          `${__dirname}/snip20-ibc.wasm.gz`,
-        ) as Uint8Array,
-        source: "",
-        builder: "",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
-    }
-    expect(txStore.code).toBe(TxResultCode.Success);
-
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
-
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
     const { code_hash: code_hash } =
       await secretjs.query.compute.codeHashByCodeId({
         code_id: code_id,
@@ -1280,7 +1182,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.TextProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "Hello",
@@ -1318,12 +1220,12 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CommunityPoolSpendProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "Hello",
             recipient: accounts[1].address,
-            amount: [{ amount: "1", denom: "uscrt" }],
+            amount: stringToCoins("1uscrt"),
           },
         },
         {
@@ -1357,7 +1259,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.ParameterChangeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi",
             description: "YOLO",
@@ -1397,7 +1299,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.SoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi let's upgrade",
             description: "PROD NO FEAR",
@@ -1439,7 +1341,7 @@ describe("tx.gov", () => {
         {
           type: ProposalType.CancelSoftwareUpgradeProposal,
           proposer: accounts[0].address,
-          initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+          initial_deposit: stringToCoins("10000000uscrt"),
           content: {
             title: "Hi let's cancel",
             description: "PROD FEAR",
@@ -1475,7 +1377,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: stringToCoins("10000000uscrt"),
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1526,7 +1428,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [{ amount: "10000000", denom: "uscrt" }],
+        initial_deposit: stringToCoins("10000000uscrt"),
         content: {
           title: "Please vote yes",
           description: "Please don't vote no",
@@ -1606,7 +1508,7 @@ describe("tx.gov", () => {
       {
         depositor: accounts[0].address,
         proposal_id: proposal_id,
-        amount: [{ amount: "1", denom: "uscrt" }],
+        amount: stringToCoins("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1623,7 +1525,7 @@ describe("tx.gov", () => {
       proposal_id,
     });
 
-    expect(deposit?.amount).toStrictEqual([{ amount: "1", denom: "uscrt" }]);
+    expect(deposit?.amount).toStrictEqual(stringToCoins("1uscrt"));
   });
 });
 
@@ -1641,7 +1543,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1671,7 +1573,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1694,7 +1596,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1735,7 +1637,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(1)),
         min_self_delegation: "1",
-        initial_delegation: { amount: "1", denom: "uscrt" },
+        initial_delegation: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1773,7 +1675,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(2)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1849,7 +1751,7 @@ describe("tx.staking", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(3)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1869,7 +1771,7 @@ describe("tx.staking", () => {
       {
         delegator_address: accounts[0].address,
         validator_address: validators![0].operator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1886,7 +1788,7 @@ describe("tx.staking", () => {
         delegator_address: accounts[0].address,
         validator_src_address: validators![0].operator_address!,
         validator_dst_address: validators![1].operator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1921,7 +1823,7 @@ describe("tx.slashing", () => {
         },
         pubkey: toBase64(new Uint8Array(32).fill(4)),
         min_self_delegation: "2",
-        initial_delegation: { amount: "3", denom: "uscrt" },
+        initial_delegation: stringToCoin("3uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1963,7 +1865,7 @@ describe("tx.distribution", () => {
     const tx = await secretjs.tx.distribution.fundCommunityPool(
       {
         depositor,
-        amount: [{ amount: "1", denom: "uscrt" }],
+        amount: stringToCoins("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -1987,7 +1889,7 @@ describe("tx.distribution", () => {
       {
         delegator_address,
         validator_address: validator_address!,
-        amount: { amount: "1", denom: "uscrt" },
+        amount: stringToCoin("1uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2264,7 +2166,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: stringToCoins("1000000uscrt"),
       },
     });
 
@@ -2274,7 +2176,7 @@ describe("tx.feegrant", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     const secretjsGrantee = new SecretNetworkClient({
-      url: "http://localhost:1317",
+      url: chain1LCD,
       chainId: "secretdev-1",
       wallet: newWallet,
       walletAddress: newWallet.address,
@@ -2314,7 +2216,7 @@ describe("tx.feegrant", () => {
       granter: secretjs.address,
       grantee: newWallet.address,
       allowance: {
-        spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+        spend_limit: stringToCoins("1000000uscrt"),
       },
     });
 
@@ -2352,7 +2254,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2377,7 +2279,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2433,7 +2335,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2453,10 +2355,7 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgDelegate({
-              amount: {
-                amount: "1",
-                denom: "uscrt",
-              },
+              amount: stringToCoin("1uscrt"),
               delegator_address: secretjsGranter.address,
               validator_address: validator_address!,
             }),
@@ -2482,7 +2381,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2503,12 +2402,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2553,12 +2447,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2590,7 +2479,7 @@ describe("tx.authz", () => {
           authorization: {
             allow_list: [validator_address!],
             deny_list: [],
-            max_tokens: { amount: String(1_000_000), denom: "uscrt" },
+            max_tokens: stringToCoin("1000000uscrt"),
             authorization_type: StakeAuthorizationType.Delegate,
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
@@ -2626,10 +2515,7 @@ describe("tx.authz", () => {
           grantee: secretjsGrantee.address,
           msgs: [
             new MsgDelegate({
-              amount: {
-                amount: "1",
-                denom: "uscrt",
-              },
+              amount: stringToCoin("1uscrt"),
               delegator_address: secretjsGranter.address,
               validator_address: validator_address!,
             }),
@@ -2655,7 +2541,7 @@ describe("tx.authz", () => {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
           authorization: {
-            spend_limit: [{ amount: String(1_000_000), denom: "uscrt" }],
+            spend_limit: [stringToCoins("1000000uscrt")][0],
           },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
@@ -2692,12 +2578,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2758,12 +2639,7 @@ describe("tx.authz", () => {
             new MsgSend({
               from_address: secretjsGranter.address,
               to_address: secretjsGranter.address,
-              amount: [
-                {
-                  amount: "1",
-                  denom: "uscrt",
-                },
-              ],
+              amount: stringToCoins("1uscrt"),
             }),
           ],
         },
@@ -2780,6 +2656,8 @@ describe("tx.authz", () => {
   });
 });
 
+// Utils tests don't require LocalSecret to run, so SKIP_LOCALSECRET=true
+// env variable can be used to run them faster
 describe("utils", () => {
   test("pubkeyToAddress", async () => {
     expect(
@@ -2826,117 +2704,130 @@ describe("utils", () => {
       ),
     ).toBe("secretvalcons1rd5gs24he44ufnwawshu3u73lh33cx5z7npzre");
   });
+
+  describe("validateAddress", () => {
+    test("invalid bech32", async () => {
+      expect(validateAddress("asdasds")).toStrictEqual({
+        isValid: false,
+        reason: "failed to decode address as a bech32: asdasds too short",
+      });
+    });
+
+    test("wrong prefix", async () => {
+      expect(
+        validateAddress(
+          "secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v",
+          "cosmos",
+        ),
+      ).toStrictEqual({
+        isValid: false,
+        reason: "wrong bech32 prefix, expected 'cosmos', got 'secret'",
+      });
+    });
+
+    test("ok length 20", async () => {
+      expect(
+        validateAddress("secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v"),
+      ).toStrictEqual({
+        isValid: true,
+      });
+    });
+
+    test("ok length 32", async () => {
+      expect(
+        validateAddress(
+          "blabla1r4pzw8f9z0sypct5l9j906d47z998ulwvhvqe5xdwgy8wf84583scvwdet",
+          "blabla",
+        ),
+      ).toStrictEqual({
+        isValid: true,
+      });
+    });
+
+    test("wrong length", async () => {
+      expect(
+        validateAddress("secret1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp3sprt"),
+      ).toStrictEqual({
+        isValid: false,
+        reason: "wrong address length, expected 20 or 32 bytes, got 21",
+      });
+    });
+  });
 });
 
-test("MetaMaskWallet", async () => {
-  //@ts-ignore
-  global.localStorage = {
-    getItem: () => {
-      // pubkey of account a
-      return toHex(accounts[0].walletAmino.publicKey);
-    },
-    removeItem: () => {},
-    setItem: () => {},
-  };
+describe("tx broadcast multi", () => {
+  test("Send Multiple Messages Amino", async () => {
+    const { secretjs } = accounts[0];
 
-  const ethProvider = {
-    request: async (req: {
-      method: "personal_sign";
-      params: [string /* msgToSign */, string /* ethAddress */];
-    }) => {
-      const msgData = fromUtf8(fromHex(req.params[0].slice(2)));
-      const length = msgData.length;
-      const eip191MessagePrefix = "\x19Ethereum Signed Message:\n";
+    const code_id = await storeSnip20Ibc(secretjs, accounts[0].address);
 
-      const msgToSign = eip191MessagePrefix + length + msgData;
-
-      const msgHash = keccak_256(toUtf8(msgToSign));
-
-      const privkey = accounts[0].walletAmino.privateKey;
-
-      const signature = await secp256k1.sign(msgHash, privkey, {
-        extraEntropy: true,
-        der: false,
+    const { code_hash: code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: code_id,
       });
 
-      // add dummy leading 0x and trailing recovery id
-      return `0x${toHex(signature)}00`;
-    },
-  };
-
-  const wallet = await MetaMaskWallet.create(ethProvider, "blabla");
-
-  const secretjs = new SecretNetworkClient({
-    url: "http://localhost:1317",
-    wallet: wallet,
-    walletAddress: wallet.address,
-    chainId: "secretdev-1",
-  });
-
-  const txStore = await secretjs.tx.compute.storeCode(
-    {
-      sender: accounts[0].address,
-      wasm_byte_code: fs.readFileSync(
-        `${__dirname}/snip20-ibc.wasm.gz`,
-      ) as Uint8Array,
-      source: "",
-      builder: "",
-    },
-    {
-      broadcastCheckIntervalMs: 100,
-      gasLimit: 5_000_000,
-    },
-  );
-  if (txStore.code !== TxResultCode.Success) {
-    console.error(txStore.rawLog);
-  }
-  expect(txStore.code).toBe(TxResultCode.Success);
-
-  const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).code_id;
-  expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
-
-  const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
-    code_id,
-  });
-
-  const tx = await secretjs.tx.compute.instantiateContract(
-    {
-      sender: accounts[0].address,
-      code_id: code_id,
-      code_hash: code_hash,
-      init_msg: {
-        name: "Secret SCRT",
-        admin: accounts[0].address,
-        symbol: "SSCRT",
-        decimals: 6,
-        initial_balances: [{ address: accounts[0].address, amount: "1" }],
-        prng_seed: "eW8=",
-        config: {
-          public_total_supply: true,
-          enable_deposit: true,
-          enable_redeem: true,
-          enable_mint: false,
-          enable_burn: false,
+    let tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: accounts[0].address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: accounts[0].address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
         },
-        supported_denoms: ["uscrt"],
+        label: `label-${Date.now()}`,
+        init_funds: [],
       },
-      label: `label-${Date.now()}`,
-      init_funds: [],
-    },
-    {
-      broadcastCheckIntervalMs: 100,
-      gasLimit: 5_000_000,
-    },
-  );
-  if (tx.code !== TxResultCode.Success) {
-    console.error(tx.rawLog);
-  }
-  expect(tx.code).toBe(TxResultCode.Success);
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    let contract_address = checkInstantiateSuccess(tx);
 
-  expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
-    "/secret.compute.v1beta1.MsgInstantiateContract",
-  );
-  expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
-    "secret1",
-  );
+    tx = await secretjs.tx.broadcast(
+      [
+        new MsgSend({
+          from_address: accounts[0].address,
+          to_address: accounts[2].address,
+          amount: stringToCoins("1uscrt"),
+        }),
+        new MsgExecuteContract({
+          sender: secretjs.address,
+          contract_address,
+          msg: {
+            create_viewing_key: {
+              entropy: "bla bla",
+            },
+          },
+          code_hash,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
 });

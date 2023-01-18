@@ -1,7 +1,7 @@
 {
   "name": "secretjs",
   "description": "The JavaScript SDK for Secret Network",
-  "version": "1.5.2",
+  "version": "1.6.9",
   "license": "MIT",
   "author": "SCRT Labs",
   "bugs": {
@@ -25,6 +25,7 @@
   "scripts": {
     "build": "rm -rf ./dist && webpack && tsc",
     "test": "./test.sh",
+    "test-ci": "jest --forceExit --runInBand",
     "gen-docs": "typedoc"
   },
   "dependencies": {
@@ -44,13 +45,16 @@
     "miscreant": "0.3.2",
     "pako": "2.0.4",
     "protobufjs": "6.11.3",
-    "secure-random": "1.1.2"
+    "secure-random": "1.1.2",
+    "sinon": "14.0.0"
   },
   "devDependencies": {
+    "@confio/relayer": "0.7.0",
+    "@cosmjs/proto-signing": "^0.29.5",
+    "@cosmjs/stargate": "0.29.4",
     "@types/jest": "27.4.0",
     "@types/node": "18.11.2",
     "@types/pako": "1.0.3",
-    "@types/protobufjs": "6.0.0",
     "@types/secure-random": "1.1.0",
     "jest": "27.4.7",
     "node-polyfill-webpack-plugin": "1.1.4",

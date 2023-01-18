@@ -38,7 +38,7 @@ GRPC_GATEWAY_OUT_DIR="${SCRIPT_PATH}/../src/grpc_gateway"
 rm -rf "$GRPC_GATEWAY_OUT_DIR"
 mkdir -p "$GRPC_GATEWAY_OUT_DIR"
 
-# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@023bb64690374101738201ec4e8ea568489a9b5c
+# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@22c4d90f70bf2171b1ea9138702fb31025aa8607
 PLUGIN_PATH_GRPC_GATEWAY="$(which protoc-gen-grpc-gateway-ts)"
 
 protoc \
@@ -48,5 +48,3 @@ protoc \
   --proto_path="$SECRET_DIR" \
   --proto_path="$SECRET_THIRD_PARTY_DIR" \
   $(find ${SECRET_DIR} ${SECRET_THIRD_PARTY_DIR} -path -prune -o -name '*.proto' -print0 | xargs -0)
-
-

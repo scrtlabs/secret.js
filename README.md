@@ -44,6 +44,18 @@
     - [`secretjs.query`](#secretjsquery)
     - [`secretjs.address`](#secretjsaddress)
     - [`secretjs.tx`](#secretjstx)
+    - [Resolve IBC Responses](#resolve-ibc-responses)
+  - [Helper Functions](#helper-functions)
+    - [`pubkeyToAddress()`](#pubkeytoaddress)
+    - [`base64PubkeyToAddress()`](#base64pubkeytoaddress)
+    - [`selfDelegatorAddressToValidatorAddress()`](#selfdelegatoraddresstovalidatoraddress)
+    - [`validatorAddressToSelfDelegatorAddress()`](#validatoraddresstoselfdelegatoraddress)
+    - [`tendermintPubkeyToValconsAddress()`](#tendermintpubkeytovalconsaddress)
+    - [`base64TendermintPubkeyToValconsAddress()`](#base64tendermintpubkeytovalconsaddress)
+    - [`ibcDenom()`](#ibcdenom)
+    - [`stringToCoins()` / `coinsFromString()`](#stringtocoins--coinsfromstring)
+    - [`stringToCoins()` / `coinFromString()`](#stringtocoins--coinfromstring)
+    - [`validateAddress()`](#validateaddress)
 
 # Key Features
 
@@ -74,8 +86,8 @@ or
 yarn add secretjs
 ```
 
-**Additional step for React Native:**  
-  
+**Additional step for React Native:**
+
 Follow the instruction of [react-native-get-random-values](https://www.npmjs.com/package/react-native-get-random-values) package
 
 # Usage Examples
@@ -105,7 +117,7 @@ const {
     denom: "uscrt",
   } /*,
   // optional: query at a specific height (using an archive node) 
-  new grpc.Metadata({"x-cosmos-block-height": "2000000"})
+  [["x-cosmos-block-height", "2000000"]]
   */,
 );
 
@@ -117,8 +129,8 @@ const sScrtCodeHash =
   "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e";
 
 const { token_info } = await secretjs.query.compute.queryContract({
-  contractAddress: sSCRT,
-  codeHash: sScrtCodeHash, // optional but way faster
+  contract_address: sSCRT,
+  code_hash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 });
 
@@ -147,9 +159,9 @@ const secretjs = new SecretNetworkClient({
 
 const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
-  fromAddress: myAddress,
-  toAddress: bob,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  from_address: myAddress,
+  to_address: bob,
+  amount: stringToCoins("1uscrt"),
 });
 
 const tx = await secretjs.tx.broadcast([msg], {
@@ -547,8 +559,8 @@ type Result = {
 };
 
 const result = (await secretjs.query.compute.queryContract({
-  contractAddress: sScrtAddress,
-  codeHash: sScrtCodeHash, // optional but way faster
+  contract_address: sScrtAddress,
+  code_hash: sScrtCodeHash, // optional but way faster
   query: { token_info: {} },
 })) as Result;
 ```
@@ -632,7 +644,7 @@ Proposals queries all proposals based on given status.
 ```ts
 // Get all proposals
 const { proposals } = await secretjs.query.gov.proposals({
-  proposalStatus: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
+  proposal_status: ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
   voter: "",
   depositor: "",
 });
@@ -968,16 +980,16 @@ For a list of all messages see: https://secretjs.scrt.network/interfaces/Msg
 ```ts
 const addMinterMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
-  contractAddress: MY_NFT_CONTRACT,
-  codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
+  contract_address: MY_NFT_CONTRACT,
+  code_hash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: { add_minters: { minters: [MY_ADDRESS] } },
-  sentFunds: [], // optional
+  sent_funds: [], // optional
 });
 
 const mintMsg = new MsgExecuteContract({
   sender: MY_ADDRESS,
-  contractAddress: MY_NFT_CONTRACT,
-  codeHash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
+  contract_address: MY_NFT_CONTRACT,
+  code_hash: MY_NFT_CONTRACT_CODE_HASH, // optional but way faster
   msg: {
     mint_nft: {
       token_id: "1",
@@ -996,7 +1008,7 @@ const mintMsg = new MsgExecuteContract({
       },
     },
   },
-  sentFunds: [], // optional
+  sent_funds: [], // optional
 });
 
 const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
@@ -1017,15 +1029,15 @@ Notes:
 
 ```ts
 const sendToAlice = new MsgSend({
-  fromAddress: bob,
-  toAddress: alice,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  from_address: bob,
+  to_address: alice,
+  amount: stringToCoins("1uscrt"),
 });
 
 const sendToEve = new MsgSend({
-  fromAddress: bob,
-  toAddress: eve,
-  amount: [{ denom: "uscrt", amount: "1" }],
+  from_address: bob,
+  to_address: eve,
+  amount: stringToCoins("1uscrt"),
 });
 
 const sim = await secretjs.tx.simulate([sendToAlice, sendToEve]);
@@ -1039,7 +1051,7 @@ const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
 #### `secretjs.tx.signTx()`
 
 Used to sign transactions independently from the broadcast process.  
-This is useful when you want to keep your seed safe and sign transactions offline.  
+This is useful when you want to keep your seed safe and sign transactions offline.
 
 #### `secretjs.tx.broadcastSignedTx()`
 
@@ -1050,7 +1062,7 @@ const bob = "secret1dgqnta7fwjj6x9kusyz7n8vpl73l7wsm0gaamk";
 const msg = new MsgSend({
   from_address: myAddress,
   to_address: bob,
-  amount: [{ denom: "uscrt", amount: "1000000" }],
+  amount: stringToCoins("1000000uscrt"),
 });
 
 let signedTX = await secretjs.tx.signTx([msg], {
@@ -1104,17 +1116,17 @@ const tx = await secretjs.tx.bank.multiSend(
     inputs: [
       {
         address: myAddress,
-        coins: [{ denom: "uscrt", amount: "2" }],
+        coins: stringToCoins("2uscrt"),
       },
     ],
     outputs: [
       {
         address: alice,
-        coins: [{ denom: "uscrt", amount: "1" }],
+        coins: stringToCoins("1uscrt"),
       },
       {
         address: bob,
-        coins: [{ denom: "uscrt", amount: "1" }],
+        coins: stringToCoins("1uscrt"),
       },
     ],
   },
@@ -1137,9 +1149,9 @@ Input: [MsgSendParams](https://secretjs.scrt.network/interfaces/MsgSendParams)
 ```ts
 const tx = await secretjs.tx.bank.send(
   {
-    fromAddress: myAddress,
-    toAddress: alice,
-    amount: [{ denom: "uscrt", amount: "1" }],
+    from_address: myAddress,
+    to_address: alice,
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1161,7 +1173,7 @@ Input: [MsgStoreCodeParams](https://secretjs.scrt.network/interfaces/MsgStoreCod
 const tx = await secretjs.tx.compute.storeCode(
   {
     sender: myAddress,
-    wasmByteCode: fs.readFileSync(
+    wasm_byte_code: fs.readFileSync(
       `${__dirname}/snip20-ibc.wasm.gz`,
     ) as Uint8Array,
     source: "",
@@ -1194,8 +1206,8 @@ ateContractParams)
 const tx = await secretjs.tx.compute.instantiateContract(
   {
     sender: myAddress,
-    codeId: codeId,
-    codeHash: codeHash, // optional but way faster
+    code_id: codeId,
+    code_hash: codeHash, // optional but way faster
     initMsg: {
       name: "Secret SCRT",
       admin: myAddress,
@@ -1213,7 +1225,7 @@ const tx = await secretjs.tx.compute.instantiateContract(
       supported_denoms: ["uscrt"],
     },
     label: "sSCRT",
-    initFunds: [], // optional
+    init_funds: [], // optional
   },
   {
     gasLimit: 100_000,
@@ -1239,15 +1251,15 @@ Input: [MsgExecuteContractParams](https://secretjs.scrt.network/interfaces/MsgEx
 const tx = await secretjs.tx.compute.executeContract(
   {
     sender: myAddress,
-    contractAddress: contractAddress,
-    codeHash: codeHash, // optional but way faster
+    contract_address: contractAddress,
+    code_hash: codeHash, // optional but way faster
     msg: {
       transfer: {
         recipient: bob,
         amount: "1",
       },
     },
-    sentFunds: [], // optional
+    sent_funds: [], // optional
   },
   {
     gasLimit: 100_000,
@@ -1279,7 +1291,7 @@ Input: [MsgFundCommunityPoolParams](https://secretjs.scrt.network/interfaces/Msg
 const tx = await secretjs.tx.distribution.fundCommunityPool(
   {
     depositor: myAddress,
-    amount: [{ amount: "1", denom: "uscrt" }],
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1300,8 +1312,8 @@ Input: [MsgSetWithdrawAddressParams](https://secretjs.scrt.network/interfaces/Ms
 ```ts
 const tx = await secretjs.tx.distribution.setWithdrawAddress(
   {
-    delegatorAddress: mySelfDelegatorAddress,
-    withdrawAddress: myOtherAddress,
+    delegator_address: mySelfDelegatorAddress,
+    withdraw_address: myOtherAddress,
   },
   {
     gasLimit: 20_000,
@@ -1322,8 +1334,8 @@ Input: [MsgWithdrawDelegatorRewardParams](https://secretjs.scrt.network/interfac
 ```ts
 const tx = await secretjs.tx.distribution.withdrawDelegatorReward(
   {
-    delegatorAddress: myAddress,
-    validatorAddress: someValidatorAddress,
+    delegator_address: myAddress,
+    validator_address: someValidatorAddress,
   },
   {
     gasLimit: 20_000,
@@ -1344,7 +1356,7 @@ Input: [MsgWithdrawValidatorCommissionParams](https://secretjs.scrt.network/inte
 ```ts
 const tx = await secretjs.tx.distribution.withdrawValidatorCommission(
   {
-    validatorAddress: myValidatorAddress,
+    validator_address: myValidatorAddress,
   },
   {
     gasLimit: 20_000,
@@ -1358,11 +1370,11 @@ Or a better one:
 const tx = await secretjs.tx.broadcast(
   [
     new MsgWithdrawDelegatorReward({
-      delegatorAddress: mySelfDelegatorAddress,
-      validatorAddress: myValidatorAddress,
+      delegator_address: mySelfDelegatorAddress,
+      validator_address: myValidatorAddress,
     }),
     new MsgWithdrawValidatorCommission({
-      validatorAddress: myValidatorAddress,
+      validator_address: myValidatorAddress,
     }),
   ],
   {
@@ -1398,7 +1410,7 @@ const txGranter = await secretjsGranter.tx.feegrant.grantAllowance({
   granter: secretjsGranter.address,
   grantee: newWallet.address,
   allowance: {
-    spendLimit: [{ denom: "uscrt", amount: "1000000" }],
+    spend_limit: stringToCoins("1000000uscrt"),
   },
 });
 
@@ -1414,7 +1426,7 @@ cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
   {
     proposer: secretjsGrantee.address,
     type: ProposalType.TextProposal,
-    initialDeposit: [],
+    initial_deposit: [],
     content: {
       title: "Send a tx without any balance",
       description: `Thanks ${secretjsGranter.address}!`,
@@ -1457,8 +1469,8 @@ Input: [MsgDepositParams](https://secretjs.scrt.network/interfaces/MsgDepositPar
 const tx = await secretjs.tx.gov.deposit(
   {
     depositor: myAddress,
-    proposalId: someProposalId,
-    amount: [{ amount: "1", denom: "uscrt" }],
+    proposal_id: someProposalId,
+    amount: stringToCoins("1uscrt"),
   },
   {
     gasLimit: 20_000,
@@ -1481,7 +1493,7 @@ const tx = await secretjs.tx.gov.submitProposal(
   {
     type: ProposalType.TextProposal,
     proposer: myAddress,
-    initialDeposit: [{ amount: "10000000", denom: "uscrt" }],
+    initial_deposit: stringToCoins("100000000uscrt"),
     content: {
       title: "Hi",
       description: "Let's vote on this",
@@ -1513,7 +1525,7 @@ Input: [MsgVoteParams](https://secretjs.scrt.network/interfaces/MsgVoteParams)
 const tx = await secretjs.tx.gov.vote(
   {
     voter: myAddress,
-    proposalId: someProposalId,
+    proposal_id: someProposalId,
     option: VoteOption.VOTE_OPTION_YES,
   },
   {
@@ -1537,7 +1549,7 @@ Input: [MsgVoteWeightedParams](https://secretjs.scrt.network/interfaces/MsgVoteW
 const tx = await secretjs.tx.gov.voteWeighted(
   {
     voter: myAddress,
-    proposalId: someProposalId,
+    proposal_id: someProposalId,
     options: [
       // weights must sum to 1.0
       { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
@@ -1573,7 +1585,7 @@ Input: [MsgUnjailParams](https://secretjs.scrt.network/interfaces/MsgUnjailParam
 ```ts
 const tx = await secretjs.tx.slashing.unjail(
   {
-    validatorAddr: mValidatorsAddress,
+    validator_addr: mValidatorsAddress,
   },
   {
     gasLimit: 50_000,
@@ -1594,10 +1606,10 @@ Input: [MsgBeginRedelegateParams](https://secretjs.scrt.network/interfaces/MsgBe
 ```ts
 const tx = await secretjs.tx.staking.beginRedelegate(
   {
-    delegatorAddress: myAddress,
-    validatorSrcAddress: someValidator,
-    validatorDstAddress: someOtherValidator,
-    amount: { amount: "1", denom: "uscrt" },
+    delegator_address: myAddress,
+    validator_src_address: someValidator,
+    validator_dst_address: someOtherValidator,
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1618,22 +1630,22 @@ Input: [MsgCreateValidatorParams](https://secretjs.scrt.network/interfaces/MsgCr
 ```ts
 const tx = await secretjs.tx.staking.createValidator(
   {
-    selfDelegatorAddress: myAddress,
+    delegator_address: myAddress,
     commission: {
-      maxChangeRate: 0.01, // can change +-1% every 24h
-      maxRate: 0.1, // 10%
+      max_change_rate: 0.01, // can change +-1% every 24h
+      max_rate: 0.1, // 10%
       rate: 0.05, // 5%
     },
     description: {
       moniker: "My validator's display name",
       identity: "ID on keybase.io, to have a logo on explorer and stuff",
       website: "example.com",
-      securityContact: "hi@example.com",
+      security_contact: "hi@example.com",
       details: "We are good",
     },
     pubkey: toBase64(new Uint8Array(32).fill(1)), // validator's pubkey, to sign on validated blocks
-    minSelfDelegation: "1", // uscrt
-    initialDelegation: { amount: "1", denom: "uscrt" },
+    min_self_delegation: "1", // uscrt
+    initial_delegation: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 100_000,
@@ -1654,9 +1666,9 @@ Input: [MsgDelegateParams](https://secretjs.scrt.network/interfaces/MsgDelegateP
 ```ts
 const tx = await secretjs.tx.staking.delegate(
   {
-    delegatorAddress: myAddress,
-    validatorAddress: someValidatorAddress,
-    amount: { amount: "1", denom: "uscrt" },
+    delegator_address: myAddress,
+    validator_address: someValidatorAddress,
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1677,17 +1689,17 @@ Input: [MsgEditValidatorParams](https://secretjs.scrt.network/interfaces/MsgEdit
 ```ts
 const tx = await secretjs.tx.staking.editValidator(
   {
-    validatorAddress: myValidatorAddress,
+    validator_address: myValidatorAddress,
     description: {
       // To edit even one item in "description you have to re-input everything
       moniker: "papaya",
       identity: "banana",
       website: "watermelon.com",
-      securityContact: "sec@watermelon.com",
+      security_contact: "sec@watermelon.com",
       details: "We are the banana papaya validator yay!",
     },
-    minSelfDelegation: "2",
-    commissionRate: 0.04, // 4%, commission cannot be changed more than once in 24h
+    min_self_delegation: "2",
+    commission_rate: 0.04, // 4%, commission cannot be changed more than once in 24h
   },
   {
     gasLimit: 5_000_000,
@@ -1708,9 +1720,9 @@ Input: [MsgUndelegateParams](https://secretjs.scrt.network/interfaces/MsgUndeleg
 ```ts
 const tx = await secretjs.tx.staking.undelegate(
   {
-    delegatorAddress: myAddress,
-    validatorAddress: someValidatorAddress,
-    amount: { amount: "1", denom: "uscrt" },
+    delegator_address: myAddress,
+    validator_address: someValidatorAddress,
+    amount: stringToCoin("1uscrt"),
   },
   {
     gasLimit: 50_000,
@@ -1721,3 +1733,134 @@ const tx = await secretjs.tx.staking.undelegate(
 ##### `secretjs.tx.staking.undelegate.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+### Resolve IBC Responses
+
+If a tx that was sent using secret.js resulted in IBC packets being sent to other chains, secret.js will resolve the IBC response (ack or timeout) inside `TxResponse`.
+
+```ts
+import { Wallet, SecretNetworkClient } from "secretjs";
+
+const wallet = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+);
+
+const osmoAddress = new Wallet(
+  "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
+  {
+    bech32Prefix: "osmos",
+    coinType: 118,
+  },
+).address;
+
+const secretjs = new SecretNetworkClient({
+  url: "http://localhost:1317",
+  chainId: "secretdev-1",
+  wallet,
+  walletAddress: wallet.address,
+});
+
+const tx = await secretjs.tx.ibc.transfer(
+  {
+    sender: wallet.address,
+    receiver: osmoAddress,
+    source_channel: "channel-1",
+    source_port: "transfer",
+    token: stringToCoin("1uscrt"),
+    timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+  },
+  {
+    gasLimit: 100_000,
+    ibcTxsOptions: {
+      resolveResponses: true, // enable IBC responses resolution (defualt)
+      resolveResponsesTimeoutMs: 12 * 60 * 1000, // stop checking after 12 minutes (default is 2 minutes)
+      resolveResponsesCheckIntervalMs: 15_000, // check every 15 seconds (default)
+    },
+  },
+);
+
+if (tx.code !== 0) {
+  console.error("failed sending 1uscrt from Secret to Osmosis:", tx.rawLog);
+} else {
+  try {
+    const ibcResp = await tx.ibcResponses[0];
+    if (ibcResp.type === "ack") {
+      console.log("successfuly sent 1uscrt from Secret to Osmosis!");
+    } else {
+      console.error(
+        "failed sending 1uscrt from Secret to Osmosis: IBC packet timed-out before committed on Osmosis",
+      );
+    }
+  } catch (_error) {
+    console.error(
+      `timed-out while trying to resolve IBC response for txhash ${tx.transactionHash}`,
+    );
+  }
+}
+```
+
+## Helper Functions
+
+### `pubkeyToAddress()`
+
+Convert a secp256k1 compressed public key to an account address.
+
+https://secretjs.scrt.network/modules#pubkeyToAddress
+
+### `base64PubkeyToAddress()`
+
+Convert a secp256k1 compressed base64 encoded public key to an account address.
+
+https://secretjs.scrt.network/modules#base64PubkeyToAddress
+
+### `selfDelegatorAddressToValidatorAddress()`
+
+Convert a self delegator address to a validator address.
+
+https://secretjs.scrt.network/modules#selfDelegatorAddressToValidatorAddress
+
+### `validatorAddressToSelfDelegatorAddress()`
+
+Convert a validator address to a self delegator address.
+
+https://secretjs.scrt.network/modules#validatorAddressToSelfDelegatorAddress
+
+### `tendermintPubkeyToValconsAddress()`
+
+Convert a Tendermint ed25519 public key to a consensus address.
+
+https://secretjs.scrt.network/modules#tendermintPubkeyToValconsAddress
+
+### `base64TendermintPubkeyToValconsAddress()`
+
+Convert a secp256k1 compressed public key to an account address.
+
+https://secretjs.scrt.network/modules#base64TendermintPubkeyToValconsAddress
+
+### `ibcDenom()`
+
+Compute the IBC denom of a token that was sent over IBC.
+
+https://secretjs.scrt.network/modules#ibcDenom
+
+### `stringToCoins()` / `coinsFromString()`
+
+E.g.
+convert `"1uscrt,1uatom,1uosmo"`
+into `[{amount:"1",denom:"uscrt"}, {amount:"1",denom:"uatom"}, {amount:"1",denom:"uosmo"}]`
+
+https://secretjs.scrt.network/modules#stringToCoins
+
+### `stringToCoins()` / `coinFromString()`
+
+E.g.
+convert `"1uscrt,1uatom,1uosmo"`
+into `[{amount:"1",denom:"uscrt"}, {amount:"1",denom:"uatom"}, {amount:"1",denom:"uosmo"}]`
+
+https://secretjs.scrt.network/modules#stringToCoins
+
+### `validateAddress()`
+
+Checks if a given address is a valid address.
+
+https://secretjs.scrt.network/modules#validateAddress

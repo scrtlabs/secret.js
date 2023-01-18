@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch';
+import fetch from "cross-fetch";
 global.fetch = fetch;
 
 import {
@@ -76,11 +76,43 @@ import {
   MsgCreateViewingKey,
   MsgSetViewingKey,
 } from "./extensions/access_control/viewing_key/msgs";
-import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
   CreateViewingKeyContractParams,
   SetViewingKeyContractParams,
 } from "./extensions/access_control/viewing_key/params";
+import { Snip1155Querier } from "./extensions/snip1155/query";
+import {
+  MsgSnip1155AddCurator,
+  MsgSnip1155BatchSend,
+  MsgSnip1155BatchTransfer,
+  MsgSnip1155Burn,
+  MsgSnip1155ChangeAdmin,
+  MsgSnip1155ChangeMetadata,
+  MsgSnip1155CurateTokens,
+  MsgSnip1155Mint,
+  MsgSnip1155RemoveAdmin,
+  MsgSnip1155RemoveCurator,
+  MsgSnip1155RemoveMinter,
+  MsgSnip1155Send,
+  MsgSnip1155Transfer,
+  MsgSnipAddMinter,
+} from "./extensions/snip1155/tx";
+import {
+  Snip1155AddCuratorOptions,
+  Snip1155AddMinterOptions,
+  Snip1155BatchSendOptions,
+  Snip1155BatchTransferOptions,
+  Snip1155BurnTokensOptions,
+  Snip1155ChangeAdminOptions,
+  Snip1155ChangeMetaDataOptions,
+  Snip1155CurateTokensOptions,
+  Snip1155MintTokensOptions,
+  Snip1155RemoveAdminOptions,
+  Snip1155RemoveCuratorOptions,
+  Snip1155RemoveMinterOptions,
+  Snip1155SendOptions,
+  Snip1155TransferOptions,
+} from "./extensions/snip1155/types";
 import {
   MsgSnip20DecreaseAllowance,
   MsgSnip20IncreaseAllowance,
@@ -101,14 +133,18 @@ import {
   Snip721SendOptions,
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
 import {
+  OrderBy,
   Service as TxService,
   SimulateResponse,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
+import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
+import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
+import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import {
   AuthInfo,
-  SignerInfo,
   TxBody as TxBodyPb,
   TxRaw,
 } from "./protobuf/cosmos/tx/v1beta1/tx";
@@ -137,6 +173,7 @@ import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
 import { AminoMsg, Msg, MsgParams, MsgRegistry, ProtoMsg } from "./tx";
+import { RaAuthenticate } from "./tx/registration";
 import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
   AccountData,
@@ -149,12 +186,7 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-import {RaAuthenticate} from "./tx/registration";
-import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
-import { PubKey as Secp256k1PubkeyProto } from "./protobuf/cosmos/crypto/secp256k1/keys";
-import { PubKey as Secp256r1PubkeyProto } from "./protobuf/cosmos/crypto/secp256r1/keys";
-import { resolve } from "path";
-import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
+import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -202,6 +234,37 @@ export enum BroadcastMode {
   Async = "Async",
 }
 
+export type IbcTxOptions = {
+  /** If `false` skip resolving the IBC response txs (acknowledge/timeout).
+   *
+   * Defaults to `true` when broadcasting a tx or using `getTx()`.
+   * Defaults to `false` when using `txsQuery()`.
+   *
+   */
+  resolveResponses?: boolean;
+  /**
+   * How much time (in milliseconds) to wait for IBC response txs (acknowledge/timeout).
+   *
+   * Defaults to `120_000` (2 minutes).
+   *
+   */
+  resolveResponsesTimeoutMs?: number;
+  /**
+   * When waiting for the IBC response txs (acknowledge/timeout) to commit on-chain, how much time (in milliseconds) to wait between checks.
+   *
+   * Smaller intervals will cause more load on your node provider. Keep in mind that blocks on Secret Network take about 6 seconds to finalize.
+   *
+   * Defaults to `15_000` (15 seconds).
+   */
+  resolveResponsesCheckIntervalMs?: number;
+};
+
+type ExplicitIbcTxOptions = {
+  resolveResponses: boolean;
+  resolveResponsesTimeoutMs: number;
+  resolveResponsesCheckIntervalMs: number;
+};
+
 export type TxOptions = {
   /** Defaults to `25_000`. */
   gasLimit?: number;
@@ -245,6 +308,10 @@ export type TxOptions = {
    * to query for `accountNumber` & `accountSequence` from the chain. (smoother in UIs, less load on your node provider).
    */
   explicitSignerData?: SignerData;
+  /**
+   * Options for resolving IBC ack/timeout txs that resulted from this tx.
+   */
+  ibcTxsOptions?: IbcTxOptions;
 };
 
 /**
@@ -294,13 +361,19 @@ export type Querier = {
    * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
    *
    */
-  txsQuery: (query: string) => Promise<TxResponse[]>;
+  txsQuery: (
+    query: string,
+    ibcTxOptions?: IbcTxOptions,
+    pagination?: PageRequest,
+    order_by?: OrderBy,
+  ) => Promise<TxResponse[]>;
   auth: AuthQuerier;
   authz: AuthzQuerier;
   bank: BankQuerier;
   compute: ComputeQuerier;
   snip20: Snip20Querier;
   snip721: Snip721Querier;
+  snip1155: Snip1155Querier;
   distribution: DistributionQuerier;
   evidence: EvidenceQuerier;
   feegrant: FeegrantQuerier;
@@ -398,6 +471,13 @@ export type TxResponse = {
    * Gas limit that was originaly set by the transaction.
    */
   readonly gasWanted: number;
+  /** If code = 0 and the tx resulted in sending IBC packets, `ibcAckTxs` is a list of IBC acknowledgement or timeout transactions which signal whether the original IBC packet was accepted, rejected or timed-out on the receiving chain. */
+  readonly ibcResponses: Array<Promise<IbcResponse>>;
+};
+
+export type IbcResponse = {
+  type: "ack" | "timeout";
+  tx: TxResponse;
 };
 
 export type TxSender = {
@@ -467,10 +547,13 @@ export type TxSender = {
    *   - staking         {@link MsgUndelegate}
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
-  
+
   signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
-  broadcastSignedTx: (signedMessage: string, txOptions?: TxOptions) => Promise<TxResponse>;
-  
+  broadcastSignedTx: (
+    signedMessage: string,
+    txOptions?: TxOptions,
+  ) => Promise<TxResponse>;
+
   /**
    * Simulates a transaction on the node without broadcasting it to the chain.
    * Can be used to get a gas estimation or to see the output without actually committing a transaction on-chain.
@@ -497,6 +580,39 @@ export type TxSender = {
     >;
     decreaseAllowance: SingleMsgTx<
       MsgExecuteContractParams<Snip20DecreaseAllowanceOptions>
+    >;
+    setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
+    createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
+  };
+
+  snip1155: {
+    changeAdmin: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155ChangeAdminOptions>
+    >;
+    removeAdmin: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveAdminOptions>
+    >;
+    addCurator: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155AddCuratorOptions>
+    >;
+    removeCurator: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveCuratorOptions>
+    >;
+    addMinter: SingleMsgTx<MsgExecuteContractParams<Snip1155AddMinterOptions>>;
+    removeMinter: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155RemoveMinterOptions>
+    >;
+    send: SingleMsgTx<MsgExecuteContractParams<Snip1155SendOptions>>;
+    batchSend: SingleMsgTx<MsgExecuteContractParams<Snip1155BatchSendOptions>>;
+    transfer: SingleMsgTx<MsgExecuteContractParams<Snip1155TransferOptions>>;
+    batchTransfer: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155BatchTransferOptions>
+    >;
+    curate: SingleMsgTx<MsgExecuteContractParams<Snip1155CurateTokensOptions>>;
+    mint: SingleMsgTx<MsgExecuteContractParams<Snip1155MintTokensOptions>>;
+    burn: SingleMsgTx<MsgExecuteContractParams<Snip1155BurnTokensOptions>>;
+    changeMetaData: SingleMsgTx<
+      MsgExecuteContractParams<Snip1155ChangeMetaDataOptions>
     >;
     setViewingKey: SingleMsgTx<SetViewingKeyContractParams>;
     createViewingKey: SingleMsgTx<CreateViewingKeyContractParams>;
@@ -647,6 +763,7 @@ export class SecretNetworkClient {
       compute: new ComputeQuerier(options.url),
       snip20: new Snip20Querier(options.url),
       snip721: new Snip721Querier(options.url),
+      snip1155: new Snip1155Querier(options.url),
       distribution: new DistributionQuerier(options.url),
       evidence: new EvidenceQuerier(options.url),
       feegrant: new FeegrantQuerier(options.url),
@@ -665,7 +782,8 @@ export class SecretNetworkClient {
       tendermint: new TendermintQuerier(options.url),
       upgrade: new UpgradeQuerier(options.url),
       getTx: (hash) => this.getTx(hash),
-      txsQuery: (query) => this.txsQuery(query),
+      txsQuery: (query, ibcTxOptions, pagination, order_by) =>
+        this.txsQuery(query, ibcTxOptions, pagination, order_by),
     };
 
     if (options.wallet && options.walletAddress === undefined) {
@@ -692,8 +810,8 @@ export class SecretNetworkClient {
 
     this.tx = {
       signTx: this.signTx.bind(this),
-      broadcastSignedTx: this.broadcastSignedTx.bind(this),      
-      
+      broadcastSignedTx: this.broadcastSignedTx.bind(this),
+
       broadcast: this.signAndBroadcast.bind(this),
       simulate: this.simulate.bind(this),
 
@@ -710,6 +828,25 @@ export class SecretNetworkClient {
         send: doMsg(MsgSnip721Send),
         mint: doMsg(MsgSnip721Mint),
         addMinter: doMsg(MsgSnip721AddMinter),
+        setViewingKey: doMsg(MsgSetViewingKey),
+        createViewingKey: doMsg(MsgCreateViewingKey),
+      },
+
+      snip1155: {
+        changeAdmin: doMsg(MsgSnip1155ChangeAdmin),
+        removeAdmin: doMsg(MsgSnip1155RemoveAdmin),
+        addCurator: doMsg(MsgSnip1155AddCurator),
+        removeCurator: doMsg(MsgSnip1155RemoveCurator),
+        addMinter: doMsg(MsgSnipAddMinter),
+        removeMinter: doMsg(MsgSnip1155RemoveMinter),
+        send: doMsg(MsgSnip1155Send),
+        batchSend: doMsg(MsgSnip1155BatchSend),
+        transfer: doMsg(MsgSnip1155Transfer),
+        batchTransfer: doMsg(MsgSnip1155BatchTransfer),
+        curate: doMsg(MsgSnip1155CurateTokens),
+        mint: doMsg(MsgSnip1155Mint),
+        burn: doMsg(MsgSnip1155Burn),
+        changeMetaData: doMsg(MsgSnip1155ChangeMetadata),
         setViewingKey: doMsg(MsgSetViewingKey),
         createViewingKey: doMsg(MsgCreateViewingKey),
       },
@@ -785,7 +922,10 @@ export class SecretNetworkClient {
     this.query.compute = new ComputeQuerier(this.url, this.encryptionUtils);
   }
 
-  private async getTx(hash: string): Promise<TxResponse | null> {
+  private async getTx(
+    hash: string,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse | null> {
     const { tx_response } = await TxService.GetTx(
       {
         hash,
@@ -793,27 +933,120 @@ export class SecretNetworkClient {
       { pathPrefix: this.url },
     );
 
-    return tx_response ? this.decodeTxResponse(tx_response) : null;
+    return tx_response
+      ? this.decodeTxResponse(tx_response, ibcTxOptions)
+      : null;
   }
 
-  private async txsQuery(query: string): Promise<TxResponse[]> {
+  private async txsQuery(
+    query: string,
+    ibcTxOptions: IbcTxOptions = {
+      resolveResponses: false,
+    },
+    pagination: PageRequest = {
+      key: undefined,
+      offset: undefined,
+      limit: undefined,
+      count_total: undefined,
+      reverse: undefined,
+    },
+    order_by?: OrderBy,
+  ): Promise<TxResponse[]> {
     const { tx_responses } = await TxService.GetTxsEvent(
       {
         events: query.split(" AND ").map((q) => q.trim()),
+        pagination,
+        order_by,
       },
       { pathPrefix: this.url },
     );
 
-    return this.decodeTxResponses(tx_responses ?? []);
+    return this.decodeTxResponses(tx_responses ?? [], ibcTxOptions);
+  }
+
+  private async waitForIbcResponse(
+    packetSequence: string,
+    packetSrcChannel: string,
+    type: "ack" | "timeout",
+    ibcTxOptions: ExplicitIbcTxOptions,
+    isDoneObject: { isDone: boolean },
+  ): Promise<IbcResponse> {
+    return new Promise(async (resolve, reject) => {
+      let tries =
+        ibcTxOptions.resolveResponsesTimeoutMs /
+        ibcTxOptions.resolveResponsesCheckIntervalMs;
+
+      let txType: string = type;
+      if (type === "ack") {
+        txType = "acknowledge";
+      }
+
+      const query = [
+        `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
+        `${txType}_packet.packet_sequence = '${packetSequence}'`,
+      ].join(" AND ");
+
+      while (tries > 0 && !isDoneObject.isDone) {
+        const txs = await this.txsQuery(query);
+
+        const ibcRespTx = txs.find((tx) => tx.code === 0);
+
+        if (ibcRespTx) {
+          isDoneObject.isDone = true;
+          resolve({
+            type,
+            tx: ibcRespTx,
+          });
+        }
+
+        tries--;
+        await sleep(ibcTxOptions.resolveResponsesCheckIntervalMs);
+      }
+
+      reject(
+        `timed-out while trying to resolve IBC ${type} tx for packet_src_channel='${packetSrcChannel}' and packet_sequence='${packetSequence}'`,
+      );
+    });
   }
 
   private async decodeTxResponses(
     txResponses: TxResponsePb[],
+    ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse[]> {
-    return await Promise.all(txResponses.map(this.decodeTxResponse));
+    return await Promise.all(
+      txResponses.map((x) => this.decodeTxResponse(x, ibcTxOptions)),
+    );
   }
 
-  private async decodeTxResponse(txResp: TxResponsePb): Promise<TxResponse> {
+  private async decodeTxResponse(
+    txResp: TxResponsePb,
+    ibcTxOptions?: IbcTxOptions,
+  ): Promise<TxResponse> {
+    let explicitIbcTxOptions: ExplicitIbcTxOptions;
+
+    if (!ibcTxOptions) {
+      explicitIbcTxOptions = {
+        resolveResponses: true,
+        resolveResponsesTimeoutMs: 120_000,
+        resolveResponsesCheckIntervalMs: 15_000,
+      };
+    } else {
+      explicitIbcTxOptions = {
+        resolveResponses:
+          typeof ibcTxOptions.resolveResponses === "boolean"
+            ? ibcTxOptions.resolveResponses
+            : true,
+        resolveResponsesTimeoutMs:
+          typeof ibcTxOptions.resolveResponsesTimeoutMs === "number"
+            ? ibcTxOptions.resolveResponsesTimeoutMs
+            : 120_000,
+        resolveResponsesCheckIntervalMs:
+          typeof ibcTxOptions.resolveResponsesCheckIntervalMs === "number"
+            ? ibcTxOptions.resolveResponsesCheckIntervalMs
+            : 15_000,
+      };
+    }
+
     const nonces: ComputeMsgToNonce = [];
 
     const tx = txResp.tx as TxPb;
@@ -867,6 +1100,7 @@ export class SecretNetworkClient {
     let rawLog: string = txResp.raw_log!;
     let jsonLog: JsonLog | undefined;
     let arrayLog: ArrayLog | undefined;
+    let ibcResponses: Array<Promise<IbcResponse>> = [];
     if (txResp.code === 0 && rawLog !== "") {
       jsonLog = JSON.parse(rawLog) as JsonLog;
 
@@ -985,6 +1219,47 @@ export class SecretNetworkClient {
       }
     }
 
+    // IBC ACKs:
+    if (txResp.code === TxResultCode.Success) {
+      const packetSequences =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_sequence",
+        ) || [];
+
+      const packetSrcChannels =
+        arrayLog?.filter(
+          (x) => x.type === "send_packet" && x.key === "packet_src_channel",
+        ) || [];
+
+      if (explicitIbcTxOptions.resolveResponses) {
+        for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
+          // isDoneObject is used to cancel the second promise if the first one is resolved
+          const isDoneObject = {
+            isDone: false,
+          };
+
+          ibcResponses.push(
+            Promise.race([
+              this.waitForIbcResponse(
+                packetSequences[msgIndex].value,
+                packetSrcChannels[msgIndex].value,
+                "ack",
+                explicitIbcTxOptions,
+                isDoneObject,
+              ),
+              this.waitForIbcResponse(
+                packetSequences[msgIndex].value,
+                packetSrcChannels[msgIndex].value,
+                "timeout",
+                explicitIbcTxOptions,
+                isDoneObject,
+              ),
+            ]),
+          );
+        }
+      }
+    }
+
     return {
       height: Number(txResp.height),
       timestamp: txResp.timestamp!,
@@ -1000,6 +1275,7 @@ export class SecretNetworkClient {
       data,
       gasUsed: Number(txResp.gas_used),
       gasWanted: Number(txResp.gas_wanted),
+      ibcResponses,
     };
   }
 
@@ -1020,6 +1296,7 @@ export class SecretNetworkClient {
     checkIntervalMs: number,
     mode: BroadcastMode,
     waitForCommit: boolean,
+    ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse> {
     const start = Date.now();
 
@@ -1075,44 +1352,32 @@ export class SecretNetworkClient {
         const tx = tx_response!.tx as TxPb;
 
         const resolvePubkey = (pubkey: Any) => {
-          if (pubkey.type_url === "/cosmos.crypto.secp256k1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256k1.PubKey",
-              value: Secp256k1PubkeyProto.toJSON(
-                Secp256k1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
-          if (pubkey.type_url === "/cosmos.crypto.secp256r1.PubKey") {
-            return {
-              type_url: "/cosmos.crypto.secp256r1.PubKey",
-              value: Secp256r1PubkeyProto.toJSON(
-                Secp256r1PubkeyProto.decode(
-                  //@ts-ignore
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-
           if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
             const multisig = LegacyAminoPubKey.decode(
-              //@ts-ignore
+              // @ts-expect-error
               fromBase64(pubkey.value),
             );
             for (let i = 0; i < multisig.public_keys.length; i++) {
-              //@ts-ignore
+              // @ts-expect-error
               multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
             }
 
             return LegacyAminoPubKey.toJSON(multisig);
+          } else {
+            return {
+              type_url: pubkey.type_url,
+              // assuming all single pubkeys have the same protobuf type
+              // this works for secp256k1, secp256r1 & ethermint pubkeys
+              value: PubKey.toJSON(
+                PubKey.decode(
+                  // @ts-expect-error
+                  // pubkey.value is actually a base64 string but it's Any
+                  // so TypeScript thinks it's a Uint8Array
+                  fromBase64(pubkey.value),
+                ),
+              ),
+            };
           }
-
-          throw new Error(`unknown pubkey type '${pubkey.type_url}'`);
         };
 
         //@ts-ignore
@@ -1169,7 +1434,7 @@ export class SecretNetworkClient {
           ...protobufJsonToGrpcGatewayJson(tx_response!.tx),
         };
 
-        return await this.decodeTxResponse(tx_response!);
+        return await this.decodeTxResponse(tx_response!, ibcTxOptions);
       }
     } else if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
@@ -1239,32 +1504,28 @@ export class SecretNetworkClient {
     }
   }
 
-  private async signTx(    
+  private async signTx(
     messages: Msg[],
     txOptions?: TxOptions,
-    ): Promise<string> {
-      
-      let signed = await this.prepareAndSign(messages, txOptions)
+  ): Promise<string> {
+    let signed = await this.prepareAndSign(messages, txOptions);
 
-      return toBase64(signed);
+    return toBase64(signed);
   }
 
   private async broadcastSignedTx(
     messages: string,
     txOptions?: TxOptions,
-    ): Promise<TxResponse> {
-    
-      let txBytes = fromBase64(messages);
-      return this.broadcastTx(
-        txBytes,
-        txOptions?.broadcastTimeoutMs ?? 60_000,
-        txOptions?.broadcastCheckIntervalMs ?? 6_000,
-        txOptions?.broadcastMode ?? BroadcastMode.Block,
-        txOptions?.waitForCommit ?? true,
-      );
-  }  
-
-
+  ): Promise<TxResponse> {
+    let txBytes = fromBase64(messages);
+    return this.broadcastTx(
+      txBytes,
+      txOptions?.broadcastTimeoutMs ?? 60_000,
+      txOptions?.broadcastCheckIntervalMs ?? 6_000,
+      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.waitForCommit ?? true,
+    );
+  }
 
   public async prepareAndSign(
     messages: Msg[],
@@ -1309,6 +1570,7 @@ export class SecretNetworkClient {
       txOptions?.broadcastCheckIntervalMs ?? 6_000,
       txOptions?.broadcastMode ?? BroadcastMode.Block,
       txOptions?.waitForCommit ?? true,
+      txOptions?.ibcTxsOptions,
     );
   }
 

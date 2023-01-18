@@ -2,7 +2,7 @@ import { fromBase64 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
 import { bech32 } from "bech32";
-import { base64PubkeyToAddress } from "../../../index";
+import { base64PubkeyToAddress, stringToCoins } from "../../../index";
 import {
   AminoSigner,
   serializeStdSignDoc,
@@ -98,7 +98,7 @@ export const newSignDoc = (
     account_number: "0", // Must be 0
     sequence: "0", // Must be 0
     fee: {
-      amount: [{ denom: "uscrt", amount: "0" }], // Must be 0 uscrt
+      amount: stringToCoins("0uscrt"), // Must be 0 uscrt
       gas: "1", // Must be 1
     },
     msgs: [
@@ -139,37 +139,35 @@ export const newPermit = async (
       "Cannot sign with Keplr - extension not enabled; enable Keplr or change signing mode",
     );
   } else {
-    signature = (
-      //@ts-ignore
-      await window.keplr.signAmino(
-        chainId,
-        owner,
-        {
-          chain_id: chainId,
-          account_number: "0", // Must be 0
-          sequence: "0", // Must be 0
-          fee: {
-            amount: [{ denom: "uscrt", amount: "0" }], // Must be 0 uscrt
-            gas: "1", // Must be 1
-          },
-          msgs: [
-            {
-              type: "query_permit", // Must be "query_permit"
-              value: {
-                permit_name: permitName,
-                allowed_tokens: allowedTokens,
-                permissions: permissions,
-              },
+    //@ts-ignore
+    ({ signature } = await window.keplr.signAmino(
+      chainId,
+      owner,
+      {
+        chain_id: chainId,
+        account_number: "0", // Must be 0
+        sequence: "0", // Must be 0
+        fee: {
+          amount: stringToCoins("0uscrt"), // Must be 0 uscrt
+          gas: "1", // Must be 1
+        },
+        msgs: [
+          {
+            type: "query_permit", // Must be "query_permit"
+            value: {
+              permit_name: permitName,
+              allowed_tokens: allowedTokens,
+              permissions: permissions,
             },
-          ],
-          memo: "", // Must be empty
-        },
-        {
-          preferNoSetFee: true, // Fee must be 0, so hide it from the user
-          preferNoSetMemo: true, // Memo must be empty, so hide it from the user
-        },
-      )
-    ).signature;
+          },
+        ],
+        memo: "", // Must be empty
+      },
+      {
+        preferNoSetFee: true, // Fee must be 0, so hide it from the user
+        preferNoSetMemo: true, // Memo must be empty, so hide it from the user
+      },
+    ));
   }
 
   return {
