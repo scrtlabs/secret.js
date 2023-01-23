@@ -5,6 +5,12 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "secret.registration.v1beta1";
 
 export interface SeedConfig {
+  master_key: string;
+  encrypted_key: string;
+  version: number;
+}
+
+export interface LegacySeedConfig {
   master_cert: string;
   encrypted_key: string;
 }
@@ -15,12 +21,88 @@ export interface RegistrationNodeInfo {
 }
 
 function createBaseSeedConfig(): SeedConfig {
-  return { master_cert: "", encrypted_key: "" };
+  return { master_key: "", encrypted_key: "", version: 0 };
 }
 
 export const SeedConfig = {
   encode(
     message: SeedConfig,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.master_key !== "") {
+      writer.uint32(10).string(message.master_key);
+    }
+    if (message.encrypted_key !== "") {
+      writer.uint32(18).string(message.encrypted_key);
+    }
+    if (message.version !== 0) {
+      writer.uint32(24).uint32(message.version);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SeedConfig {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSeedConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.master_key = reader.string();
+          break;
+        case 2:
+          message.encrypted_key = reader.string();
+          break;
+        case 3:
+          message.version = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SeedConfig {
+    return {
+      master_key: isSet(object.master_key) ? String(object.master_key) : "",
+      encrypted_key: isSet(object.encrypted_key)
+        ? String(object.encrypted_key)
+        : "",
+      version: isSet(object.version) ? Number(object.version) : 0,
+    };
+  },
+
+  toJSON(message: SeedConfig): unknown {
+    const obj: any = {};
+    message.master_key !== undefined && (obj.master_key = message.master_key);
+    message.encrypted_key !== undefined &&
+      (obj.encrypted_key = message.encrypted_key);
+    message.version !== undefined &&
+      (obj.version = Math.round(message.version));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<SeedConfig>, I>>(
+    object: I,
+  ): SeedConfig {
+    const message = createBaseSeedConfig();
+    message.master_key = object.master_key ?? "";
+    message.encrypted_key = object.encrypted_key ?? "";
+    message.version = object.version ?? 0;
+    return message;
+  },
+};
+
+function createBaseLegacySeedConfig(): LegacySeedConfig {
+  return { master_cert: "", encrypted_key: "" };
+}
+
+export const LegacySeedConfig = {
+  encode(
+    message: LegacySeedConfig,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     if (message.master_cert !== "") {
@@ -32,10 +114,10 @@ export const SeedConfig = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): SeedConfig {
+  decode(input: _m0.Reader | Uint8Array, length?: number): LegacySeedConfig {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSeedConfig();
+    const message = createBaseLegacySeedConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -53,7 +135,7 @@ export const SeedConfig = {
     return message;
   },
 
-  fromJSON(object: any): SeedConfig {
+  fromJSON(object: any): LegacySeedConfig {
     return {
       master_cert: isSet(object.master_cert) ? String(object.master_cert) : "",
       encrypted_key: isSet(object.encrypted_key)
@@ -62,7 +144,7 @@ export const SeedConfig = {
     };
   },
 
-  toJSON(message: SeedConfig): unknown {
+  toJSON(message: LegacySeedConfig): unknown {
     const obj: any = {};
     message.master_cert !== undefined &&
       (obj.master_cert = message.master_cert);
@@ -71,10 +153,10 @@ export const SeedConfig = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SeedConfig>, I>>(
+  fromPartial<I extends Exact<DeepPartial<LegacySeedConfig>, I>>(
     object: I,
-  ): SeedConfig {
-    const message = createBaseSeedConfig();
+  ): LegacySeedConfig {
+    const message = createBaseLegacySeedConfig();
     message.master_cert = object.master_cert ?? "";
     message.encrypted_key = object.encrypted_key ?? "";
     return message;

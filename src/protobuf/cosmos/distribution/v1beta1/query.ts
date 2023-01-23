@@ -13,6 +13,26 @@ import { DecCoin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.distribution.v1beta1";
 
+/** QueryRestakeThresholdRequest is the request type for the Query/Params RPC method. */
+export interface QueryRestakeEntriesRequest {
+  delegator: string;
+}
+
+/** QueryRestakeThresholdResponse is the request type for the Query/Params RPC method. */
+export interface QueryRestakeEntriesResponse {
+  /** threshold = minimum amount in uscrt that you need to have delegated to enable restaking */
+  validators: string[];
+}
+
+/** QueryRestakeThresholdRequest is the request type for the Query/Params RPC method. */
+export interface QueryRestakeThresholdRequest {}
+
+/** QueryRestakeThresholdResponse is the request type for the Query/Params RPC method. */
+export interface QueryRestakeThresholdResponse {
+  /** threshold = minimum amount in uscrt that you need to have delegated to enable restaking */
+  threshold: string;
+}
+
 /** QueryParamsRequest is the request type for the Query/Params RPC method. */
 export interface QueryParamsRequest {}
 
@@ -189,6 +209,230 @@ export interface QueryCommunityPoolResponse {
   /** pool defines community pool's coins. */
   pool: DecCoin[];
 }
+
+function createBaseQueryRestakeEntriesRequest(): QueryRestakeEntriesRequest {
+  return { delegator: "" };
+}
+
+export const QueryRestakeEntriesRequest = {
+  encode(
+    message: QueryRestakeEntriesRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.delegator !== "") {
+      writer.uint32(10).string(message.delegator);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryRestakeEntriesRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRestakeEntriesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.delegator = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryRestakeEntriesRequest {
+    return {
+      delegator: isSet(object.delegator) ? String(object.delegator) : "",
+    };
+  },
+
+  toJSON(message: QueryRestakeEntriesRequest): unknown {
+    const obj: any = {};
+    message.delegator !== undefined && (obj.delegator = message.delegator);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRestakeEntriesRequest>, I>>(
+    object: I,
+  ): QueryRestakeEntriesRequest {
+    const message = createBaseQueryRestakeEntriesRequest();
+    message.delegator = object.delegator ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryRestakeEntriesResponse(): QueryRestakeEntriesResponse {
+  return { validators: [] };
+}
+
+export const QueryRestakeEntriesResponse = {
+  encode(
+    message: QueryRestakeEntriesResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.validators) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryRestakeEntriesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRestakeEntriesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.validators.push(reader.string());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryRestakeEntriesResponse {
+    return {
+      validators: Array.isArray(object?.validators)
+        ? object.validators.map((e: any) => String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryRestakeEntriesResponse): unknown {
+    const obj: any = {};
+    if (message.validators) {
+      obj.validators = message.validators.map((e) => e);
+    } else {
+      obj.validators = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRestakeEntriesResponse>, I>>(
+    object: I,
+  ): QueryRestakeEntriesResponse {
+    const message = createBaseQueryRestakeEntriesResponse();
+    message.validators = object.validators?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseQueryRestakeThresholdRequest(): QueryRestakeThresholdRequest {
+  return {};
+}
+
+export const QueryRestakeThresholdRequest = {
+  encode(
+    _: QueryRestakeThresholdRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryRestakeThresholdRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRestakeThresholdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): QueryRestakeThresholdRequest {
+    return {};
+  },
+
+  toJSON(_: QueryRestakeThresholdRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRestakeThresholdRequest>, I>>(
+    _: I,
+  ): QueryRestakeThresholdRequest {
+    const message = createBaseQueryRestakeThresholdRequest();
+    return message;
+  },
+};
+
+function createBaseQueryRestakeThresholdResponse(): QueryRestakeThresholdResponse {
+  return { threshold: "" };
+}
+
+export const QueryRestakeThresholdResponse = {
+  encode(
+    message: QueryRestakeThresholdResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.threshold !== "") {
+      writer.uint32(10).string(message.threshold);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryRestakeThresholdResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRestakeThresholdResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.threshold = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryRestakeThresholdResponse {
+    return {
+      threshold: isSet(object.threshold) ? String(object.threshold) : "",
+    };
+  },
+
+  toJSON(message: QueryRestakeThresholdResponse): unknown {
+    const obj: any = {};
+    message.threshold !== undefined && (obj.threshold = message.threshold);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRestakeThresholdResponse>, I>>(
+    object: I,
+  ): QueryRestakeThresholdResponse {
+    const message = createBaseQueryRestakeThresholdResponse();
+    message.threshold = object.threshold ?? "";
+    return message;
+  },
+};
 
 function createBaseQueryParamsRequest(): QueryParamsRequest {
   return {};
@@ -1541,6 +1785,14 @@ export interface Query {
   FoundationTax(
     request: QueryFoundationTaxRequest,
   ): Promise<QueryFoundationTaxResponse>;
+  /** RestakeThreshold queries the community pool coins. */
+  RestakeThreshold(
+    request: QueryRestakeThresholdRequest,
+  ): Promise<QueryRestakeThresholdResponse>;
+  /** RestakeThreshold queries the community pool coins. */
+  RestakingEntries(
+    request: QueryRestakeEntriesRequest,
+  ): Promise<QueryRestakeEntriesResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1558,6 +1810,8 @@ export class QueryClientImpl implements Query {
     this.DelegatorWithdrawAddress = this.DelegatorWithdrawAddress.bind(this);
     this.CommunityPool = this.CommunityPool.bind(this);
     this.FoundationTax = this.FoundationTax.bind(this);
+    this.RestakeThreshold = this.RestakeThreshold.bind(this);
+    this.RestakingEntries = this.RestakingEntries.bind(this);
   }
   Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
@@ -1695,6 +1949,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryFoundationTaxResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  RestakeThreshold(
+    request: QueryRestakeThresholdRequest,
+  ): Promise<QueryRestakeThresholdResponse> {
+    const data = QueryRestakeThresholdRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.distribution.v1beta1.Query",
+      "RestakeThreshold",
+      data,
+    );
+    return promise.then((data) =>
+      QueryRestakeThresholdResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  RestakingEntries(
+    request: QueryRestakeEntriesRequest,
+  ): Promise<QueryRestakeEntriesResponse> {
+    const data = QueryRestakeEntriesRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.distribution.v1beta1.Query",
+      "RestakingEntries",
+      data,
+    );
+    return promise.then((data) =>
+      QueryRestakeEntriesResponse.decode(new _m0.Reader(data)),
     );
   }
 }

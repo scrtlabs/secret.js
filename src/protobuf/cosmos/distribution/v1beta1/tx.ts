@@ -14,6 +14,19 @@ export interface MsgSetWithdrawAddress {
   withdraw_address: string;
 }
 
+/**
+ * MsgEnableAutoRestake enables auto-restaking for a
+ * a delegator-validator pair.
+ */
+export interface MsgSetAutoRestake {
+  delegator_address: string;
+  validator_address: string;
+  enabled: boolean;
+}
+
+/** MsgAutoRestakeResponse defines the Msg/AutoRestakeResponse response type. */
+export interface MsgSetAutoRestakeResponse {}
+
 /** MsgSetWithdrawAddressResponse defines the Msg/SetWithdrawAddress response type. */
 export interface MsgSetWithdrawAddressResponse {}
 
@@ -120,6 +133,131 @@ export const MsgSetWithdrawAddress = {
     const message = createBaseMsgSetWithdrawAddress();
     message.delegator_address = object.delegator_address ?? "";
     message.withdraw_address = object.withdraw_address ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgSetAutoRestake(): MsgSetAutoRestake {
+  return { delegator_address: "", validator_address: "", enabled: false };
+}
+
+export const MsgSetAutoRestake = {
+  encode(
+    message: MsgSetAutoRestake,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.delegator_address !== "") {
+      writer.uint32(10).string(message.delegator_address);
+    }
+    if (message.validator_address !== "") {
+      writer.uint32(18).string(message.validator_address);
+    }
+    if (message.enabled === true) {
+      writer.uint32(24).bool(message.enabled);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetAutoRestake {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetAutoRestake();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.delegator_address = reader.string();
+          break;
+        case 2:
+          message.validator_address = reader.string();
+          break;
+        case 3:
+          message.enabled = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgSetAutoRestake {
+    return {
+      delegator_address: isSet(object.delegator_address)
+        ? String(object.delegator_address)
+        : "",
+      validator_address: isSet(object.validator_address)
+        ? String(object.validator_address)
+        : "",
+      enabled: isSet(object.enabled) ? Boolean(object.enabled) : false,
+    };
+  },
+
+  toJSON(message: MsgSetAutoRestake): unknown {
+    const obj: any = {};
+    message.delegator_address !== undefined &&
+      (obj.delegator_address = message.delegator_address);
+    message.validator_address !== undefined &&
+      (obj.validator_address = message.validator_address);
+    message.enabled !== undefined && (obj.enabled = message.enabled);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSetAutoRestake>, I>>(
+    object: I,
+  ): MsgSetAutoRestake {
+    const message = createBaseMsgSetAutoRestake();
+    message.delegator_address = object.delegator_address ?? "";
+    message.validator_address = object.validator_address ?? "";
+    message.enabled = object.enabled ?? false;
+    return message;
+  },
+};
+
+function createBaseMsgSetAutoRestakeResponse(): MsgSetAutoRestakeResponse {
+  return {};
+}
+
+export const MsgSetAutoRestakeResponse = {
+  encode(
+    _: MsgSetAutoRestakeResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgSetAutoRestakeResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetAutoRestakeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgSetAutoRestakeResponse {
+    return {};
+  },
+
+  toJSON(_: MsgSetAutoRestakeResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSetAutoRestakeResponse>, I>>(
+    _: I,
+  ): MsgSetAutoRestakeResponse {
+    const message = createBaseMsgSetAutoRestakeResponse();
     return message;
   },
 };
@@ -546,6 +684,9 @@ export interface Msg {
   FundCommunityPool(
     request: MsgFundCommunityPool,
   ): Promise<MsgFundCommunityPoolResponse>;
+  SetAutoRestake(
+    request: MsgSetAutoRestake,
+  ): Promise<MsgSetAutoRestakeResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -557,6 +698,7 @@ export class MsgClientImpl implements Msg {
     this.WithdrawValidatorCommission =
       this.WithdrawValidatorCommission.bind(this);
     this.FundCommunityPool = this.FundCommunityPool.bind(this);
+    this.SetAutoRestake = this.SetAutoRestake.bind(this);
   }
   SetWithdrawAddress(
     request: MsgSetWithdrawAddress,
@@ -611,6 +753,20 @@ export class MsgClientImpl implements Msg {
     );
     return promise.then((data) =>
       MsgFundCommunityPoolResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  SetAutoRestake(
+    request: MsgSetAutoRestake,
+  ): Promise<MsgSetAutoRestakeResponse> {
+    const data = MsgSetAutoRestake.encode(request).finish();
+    const promise = this.rpc.request(
+      "cosmos.distribution.v1beta1.Msg",
+      "SetAutoRestake",
+      data,
+    );
+    return promise.then((data) =>
+      MsgSetAutoRestakeResponse.decode(new _m0.Reader(data)),
     );
   }
 }

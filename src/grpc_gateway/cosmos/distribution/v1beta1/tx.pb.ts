@@ -11,6 +11,15 @@ export type MsgSetWithdrawAddress = {
   withdraw_address?: string
 }
 
+export type MsgSetAutoRestake = {
+  delegator_address?: string
+  validator_address?: string
+  enabled?: boolean
+}
+
+export type MsgSetAutoRestakeResponse = {
+}
+
 export type MsgSetWithdrawAddressResponse = {
 }
 
@@ -49,5 +58,8 @@ export class Msg {
   }
   static FundCommunityPool(req: MsgFundCommunityPool, initReq?: fm.InitReq): Promise<MsgFundCommunityPoolResponse> {
     return fm.fetchReq<MsgFundCommunityPool, MsgFundCommunityPoolResponse>(`/cosmos.distribution.v1beta1.Msg/FundCommunityPool`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static SetAutoRestake(req: MsgSetAutoRestake, initReq?: fm.InitReq): Promise<MsgSetAutoRestakeResponse> {
+    return fm.fetchReq<MsgSetAutoRestake, MsgSetAutoRestakeResponse>(`/cosmos.distribution.v1beta1.Msg/SetAutoRestake`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

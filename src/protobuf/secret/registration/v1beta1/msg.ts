@@ -9,7 +9,7 @@ export interface RaAuthenticate {
   certificate: Uint8Array;
 }
 
-export interface MasterCertificate {
+export interface MasterKey {
   bytes: Uint8Array;
 }
 
@@ -92,13 +92,13 @@ export const RaAuthenticate = {
   },
 };
 
-function createBaseMasterCertificate(): MasterCertificate {
+function createBaseMasterKey(): MasterKey {
   return { bytes: new Uint8Array() };
 }
 
-export const MasterCertificate = {
+export const MasterKey = {
   encode(
-    message: MasterCertificate,
+    message: MasterKey,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     if (message.bytes.length !== 0) {
@@ -107,10 +107,10 @@ export const MasterCertificate = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MasterCertificate {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MasterKey {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMasterCertificate();
+    const message = createBaseMasterKey();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -125,7 +125,7 @@ export const MasterCertificate = {
     return message;
   },
 
-  fromJSON(object: any): MasterCertificate {
+  fromJSON(object: any): MasterKey {
     return {
       bytes: isSet(object.bytes)
         ? bytesFromBase64(object.bytes)
@@ -133,7 +133,7 @@ export const MasterCertificate = {
     };
   },
 
-  toJSON(message: MasterCertificate): unknown {
+  toJSON(message: MasterKey): unknown {
     const obj: any = {};
     message.bytes !== undefined &&
       (obj.bytes = base64FromBytes(
@@ -142,10 +142,10 @@ export const MasterCertificate = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MasterCertificate>, I>>(
+  fromPartial<I extends Exact<DeepPartial<MasterKey>, I>>(
     object: I,
-  ): MasterCertificate {
-    const message = createBaseMasterCertificate();
+  ): MasterKey {
+    const message = createBaseMasterKey();
     message.bytes = object.bytes ?? new Uint8Array();
     return message;
   },

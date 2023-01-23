@@ -12,6 +12,8 @@ export type Params = {
   withdraw_addr_enabled?: boolean
   secret_foundation_tax?: string
   secret_foundation_address?: string
+  minimum_restake_threshold?: string
+  restake_period?: string
 }
 
 export type ValidatorHistoricalRewards = {

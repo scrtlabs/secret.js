@@ -8,7 +8,7 @@ export type RaAuthenticate = {
   certificate?: Uint8Array
 }
 
-export type MasterCertificate = {
+export type MasterKey = {
   bytes?: Uint8Array
 }
 

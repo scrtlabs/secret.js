@@ -8,6 +8,21 @@ import * as fm from "../../../fetch.pb"
 import * as CosmosBaseQueryV1beta1Pagination from "../../base/query/v1beta1/pagination.pb"
 import * as CosmosBaseV1beta1Coin from "../../base/v1beta1/coin.pb"
 import * as CosmosDistributionV1beta1Distribution from "./distribution.pb"
+export type QueryRestakeEntriesRequest = {
+  delegator?: string
+}
+
+export type QueryRestakeEntriesResponse = {
+  validators?: string[]
+}
+
+export type QueryRestakeThresholdRequest = {
+}
+
+export type QueryRestakeThresholdResponse = {
+  threshold?: string
+}
+
 export type QueryParamsRequest = {
 }
 
@@ -122,5 +137,11 @@ export class Query {
   }
   static FoundationTax(req: QueryFoundationTaxRequest, initReq?: fm.InitReq): Promise<QueryFoundationTaxResponse> {
     return fm.fetchReq<QueryFoundationTaxRequest, QueryFoundationTaxResponse>(`/cosmos/distribution/v1beta1/foundation_tax?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static RestakeThreshold(req: QueryRestakeThresholdRequest, initReq?: fm.InitReq): Promise<QueryRestakeThresholdResponse> {
+    return fm.fetchReq<QueryRestakeThresholdRequest, QueryRestakeThresholdResponse>(`/cosmos/distribution/v1beta1/restake_threshold?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static RestakingEntries(req: QueryRestakeEntriesRequest, initReq?: fm.InitReq): Promise<QueryRestakeEntriesResponse> {
+    return fm.fetchReq<QueryRestakeEntriesRequest, QueryRestakeEntriesResponse>(`/cosmos/distribution/v1beta1/restake_entries?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

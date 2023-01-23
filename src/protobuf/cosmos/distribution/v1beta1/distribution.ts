@@ -13,6 +13,8 @@ export interface Params {
   withdraw_addr_enabled: boolean;
   secret_foundation_tax: string;
   secret_foundation_address: string;
+  minimum_restake_threshold: string;
+  restake_period: string;
 }
 
 /**
@@ -136,6 +138,8 @@ function createBaseParams(): Params {
     withdraw_addr_enabled: false,
     secret_foundation_tax: "",
     secret_foundation_address: "",
+    minimum_restake_threshold: "",
+    restake_period: "",
   };
 }
 
@@ -161,6 +165,12 @@ export const Params = {
     }
     if (message.secret_foundation_address !== "") {
       writer.uint32(50).string(message.secret_foundation_address);
+    }
+    if (message.minimum_restake_threshold !== "") {
+      writer.uint32(58).string(message.minimum_restake_threshold);
+    }
+    if (message.restake_period !== "") {
+      writer.uint32(66).string(message.restake_period);
     }
     return writer;
   },
@@ -190,6 +200,12 @@ export const Params = {
         case 6:
           message.secret_foundation_address = reader.string();
           break;
+        case 7:
+          message.minimum_restake_threshold = reader.string();
+          break;
+        case 8:
+          message.restake_period = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -218,6 +234,12 @@ export const Params = {
       secret_foundation_address: isSet(object.secret_foundation_address)
         ? String(object.secret_foundation_address)
         : "",
+      minimum_restake_threshold: isSet(object.minimum_restake_threshold)
+        ? String(object.minimum_restake_threshold)
+        : "",
+      restake_period: isSet(object.restake_period)
+        ? String(object.restake_period)
+        : "",
     };
   },
 
@@ -235,6 +257,10 @@ export const Params = {
       (obj.secret_foundation_tax = message.secret_foundation_tax);
     message.secret_foundation_address !== undefined &&
       (obj.secret_foundation_address = message.secret_foundation_address);
+    message.minimum_restake_threshold !== undefined &&
+      (obj.minimum_restake_threshold = message.minimum_restake_threshold);
+    message.restake_period !== undefined &&
+      (obj.restake_period = message.restake_period);
     return obj;
   },
 
@@ -246,6 +272,8 @@ export const Params = {
     message.withdraw_addr_enabled = object.withdraw_addr_enabled ?? false;
     message.secret_foundation_tax = object.secret_foundation_tax ?? "";
     message.secret_foundation_address = object.secret_foundation_address ?? "";
+    message.minimum_restake_threshold = object.minimum_restake_threshold ?? "";
+    message.restake_period = object.restake_period ?? "";
     return message;
   },
 };
