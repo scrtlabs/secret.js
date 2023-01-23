@@ -85,7 +85,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     }
 
     const { key } = await this.registrationQuerier.txKey({});
-    this.consensusIoPubKey = extractConsensusIoPubkey(key);
+    this.consensusIoPubKey = key;
 
     return this.consensusIoPubKey;
   }
