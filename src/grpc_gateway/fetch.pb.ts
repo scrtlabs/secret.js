@@ -337,7 +337,7 @@ export function renderURLSearchParams<T extends RequestPayload>(
     [] as string[][]
   );
 
-  // react-native doesn't like working with array of arrays, and this is easier to patch
+  // react-native's URLSearchParams doesn't like working with array of arrays
   return urlSearchParams
     .map((x) => new URLSearchParams({ [x[0]]: x[1] }).toString())
     .join("&");

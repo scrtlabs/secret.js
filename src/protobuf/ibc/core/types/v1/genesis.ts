@@ -1,9 +1,9 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { GenesisState as GenesisState1 } from "../../../../ibc/core/client/v1/genesis";
-import { GenesisState as GenesisState2 } from "../../../../ibc/core/connection/v1/genesis";
-import { GenesisState as GenesisState3 } from "../../../../ibc/core/channel/v1/genesis";
+import { GenesisState as GenesisState1 } from "../../client/v1/genesis";
+import { GenesisState as GenesisState2 } from "../../connection/v1/genesis";
+import { GenesisState as GenesisState3 } from "../../channel/v1/genesis";
 
 export const protobufPackage = "ibc.core.types.v1";
 

@@ -4,7 +4,7 @@ import * as _m0 from "protobufjs/minimal";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 import { Duration } from "../../../google/protobuf/duration";
 import { Any } from "../../../google/protobuf/any";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.feegrant.v1beta1";
 

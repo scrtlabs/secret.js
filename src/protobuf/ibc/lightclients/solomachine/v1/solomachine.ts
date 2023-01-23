@@ -2,8 +2,8 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { Any } from "../../../../google/protobuf/any";
-import { ConnectionEnd } from "../../../../ibc/core/connection/v1/connection";
-import { Channel } from "../../../../ibc/core/channel/v1/channel";
+import { ConnectionEnd } from "../../../core/connection/v1/connection";
+import { Channel } from "../../../core/channel/v1/channel";
 
 export const protobufPackage = "ibc.lightclients.solomachine.v1";
 

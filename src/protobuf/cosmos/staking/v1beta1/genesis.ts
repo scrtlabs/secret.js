@@ -7,7 +7,7 @@ import {
   Delegation,
   UnbondingDelegation,
   Redelegation,
-} from "../../../cosmos/staking/v1beta1/staking";
+} from "./staking";
 
 export const protobufPackage = "cosmos.staking.v1beta1";
 

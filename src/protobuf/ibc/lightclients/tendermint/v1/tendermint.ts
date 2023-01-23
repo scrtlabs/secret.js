@@ -2,9 +2,9 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { Duration } from "../../../../google/protobuf/duration";
-import { Height } from "../../../../ibc/core/client/v1/client";
+import { Height } from "../../../core/client/v1/client";
 import { Timestamp } from "../../../../google/protobuf/timestamp";
-import { MerkleRoot } from "../../../../ibc/core/commitment/v1/commitment";
+import { MerkleRoot } from "../../../core/commitment/v1/commitment";
 import { SignedHeader } from "../../../../tendermint/types/types";
 import { ValidatorSet } from "../../../../tendermint/types/validator";
 import { ProofSpec } from "../../../../confio/proofs";

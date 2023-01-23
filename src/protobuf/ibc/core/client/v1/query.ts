@@ -7,7 +7,7 @@ import {
   Params,
   IdentifiedClientState,
   ConsensusStateWithHeight,
-} from "../../../../ibc/core/client/v1/client";
+} from "./client";
 import {
   PageRequest,
   PageResponse,

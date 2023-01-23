@@ -1,8 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { MasterCertificate } from "../../../secret/registration/v1beta1/msg";
-import { RegistrationNodeInfo } from "../../../secret/registration/v1beta1/types";
+import { MasterCertificate } from "./msg";
+import { RegistrationNodeInfo } from "./types";
 
 export const protobufPackage = "secret.registration.v1beta1";
 

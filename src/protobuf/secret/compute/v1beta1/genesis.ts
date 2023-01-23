@@ -1,12 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  CodeInfo,
-  ContractInfo,
-  ContractCustomInfo,
-  Model,
-} from "../../../secret/compute/v1beta1/types";
+import { CodeInfo, ContractInfo, ContractCustomInfo, Model } from "./types";
 
 export const protobufPackage = "secret.compute.v1beta1";
 

@@ -84,6 +84,7 @@ export interface MsgSubmitProposalParams {
   content: ProposalContent;
   initial_deposit: Coin[];
   proposer: string;
+  is_expedited?: boolean;
 }
 
 /**
@@ -193,6 +194,7 @@ export class MsgSubmitProposal implements Msg {
       content: content,
       initial_deposit: this.params.initial_deposit,
       proposer: this.params.proposer,
+      is_expedited: this.params.is_expedited ?? false,
     };
 
     return {
@@ -237,6 +239,7 @@ export class MsgSubmitProposal implements Msg {
         },
         initial_deposit: this.params.initial_deposit,
         proposer: this.params.proposer,
+        is_expedited: this.params.is_expedited ? true : undefined,
       },
     };
   }

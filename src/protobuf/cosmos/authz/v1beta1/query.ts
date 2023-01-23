@@ -1,11 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  PageRequest,
-  PageResponse,
-} from "../../../cosmos/base/query/v1beta1/pagination";
-import { Grant, GrantAuthorization } from "../../../cosmos/authz/v1beta1/authz";
+import { PageRequest, PageResponse } from "../../base/query/v1beta1/pagination";
+import { Grant, GrantAuthorization } from "./authz";
 
 export const protobufPackage = "cosmos.authz.v1beta1";
 

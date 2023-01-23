@@ -8,7 +8,7 @@ import {
   Deposit,
   Vote,
   Proposal,
-} from "../../../cosmos/gov/v1beta1/gov";
+} from "./gov";
 
 export const protobufPackage = "cosmos.gov.v1beta1";
 

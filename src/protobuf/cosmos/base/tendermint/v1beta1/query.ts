@@ -1,10 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  PageRequest,
-  PageResponse,
-} from "../../../../cosmos/base/query/v1beta1/pagination";
+import { PageRequest, PageResponse } from "../../query/v1beta1/pagination";
 import { Any } from "../../../../google/protobuf/any";
 import { BlockID } from "../../../../tendermint/types/types";
 import { Block } from "../../../../tendermint/types/block";

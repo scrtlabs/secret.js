@@ -2,14 +2,14 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { Timestamp } from "../../google/protobuf/timestamp";
-import { Header } from "../../tendermint/types/types";
-import { ProofOps } from "../../tendermint/crypto/proof";
+import { Header } from "../types/types";
+import { ProofOps } from "../crypto/proof";
 import {
   EvidenceParams,
   ValidatorParams,
   VersionParams,
-} from "../../tendermint/types/params";
-import { PublicKey } from "../../tendermint/crypto/keys";
+} from "../types/params";
+import { PublicKey } from "../crypto/keys";
 
 export const protobufPackage = "tendermint.abci";
 
