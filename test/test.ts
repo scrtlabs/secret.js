@@ -2061,14 +2061,7 @@ describe("tx.distribution", () => {
   });
 
   test("MsgSetAutoRestake true", async () => {
-    const { walletProto } = accounts[0];
-
-    const secretjs = new SecretNetworkClient({
-      url: chain1LCD,
-      chainId: "secretdev-1",
-      wallet: walletProto,
-      walletAddress: walletProto.address,
-    });
+    const { secretjs } = accounts[0];
 
     const tx = await secretjs.tx.broadcast(
       [
@@ -2107,14 +2100,7 @@ describe("tx.distribution", () => {
   });
 
   test("MsgSetAutoRestake false", async () => {
-    const { walletProto } = accounts[0];
-
-    const secretjs = new SecretNetworkClient({
-      url: chain1LCD,
-      chainId: "secretdev-1",
-      wallet: walletProto,
-      walletAddress: walletProto.address,
-    });
+    const { secretjs } = accounts[0];
 
     const tx = await secretjs.tx.broadcast(
       [
