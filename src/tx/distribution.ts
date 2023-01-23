@@ -128,3 +128,37 @@ export class MsgFundCommunityPool implements Msg {
     };
   }
 }
+
+export interface MsgSetAutoRestakeParams extends MsgParams {
+  delegator_address: string;
+  validator_address: string;
+  enabled: boolean;
+}
+
+/**
+ * MsgSetAutoRestake enables or disables auto-restaking for
+ * a delegator-validator pair.
+ */
+export class MsgSetAutoRestake implements Msg {
+  constructor(public params: MsgSetAutoRestakeParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.distribution.v1beta1.MsgSetAutoRestake",
+      value: this.params,
+      encode: async () =>
+        (
+          await import("../protobuf/cosmos/distribution/v1beta1/tx")
+        ).MsgSetAutoRestake.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgSetAutoRestake",
+      value: Object.assign({}, this.params, {
+        enabled: this.params.enabled ? true : undefined,
+      }),
+    };
+  }
+}

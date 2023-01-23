@@ -172,7 +172,15 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
-import { AminoMsg, Msg, MsgParams, MsgRegistry, ProtoMsg } from "./tx";
+import {
+  AminoMsg,
+  Msg,
+  MsgParams,
+  MsgRegistry,
+  MsgSetAutoRestake,
+  MsgSetAutoRestakeParams,
+  ProtoMsg,
+} from "./tx";
 import { RaAuthenticate } from "./tx/registration";
 import { MsgCreateVestingAccount } from "./tx/vesting";
 import {
@@ -675,6 +683,11 @@ export type TxSender = {
      * address.
      */
     withdrawValidatorCommission: SingleMsgTx<MsgWithdrawValidatorCommissionParams>;
+    /**
+     * MsgWithdrawValidatorCommission withdraws the full commission to the validator
+     * address.
+     */
+    setAutoRestake: SingleMsgTx<MsgSetAutoRestakeParams>;
   };
   evidence: {
     /**
@@ -873,6 +886,7 @@ export class SecretNetworkClient {
         setWithdrawAddress: doMsg(MsgSetWithdrawAddress),
         withdrawDelegatorReward: doMsg(MsgWithdrawDelegatorReward),
         withdrawValidatorCommission: doMsg(MsgWithdrawValidatorCommission),
+        setAutoRestake: doMsg(MsgSetAutoRestake),
       },
       evidence: {
         submitEvidence: doMsg(MsgSubmitEvidence),

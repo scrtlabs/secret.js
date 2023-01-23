@@ -1,6 +1,4 @@
 import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
-import { notDeepEqual } from "assert";
-
 import { bech32 } from "bech32";
 import fs from "fs";
 import {
@@ -13,6 +11,7 @@ import {
   MsgGrantAuthorization,
   MsgInstantiateContractResponse,
   MsgSend,
+  MsgSetAutoRestake,
   MsgSubmitProposal,
   ProposalType,
   pubkeyToAddress,
@@ -315,6 +314,17 @@ describe("query", () => {
       expect(second.length).toBe(1);
       expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
     });
+  });
+});
+
+describe("query.distribution", () => {
+  test("restakeThreshold()", async () => {
+    const { secretjs } = accounts[0];
+    const { threshold } = await secretjs.query.distribution.restakeThreshold(
+      {},
+    );
+
+    expect(threshold).toBe("10000000.000000000000000000");
   });
 });
 
@@ -2048,6 +2058,105 @@ describe("tx.distribution", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgSetAutoRestake true", async () => {
+    const { walletProto } = accounts[0];
+
+    const secretjs = new SecretNetworkClient({
+      url: chain1LCD,
+      chainId: "secretdev-1",
+      wallet: walletProto,
+      walletAddress: walletProto.address,
+    });
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgDelegate({
+          delegator_address: secretjs.address,
+          validator_address: selfDelegatorAddressToValidatorAddress(
+            secretjs.address,
+          ),
+          amount: stringToCoin("1000000000uscrt"),
+        }),
+        new MsgSetAutoRestake({
+          delegator_address: secretjs.address,
+          validator_address: selfDelegatorAddressToValidatorAddress(
+            secretjs.address,
+          ),
+          enabled: true,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const { validators } = await secretjs.query.distribution.restakingEntries({
+      delegator: secretjs.address,
+    });
+
+    expect(validators).toContain(
+      selfDelegatorAddressToValidatorAddress(secretjs.address),
+    );
+  });
+
+  test("MsgSetAutoRestake false", async () => {
+    const { walletProto } = accounts[0];
+
+    const secretjs = new SecretNetworkClient({
+      url: chain1LCD,
+      chainId: "secretdev-1",
+      wallet: walletProto,
+      walletAddress: walletProto.address,
+    });
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        new MsgDelegate({
+          delegator_address: secretjs.address,
+          validator_address: selfDelegatorAddressToValidatorAddress(
+            secretjs.address,
+          ),
+          amount: stringToCoin(`${1_000e6}uscrt`),
+        }),
+        new MsgSetAutoRestake({
+          delegator_address: secretjs.address,
+          validator_address: selfDelegatorAddressToValidatorAddress(
+            secretjs.address,
+          ),
+          enabled: true,
+        }),
+        new MsgSetAutoRestake({
+          delegator_address: secretjs.address,
+          validator_address: selfDelegatorAddressToValidatorAddress(
+            secretjs.address,
+          ),
+          enabled: false,
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const { validators } = await secretjs.query.distribution.restakingEntries({
+      delegator: secretjs.address,
+    });
+
+    expect(validators).not.toContain(
+      selfDelegatorAddressToValidatorAddress(secretjs.address),
+    );
   });
 });
 

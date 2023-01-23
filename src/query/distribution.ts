@@ -14,6 +14,10 @@ import {
   QueryFoundationTaxResponse,
   QueryParamsRequest,
   QueryParamsResponse,
+  QueryRestakeEntriesRequest,
+  QueryRestakingEntriesResponse,
+  QueryRestakeThresholdRequest,
+  QueryRestakeThresholdResponse,
   QueryValidatorCommissionRequest,
   QueryValidatorCommissionResponse,
   QueryValidatorOutstandingRewardsRequest,
@@ -120,6 +124,26 @@ export class DistributionQuerier {
     headers?: HeadersInit,
   ): Promise<QueryFoundationTaxResponse> {
     return Query.FoundationTax(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  restakeThreshold(
+    req: QueryRestakeThresholdRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryRestakeThresholdResponse> {
+    return Query.RestakeThreshold(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  restakingEntries(
+    req: QueryRestakeEntriesRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryRestakingEntriesResponse> {
+    return Query.RestakingEntries(req, {
       headers,
       pathPrefix: this.url,
     });
