@@ -1,10 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import {
-  ResponseCheckTx,
-  ResponseDeliverTx,
-} from "../../../tendermint/abci/types";
+import { ResponseCheckTx, ResponseDeliverTx } from "../../abci/types";
 
 export const protobufPackage = "tendermint.rpc.grpc";
 

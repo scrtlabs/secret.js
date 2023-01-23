@@ -7,8 +7,8 @@ import {
   WeightedVoteOption,
   voteOptionFromJSON,
   voteOptionToJSON,
-} from "../../../cosmos/gov/v1beta1/gov";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
+} from "./gov";
+import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.gov.v1beta1";
 
@@ -20,6 +20,7 @@ export interface MsgSubmitProposal {
   content?: Any;
   initial_deposit: Coin[];
   proposer: string;
+  is_expedited: boolean;
 }
 
 /** MsgSubmitProposalResponse defines the Msg/SubmitProposal response type. */
@@ -66,7 +67,12 @@ export interface MsgDeposit {
 export interface MsgDepositResponse {}
 
 function createBaseMsgSubmitProposal(): MsgSubmitProposal {
-  return { content: undefined, initial_deposit: [], proposer: "" };
+  return {
+    content: undefined,
+    initial_deposit: [],
+    proposer: "",
+    is_expedited: false,
+  };
 }
 
 export const MsgSubmitProposal = {
@@ -82,6 +88,9 @@ export const MsgSubmitProposal = {
     }
     if (message.proposer !== "") {
       writer.uint32(26).string(message.proposer);
+    }
+    if (message.is_expedited === true) {
+      writer.uint32(32).bool(message.is_expedited);
     }
     return writer;
   },
@@ -102,6 +111,9 @@ export const MsgSubmitProposal = {
         case 3:
           message.proposer = reader.string();
           break;
+        case 4:
+          message.is_expedited = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -117,6 +129,9 @@ export const MsgSubmitProposal = {
         ? object.initial_deposit.map((e: any) => Coin.fromJSON(e))
         : [],
       proposer: isSet(object.proposer) ? String(object.proposer) : "",
+      is_expedited: isSet(object.is_expedited)
+        ? Boolean(object.is_expedited)
+        : false,
     };
   },
 
@@ -132,6 +147,8 @@ export const MsgSubmitProposal = {
       obj.initial_deposit = [];
     }
     message.proposer !== undefined && (obj.proposer = message.proposer);
+    message.is_expedited !== undefined &&
+      (obj.is_expedited = message.is_expedited);
     return obj;
   },
 
@@ -146,6 +163,7 @@ export const MsgSubmitProposal = {
     message.initial_deposit =
       object.initial_deposit?.map((e) => Coin.fromPartial(e)) || [];
     message.proposer = object.proposer ?? "";
+    message.is_expedited = object.is_expedited ?? false;
     return message;
   },
 };

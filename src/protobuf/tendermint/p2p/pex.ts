@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { NetAddress } from "../../tendermint/p2p/types";
+import { NetAddress } from "./types";
 
 export const protobufPackage = "tendermint.p2p";
 

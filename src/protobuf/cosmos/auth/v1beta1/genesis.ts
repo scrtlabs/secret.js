@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Params } from "../../../cosmos/auth/v1beta1/auth";
+import { Params } from "./auth";
 import { Any } from "../../../google/protobuf/any";
 
 export const protobufPackage = "cosmos.auth.v1beta1";

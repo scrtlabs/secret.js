@@ -1,8 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Params, Metadata } from "../../../cosmos/bank/v1beta1/bank";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { Params, Metadata } from "./bank";
+import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.bank.v1beta1";
 

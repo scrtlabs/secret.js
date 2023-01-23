@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Key } from "../../../secret/registration/v1beta1/msg";
+import { Key } from "./msg";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "secret.registration.v1beta1";

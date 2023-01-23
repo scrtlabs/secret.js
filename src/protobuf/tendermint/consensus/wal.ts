@@ -1,10 +1,10 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { Message } from "../../tendermint/consensus/types";
+import { Message } from "./types";
 import { Duration } from "../../google/protobuf/duration";
 import { Timestamp } from "../../google/protobuf/timestamp";
-import { EventDataRoundState } from "../../tendermint/types/events";
+import { EventDataRoundState } from "../types/events";
 
 export const protobufPackage = "tendermint.consensus";
 

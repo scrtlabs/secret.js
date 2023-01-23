@@ -6,9 +6,9 @@ import {
   SignMode,
   signModeFromJSON,
   signModeToJSON,
-} from "../../../cosmos/tx/signing/v1beta1/signing";
-import { CompactBitArray } from "../../../cosmos/crypto/multisig/v1beta1/multisig";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
+} from "../signing/v1beta1/signing";
+import { CompactBitArray } from "../../crypto/multisig/v1beta1/multisig";
+import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.tx.v1beta1";
 
