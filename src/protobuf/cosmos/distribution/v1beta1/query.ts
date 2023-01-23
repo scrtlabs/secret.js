@@ -19,7 +19,7 @@ export interface QueryRestakeEntriesRequest {
 }
 
 /** QueryRestakeThresholdResponse is the request type for the Query/Params RPC method. */
-export interface QueryRestakeEntriesResponse {
+export interface QueryRestakingEntriesResponse {
   /** threshold = minimum amount in uscrt that you need to have delegated to enable restaking */
   validators: string[];
 }
@@ -267,13 +267,13 @@ export const QueryRestakeEntriesRequest = {
   },
 };
 
-function createBaseQueryRestakeEntriesResponse(): QueryRestakeEntriesResponse {
+function createBaseQueryRestakingEntriesResponse(): QueryRestakingEntriesResponse {
   return { validators: [] };
 }
 
-export const QueryRestakeEntriesResponse = {
+export const QueryRestakingEntriesResponse = {
   encode(
-    message: QueryRestakeEntriesResponse,
+    message: QueryRestakingEntriesResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     for (const v of message.validators) {
@@ -285,10 +285,10 @@ export const QueryRestakeEntriesResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): QueryRestakeEntriesResponse {
+  ): QueryRestakingEntriesResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryRestakeEntriesResponse();
+    const message = createBaseQueryRestakingEntriesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -303,7 +303,7 @@ export const QueryRestakeEntriesResponse = {
     return message;
   },
 
-  fromJSON(object: any): QueryRestakeEntriesResponse {
+  fromJSON(object: any): QueryRestakingEntriesResponse {
     return {
       validators: Array.isArray(object?.validators)
         ? object.validators.map((e: any) => String(e))
@@ -311,7 +311,7 @@ export const QueryRestakeEntriesResponse = {
     };
   },
 
-  toJSON(message: QueryRestakeEntriesResponse): unknown {
+  toJSON(message: QueryRestakingEntriesResponse): unknown {
     const obj: any = {};
     if (message.validators) {
       obj.validators = message.validators.map((e) => e);
@@ -321,10 +321,10 @@ export const QueryRestakeEntriesResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryRestakeEntriesResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryRestakingEntriesResponse>, I>>(
     object: I,
-  ): QueryRestakeEntriesResponse {
-    const message = createBaseQueryRestakeEntriesResponse();
+  ): QueryRestakingEntriesResponse {
+    const message = createBaseQueryRestakingEntriesResponse();
     message.validators = object.validators?.map((e) => e) || [];
     return message;
   },
@@ -1792,7 +1792,7 @@ export interface Query {
   /** RestakeThreshold queries the community pool coins. */
   RestakingEntries(
     request: QueryRestakeEntriesRequest,
-  ): Promise<QueryRestakeEntriesResponse>;
+  ): Promise<QueryRestakingEntriesResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1968,7 +1968,7 @@ export class QueryClientImpl implements Query {
 
   RestakingEntries(
     request: QueryRestakeEntriesRequest,
-  ): Promise<QueryRestakeEntriesResponse> {
+  ): Promise<QueryRestakingEntriesResponse> {
     const data = QueryRestakeEntriesRequest.encode(request).finish();
     const promise = this.rpc.request(
       "cosmos.distribution.v1beta1.Query",
@@ -1976,7 +1976,7 @@ export class QueryClientImpl implements Query {
       data,
     );
     return promise.then((data) =>
-      QueryRestakeEntriesResponse.decode(new _m0.Reader(data)),
+      QueryRestakingEntriesResponse.decode(new _m0.Reader(data)),
     );
   }
 }

@@ -684,6 +684,10 @@ export interface Msg {
   FundCommunityPool(
     request: MsgFundCommunityPool,
   ): Promise<MsgFundCommunityPoolResponse>;
+  /**
+   * SetAutoRestake enables or disables automatic restaking for a delegator
+   * validator pair
+   */
   SetAutoRestake(
     request: MsgSetAutoRestake,
   ): Promise<MsgSetAutoRestakeResponse>;

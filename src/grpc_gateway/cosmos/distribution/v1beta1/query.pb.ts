@@ -12,7 +12,7 @@ export type QueryRestakeEntriesRequest = {
   delegator?: string
 }
 
-export type QueryRestakeEntriesResponse = {
+export type QueryRestakingEntriesResponse = {
   validators?: string[]
 }
 
@@ -141,7 +141,7 @@ export class Query {
   static RestakeThreshold(req: QueryRestakeThresholdRequest, initReq?: fm.InitReq): Promise<QueryRestakeThresholdResponse> {
     return fm.fetchReq<QueryRestakeThresholdRequest, QueryRestakeThresholdResponse>(`/cosmos/distribution/v1beta1/restake_threshold?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
-  static RestakingEntries(req: QueryRestakeEntriesRequest, initReq?: fm.InitReq): Promise<QueryRestakeEntriesResponse> {
-    return fm.fetchReq<QueryRestakeEntriesRequest, QueryRestakeEntriesResponse>(`/cosmos/distribution/v1beta1/restake_entries?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static RestakingEntries(req: QueryRestakeEntriesRequest, initReq?: fm.InitReq): Promise<QueryRestakingEntriesResponse> {
+    return fm.fetchReq<QueryRestakeEntriesRequest, QueryRestakingEntriesResponse>(`/cosmos/distribution/v1beta1/restake_entries?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
