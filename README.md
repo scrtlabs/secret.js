@@ -344,7 +344,7 @@ const secretjs = new SecretNetworkClient({
 Links:
 
 - <a href="https://www.leapwallet.io/cosmos" target="_blank"><strong>Official Leap Website »</strong></a>
-- <a href="https://leapwallet.notion.site/leapwallet/Connect-to-Leap-on-your-dApp-035d49182fad432da4c3194bc891a746" target="_blank"><strong>Leap API Docs »</strong></a>
+- <a href="https://docs.leapwallet.io/cosmos/connect-to-leap/introduction" target="_blank"><strong>Leap API Docs »</strong></a>
 
 # Migrating from secret.js v0.17.x
 
