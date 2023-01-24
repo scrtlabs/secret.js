@@ -8,7 +8,7 @@ module.exports = async () => {
   console.log("\nSetting up LocalSecret...");
   await exec("docker rm -f localsecret || true");
   const { /* stdout, */ stderr } = await exec(
-    "docker run -it -d -p 9091:9091 --name localsecret ghcr.io/scrtlabs/localsecret:v1.4.0",
+    "docker run -it -d -p 9091:9091 --name localsecret ghcr.io/scrtlabs/localsecret:v1.7.0-rc.2",
   );
 
   // console.log("stdout (testnet container id?):", stdout);
