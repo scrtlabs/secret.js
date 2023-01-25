@@ -755,9 +755,9 @@ export class SecretNetworkClient {
 
   public utils: { accessControl: { permit: PermitSigner } };
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
+  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `url` param. */
   constructor(options: CreateClientOptions) {
-    this.url = options.url;
+    this.url = options.url.replace(/\/*$/g, ""); // remove trailing slashes
 
     this.query = {
       auth: new AuthQuerier(options.url),
