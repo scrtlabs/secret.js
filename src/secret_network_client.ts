@@ -134,6 +134,7 @@ import {
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
+import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 import {
   OrderBy,
   Service as TxService,
@@ -187,9 +188,7 @@ import {
   Signer,
   StdFee,
   StdSignDoc,
-  StdSignDocCamelCase,
 } from "./wallet_amino";
-import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -1995,7 +1994,7 @@ function makeSignDocAmino(
   memo: string | undefined,
   accountNumber: number | string,
   sequence: number | string,
-): StdSignDoc & StdSignDocCamelCase {
+): StdSignDoc {
   return {
     chain_id: chainId,
     account_number: String(accountNumber),
@@ -2003,10 +2002,6 @@ function makeSignDocAmino(
     fee: fee,
     msgs: msgs,
     memo: memo || "",
-
-    // cosnjs/Keplr
-    chainId,
-    accountNumber: String(accountNumber),
   };
 }
 

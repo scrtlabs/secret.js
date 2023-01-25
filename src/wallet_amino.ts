@@ -167,15 +167,6 @@ export type StdSignDoc = {
   readonly memo: string;
 };
 
-export type StdSignDocCamelCase = {
-  readonly chainId: string;
-  readonly accountNumber: string;
-  readonly sequence: string;
-  readonly fee: StdFee;
-  readonly msgs: readonly AminoMsg[];
-  readonly memo: string;
-};
-
 export type StdFee = {
   readonly amount: readonly Coin[];
   readonly gas: string;
