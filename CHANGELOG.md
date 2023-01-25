@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.6.11
+
+- Accept URLs with trailing slashes in `SecretNetworkClient`
+- Fix Amino signing bug (introduced in v1.6.10)
+
 ## 1.6.10
 
 Fix support for CosmJS' `DirectSigner`, which is used by wallets. E.g. this fixes using `keplr.getOfflineSigner()` as a wallet in `SecretNetworkClient`.
