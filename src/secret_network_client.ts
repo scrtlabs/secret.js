@@ -185,6 +185,7 @@ import {
   Signer,
   StdFee,
   StdSignDoc,
+  StdSignDocCamelCase,
 } from "./wallet_amino";
 import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 
@@ -1886,17 +1887,45 @@ function makeSignerInfos(
   );
 }
 
+/** SignDoc is the type used for generating sign bytes for SIGN_MODE_DIRECT. */
+export interface SignDocCamelCase {
+  /**
+   * bodyBytes is protobuf serialization of a TxBody that matches the
+   * representation in TxRaw.
+   */
+  bodyBytes: Uint8Array;
+  /**
+   * authInfoBytes is a protobuf serialization of an AuthInfo that matches the
+   * representation in TxRaw.
+   */
+  authInfoBytes: Uint8Array;
+  /**
+   * chainId is the unique identifier of the chain this transaction targets.
+   * It prevents signed transactions from being used on another chain by an
+   * attacker
+   */
+  chainId: string;
+  /** accountNumber is the account number of the account in state */
+  accountNumber: string;
+}
+
 function makeSignDocProto(
   bodyBytes: Uint8Array,
   authInfoBytes: Uint8Array,
   chainId: string,
   accountNumber: number,
-): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
+): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc & SignDocCamelCase {
   return {
     body_bytes: bodyBytes,
     auth_info_bytes: authInfoBytes,
     chain_id: chainId,
     account_number: String(accountNumber),
+
+    // cosmjs/Keplr
+    bodyBytes,
+    authInfoBytes,
+    chainId,
+    accountNumber: String(accountNumber),
   };
 }
 
@@ -1948,7 +1977,7 @@ function makeSignDocAmino(
   memo: string | undefined,
   accountNumber: number | string,
   sequence: number | string,
-): StdSignDoc {
+): StdSignDoc & StdSignDocCamelCase {
   return {
     chain_id: chainId,
     account_number: String(accountNumber),
@@ -1956,6 +1985,10 @@ function makeSignDocAmino(
     fee: fee,
     msgs: msgs,
     memo: memo || "",
+
+    // cosnjs/Keplr
+    chainId,
+    accountNumber: String(accountNumber),
   };
 }
 
