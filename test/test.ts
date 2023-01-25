@@ -2831,3 +2831,27 @@ describe("tx broadcast multi", () => {
     expect(tx.code).toBe(TxResultCode.Success);
   });
 });
+
+test("url without trailing slashes", async () => {
+  // without slashes
+  const secretjs = new SecretNetworkClient({
+    chainId: "secretdev-1",
+    url: chain1LCD.replace(/\/*$/g, ""),
+  });
+
+  const res = await secretjs.query.tendermint.getLatestBlock({});
+
+  expect(Number(res.block?.header?.height)).toBeGreaterThan(0);
+});
+
+test("url with trailing slashes", async () => {
+  // without slashes
+  const secretjs = new SecretNetworkClient({
+    chainId: "secretdev-1",
+    url: chain1LCD + "//////",
+  });
+
+  const res = await secretjs.query.tendermint.getLatestBlock({});
+
+  expect(Number(res.block?.header?.height)).toBeGreaterThan(0);
+});
