@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
-import { AminoMsg, Coin, pubkeyToAddress } from ".";
+import { AminoMsg, Coin, pubkeyToAddress, SignDocCamelCase } from ".";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -233,16 +233,40 @@ export type DirectSigner = {
   readonly getAccounts: () => Promise<readonly AccountData[]>;
   readonly signDirect: (
     signerAddress: string,
-    signDoc: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc,
+    signDoc:
+      | import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc
+      | SignDocCamelCase,
   ) => Promise<DirectSignResponse>;
 };
+
+export function isSignDoc(
+  object: any,
+): object is import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
+  return (
+    "body_bytes" in object &&
+    "auth_info_bytes" in object &&
+    "chain_id" in object &&
+    "account_number" in object
+  );
+}
+
+export function isSignDocCamelCase(object: any): object is SignDocCamelCase {
+  return (
+    "bodyBytes" in object &&
+    "authInfoBytes" in object &&
+    "chainId" in object &&
+    "accountNumber" in object
+  );
+}
 
 export type DirectSignResponse = {
   /**
    * The sign doc that was signed.
    * This may be different from the input signDoc when the signer modifies it as part of the signing process.
    */
-  readonly signed: import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc;
+  readonly signed:
+    | import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc
+    | SignDocCamelCase;
   readonly signature: StdSignature;
 };
 

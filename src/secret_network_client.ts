@@ -181,6 +181,8 @@ import {
   AminoSignResponse,
   encodeSecp256k1Pubkey,
   isDirectSigner,
+  isSignDoc,
+  isSignDocCamelCase,
   Pubkey,
   Signer,
   StdFee,
@@ -1792,6 +1794,7 @@ export class SecretNetworkClient {
         memo: memo,
       },
     };
+
     const txBodyBytes = await this.encodeTx(txBody);
     const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const gasLimit = Number(fee.gas);
@@ -1801,21 +1804,34 @@ export class SecretNetworkClient {
       gasLimit,
       fee.granter,
     );
+
     const signDoc = makeSignDocProto(
       txBodyBytes,
       authInfoBytes,
       chainId,
       accountNumber,
     );
+
     const { signature, signed } = await this.wallet.signDirect(
       account.address,
       signDoc,
     );
-    return TxRaw.fromPartial({
-      body_bytes: signed.body_bytes,
-      auth_info_bytes: signed.auth_info_bytes,
-      signatures: [fromBase64(signature.signature)],
-    });
+
+    if (isSignDoc(signed)) {
+      return TxRaw.fromPartial({
+        body_bytes: signed.body_bytes,
+        auth_info_bytes: signed.auth_info_bytes,
+        signatures: [fromBase64(signature.signature)],
+      });
+    } else if (isSignDocCamelCase(signed)) {
+      return TxRaw.fromPartial({
+        body_bytes: signed.bodyBytes,
+        auth_info_bytes: signed.authInfoBytes,
+        signatures: [fromBase64(signature.signature)],
+      });
+    } else {
+      throw new Error(`unknown SignDoc instance: ${JSON.stringify(signed)}`);
+    }
   }
 }
 
