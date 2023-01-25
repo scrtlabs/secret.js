@@ -184,6 +184,7 @@ export type StdFee = {
 
 export type StdSignature = {
   readonly pub_key: Pubkey;
+  readonly pubKey?: Pubkey; // cosmjs/Keplr
   readonly signature: string;
 };
 

@@ -1818,12 +1818,14 @@ export class SecretNetworkClient {
     );
 
     if (isSignDoc(signed)) {
+      // Wallet
       return TxRaw.fromPartial({
         body_bytes: signed.body_bytes,
         auth_info_bytes: signed.auth_info_bytes,
         signatures: [fromBase64(signature.signature)],
       });
     } else if (isSignDocCamelCase(signed)) {
+      // cosmjs/Keplr
       return TxRaw.fromPartial({
         body_bytes: signed.bodyBytes,
         auth_info_bytes: signed.authInfoBytes,
