@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.6.12
+
+- Allow passing `ibcTxOptions` to `getTx()`
+- Fix resolving IBC responses when broadcasting a tx on Async & Sync modes
+
 ## 1.6.11
 
 - Accept URLs with trailing slashes in `SecretNetworkClient`
