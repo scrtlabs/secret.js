@@ -341,7 +341,10 @@ export class ReadonlySigner implements AminoSigner {
 
 export type Querier = {
   /** Returns a transaction with a txhash. Must be 64 character upper-case hex string */
-  getTx: (hash: string) => Promise<TxResponse | null>;
+  getTx: (
+    hash: string,
+    ibcTxOptions?: IbcTxOptions,
+  ) => Promise<TxResponse | null>;
   /**
    * To tell which events you want, you need to provide a query. query is a string, which has a form: "condition AND condition ..." (no OR at the moment).
    *
@@ -783,7 +786,7 @@ export class SecretNetworkClient {
       staking: new StakingQuerier(options.url),
       tendermint: new TendermintQuerier(options.url),
       upgrade: new UpgradeQuerier(options.url),
-      getTx: (hash) => this.getTx(hash),
+      getTx: (hash, ibcTxOptions) => this.getTx(hash, ibcTxOptions),
       txsQuery: (query, ibcTxOptions, pagination, order_by) =>
         this.txsQuery(query, ibcTxOptions, pagination, order_by),
     };
@@ -1490,7 +1493,7 @@ export class SecretNetworkClient {
     await sleep(checkIntervalMs / 2);
 
     while (true) {
-      const result = await this.getTx(txhash);
+      const result = await this.getTx(txhash, ibcTxOptions);
 
       if (result) {
         return result;
