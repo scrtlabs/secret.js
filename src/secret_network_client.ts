@@ -931,16 +931,22 @@ export class SecretNetworkClient {
     hash: string,
     ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse | null> {
-    const { tx_response } = await TxService.GetTx(
-      {
-        hash,
-      },
-      { pathPrefix: this.url },
-    );
+    try {
+      const { tx_response } = await TxService.GetTx(
+        { hash },
+        { pathPrefix: this.url },
+      );
 
-    return tx_response
-      ? this.decodeTxResponse(tx_response, ibcTxOptions)
-      : null;
+      return tx_response
+        ? this.decodeTxResponse(tx_response, ibcTxOptions)
+        : null;
+    } catch (error) {
+      if (error?.message === `tx not found: ${hash}`) {
+        return null;
+      } else {
+        throw error;
+      }
+    }
   }
 
   private async txsQuery(
