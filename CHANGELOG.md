@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.6.13
+
+Fix `getTx()` sometimes throws "tx not found" instead of returning null.
+
 ## 1.6.12
 
 - Allow passing `ibcTxOptions` to `getTx()`
