@@ -134,6 +134,7 @@ import {
 } from "./extensions/snip721/types";
 import { BaseAccount } from "./grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1beta1/abci.pb";
+import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 import {
   OrderBy,
   Service as TxService,
@@ -189,12 +190,13 @@ import {
   AminoSignResponse,
   encodeSecp256k1Pubkey,
   isDirectSigner,
+  isSignDoc,
+  isSignDocCamelCase,
   Pubkey,
   Signer,
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
-import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -347,7 +349,10 @@ export class ReadonlySigner implements AminoSigner {
 
 export type Querier = {
   /** Returns a transaction with a txhash. Must be 64 character upper-case hex string */
-  getTx: (hash: string) => Promise<TxResponse | null>;
+  getTx: (
+    hash: string,
+    ibcTxOptions?: IbcTxOptions,
+  ) => Promise<TxResponse | null>;
   /**
    * To tell which events you want, you need to provide a query. query is a string, which has a form: "condition AND condition ..." (no OR at the moment).
    *
@@ -765,9 +770,9 @@ export class SecretNetworkClient {
 
   public utils: { accessControl: { permit: PermitSigner } };
 
-  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `grpcUrl` param. */
+  /** Creates a new SecretNetworkClient client. For a readonly client pass just the `url` param. */
   constructor(options: CreateClientOptions) {
-    this.url = options.url;
+    this.url = options.url.replace(/\/*$/g, ""); // remove trailing slashes
 
     this.query = {
       auth: new AuthQuerier(options.url),
@@ -794,7 +799,7 @@ export class SecretNetworkClient {
       staking: new StakingQuerier(options.url),
       tendermint: new TendermintQuerier(options.url),
       upgrade: new UpgradeQuerier(options.url),
-      getTx: (hash) => this.getTx(hash),
+      getTx: (hash, ibcTxOptions) => this.getTx(hash, ibcTxOptions),
       txsQuery: (query, ibcTxOptions, pagination, order_by) =>
         this.txsQuery(query, ibcTxOptions, pagination, order_by),
     };
@@ -940,16 +945,22 @@ export class SecretNetworkClient {
     hash: string,
     ibcTxOptions?: IbcTxOptions,
   ): Promise<TxResponse | null> {
-    const { tx_response } = await TxService.GetTx(
-      {
-        hash,
-      },
-      { pathPrefix: this.url },
-    );
+    try {
+      const { tx_response } = await TxService.GetTx(
+        { hash },
+        { pathPrefix: this.url },
+      );
 
-    return tx_response
-      ? this.decodeTxResponse(tx_response, ibcTxOptions)
-      : null;
+      return tx_response
+        ? this.decodeTxResponse(tx_response, ibcTxOptions)
+        : null;
+    } catch (error) {
+      if (error?.message === `tx not found: ${hash}`) {
+        return null;
+      } else {
+        throw error;
+      }
+    }
   }
 
   private async txsQuery(
@@ -1502,7 +1513,7 @@ export class SecretNetworkClient {
     await sleep(checkIntervalMs / 2);
 
     while (true) {
-      const result = await this.getTx(txhash);
+      const result = await this.getTx(txhash, ibcTxOptions);
 
       if (result) {
         return result;
@@ -1805,6 +1816,7 @@ export class SecretNetworkClient {
         memo: memo,
       },
     };
+
     const txBodyBytes = await this.encodeTx(txBody);
     const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const gasLimit = Number(fee.gas);
@@ -1814,21 +1826,36 @@ export class SecretNetworkClient {
       gasLimit,
       fee.granter,
     );
+
     const signDoc = makeSignDocProto(
       txBodyBytes,
       authInfoBytes,
       chainId,
       accountNumber,
     );
+
     const { signature, signed } = await this.wallet.signDirect(
       account.address,
       signDoc,
     );
-    return TxRaw.fromPartial({
-      body_bytes: signed.body_bytes,
-      auth_info_bytes: signed.auth_info_bytes,
-      signatures: [fromBase64(signature.signature)],
-    });
+
+    if (isSignDoc(signed)) {
+      // Wallet
+      return TxRaw.fromPartial({
+        body_bytes: signed.body_bytes,
+        auth_info_bytes: signed.auth_info_bytes,
+        signatures: [fromBase64(signature.signature)],
+      });
+    } else if (isSignDocCamelCase(signed)) {
+      // cosmjs/Keplr
+      return TxRaw.fromPartial({
+        body_bytes: signed.bodyBytes,
+        auth_info_bytes: signed.authInfoBytes,
+        signatures: [fromBase64(signature.signature)],
+      });
+    } else {
+      throw new Error(`unknown SignDoc instance: ${JSON.stringify(signed)}`);
+    }
   }
 }
 
@@ -1900,17 +1927,45 @@ function makeSignerInfos(
   );
 }
 
+/** SignDoc is the type used for generating sign bytes for SIGN_MODE_DIRECT. */
+export interface SignDocCamelCase {
+  /**
+   * bodyBytes is protobuf serialization of a TxBody that matches the
+   * representation in TxRaw.
+   */
+  bodyBytes: Uint8Array;
+  /**
+   * authInfoBytes is a protobuf serialization of an AuthInfo that matches the
+   * representation in TxRaw.
+   */
+  authInfoBytes: Uint8Array;
+  /**
+   * chainId is the unique identifier of the chain this transaction targets.
+   * It prevents signed transactions from being used on another chain by an
+   * attacker
+   */
+  chainId: string;
+  /** accountNumber is the account number of the account in state */
+  accountNumber: string;
+}
+
 function makeSignDocProto(
   bodyBytes: Uint8Array,
   authInfoBytes: Uint8Array,
   chainId: string,
   accountNumber: number,
-): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
+): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc & SignDocCamelCase {
   return {
     body_bytes: bodyBytes,
     auth_info_bytes: authInfoBytes,
     chain_id: chainId,
     account_number: String(accountNumber),
+
+    // cosmjs/Keplr
+    bodyBytes,
+    authInfoBytes,
+    chainId,
+    accountNumber: String(accountNumber),
   };
 }
 

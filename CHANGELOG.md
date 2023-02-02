@@ -5,6 +5,23 @@
 ## 1.7.0
 
 Support Secret Network v1.7.
+## 1.6.13
+
+Fix `getTx()` sometimes throws "tx not found" instead of returning null.
+
+## 1.6.12
+
+- Allow passing `ibcTxOptions` to `getTx()`
+- Fix resolving IBC responses when broadcasting a tx on Async & Sync modes
+
+## 1.6.11
+
+- Accept URLs with trailing slashes in `SecretNetworkClient`
+- Fix Amino signing bug (introduced in v1.6.10)
+
+## 1.6.10
+
+Fix support for CosmJS' `DirectSigner`, which is used by wallets. E.g. this fixes using `keplr.getOfflineSigner()` as a wallet in `SecretNetworkClient`.
 
 ## 1.6.9
 
