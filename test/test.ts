@@ -334,33 +334,15 @@ describe("query.auth", () => {
 
     const response = await secretjs.query.auth.accounts({});
 
-    // 20 accounts with a balance and 7? module accounts - ordering of tests can affect this.
-    // it's more robust to check eq&gt rather than flat equality
-    expect(response.accounts?.length).toBeGreaterThanOrEqual(27);
-    expect(
-      response.accounts?.filter(
-        (x) => x["@type"] === "/cosmos.auth.v1beta1.ModuleAccount",
-      ).length,
-    ).toBeGreaterThanOrEqual(7);
-    expect(
-      response.accounts?.filter(
-        (x) => x["@type"] === "/cosmos.auth.v1beta1.BaseAccount",
-      ).length,
-    ).toBeGreaterThanOrEqual(20);
-    expect(
-      response.accounts?.filter((x) => {
-        if (x["@type"] !== "/cosmos.auth.v1beta1.BaseAccount") {
-          return false;
-        }
+    const baseAccounts = response.accounts!.filter(
+      (a) => a["@type"] === "/cosmos.auth.v1beta1.BaseAccount",
+    );
 
-        const account = x as BaseAccount;
+    expect(baseAccounts.length).toBeGreaterThanOrEqual(accounts.length);
 
-        return (
-          account.address === accounts[0].address ||
-          account.address === accounts[1].address
-        );
-      }).length,
-    ).toBe(2);
+    for (const a of accounts.map((a) => a.address)) {
+      expect(baseAccounts.map((a) => (a as BaseAccount).address)).toContain(a);
+    }
   });
 
   test("account()", async () => {
