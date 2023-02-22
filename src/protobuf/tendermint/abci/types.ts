@@ -2,7 +2,7 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { Timestamp } from "../../google/protobuf/timestamp";
-import { Header } from "../types/types";
+import { Header, Commit } from "../types/types";
 import { ProofOps } from "../crypto/proof";
 import {
   EvidenceParams,
@@ -140,6 +140,8 @@ export interface RequestBeginBlock {
   header?: Header;
   last_commit_info?: LastCommitInfo;
   byzantine_validators: Evidence[];
+  commit?: Commit;
+  txs: Uint8Array[];
 }
 
 export interface RequestCheckTx {
@@ -263,6 +265,13 @@ export interface ResponseCheckTx {
   gas_used: string;
   events: Event[];
   codespace: string;
+  sender: string;
+  priority: string;
+  /**
+   * mempool_error is set by Tendermint.
+   * ABCI applictions creating a ResponseCheckTX should not set mempool_error.
+   */
+  mempool_error: string;
 }
 
 export interface ResponseDeliverTx {
@@ -1373,6 +1382,8 @@ function createBaseRequestBeginBlock(): RequestBeginBlock {
     header: undefined,
     last_commit_info: undefined,
     byzantine_validators: [],
+    commit: undefined,
+    txs: [],
   };
 }
 
@@ -1395,6 +1406,12 @@ export const RequestBeginBlock = {
     }
     for (const v of message.byzantine_validators) {
       Evidence.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.commit !== undefined) {
+      Commit.encode(message.commit, writer.uint32(42).fork()).ldelim();
+    }
+    for (const v of message.txs) {
+      writer.uint32(50).bytes(v!);
     }
     return writer;
   },
@@ -1423,6 +1440,12 @@ export const RequestBeginBlock = {
             Evidence.decode(reader, reader.uint32()),
           );
           break;
+        case 5:
+          message.commit = Commit.decode(reader, reader.uint32());
+          break;
+        case 6:
+          message.txs.push(reader.bytes());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1442,6 +1465,10 @@ export const RequestBeginBlock = {
         : undefined,
       byzantine_validators: Array.isArray(object?.byzantine_validators)
         ? object.byzantine_validators.map((e: any) => Evidence.fromJSON(e))
+        : [],
+      commit: isSet(object.commit) ? Commit.fromJSON(object.commit) : undefined,
+      txs: Array.isArray(object?.txs)
+        ? object.txs.map((e: any) => bytesFromBase64(e))
         : [],
     };
   },
@@ -1465,6 +1492,15 @@ export const RequestBeginBlock = {
     } else {
       obj.byzantine_validators = [];
     }
+    message.commit !== undefined &&
+      (obj.commit = message.commit ? Commit.toJSON(message.commit) : undefined);
+    if (message.txs) {
+      obj.txs = message.txs.map((e) =>
+        base64FromBytes(e !== undefined ? e : new Uint8Array()),
+      );
+    } else {
+      obj.txs = [];
+    }
     return obj;
   },
 
@@ -1483,6 +1519,11 @@ export const RequestBeginBlock = {
         : undefined;
     message.byzantine_validators =
       object.byzantine_validators?.map((e) => Evidence.fromPartial(e)) || [];
+    message.commit =
+      object.commit !== undefined && object.commit !== null
+        ? Commit.fromPartial(object.commit)
+        : undefined;
+    message.txs = object.txs?.map((e) => e) || [];
     return message;
   },
 };
@@ -3032,6 +3073,9 @@ function createBaseResponseCheckTx(): ResponseCheckTx {
     gas_used: "0",
     events: [],
     codespace: "",
+    sender: "",
+    priority: "0",
+    mempool_error: "",
   };
 }
 
@@ -3063,6 +3107,15 @@ export const ResponseCheckTx = {
     }
     if (message.codespace !== "") {
       writer.uint32(66).string(message.codespace);
+    }
+    if (message.sender !== "") {
+      writer.uint32(74).string(message.sender);
+    }
+    if (message.priority !== "0") {
+      writer.uint32(80).int64(message.priority);
+    }
+    if (message.mempool_error !== "") {
+      writer.uint32(90).string(message.mempool_error);
     }
     return writer;
   },
@@ -3098,6 +3151,15 @@ export const ResponseCheckTx = {
         case 8:
           message.codespace = reader.string();
           break;
+        case 9:
+          message.sender = reader.string();
+          break;
+        case 10:
+          message.priority = longToString(reader.int64() as Long);
+          break;
+        case 11:
+          message.mempool_error = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -3120,6 +3182,11 @@ export const ResponseCheckTx = {
         ? object.events.map((e: any) => Event.fromJSON(e))
         : [],
       codespace: isSet(object.codespace) ? String(object.codespace) : "",
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      priority: isSet(object.priority) ? String(object.priority) : "0",
+      mempool_error: isSet(object.mempool_error)
+        ? String(object.mempool_error)
+        : "",
     };
   },
 
@@ -3140,6 +3207,10 @@ export const ResponseCheckTx = {
       obj.events = [];
     }
     message.codespace !== undefined && (obj.codespace = message.codespace);
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.priority !== undefined && (obj.priority = message.priority);
+    message.mempool_error !== undefined &&
+      (obj.mempool_error = message.mempool_error);
     return obj;
   },
 
@@ -3155,6 +3226,9 @@ export const ResponseCheckTx = {
     message.gas_used = object.gas_used ?? "0";
     message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
     message.codespace = object.codespace ?? "";
+    message.sender = object.sender ?? "";
+    message.priority = object.priority ?? "0";
+    message.mempool_error = object.mempool_error ?? "";
     return message;
   },
 };

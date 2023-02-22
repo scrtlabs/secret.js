@@ -4,7 +4,7 @@ set -o errexit -o nounset -o pipefail
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 rm -rf "${SCRIPT_PATH}/SecretNetwork"
-git clone --depth 1 --branch update-swagger-with-auto-restake https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
+git clone --depth 1 --branch master https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
 
 # plugins paths, note this must be an abolsute path on Windows
 
@@ -38,7 +38,7 @@ GRPC_GATEWAY_OUT_DIR="${SCRIPT_PATH}/../src/grpc_gateway"
 rm -rf "$GRPC_GATEWAY_OUT_DIR"
 mkdir -p "$GRPC_GATEWAY_OUT_DIR"
 
-# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@22c4d90f70bf2171b1ea9138702fb31025aa8607
+# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@06e2564d87d858c791e9ab6a7759401d2485af27
 PLUGIN_PATH_GRPC_GATEWAY="$(which protoc-gen-grpc-gateway-ts)"
 
 protoc \

@@ -175,8 +175,7 @@ export class ComputeQuerier {
       const { data: encryptedResult } = await Query.QuerySecretContract(
         {
           contract_address: contractAddress,
-          //@ts-ignore
-          query: toBase64(encryptedQuery),
+          query: encryptedQuery,
         },
         {
           headers,

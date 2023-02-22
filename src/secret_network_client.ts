@@ -1357,10 +1357,9 @@ export class SecretNetworkClient {
 
       let isBroadcastTimedOut = false;
       try {
-        //@ts-ignore
         ({ tx_response } = await TxService.BroadcastTx(
           {
-            //@ts-ignore
+            //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
             txBytes: toBase64(txBytes),
             mode: BroadcastMode.BROADCAST_MODE_BLOCK,
           },
@@ -1481,10 +1480,9 @@ export class SecretNetworkClient {
         "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
 
-      //@ts-ignore
       ({ tx_response } = await TxService.BroadcastTx(
         {
-          //@ts-ignore
+          //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
           txBytes: toBase64(txBytes),
           mode: BroadcastMode.BROADCAST_MODE_SYNC,
         },
@@ -1503,7 +1501,7 @@ export class SecretNetworkClient {
 
       TxService.BroadcastTx(
         {
-          //@ts-ignore
+          //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
           txBytes: toBase64(txBytes),
           mode: BroadcastMode.BROADCAST_MODE_ASYNC,
         },
@@ -1618,10 +1616,10 @@ export class SecretNetworkClient {
     messages: Msg[],
     txOptions?: TxOptions,
   ): Promise<SimulateResponse> {
-    const tx_bytes = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions);
     return TxService.Simulate(
-      //@ts-ignore
-      { tx_bytes: toBase64(tx_bytes) },
+      //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
+      { txBytes: toBase64(txBytes) },
       { pathPrefix: this.url },
     );
   }
