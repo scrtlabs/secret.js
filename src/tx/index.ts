@@ -7,6 +7,7 @@ import { MsgMultiSend, MsgSend } from "../protobuf/cosmos/bank/v1beta1/tx";
 import { MsgVerifyInvariant } from "../protobuf/cosmos/crisis/v1beta1/tx";
 import {
   MsgFundCommunityPool,
+  MsgSetAutoRestake,
   MsgSetWithdrawAddress,
   MsgWithdrawDelegatorReward,
   MsgWithdrawValidatorCommission,
@@ -99,6 +100,7 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
     MsgWithdrawValidatorCommission,
   ],
   ["/cosmos.distribution.v1beta1.MsgFundCommunityPool", MsgFundCommunityPool],
+  ["/cosmos.distribution.v1beta1.MsgSetAutoRestake", MsgSetAutoRestake],
   ["/cosmos.evidence.v1beta1.MsgSubmitEvidence", MsgSubmitEvidence],
   ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
   ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
