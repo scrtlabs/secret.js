@@ -30,6 +30,7 @@ import {
   MsgEditValidator,
   MsgUndelegate,
 } from "../protobuf/cosmos/staking/v1beta1/tx";
+import { MsgCreateVestingAccount } from "../protobuf/cosmos/vesting/v1beta1/tx";
 import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
 import {
   MsgAcknowledgement,
@@ -76,6 +77,7 @@ export * from "./ibc_connection";
 export * from "./ibc_transfer";
 export * from "./slashing";
 export * from "./staking";
+export * from "./vesting";
 export * from "./types";
 
 export type MsgDecoder = {
@@ -138,4 +140,5 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgInstantiateContract", MsgInstantiateContract],
   ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
+  ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
 ]);
