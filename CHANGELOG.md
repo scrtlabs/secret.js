@@ -5,6 +5,11 @@
 ## 1.7.0
 
 Support Secret Network v1.7.
+
+## 1.6.14
+
+Export `MsgCreateVestingAccount`.
+
 ## 1.6.13
 
 Fix `getTx()` sometimes throws "tx not found" instead of returning null.
