@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.7.0
+## 1.7.1
 
 Support Secret Network v1.7.
 
