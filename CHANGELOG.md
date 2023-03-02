@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.7.2
+
+Optimize encryption setup for v1.7.
+
 ## 1.7.1
 
 Support Secret Network v1.7.
