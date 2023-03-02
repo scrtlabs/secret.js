@@ -940,14 +940,10 @@ export class SecretNetworkClient {
     // Reinitialize ComputeQuerier with a shared EncryptionUtils (better caching, same seed)
     this.query.compute = new ComputeQuerier(this.url, this.encryptionUtils);
 
-    try {
-      // Force EncryptionUtils to cache consensusIoPubKey
-      // This provides a noticeable speedup when sending the first tx/query
-      if (new Set(["secret-4", "pulsar-2", "secretdev-1"]).has(this.chainId)) {
-        this.encryptionUtils.getTxEncryptionKey(Uint8Array.from([]));
-      }
-    } catch (error) {
-      // Might fail if the node isn't up yet
+    // Force EncryptionUtils to cache consensusIoPubKey
+    // This provides a noticeable speedup when sending the first tx/query
+    if (new Set(["secret-4", "pulsar-2", "secretdev-1"]).has(this.chainId)) {
+      this.encryptionUtils.getTxEncryptionKey(Uint8Array.from([]));
     }
   }
 
