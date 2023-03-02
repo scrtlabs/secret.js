@@ -1,11 +1,10 @@
-import { fromBase64, fromHex, fromUtf8, toHex, toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, toUtf8 } from "@cosmjs/encoding";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
 import * as miscreant from "miscreant";
 import secureRandom from "secure-random";
 import { Query } from "./grpc_gateway/secret/registration/v1beta1/query.pb";
-import { Empty } from "./protobuf/google/protobuf/empty";
 
 const cryptoProvider = new miscreant.PolyfillCryptoProvider();
 
@@ -19,8 +18,8 @@ export interface EncryptionUtils {
 const hkdfSalt: Uint8Array = fromHex(
   "000000000000000000024bead8df69990852c202db0e0097c1a12ea637d7e96d",
 );
-const mainnetConsensusIoPubKey = fromHex(
-  "083b1a03661211d5a4cc8d39a77795795862f7730645573b2bcc2c1920c53c04",
+const mainnetConsensusIoPubKey = fromBase64(
+  "79++5YOHfm0SwhlpUDClv7cuCjq9xBZlWqSjDJWkRG8=",
 );
 const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
