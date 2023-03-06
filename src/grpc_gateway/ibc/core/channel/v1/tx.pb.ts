@@ -9,9 +9,9 @@ import * as IbcCoreClientV1Client from "../../client/v1/client.pb"
 import * as IbcCoreChannelV1Channel from "./channel.pb"
 
 export enum ResponseResultType {
-  RESPONSE_RESULT_UNSPECIFIED = "RESPONSE_RESULT_UNSPECIFIED",
-  RESPONSE_RESULT_NOOP = "RESPONSE_RESULT_NOOP",
-  RESPONSE_RESULT_SUCCESS = "RESPONSE_RESULT_SUCCESS",
+  RESPONSE_RESULT_TYPE_UNSPECIFIED = "RESPONSE_RESULT_TYPE_UNSPECIFIED",
+  RESPONSE_RESULT_TYPE_NOOP = "RESPONSE_RESULT_TYPE_NOOP",
+  RESPONSE_RESULT_TYPE_SUCCESS = "RESPONSE_RESULT_TYPE_SUCCESS",
 }
 
 export type MsgChannelOpenInit = {
@@ -22,6 +22,7 @@ export type MsgChannelOpenInit = {
 
 export type MsgChannelOpenInitResponse = {
   channel_id?: string
+  version?: string
 }
 
 export type MsgChannelOpenTry = {
@@ -35,6 +36,7 @@ export type MsgChannelOpenTry = {
 }
 
 export type MsgChannelOpenTryResponse = {
+  version?: string
 }
 
 export type MsgChannelOpenAck = {

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.8.0
+
+- Support Secret Network v1.8
+- Add the `memo` field in IBC MsgTransfer
+- Add `secretjs.query.ibc_transfer.escrowAddress()`
+- Add `secretjs.query.ibc_client.consensusStateHeights()`
+- Add `secretjs.query.ibc_client.consensusStateHeights()`
+- Add `secretjs.query.ibc_iterchain_accounts_host.params()`
+- Add `secretjs.query.ibc_iterchain_accounts_controller.params()`
+- Add `secretjs.query.ibc_iterchain_accounts_controller.interchainAccount()`
+
 ## 1.7.2
 
 Optimize encryption setup for v1.7.

@@ -22,6 +22,8 @@ export interface MsgTransferParams extends MsgParams {
    * The timeout is disabled when undefined or set to 0.
    */
   timeout_timestamp?: string;
+  /** optional memo */
+  memo?: string;
 }
 
 /**
@@ -62,6 +64,7 @@ export class MsgTransfer implements Msg {
       timeout_timestamp: this.params.timeout_timestamp
         ? `${this.params.timeout_timestamp}000000000` // sec -> ns
         : "0",
+      memo: this.params.memo || "",
     };
 
     return {
@@ -92,6 +95,7 @@ export class MsgTransfer implements Msg {
         timeout_timestamp: this.params.timeout_timestamp
           ? `${this.params.timeout_timestamp}000000000` // sec -> ns
           : "0",
+        memo: this.params.memo,
       },
     };
   }

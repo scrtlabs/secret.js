@@ -8,4 +8,5 @@ export type FungibleTokenPacketData = {
   amount?: string
   sender?: string
   receiver?: string
+  memo?: string
 }

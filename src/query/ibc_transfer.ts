@@ -8,6 +8,8 @@ import {
   QueryParamsRequest,
   QueryParamsResponse,
   Query,
+  QueryEscrowAddressRequest,
+  QueryEscrowAddressResponse,
 } from "../grpc_gateway/ibc/applications/transfer/v1/query.pb";
 
 export class IbcTransferQuerier {
@@ -48,6 +50,16 @@ export class IbcTransferQuerier {
     headers?: HeadersInit,
   ): Promise<QueryDenomHashResponse> {
     return Query.DenomHash(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  escrowAddress(
+    req: QueryEscrowAddressRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryEscrowAddressResponse> {
+    return Query.EscrowAddress(req, {
       headers,
       pathPrefix: this.url,
     });

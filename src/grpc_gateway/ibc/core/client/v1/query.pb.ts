@@ -50,6 +50,16 @@ export type QueryConsensusStatesResponse = {
   pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
+export type QueryConsensusStateHeightsRequest = {
+  client_id?: string
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+}
+
+export type QueryConsensusStateHeightsResponse = {
+  consensus_state_heights?: IbcCoreClientV1Client.Height[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
 export type QueryClientStatusRequest = {
   client_id?: string
 }
@@ -91,6 +101,9 @@ export class Query {
   }
   static ConsensusStates(req: QueryConsensusStatesRequest, initReq?: fm.InitReq): Promise<QueryConsensusStatesResponse> {
     return fm.fetchReq<QueryConsensusStatesRequest, QueryConsensusStatesResponse>(`/ibc/core/client/v1/consensus_states/${req["client_id"]}?${fm.renderURLSearchParams(req, ["client_id"])}`, {...initReq, method: "GET"})
+  }
+  static ConsensusStateHeights(req: QueryConsensusStateHeightsRequest, initReq?: fm.InitReq): Promise<QueryConsensusStateHeightsResponse> {
+    return fm.fetchReq<QueryConsensusStateHeightsRequest, QueryConsensusStateHeightsResponse>(`/ibc/core/client/v1/consensus_states/${req["client_id"]}/heights?${fm.renderURLSearchParams(req, ["client_id"])}`, {...initReq, method: "GET"})
   }
   static ClientStatus(req: QueryClientStatusRequest, initReq?: fm.InitReq): Promise<QueryClientStatusResponse> {
     return fm.fetchReq<QueryClientStatusRequest, QueryClientStatusResponse>(`/ibc/core/client/v1/client_status/${req["client_id"]}?${fm.renderURLSearchParams(req, ["client_id"])}`, {...initReq, method: "GET"})

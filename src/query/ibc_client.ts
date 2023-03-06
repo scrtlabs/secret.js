@@ -8,6 +8,8 @@ import {
   QueryClientStatesResponse,
   QueryClientStatusRequest,
   QueryClientStatusResponse,
+  QueryConsensusStateHeightsRequest,
+  QueryConsensusStateHeightsResponse,
   QueryConsensusStateRequest,
   QueryConsensusStateResponse,
   QueryConsensusStatesRequest,
@@ -96,6 +98,16 @@ export class IbcClientQuerier {
     headers?: HeadersInit,
   ): Promise<QueryUpgradedConsensusStateResponse> {
     return Query.UpgradedConsensusState(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  consensusStateHeights(
+    req: QueryConsensusStateHeightsRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryConsensusStateHeightsResponse> {
+    return Query.ConsensusStateHeights(req, {
       headers,
       pathPrefix: this.url,
     });

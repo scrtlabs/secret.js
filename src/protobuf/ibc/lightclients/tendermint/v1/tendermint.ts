@@ -44,13 +44,15 @@ export interface ClientState {
    */
   upgrade_path: string[];
   /**
-   * This flag, when set to true, will allow governance to recover a client
-   * which has expired
+   * allow_update_after_expiry is deprecated
+   *
+   * @deprecated
    */
   allow_update_after_expiry: boolean;
   /**
-   * This flag, when set to true, will allow governance to unfreeze a client
-   * whose chain has experienced a misbehaviour event
+   * allow_update_after_misbehaviour is deprecated
+   *
+   * @deprecated
    */
   allow_update_after_misbehaviour: boolean;
 }

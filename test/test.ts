@@ -328,6 +328,43 @@ describe("query.distribution", () => {
   });
 });
 
+describe("query.ibc_iterchain_accounts_controller", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } =
+      await secretjs.query.ibc_iterchain_accounts_controller.params({});
+
+    expect(params).toStrictEqual({
+      controller_enabled: true,
+    });
+  });
+
+  test.skip("interchainAccount()", async () => {
+    // const { secretjs } = accounts[0];
+    // const { address } =
+    //   await secretjs.query.ibc_iterchain_accounts_controller.interchainAccount(
+    //     {},
+    //   );
+    // expect(address).toStrictEqual({
+    //   controller_enabled: false,
+    // });
+  });
+});
+
+describe("query.ibc_iterchain_accounts_host", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } = await secretjs.query.ibc_iterchain_accounts_host.params(
+      {},
+    );
+
+    expect(params).toStrictEqual({
+      host_enabled: true,
+      allow_messages: [],
+    });
+  });
+});
+
 describe("query.auth", () => {
   test("accounts()", async () => {
     const { secretjs } = accounts[0];

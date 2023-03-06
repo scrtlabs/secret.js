@@ -15,9 +15,11 @@ export type MsgTransfer = {
   receiver?: string
   timeout_height?: IbcCoreClientV1Client.Height
   timeout_timestamp?: string
+  memo?: string
 }
 
 export type MsgTransferResponse = {
+  sequence?: string
 }
 
 export class Msg {

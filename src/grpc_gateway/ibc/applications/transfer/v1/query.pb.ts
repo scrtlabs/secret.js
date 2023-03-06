@@ -39,6 +39,15 @@ export type QueryDenomHashResponse = {
   hash?: string
 }
 
+export type QueryEscrowAddressRequest = {
+  port_id?: string
+  channel_id?: string
+}
+
+export type QueryEscrowAddressResponse = {
+  escrow_address?: string
+}
+
 export class Query {
   static DenomTrace(req: QueryDenomTraceRequest, initReq?: fm.InitReq): Promise<QueryDenomTraceResponse> {
     return fm.fetchReq<QueryDenomTraceRequest, QueryDenomTraceResponse>(`/ibc/apps/transfer/v1/denom_traces/${req["hash"]}?${fm.renderURLSearchParams(req, ["hash"])}`, {...initReq, method: "GET"})
@@ -51,5 +60,8 @@ export class Query {
   }
   static DenomHash(req: QueryDenomHashRequest, initReq?: fm.InitReq): Promise<QueryDenomHashResponse> {
     return fm.fetchReq<QueryDenomHashRequest, QueryDenomHashResponse>(`/ibc/apps/transfer/v1/denom_hashes/${req["trace"]}?${fm.renderURLSearchParams(req, ["trace"])}`, {...initReq, method: "GET"})
+  }
+  static EscrowAddress(req: QueryEscrowAddressRequest, initReq?: fm.InitReq): Promise<QueryEscrowAddressResponse> {
+    return fm.fetchReq<QueryEscrowAddressRequest, QueryEscrowAddressResponse>(`/ibc/apps/transfer/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}/escrow_address?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
   }
 }

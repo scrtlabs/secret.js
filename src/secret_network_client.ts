@@ -197,6 +197,8 @@ import {
   StdFee,
   StdSignDoc,
 } from "./wallet_amino";
+import { IbcInterchainAccountsHostQuerier } from "./query/ibc_interchain_accounts_host";
+import { IbcInterchainAccountsControllerQuerier } from "./query/ibc_interchain_accounts_controller";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -395,6 +397,8 @@ export type Querier = {
   ibc_client: IbcClientQuerier;
   ibc_connection: IbcConnectionQuerier;
   ibc_transfer: IbcTransferQuerier;
+  ibc_iterchain_accounts_host: IbcInterchainAccountsHostQuerier;
+  ibc_iterchain_accounts_controller: IbcInterchainAccountsControllerQuerier;
   mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
@@ -790,6 +794,11 @@ export class SecretNetworkClient {
       ibc_client: new IbcClientQuerier(options.url),
       ibc_connection: new IbcConnectionQuerier(options.url),
       ibc_transfer: new IbcTransferQuerier(options.url),
+      ibc_iterchain_accounts_host: new IbcInterchainAccountsHostQuerier(
+        options.url,
+      ),
+      ibc_iterchain_accounts_controller:
+        new IbcInterchainAccountsControllerQuerier(options.url),
       mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),

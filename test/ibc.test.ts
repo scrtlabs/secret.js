@@ -100,6 +100,7 @@ describe("ibcResponses", () => {
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        memo: "hi",
       },
       {
         broadcastCheckIntervalMs: 100,
