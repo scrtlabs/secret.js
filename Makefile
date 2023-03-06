@@ -1,8 +1,13 @@
 build:
 	yarn build
 
-npm-publish: build
+npm-publish-patch: build
 	npm version patch
+	npm publish
+	git push --follow-tags
+
+npm-publish-minor: build
+	npm version minor
 	npm publish
 	git push --follow-tags
 
