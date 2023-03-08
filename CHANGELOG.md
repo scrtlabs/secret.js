@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.8.1
+
+Fix: Don't actually sign the tx in simulation mode.
+
+In simulation mode the node does not validate the signature. However, prior to v1.8.0 of secret.js, the simulated transaction was still being signed. This was inconvenient for UIs as it prompted users to provide a signature, rendering the simulation feature practically unusable, especially for Ledger users.
+
 ## 1.8.0
 
 - Support Secret Network v1.8

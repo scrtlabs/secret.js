@@ -69,6 +69,7 @@ import {
   MsgWithdrawValidatorCommission,
   MsgWithdrawValidatorCommissionParams,
   NodeQuerier,
+  StdSignature,
 } from ".";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
@@ -146,6 +147,7 @@ import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
 import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
 import {
   AuthInfo,
+  SignDoc,
   TxBody as TxBodyPb,
   TxRaw,
 } from "./protobuf/cosmos/tx/v1beta1/tx";
@@ -189,6 +191,7 @@ import {
   AminoSigner,
   AminoSignResponse,
   encodeSecp256k1Pubkey,
+  encodeSecp256k1Signature,
   isDirectSigner,
   isSignDoc,
   isSignDocCamelCase,
@@ -1562,6 +1565,7 @@ export class SecretNetworkClient {
   public async prepareAndSign(
     messages: Msg[],
     txOptions?: TxOptions,
+    simulate: boolean = false,
   ): Promise<Uint8Array> {
     const gasLimit = txOptions?.gasLimit ?? 25_000;
     const gasPriceInFeeDenom = txOptions?.gasPriceInFeeDenom ?? 0.1;
@@ -1585,6 +1589,7 @@ export class SecretNetworkClient {
       },
       memo,
       explicitSignerData,
+      simulate,
     );
 
     return TxRaw.encode(txRaw).finish();
@@ -1610,7 +1615,7 @@ export class SecretNetworkClient {
     messages: Msg[],
     txOptions?: TxOptions,
   ): Promise<SimulateResponse> {
-    const txBytes = await this.prepareAndSign(messages, txOptions);
+    const txBytes = await this.prepareAndSign(messages, txOptions, true);
     return TxService.Simulate(
       //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
       { txBytes: toBase64(txBytes) },
@@ -1633,6 +1638,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     explicitSignerData?: SignerData,
+    simulate: boolean = false,
   ): Promise<TxRaw> {
     const accountFromSigner = (await this.wallet.getAccounts()).find(
       (account) => account.address === this.address,
@@ -1676,9 +1682,17 @@ export class SecretNetworkClient {
         fee,
         memo,
         signerData,
+        simulate,
       );
     } else {
-      return this.signAmino(accountFromSigner, messages, fee, memo, signerData);
+      return this.signAmino(
+        accountFromSigner,
+        messages,
+        fee,
+        memo,
+        signerData,
+        simulate,
+      );
     }
   }
 
@@ -1688,6 +1702,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
+    simulate: boolean = false,
   ): Promise<TxRaw> {
     if (isDirectSigner(this.wallet)) {
       throw new Error(
@@ -1717,10 +1732,18 @@ export class SecretNetworkClient {
       sequence,
     );
 
-    const { signature, signed } = await this.wallet.signAmino(
-      account.address,
-      signDoc,
-    );
+    let signed: StdSignDoc;
+    let signature: StdSignature;
+
+    if (!simulate) {
+      ({ signature, signed } = await this.wallet.signAmino(
+        account.address,
+        signDoc,
+      ));
+    } else {
+      signed = signDoc;
+      signature = getSimulateSignature();
+    }
 
     const txBody = {
       type_url: "/cosmos.tx.v1beta1.TxBody",
@@ -1804,6 +1827,7 @@ export class SecretNetworkClient {
     fee: StdFee,
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
+    simulate: boolean = false,
   ): Promise<TxRaw> {
     if (!isDirectSigner(this.wallet)) {
       throw new Error("Wrong signer type! Expected DirectSigner.");
@@ -1841,10 +1865,18 @@ export class SecretNetworkClient {
       accountNumber,
     );
 
-    const { signature, signed } = await this.wallet.signDirect(
-      account.address,
-      signDoc,
-    );
+    let signed: SignDoc | SignDocCamelCase;
+    let signature: StdSignature;
+
+    if (!simulate) {
+      ({ signature, signed } = await this.wallet.signDirect(
+        account.address,
+        signDoc,
+      ));
+    } else {
+      signed = signDoc;
+      signature = getSimulateSignature();
+    }
 
     if (isSignDoc(signed)) {
       // Wallet
@@ -2194,4 +2226,14 @@ function protobufJsonToGrpcGatewayJson(obj: any): any {
   });
 
   return result;
+}
+
+function getSimulateSignature(): StdSignature {
+  return {
+    pub_key: {
+      type: "tendermint/PubKeySecp256k1",
+      value: toBase64(new Uint8Array(33).fill(0)),
+    },
+    signature: toBase64(new Uint8Array(64).fill(0)),
+  };
 }
