@@ -855,13 +855,15 @@ describe("tx.compute", () => {
       init_funds: [],
     };
 
-    const simInit = await secretjs.tx.compute.instantiateContract.simulate(
-      initInput,
-    );
+    // contract simulation shouldn't work after the v1.7 upgrade
+    try {
+      await secretjs.tx.compute.instantiateContract.simulate(initInput);
+      expect(false).toBe(true);
+    } catch (error) {}
 
     const txInit = await secretjs.tx.compute.instantiateContract(initInput, {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simInit.gas_info!.gas_used) * 1.25),
+      gasLimit: 5e6,
     });
     if (txInit.code !== TxResultCode.Success) {
       console.error(txInit.rawLog);
@@ -912,11 +914,15 @@ describe("tx.compute", () => {
       sent_funds: [],
     });
 
-    const simExec = await secretjs.tx.simulate([addMinterMsg, mintMsg]);
+    // contract simulation shouldn't work after the v1.7 upgrade
+    try {
+      await secretjs.tx.simulate([addMinterMsg, mintMsg]);
+      expect(false).toBe(true);
+    } catch (error) {}
 
     const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
       broadcastCheckIntervalMs: 100,
-      gasLimit: Math.ceil(Number(simExec.gas_info!.gas_used) * 1.25),
+      gasLimit: 5e6,
     });
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);

@@ -1026,6 +1026,7 @@ Notes:
 
 - :warning: On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
 - Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
+- `MsgInstantiateContract` & `MsgExecuteContract` simulation is not supported for security reasons.
 
 ```ts
 const sendToAlice = new MsgSend({
@@ -1241,6 +1242,8 @@ const contractAddress = tx.arrayLog.find(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
+WARNING: `secretjs.tx.compute.instantiateContract()` & `secretjs.tx.compute.executeContract()` simulation is not supported for security reasons.
+
 #### `secretjs.tx.compute.executeContract()`
 
 Execute a function on a contract
@@ -1270,6 +1273,8 @@ const tx = await secretjs.tx.compute.executeContract(
 ##### `secretjs.tx.compute.executeContract.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+WARNING: `secretjs.tx.compute.instantiateContract()` & `secretjs.tx.compute.executeContract()` simulation is not supported for security reasons.
 
 #### `secretjs.tx.crisis.verifyInvariant()`
 
@@ -1641,7 +1646,7 @@ const tx = await secretjs.tx.staking.createValidator(
       identity: "ID on keybase.io, to have a logo on explorer and stuff",
       website: "example.com",
       security_contact: "hi@example.com",
-      details: "We are good",
+      details: "**We** are good",
     },
     pubkey: toBase64(new Uint8Array(32).fill(1)), // validator's pubkey, to sign on validated blocks
     min_self_delegation: "1", // uscrt
