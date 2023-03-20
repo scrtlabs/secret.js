@@ -33,7 +33,7 @@
     - [`SignerOnlyAmino` vs `Signer` vs `SignerAuto`](#signeronlyamino-vs-signer-vs-signerauto)
   - [Fina Wallet](#fina-wallet)
   - [Leap Cosmos Wallet](#leap-cosmos-wallet)
-- [Migrating from secret.js v0.17.x](#migrating-from-secretjs-v017x)
+  - [StarShell Wallet](#starshell-wallet)
 - [API](#api)
   - [Wallet](#wallet)
     - [Importing account from mnemonic](#importing-account-from-mnemonic)
@@ -301,8 +301,6 @@ Links:
 
 ## Leap Cosmos Wallet
 
-Leap implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies.
-
 The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
 
 ```ts
@@ -346,15 +344,13 @@ Links:
 - <a href="https://www.leapwallet.io/cosmos" target="_blank"><strong>Official Leap Website »</strong></a>
 - <a href="https://docs.leapwallet.io/cosmos/connect-to-leap/introduction" target="_blank"><strong>Leap API Docs »</strong></a>
 
-# Migrating from secret.js v0.17.x
+## StarShell Wallet
 
-- `v0.9.x` through `v0.16.x` supported `secret-2` & `secret-3`
-- `v0.17.x` supports `secret-4`
-- `v1.2.x` supports `secret-4`, corresponds to [`v1.2.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.2.0)
-- `v1.3.x` supports `secret-4`, corresponds to [`v1.3.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.3.0)
-- `v1.4.x` supports `secret-4`, corresponds to [`v1.4.x` of secretd](https://github.com/scrtlabs/SecretNetwork/releases/tag/v1.4.0)
+StarShell implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies. If you support Keplr, your app will also work on StarShell wallet. This works because StarShell wallet asks the user to turn off Keplr and then overrides `window.keplr` with its objects.
 
-TODO
+Links:
+
+- <a href="https://starshell.net" target="_blank"><strong>Official StarShell Website »</strong></a>
 
 # API
 
