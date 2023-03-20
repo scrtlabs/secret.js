@@ -32,6 +32,7 @@
   - [Keplr Wallet](#keplr-wallet)
     - [`SignerOnlyAmino` vs `Signer` vs `SignerAuto`](#signeronlyamino-vs-signer-vs-signerauto)
   - [Fina Wallet](#fina-wallet)
+    - [Deep linking](#deep-linking)
   - [Leap Cosmos Wallet](#leap-cosmos-wallet)
   - [StarShell Wallet](#starshell-wallet)
 - [API](#api)
@@ -294,6 +295,24 @@ Otherwise returns `window.keplr.getOfflineSigner()`.
 ## Fina Wallet
 
 Fina implements the Keplr API, so [the above Keplr docs](#keplr-wallet) applies. If you support Keplr, your app will also work on the Fina Wallet mobile app. This works because the Fina Wallet mobile app has webview to which it injects its objects under `window.keplr`.
+
+### Deep linking
+
+Fina supports deep linking into its in-app browser.
+
+Example1: `fina://wllet/dapps?network=secret-4&url=https%3A%2F%2Fdash.scrt.network`
+
+Example2:
+
+If a user accessed your app using a regular mobile browser, you can open your app in the Fina in-app browser using this code:
+
+```ts
+const urlSearchParams = new URLSearchParams();
+urlSearchParams.append("network", "secret-4");
+urlSearchParams.append("url", window.location.href);
+
+window.open(`fina://wllet/dapps?${urlSearchParams.toString()}`, "_blank");
+```
 
 Links:
 
