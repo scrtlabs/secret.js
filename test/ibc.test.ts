@@ -16,6 +16,7 @@ import {
   toUtf8,
   TxResponse,
   TxResultCode,
+  Wallet,
 } from "../src";
 import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
 import {
@@ -28,6 +29,7 @@ import {
   loopRelayer,
   waitForChainToStart,
 } from "./utils";
+import { strictEqual } from "assert";
 
 let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
@@ -639,4 +641,85 @@ describe("cw20-ics20", () => {
     },
     5 * 60 * 1000 /* 5 minutes */,
   );
+});
+
+describe("packet-forward-middleware", () => {
+  let ibcChannelIdOnChain1 = "";
+  let ibcChannelIdOnChain2 = "";
+
+  beforeAll(async () => {
+    if (stopRelayer) {
+      console.log("Pausing relayer...");
+      await stopRelayer();
+    }
+
+    console.log("Creating IBC transfer <-> transfer channel...");
+    const ibcChannelPair = await createIbcChannel(ibcConnection);
+
+    ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
+    ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
+
+    expect(ibcChannelIdOnChain1).not.toBe("");
+    expect(ibcChannelIdOnChain2).not.toBe("");
+
+    console.log("Looping relayer...");
+    stopRelayer = loopRelayer(ibcConnection);
+  });
+
+  test("happy path", async () => {
+    const { secretjs } = accounts[0];
+
+    const freshAccount = new Wallet();
+
+    const { balance: freshAccountBalanceBefore } =
+      await secretjs.query.bank.balance({
+        address: freshAccount.address,
+        denom: "uscrt",
+      });
+
+    expect(freshAccountBalanceBefore?.amount).toBe("0");
+
+    const tx = await secretjs.tx.ibc.transfer(
+      {
+        sender: secretjs.address,
+        receiver: secretjs.address,
+        source_channel: ibcChannelIdOnChain1,
+        source_port: "transfer",
+        token: stringToCoin("1uscrt"),
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        memo: JSON.stringify({
+          forward: {
+            receiver: freshAccount.address,
+            port: "transfer",
+            channel: ibcChannelIdOnChain2,
+          },
+        }),
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 100_000,
+        ibcTxsOptions: {
+          resolveResponsesCheckIntervalMs: 250,
+        },
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // packet forward should resolve only after the final destination is acked
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("ack");
+
+    const { balance: freshAccountBalanceAfter } =
+      await secretjs.query.bank.balance({
+        address: freshAccount.address,
+        denom: "uscrt",
+      });
+
+    expect(freshAccountBalanceAfter?.amount).toBe("1");
+  }, 90_000);
 });

@@ -54,12 +54,6 @@ export type Header = {
   last_results_hash?: Uint8Array
   evidence_hash?: Uint8Array
   proposer_address?: Uint8Array
-  encrypted_random?: EncryptedRandom
-}
-
-export type EncryptedRandom = {
-  random?: Uint8Array
-  proof?: Uint8Array
 }
 
 export type Data = {

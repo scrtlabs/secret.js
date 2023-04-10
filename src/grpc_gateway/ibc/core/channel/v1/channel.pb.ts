@@ -70,6 +70,12 @@ export type PacketState = {
   data?: Uint8Array
 }
 
+export type PacketId = {
+  port_id?: string
+  channel_id?: string
+  sequence?: string
+}
+
 
 type BaseAcknowledgement = {
 }

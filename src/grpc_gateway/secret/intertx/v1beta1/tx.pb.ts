@@ -9,6 +9,7 @@ import * as GoogleProtobufAny from "../../../google/protobuf/any.pb"
 export type MsgRegisterAccount = {
   owner?: string
   connection_id?: string
+  version?: string
 }
 
 export type MsgRegisterAccountResponse = {

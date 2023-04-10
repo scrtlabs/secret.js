@@ -365,6 +365,17 @@ describe("query.ibc_iterchain_accounts_host", () => {
   });
 });
 
+describe("query.ibc_packet_forward", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } = await secretjs.query.ibc_packet_forward.params({});
+
+    expect(params).toStrictEqual({
+      fee_percentage: "0.000000000000000000",
+    });
+  });
+});
+
 describe("query.auth", () => {
   test("accounts()", async () => {
     const { secretjs } = accounts[0];

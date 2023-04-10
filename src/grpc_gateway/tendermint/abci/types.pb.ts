@@ -95,8 +95,6 @@ export type RequestBeginBlock = {
   header?: TendermintTypesTypes.Header
   last_commit_info?: LastCommitInfo
   byzantine_validators?: Evidence[]
-  commit?: TendermintTypesTypes.Commit
-  txs?: Uint8Array[]
 }
 
 export type RequestCheckTx = {
@@ -198,9 +196,6 @@ export type ResponseCheckTx = {
   gas_used?: string
   events?: Event[]
   codespace?: string
-  sender?: string
-  priority?: string
-  mempool_error?: string
 }
 
 export type ResponseDeliverTx = {

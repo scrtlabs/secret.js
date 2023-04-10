@@ -210,6 +210,20 @@ export interface PacketState {
 }
 
 /**
+ * PacketId is an identifer for a unique Packet
+ * Source chains refer to packets by source port/channel
+ * Destination chains refer to packets by destination port/channel
+ */
+export interface PacketId {
+  /** channel port identifier */
+  port_id: string;
+  /** channel unique identifier */
+  channel_id: string;
+  /** packet sequence */
+  sequence: string;
+}
+
+/**
  * Acknowledgement is the recommended acknowledgement format to be used by
  * app-specific protocols.
  * NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
@@ -764,6 +778,76 @@ export const PacketState = {
     message.channel_id = object.channel_id ?? "";
     message.sequence = object.sequence ?? "0";
     message.data = object.data ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBasePacketId(): PacketId {
+  return { port_id: "", channel_id: "", sequence: "0" };
+}
+
+export const PacketId = {
+  encode(
+    message: PacketId,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
+    }
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
+    }
+    if (message.sequence !== "0") {
+      writer.uint32(24).uint64(message.sequence);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PacketId {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePacketId();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.port_id = reader.string();
+          break;
+        case 2:
+          message.channel_id = reader.string();
+          break;
+        case 3:
+          message.sequence = longToString(reader.uint64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PacketId {
+    return {
+      port_id: isSet(object.port_id) ? String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? String(object.channel_id) : "",
+      sequence: isSet(object.sequence) ? String(object.sequence) : "0",
+    };
+  },
+
+  toJSON(message: PacketId): unknown {
+    const obj: any = {};
+    message.port_id !== undefined && (obj.port_id = message.port_id);
+    message.channel_id !== undefined && (obj.channel_id = message.channel_id);
+    message.sequence !== undefined && (obj.sequence = message.sequence);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PacketId>, I>>(object: I): PacketId {
+    const message = createBasePacketId();
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
+    message.sequence = object.sequence ?? "0";
     return message;
   },
 };

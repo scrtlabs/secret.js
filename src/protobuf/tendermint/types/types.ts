@@ -145,14 +145,6 @@ export interface Header {
   evidence_hash: Uint8Array;
   /** original proposer of the block */
   proposer_address: Uint8Array;
-  /** encrypted random */
-  encrypted_random?: EncryptedRandom;
-}
-
-/** Data contains the set of transactions included in the block */
-export interface EncryptedRandom {
-  random: Uint8Array;
-  proof: Uint8Array;
 }
 
 /** Data contains the set of transactions included in the block */
@@ -471,7 +463,6 @@ function createBaseHeader(): Header {
     last_results_hash: new Uint8Array(),
     evidence_hash: new Uint8Array(),
     proposer_address: new Uint8Array(),
-    encrypted_random: undefined,
   };
 }
 
@@ -521,12 +512,6 @@ export const Header = {
     }
     if (message.proposer_address.length !== 0) {
       writer.uint32(114).bytes(message.proposer_address);
-    }
-    if (message.encrypted_random !== undefined) {
-      EncryptedRandom.encode(
-        message.encrypted_random,
-        writer.uint32(122).fork(),
-      ).ldelim();
     }
     return writer;
   },
@@ -580,12 +565,6 @@ export const Header = {
         case 14:
           message.proposer_address = reader.bytes();
           break;
-        case 15:
-          message.encrypted_random = EncryptedRandom.decode(
-            reader,
-            reader.uint32(),
-          );
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -632,9 +611,6 @@ export const Header = {
       proposer_address: isSet(object.proposer_address)
         ? bytesFromBase64(object.proposer_address)
         : new Uint8Array(),
-      encrypted_random: isSet(object.encrypted_random)
-        ? EncryptedRandom.fromJSON(object.encrypted_random)
-        : undefined,
     };
   },
 
@@ -702,10 +678,6 @@ export const Header = {
           ? message.proposer_address
           : new Uint8Array(),
       ));
-    message.encrypted_random !== undefined &&
-      (obj.encrypted_random = message.encrypted_random
-        ? EncryptedRandom.toJSON(message.encrypted_random)
-        : undefined);
     return obj;
   },
 
@@ -735,83 +707,6 @@ export const Header = {
     message.last_results_hash = object.last_results_hash ?? new Uint8Array();
     message.evidence_hash = object.evidence_hash ?? new Uint8Array();
     message.proposer_address = object.proposer_address ?? new Uint8Array();
-    message.encrypted_random =
-      object.encrypted_random !== undefined && object.encrypted_random !== null
-        ? EncryptedRandom.fromPartial(object.encrypted_random)
-        : undefined;
-    return message;
-  },
-};
-
-function createBaseEncryptedRandom(): EncryptedRandom {
-  return { random: new Uint8Array(), proof: new Uint8Array() };
-}
-
-export const EncryptedRandom = {
-  encode(
-    message: EncryptedRandom,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
-    if (message.random.length !== 0) {
-      writer.uint32(10).bytes(message.random);
-    }
-    if (message.proof.length !== 0) {
-      writer.uint32(18).bytes(message.proof);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EncryptedRandom {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEncryptedRandom();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.random = reader.bytes();
-          break;
-        case 2:
-          message.proof = reader.bytes();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): EncryptedRandom {
-    return {
-      random: isSet(object.random)
-        ? bytesFromBase64(object.random)
-        : new Uint8Array(),
-      proof: isSet(object.proof)
-        ? bytesFromBase64(object.proof)
-        : new Uint8Array(),
-    };
-  },
-
-  toJSON(message: EncryptedRandom): unknown {
-    const obj: any = {};
-    message.random !== undefined &&
-      (obj.random = base64FromBytes(
-        message.random !== undefined ? message.random : new Uint8Array(),
-      ));
-    message.proof !== undefined &&
-      (obj.proof = base64FromBytes(
-        message.proof !== undefined ? message.proof : new Uint8Array(),
-      ));
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<EncryptedRandom>, I>>(
-    object: I,
-  ): EncryptedRandom {
-    const message = createBaseEncryptedRandom();
-    message.random = object.random ?? new Uint8Array();
-    message.proof = object.proof ?? new Uint8Array();
     return message;
   },
 };

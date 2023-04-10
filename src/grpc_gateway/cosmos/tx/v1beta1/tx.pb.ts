@@ -17,10 +17,6 @@ type OneOf<T> =
       (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
         : never)
     : never);
-export type Txs = {
-  tx?: Uint8Array[]
-}
-
 export type Tx = {
   body?: TxBody
   auth_info?: AuthInfo
