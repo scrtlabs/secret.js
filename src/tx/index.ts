@@ -34,6 +34,12 @@ import {
 import { MsgCreateVestingAccount } from "../protobuf/cosmos/vesting/v1beta1/tx";
 import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
 import {
+  MsgPayPacketFee,
+  MsgPayPacketFeeAsync,
+  MsgRegisterPayee,
+  MsgRegisterCounterpartyPayee,
+} from "../protobuf/ibc/applications/fee/v1/tx";
+import {
   MsgAcknowledgement,
   MsgChannelCloseConfirm,
   MsgChannelCloseInit,
@@ -76,6 +82,7 @@ export * from "./ibc_channel";
 export * from "./ibc_client";
 export * from "./ibc_connection";
 export * from "./ibc_transfer";
+export * from "./ibc_fee";
 export * from "./slashing";
 export * from "./staking";
 export * from "./vesting";
@@ -117,6 +124,13 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/cosmos.staking.v1beta1.MsgBeginRedelegate", MsgBeginRedelegate],
   ["/cosmos.staking.v1beta1.MsgUndelegate", MsgUndelegate],
   ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
+  ["/ibc.applications.fee.v1.MsgPayPacketFee", MsgPayPacketFee],
+  ["/ibc.applications.fee.v1.MsgPayPacketFeeAsync", MsgPayPacketFeeAsync],
+  ["/ibc.applications.fee.v1.MsgRegisterPayee", MsgRegisterPayee],
+  [
+    "/ibc.applications.fee.v1.MsgRegisterCounterpartyPayee",
+    MsgRegisterCounterpartyPayee,
+  ],
   ["/ibc.core.channel.v1.MsgChannelOpenInit", MsgChannelOpenInit],
   ["/ibc.core.channel.v1.MsgChannelOpenTry", MsgChannelOpenTry],
   ["/ibc.core.channel.v1.MsgChannelOpenAck", MsgChannelOpenAck],

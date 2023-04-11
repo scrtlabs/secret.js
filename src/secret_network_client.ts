@@ -179,6 +179,10 @@ import {
   AminoMsg,
   Msg,
   MsgParams,
+  MsgPayPacketFee,
+  MsgPayPacketFeeAsync,
+  MsgRegisterCounterpartyPayee,
+  MsgRegisterPayee,
   MsgRegistry,
   MsgSetAutoRestake,
   MsgSetAutoRestakeParams,
@@ -746,6 +750,12 @@ export type TxSender = {
      */
     transfer: SingleMsgTx<MsgTransferParams>;
   };
+  ibc_fee: {
+    payPacketFee: SingleMsgTx<MsgPayPacketFee>;
+    payPacketFeeAsync: SingleMsgTx<MsgPayPacketFeeAsync>;
+    registerPayee: SingleMsgTx<MsgRegisterPayee>;
+    registerCounterpartyPayee: SingleMsgTx<MsgRegisterCounterpartyPayee>;
+  };
   registration: {
     register: SingleMsgTx<RaAuthenticate>;
   };
@@ -930,6 +940,12 @@ export class SecretNetworkClient {
       },
       ibc: {
         transfer: doMsg(MsgTransfer),
+      },
+      ibc_fee: {
+        payPacketFee: doMsg(MsgPayPacketFee),
+        payPacketFeeAsync: doMsg(MsgPayPacketFeeAsync),
+        registerPayee: doMsg(MsgRegisterPayee),
+        registerCounterpartyPayee: doMsg(MsgRegisterCounterpartyPayee),
       },
       registration: {
         register: doMsg(RaAuthenticate),
