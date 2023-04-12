@@ -3,9 +3,11 @@ import { sha256 } from "@noble/hashes/sha256";
 import fs from "fs";
 import pako from "pako";
 import {
+  coinsFromString,
   ibcDenom,
   MsgExecuteContract,
   MsgInstantiateContractResponse,
+  MsgPayPacketFee,
   MsgStoreCode,
   MsgStoreCodeResponse,
   MsgTransfer,
@@ -22,6 +24,7 @@ import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
 import {
   Account,
   accounts,
+  chain1LCD,
   chain2LCD,
   createIbcChannel,
   createIbcConnection,
@@ -29,7 +32,7 @@ import {
   loopRelayer,
   waitForChainToStart,
 } from "./utils";
-import { strictEqual } from "assert";
+import { log } from "console";
 
 let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
@@ -721,5 +724,237 @@ describe("packet-forward-middleware", () => {
       });
 
     expect(freshAccountBalanceAfter?.amount).toBe("1");
+  }, 90_000);
+});
+
+describe("ibc fee", () => {
+  let ibcChannelIdOnChain1 = "";
+  let ibcChannelIdOnChain2 = "";
+
+  const relayerPayee = new Wallet();
+
+  beforeAll(async () => {
+    if (stopRelayer) {
+      console.log("Pausing relayer...");
+      await stopRelayer();
+    }
+
+    console.log("Creating IBC transfer <-> transfer channel with fee...");
+    const ibcChannelPair = await createIbcChannel(
+      ibcConnection,
+      "transfer",
+      '{"fee_version":"ics29-1","app_version":"ics20-1"}',
+    );
+
+    ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
+    ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
+
+    expect(ibcChannelIdOnChain1).not.toBe("");
+    expect(ibcChannelIdOnChain2).not.toBe("");
+
+    console.log("Registering relayer payee on secretdev-1...");
+
+    const relayerWallet = new Wallet(
+      "word twist toast cloth movie predict advance crumble escape whale sail such angry muffin balcony keen move employ cook valve hurt glimpse breeze brick",
+    ); // account d
+    const secretjs1 = new SecretNetworkClient({
+      chainId: "secretdev-1",
+      url: chain1LCD,
+      wallet: relayerWallet,
+      walletAddress: relayerWallet.address,
+    });
+
+    // For recv_packet on secretdev-2 that the relayer submits
+    let tx = await secretjs1.tx.ibc_fee.registerCounterpartyPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcChannelIdOnChain1,
+      port_id: "transfer",
+      counterparty_payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // Unnecessary as by default the payee on this chain is the relayer
+    // but we want to test that the fee is payed and it's easier on a fresh account
+    tx = await secretjs1.tx.ibc_fee.registerPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcChannelIdOnChain1,
+      port_id: "transfer",
+      payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    console.log("Registering relayer payee on secretdev-2...");
+
+    const secretjs2 = new SecretNetworkClient({
+      chainId: "secretdev-2",
+      url: chain2LCD,
+      wallet: relayerWallet,
+      walletAddress: relayerWallet.address,
+    });
+
+    // For recv_packet on secretdev-1 that the relayer submits
+    tx = await secretjs2.tx.ibc_fee.registerCounterpartyPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcChannelIdOnChain2,
+      port_id: "transfer",
+      counterparty_payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // Unnecessary as by default the payee on this chain is the relayer
+    // but we want to test that the fee is payed and it's easier on a fresh account
+    tx = await secretjs2.tx.ibc_fee.registerPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcChannelIdOnChain2,
+      port_id: "transfer",
+      payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    console.log("Looping relayer...");
+    stopRelayer = loopRelayer(ibcConnection);
+  });
+
+  test("fee recv + ack", async () => {
+    const { secretjs } = accounts[0];
+
+    const { balance: payeeBalanceBefore } = await secretjs.query.bank.balance({
+      address: relayerPayee.address,
+      denom: "uscrt",
+    });
+
+    const recv_fee = 11;
+    const ack_fee = 12;
+    const timeout_fee = 13;
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        // MsgPayPacketFee must come before the IBC packet
+        // https://github.com/cosmos/ibc-go/blob/v4.3.0/modules/apps/29-fee/keeper/msg_server.go#L104
+        new MsgPayPacketFee({
+          signer: secretjs.address,
+          source_channel_id: ibcChannelIdOnChain1,
+          source_port_id: "transfer",
+          fee: {
+            recv_fee: coinsFromString(`${recv_fee}uscrt`),
+            ack_fee: coinsFromString(`${ack_fee}uscrt`),
+            timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
+          },
+        }),
+        new MsgTransfer({
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: stringToCoin("1uscrt"),
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 150_000,
+        ibcTxsOptions: {
+          resolveResponsesCheckIntervalMs: 250,
+        },
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("ack");
+
+    const { balance: payeeBalanceAfter } = await secretjs.query.bank.balance({
+      address: relayerPayee.address,
+      denom: "uscrt",
+    });
+
+    // recv_fee on secretdev-2 + ack_fee on secretdev-1
+    expect(
+      Number(payeeBalanceAfter?.amount) - Number(payeeBalanceBefore?.amount),
+    ).toBe(
+      /* counterparty chain fee: */ recv_fee + /* source chain fee: */ ack_fee,
+    );
+  }, 90_000);
+
+  test("fee recv + timeout", async () => {
+    const { secretjs } = accounts[0];
+
+    const { balance: payeeBalanceBefore } = await secretjs.query.bank.balance({
+      address: relayerPayee.address,
+      denom: "uscrt",
+    });
+
+    const recv_fee = 11;
+    const ack_fee = 12;
+    const timeout_fee = 13;
+
+    const tx = await secretjs.tx.broadcast(
+      [
+        // MsgPayPacketFee must come before the IBC packet
+        // https://github.com/cosmos/ibc-go/blob/v4.3.0/modules/apps/29-fee/keeper/msg_server.go#L104
+        new MsgPayPacketFee({
+          signer: secretjs.address,
+          source_channel_id: ibcChannelIdOnChain1,
+          source_port_id: "transfer",
+          fee: {
+            recv_fee: coinsFromString(`${recv_fee}uscrt`),
+            ack_fee: coinsFromString(`${ack_fee}uscrt`),
+            timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
+          },
+        }),
+        new MsgTransfer({
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: stringToCoin("1uscrt"),
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second timeout
+        }),
+      ],
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 150_000,
+        ibcTxsOptions: {
+          resolveResponsesCheckIntervalMs: 250,
+        },
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("timeout");
+
+    const { balance: payeeBalanceAfter } = await secretjs.query.bank.balance({
+      address: relayerPayee.address,
+      denom: "uscrt",
+    });
+
+    // only timeout_fee on secretdev-1
+    // no recv_fee because the packet timed out before recv_packet
+    expect(
+      Number(payeeBalanceAfter?.amount) - Number(payeeBalanceBefore?.amount),
+    ).toBe(/* source chain fee: */ timeout_fee);
   }, 90_000);
 });
