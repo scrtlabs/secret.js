@@ -82,7 +82,7 @@ export interface MsgPayPacketFeeParams extends MsgParams {
   /** account address to refund fee if necessary */
   signer: string;
   /** optional list of relayers permitted to the receive packet fees */
-  relayers: string[];
+  relayers?: string[];
 }
 
 /**
@@ -97,7 +97,14 @@ export class MsgPayPacketFee implements Msg {
     return {
       type_url: "/ibc.applications.fee.v1.MsgPayPacketFee",
       value: this.params,
-      encode: async () => MsgPayPacketFeeProto.encode(this.params).finish(),
+      encode: async () =>
+        MsgPayPacketFeeProto.encode({
+          fee: this.params.fee,
+          source_port_id: this.params.source_port_id,
+          source_channel_id: this.params.source_channel_id,
+          signer: this.params.signer,
+          relayers: this.params.relayers || [],
+        }).finish(),
     };
   }
 
