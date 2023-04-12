@@ -138,8 +138,8 @@ import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1be
 import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 import {
   OrderBy,
-  Service as TxService,
   SimulateResponse,
+  Service as TxService,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
@@ -159,7 +159,7 @@ import {
 import { AuthQuerier } from "./query/auth";
 import { AuthzQuerier } from "./query/authz";
 import { BankQuerier } from "./query/bank";
-import { bytesToAddress, ComputeQuerier } from "./query/compute";
+import { ComputeQuerier, bytesToAddress } from "./query/compute";
 import { DistributionQuerier } from "./query/distribution";
 import { EvidenceQuerier } from "./query/evidence";
 import { FeegrantQuerier } from "./query/feegrant";
@@ -167,6 +167,10 @@ import { GovQuerier } from "./query/gov";
 import { IbcChannelQuerier } from "./query/ibc_channel";
 import { IbcClientQuerier } from "./query/ibc_client";
 import { IbcConnectionQuerier } from "./query/ibc_connection";
+import { IbcFeeQuerier } from "./query/ibc_fee";
+import { IbcInterchainAccountsControllerQuerier } from "./query/ibc_interchain_accounts_controller";
+import { IbcInterchainAccountsHostQuerier } from "./query/ibc_interchain_accounts_host";
+import { IbcPacketForwardQuerier } from "./query/ibc_packet_forward";
 import { IbcTransferQuerier } from "./query/ibc_transfer";
 import { MintQuerier } from "./query/mint";
 import { ParamsQuerier } from "./query/params";
@@ -181,33 +185,35 @@ import {
   MsgParams,
   MsgPayPacketFee,
   MsgPayPacketFeeAsync,
+  MsgPayPacketFeeAsyncParams,
+  MsgPayPacketFeeParams,
   MsgRegisterCounterpartyPayee,
+  MsgRegisterCounterpartyPayeeParams,
   MsgRegisterPayee,
+  MsgRegisterPayeeParams,
   MsgRegistry,
   MsgSetAutoRestake,
   MsgSetAutoRestakeParams,
   ProtoMsg,
 } from "./tx";
-import { RaAuthenticate } from "./tx/registration";
-import { MsgCreateVestingAccount } from "./tx/vesting";
+import { RaAuthenticate, RaAuthenticateParams } from "./tx/registration";
+import {
+  MsgCreateVestingAccount,
+  MsgCreateVestingAccountParams,
+} from "./tx/vesting";
 import {
   AccountData,
-  AminoSigner,
   AminoSignResponse,
-  encodeSecp256k1Pubkey,
-  encodeSecp256k1Signature,
-  isDirectSigner,
-  isSignDoc,
-  isSignDocCamelCase,
+  AminoSigner,
   Pubkey,
   Signer,
   StdFee,
   StdSignDoc,
+  encodeSecp256k1Pubkey,
+  isDirectSigner,
+  isSignDoc,
+  isSignDocCamelCase,
 } from "./wallet_amino";
-import { IbcInterchainAccountsHostQuerier } from "./query/ibc_interchain_accounts_host";
-import { IbcInterchainAccountsControllerQuerier } from "./query/ibc_interchain_accounts_controller";
-import { IbcFeeQuerier } from "./query/ibc_fee";
-import { IbcPacketForwardQuerier } from "./query/ibc_packet_forward";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -751,13 +757,13 @@ export type TxSender = {
     transfer: SingleMsgTx<MsgTransferParams>;
   };
   ibc_fee: {
-    payPacketFee: SingleMsgTx<MsgPayPacketFee>;
-    payPacketFeeAsync: SingleMsgTx<MsgPayPacketFeeAsync>;
-    registerPayee: SingleMsgTx<MsgRegisterPayee>;
-    registerCounterpartyPayee: SingleMsgTx<MsgRegisterCounterpartyPayee>;
+    payPacketFee: SingleMsgTx<MsgPayPacketFeeParams>;
+    payPacketFeeAsync: SingleMsgTx<MsgPayPacketFeeAsyncParams>;
+    registerPayee: SingleMsgTx<MsgRegisterPayeeParams>;
+    registerCounterpartyPayee: SingleMsgTx<MsgRegisterCounterpartyPayeeParams>;
   };
   registration: {
-    register: SingleMsgTx<RaAuthenticate>;
+    register: SingleMsgTx<RaAuthenticateParams>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
@@ -777,7 +783,7 @@ export type TxSender = {
   };
   vesting: {
     /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
-    createVestingAccount: SingleMsgTx<MsgCreateVestingAccount>;
+    createVestingAccount: SingleMsgTx<MsgCreateVestingAccountParams>;
   };
 };
 
