@@ -1,9 +1,11 @@
 import { toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import { getPublicKey, sign as secp256kSign } from "@noble/secp256k1";
-import { fromSeed as bip32FromSeed } from "bip32";
-import { generateMnemonic, mnemonicToSeedSync } from "bip39";
+import { generateMnemonic, mnemonicToSeedSync } from "@scure/bip39";
+import { wordlist } from '@scure/bip39/wordlists/english';
+
 import { AminoMsg, Coin, pubkeyToAddress, SignDocCamelCase } from ".";
+import { HDKey } from "@scure/bip32";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
@@ -53,7 +55,7 @@ export class AminoWallet {
    */
   constructor(mnemonic: string = "", options: WalletOptions = {}) {
     if (mnemonic === "") {
-      mnemonic = generateMnemonic(256 /* 24 words */);
+      mnemonic = generateMnemonic(wordlist, 256 /* 24 words */);
     }
     this.mnemonic = mnemonic;
 
@@ -62,8 +64,11 @@ export class AminoWallet {
     this.bech32Prefix = options.bech32Prefix ?? SECRET_BECH32_PREFIX;
 
     const seed = mnemonicToSeedSync(this.mnemonic);
-    const node = bip32FromSeed(seed);
-    const secretHD = node.derivePath(
+
+
+
+    const node = HDKey.fromMasterSeed(seed);
+    const secretHD = node.derive(
       `m/44'/${this.coinType}'/0'/0/${this.hdAccountIndex}`,
     );
     const privateKey = secretHD.privateKey;

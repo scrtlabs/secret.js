@@ -1,10 +1,43 @@
 import { fromBase64, fromHex, toUtf8 } from "@cosmjs/encoding";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
-import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
+import * as ed from '@noble/ed25519';
+import { ed25519, x25519 } from '@noble/curves/ed25519';
 import { PolyfillCryptoProvider, SIV } from "miscreant";
 import secureRandom from "secure-random";
 import { Query } from "./grpc_gateway/secret/registration/v1beta1/query.pb";
+
+
+const { Fp } = ed25519.CURVE; // Use field over 2n**255n-19n
+
+
+// from https://github.com/paulmillr/noble-ed25519/issues/81
+/**
+ * Converts to Montgomery; aka x coordinate of curve25519.
+ * We don't have fromX25519, because we don't know sign.
+ *
+ * ```
+ * u, v: curve25519 coordinates
+ * x, y: ed25519 coordinates
+ * (u, v) = ((1+y)/(1-y), sqrt(-486664)*u/x)
+ * (x, y) = (sqrt(-486664)*u/v, (u-1)/(u+1))
+ * ```
+ * https://blog.filippo.io/using-ed25519-keys-for-encryption
+ * @returns u coordinate of curve25519 point
+ * @example
+ */
+function toX25519(y: any) {
+  const _1n = BigInt(1);
+  const u = Fp.create((_1n + y) * Fp.inv(_1n - y)); // (1+y) / (1-y) == (1+y) * inv(1-y)
+  return Fp.toBytes(u);
+}
+
+
+export function getSharedSecret(privateKey: Uint8Array, publicKey: Uint8Array): Uint8Array {
+  const { head } = ed25519.utils.getExtendedPublicKey(privateKey);
+  const u = toX25519(ed25519.ExtendedPoint.fromHex(publicKey).y);
+  return x25519.scalarMult(head, u);
+}
 
 const cryptoProvider = new PolyfillCryptoProvider();
 
@@ -63,15 +96,16 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
   }
 
   public static GenerateNewSeed(): Uint8Array {
-    return secureRandom(32, { type: "Uint8Array" });
+    //return secureRandom(32, { type: "Uint8Array" });
+    return ed.utils.randomPrivateKey();
   }
 
   public static GenerateNewKeyPairFromSeed(seed: Uint8Array): {
     privkey: Uint8Array;
     pubkey: Uint8Array;
   } {
-    const { private: privkey, public: pubkey } = generateKeyPair(seed);
-    return { privkey, pubkey };
+    let pubkey = ed.getPublicKey(seed);
+    return { privkey: seed, pubkey };
   }
 
   private async getConsensusIoPubKey(): Promise<Uint8Array> {
@@ -88,7 +122,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
   public async getTxEncryptionKey(nonce: Uint8Array): Promise<Uint8Array> {
     const consensusIoPubKey = await this.getConsensusIoPubKey();
 
-    const txEncryptionIkm = x25519(this.privkey, consensusIoPubKey);
+    const txEncryptionIkm = getSharedSecret(this.privkey, consensusIoPubKey);
     return hkdf(
       sha256,
       Uint8Array.from([...txEncryptionIkm, ...nonce]),

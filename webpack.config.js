@@ -5,7 +5,10 @@ const BundleAnalyzerPlugin =
 const webpack = require("webpack");
 
 module.exports = {
-  entry: [path.resolve(__dirname, "src", "light.ts")],
+  entry: {
+    "browser": path.resolve(__dirname, "src", "index.ts"),
+    "light/light": path.resolve(__dirname, "src", "light.ts")
+  },
   module: {
     rules: [
       {
@@ -16,7 +19,9 @@ module.exports = {
     ],
   },
   plugins: [
-    new NodePolyfillPlugin(),
+    new NodePolyfillPlugin({
+      excludeAliases: ["stream"]
+    }),
     new BundleAnalyzerPlugin(),
     new webpack.IgnorePlugin({
       resourceRegExp: /^\.\/wordlists\/(?!english)/,
@@ -26,13 +31,14 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
+
   mode: "production",
-  devtool: "source-map",
+  devtool: false,
   output: {
     library: "secretjs",
     libraryTarget: "umd",
     globalObject: "this",
     path: path.resolve(__dirname, "dist"),
-    filename: '[name].js',
+    filename: "[name].js",
   },
 };

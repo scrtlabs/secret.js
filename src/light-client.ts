@@ -26,7 +26,7 @@ import {TxMsgData} from "./protobuf/cosmos/base/abci/v1beta1/abci";
 import {LegacyAminoPubKey} from "./protobuf/cosmos/crypto/multisig/keys";
 import {PubKey} from "./protobuf/cosmos/crypto/secp256k1/keys";
 import {AuthInfo, SignDoc, TxBody as TxBodyPb, TxRaw,} from "./protobuf/cosmos/tx/v1beta1/tx";
-import {Any} from "./protobuf/google/protobuf/any";
+import {Any as ProtoAny} from "./protobuf/google/protobuf/any";
 import {MsgExecuteContractResponse, MsgInstantiateContractResponse,} from "./protobuf/secret/compute/v1beta1/msg";
 import {BankQuerier} from "./query";
 import {bytesToAddress, ComputeQuerier} from "./query";
@@ -697,7 +697,7 @@ export class SecretNetworkClientLight {
 
                 const tx = tx_response!.tx as TxPb;
 
-                const resolvePubkey = (pubkey: Any) => {
+                const resolvePubkey = (pubkey: ProtoAny) => {
                     if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
                         const multisig = LegacyAminoPubKey.decode(
                             // @ts-expect-error
@@ -1082,7 +1082,7 @@ export class SecretNetworkClientLight {
         const wrappedMessages = await Promise.all(
             txBody.value.messages.map(async (message) => {
                 const binaryValue = await message.encode();
-                return Any.fromPartial({
+                return ProtoAny.fromPartial({
                     type_url: message.type_url,
                     value: binaryValue,
                 });
