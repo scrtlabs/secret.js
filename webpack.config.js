@@ -2,12 +2,12 @@ const path = require("path");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
-  entry: path.resolve(__dirname, "src", "index.ts"),
+  entry: [path.resolve(__dirname, "src", "light.ts")],
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        use: "ts-loader",
+        test: /\.tsx?$/,
+        use: ['ts-loader'],
         exclude: /node_modules/,
       },
     ],
@@ -23,6 +23,6 @@ module.exports = {
     libraryTarget: "umd",
     globalObject: "this",
     path: path.resolve(__dirname, "dist"),
-    filename: "browser.js",
+    filename: '[name].js',
   },
 };
