@@ -268,15 +268,17 @@ export class MsgStoreCode implements Msg {
     this.wasmByteCode = wasmByteCode;
   }
 
-  private async gzipWasm() {
-    if (!is_gzip(this.wasmByteCode)) {
-      const pako = await import("pako");
-      this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });
-    }
-  }
+  // private async gzipWasm() {
+  //   if (!is_gzip(this.wasmByteCode)) {
+  //     const pako = await import("pako");
+  //     this.wasmByteCode = pako.gzip(this.wasmByteCode, { level: 9 });
+  //   }
+  // }
 
   async toProto(): Promise<ProtoMsg> {
-    await this.gzipWasm();
+    // i.g: I don't think we should be zipping this automatically. it's not intuitive, and this should
+    // be the responsibility of the caller
+    // await this.gzipWasm();
 
     const msgContent = {
       sender: addressToBytes(this.sender),
@@ -296,7 +298,7 @@ export class MsgStoreCode implements Msg {
   }
 
   async toAmino(): Promise<AminoMsg> {
-    await this.gzipWasm();
+    // await this.gzipWasm();
 
     return {
       type: "wasm/MsgStoreCode",

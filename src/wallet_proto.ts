@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
-import * as secp256k1 from "@noble/secp256k1";
+import { sign as signSecp256K1 } from "@noble/secp256k1";
 import {
   AminoWallet,
   encodeSecp256k1Signature,
@@ -24,7 +24,7 @@ export class Wallet extends AminoWallet {
     }
 
     const messageHash = sha256(await serializeSignDoc(signDoc));
-    const signature = await secp256k1.sign(messageHash, this.privateKey, {
+    const signature = await signSecp256K1(messageHash, this.privateKey, {
       extraEntropy: true,
       der: false,
     });

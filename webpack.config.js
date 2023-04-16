@@ -1,5 +1,8 @@
 const path = require("path");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const BundleAnalyzerPlugin =
+  require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const webpack = require("webpack");
 
 module.exports = {
   entry: [path.resolve(__dirname, "src", "light.ts")],
@@ -12,7 +15,14 @@ module.exports = {
       },
     ],
   },
-  plugins: [new NodePolyfillPlugin()],
+  plugins: [
+    new NodePolyfillPlugin(),
+    new BundleAnalyzerPlugin(),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^\.\/wordlists\/(?!english)/,
+      contextRegExp: /bip39\/src$/,
+    }),
+  ],
   resolve: {
     extensions: [".ts", ".js"],
   },

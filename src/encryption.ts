@@ -2,11 +2,11 @@ import { fromBase64, fromHex, toUtf8 } from "@cosmjs/encoding";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
 import { generateKeyPair, sharedKey as x25519 } from "curve25519-js";
-import * as miscreant from "miscreant";
+import { PolyfillCryptoProvider, SIV } from "miscreant";
 import secureRandom from "secure-random";
 import { Query } from "./grpc_gateway/secret/registration/v1beta1/query.pb";
 
-const cryptoProvider = new miscreant.PolyfillCryptoProvider();
+const cryptoProvider = new PolyfillCryptoProvider();
 
 export interface EncryptionUtils {
   getPubkey: () => Promise<Uint8Array>;
@@ -89,14 +89,13 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     const consensusIoPubKey = await this.getConsensusIoPubKey();
 
     const txEncryptionIkm = x25519(this.privkey, consensusIoPubKey);
-    const txEncryptionKey = hkdf(
+    return hkdf(
       sha256,
       Uint8Array.from([...txEncryptionIkm, ...nonce]),
       hkdfSalt,
       "",
       32,
     );
-    return txEncryptionKey;
   }
 
   public async encrypt(
@@ -107,11 +106,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
 
     const txEncryptionKey = await this.getTxEncryptionKey(nonce);
 
-    const siv = await miscreant.SIV.importKey(
-      txEncryptionKey,
-      "AES-SIV",
-      cryptoProvider,
-    );
+    const siv = await SIV.importKey(txEncryptionKey, "AES-SIV", cryptoProvider);
 
     const plaintext = toUtf8(contractCodeHash + JSON.stringify(msg));
 
@@ -131,14 +126,9 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
 
     const txEncryptionKey = await this.getTxEncryptionKey(nonce);
 
-    const siv = await miscreant.SIV.importKey(
-      txEncryptionKey,
-      "AES-SIV",
-      cryptoProvider,
-    );
+    const siv = await SIV.importKey(txEncryptionKey, "AES-SIV", cryptoProvider);
 
-    const plaintext = await siv.open(ciphertext, [new Uint8Array()]);
-    return plaintext;
+    return await siv.open(ciphertext, [new Uint8Array()]);
   }
 
   getPubkey(): Promise<Uint8Array> {

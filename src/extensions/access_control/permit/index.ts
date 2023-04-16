@@ -1,6 +1,6 @@
 import { fromBase64 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
-import * as secp256k1 from "@noble/secp256k1";
+import { verify as verifySecp256k1, Signature } from "@noble/secp256k1";
 import { bech32 } from "bech32";
 import { base64PubkeyToAddress, stringToCoins } from "../../../index";
 import {
@@ -267,11 +267,9 @@ const _validate_sig = (permit: Permit): boolean => {
     permit.params.permissions,
   );
   const messageHash = sha256(serializeStdSignDoc(signDoc));
-  let sig = secp256k1.Signature.fromCompact(
-    fromBase64(permit.signature.signature),
-  );
+  let sig = Signature.fromCompact(fromBase64(permit.signature.signature));
 
-  return secp256k1.verify(
+  return verifySecp256k1(
     sig,
     messageHash,
     fromBase64(permit.signature.pub_key.value),

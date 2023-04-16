@@ -1,5 +1,5 @@
 import { keccak_256 } from "@noble/hashes/sha3";
-import * as secp256k1 from "@noble/secp256k1";
+import { Point, recoverPublicKey } from "@noble/secp256k1";
 import { fromHex, pubkeyToAddress, toHex, toUtf8 } from ".";
 import {
   AccountData,
@@ -80,7 +80,7 @@ export class MetaMaskWallet {
     const eip191MessagePrefix = toUtf8("\x19Ethereum Signed Message:\n");
     const rawMsgLength = toUtf8(String(rawMsg.length));
 
-    const publicKey = secp256k1.recoverPublicKey(
+    const publicKey = recoverPublicKey(
       keccak_256(
         new Uint8Array([...eip191MessagePrefix, ...rawMsgLength, ...rawMsg]),
       ),
@@ -136,7 +136,7 @@ export class MetaMaskWallet {
 }
 
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
-  const point = secp256k1.Point.fromHex(publicKeyHex);
+  const point = Point.fromHex(publicKeyHex);
   return point.toRawBytes(false);
 }
 
