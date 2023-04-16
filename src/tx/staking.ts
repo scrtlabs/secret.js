@@ -1,6 +1,6 @@
 import { fromBase64 } from "@cosmjs/encoding";
 import { bech32 } from "bech32";
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 import { Coin, MsgParams } from ".";
 import { PubKey } from "../protobuf/cosmos/crypto/ed25519/keys";
 import { Any } from "../protobuf/google/protobuf/any";
@@ -55,14 +55,14 @@ export class MsgCreateValidator implements Msg {
     const msgContent = {
       description: this.params.description,
       commission: {
-        rate: new BigNumber(this.params.commission.rate)
-          .toFixed(18)
+        rate: new BN(this.params.commission.rate)
+          .toString(10, 18)
           .replace(/0\.0*/, ""),
-        max_rate: new BigNumber(this.params.commission.max_rate)
-          .toFixed(18)
+        max_rate: new BN(this.params.commission.max_rate)
+          .toString(10, 18)
           .replace(/0\.0*/, ""),
-        max_change_rate: new BigNumber(this.params.commission.max_change_rate)
-          .toFixed(18)
+        max_change_rate: new BN(this.params.commission.max_change_rate)
+          .toString(10, 18)
           .replace(/0\.0*/, ""),
       },
       min_self_delegation: this.params.min_self_delegation,
@@ -104,11 +104,11 @@ export class MsgCreateValidator implements Msg {
           details: this.params.description.details,
         },
         commission: {
-          rate: new BigNumber(this.params.commission.rate).toFixed(18),
-          max_rate: new BigNumber(this.params.commission.max_rate).toFixed(18),
-          max_change_rate: new BigNumber(
+          rate: new BN(this.params.commission.rate).toString(10, 18),
+          max_rate: new BN(this.params.commission.max_rate).toString(10, 18),
+          max_change_rate: new BN(
             this.params.commission.max_change_rate,
-          ).toFixed(18),
+          ).toString(10, 18),
         },
         min_self_delegation: this.params.min_self_delegation,
         delegator_address: this.params.delegator_address,
@@ -147,10 +147,11 @@ export class MsgEditValidator implements Msg {
       validator_address: this.params.validator_address,
       description: Description.fromPartial(this.params.description || {}),
       commission_rate: this.params.commission_rate
-        ? new BigNumber(this.params.commission_rate)
-            .toFixed(18)
+        ? new BN(this.params.commission_rate)
+            .toString(10, 18)
             .replace(/0\.0*/, "")
         : "",
+
       min_self_delegation: this.params.min_self_delegation || "",
     };
 
@@ -178,7 +179,7 @@ export class MsgEditValidator implements Msg {
 
     let commission_rate;
     if (this.params.commission_rate) {
-      commission_rate = new BigNumber(this.params.commission_rate).toFixed(18);
+      commission_rate = new BN(this.params.commission_rate).toString(10, 18);
     }
 
     return {

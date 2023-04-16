@@ -1,8 +1,8 @@
 import { toBase64, toUtf8 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
-import * as secp256k1 from "@noble/secp256k1";
-import * as bip32 from "bip32";
-import * as bip39 from "bip39";
+import { getPublicKey, sign as secp256kSign } from "@noble/secp256k1";
+import { fromSeed as bip32FromSeed } from "bip32";
+import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import { AminoMsg, Coin, pubkeyToAddress, SignDocCamelCase } from ".";
 
 export const SECRET_COIN_TYPE = 529;
@@ -53,7 +53,7 @@ export class AminoWallet {
    */
   constructor(mnemonic: string = "", options: WalletOptions = {}) {
     if (mnemonic === "") {
-      mnemonic = bip39.generateMnemonic(256 /* 24 words */);
+      mnemonic = generateMnemonic(256 /* 24 words */);
     }
     this.mnemonic = mnemonic;
 
@@ -61,8 +61,8 @@ export class AminoWallet {
     this.coinType = options.coinType ?? SECRET_COIN_TYPE;
     this.bech32Prefix = options.bech32Prefix ?? SECRET_BECH32_PREFIX;
 
-    const seed = bip39.mnemonicToSeedSync(this.mnemonic);
-    const node = bip32.fromSeed(seed);
+    const seed = mnemonicToSeedSync(this.mnemonic);
+    const node = bip32FromSeed(seed);
     const secretHD = node.derivePath(
       `m/44'/${this.coinType}'/0'/0/${this.hdAccountIndex}`,
     );
@@ -73,7 +73,7 @@ export class AminoWallet {
     }
 
     this.privateKey = new Uint8Array(privateKey);
-    this.publicKey = secp256k1.getPublicKey(this.privateKey, true);
+    this.publicKey = getPublicKey(this.privateKey, true);
 
     this.address = pubkeyToAddress(this.publicKey, this.bech32Prefix);
   }
@@ -98,7 +98,7 @@ export class AminoWallet {
 
     const messageHash = sha256(serializeStdSignDoc(signDoc));
 
-    const signature = await secp256k1.sign(messageHash, this.privateKey, {
+    const signature = await secp256kSign(messageHash, this.privateKey, {
       extraEntropy: true,
       der: false,
     });

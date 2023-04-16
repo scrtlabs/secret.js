@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 import { Coin, MsgParams } from "..";
 import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
@@ -299,7 +299,7 @@ export class MsgVoteWeighted implements Msg {
       proposal_id: this.params.proposal_id,
       options: this.params.options.map((o) => ({
         option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
+        weight: new BN(o.weight).toString(10, 18).replace(/0\.0*/, ""),
       })),
     };
 
@@ -319,7 +319,7 @@ export class MsgVoteWeighted implements Msg {
       proposal_id: this.params.proposal_id,
       options: this.params.options.map((o) => ({
         option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18),
+        weight: new BN(o.weight).toString(10, 18),
       })),
     };
 
