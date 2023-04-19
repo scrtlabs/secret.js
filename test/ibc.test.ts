@@ -1163,7 +1163,7 @@ describe("ibc-hooks middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const { balance } = await secretjs.query.snip20.getBalance({
+    const { balance: sscrt2Balance } = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
       contract: {
         address: sscrt2_contract_address,
@@ -1172,13 +1172,27 @@ describe("ibc-hooks middleware", () => {
       auth: { key: "gm" },
     });
 
-    expect(balance.amount).toEqual("123");
+    expect(sscrt2Balance.amount).toEqual("123");
 
-    const { balances } = await secretjs.query.bank.allBalances({
+    const denom = ibcDenom(
+      [
+        {
+          incomingChannelId: ibcChannelIdOnChain1,
+          incomingPortId: "transfer",
+        },
+      ],
+      "uscrt",
+    );
+
+    const { balance: contractBalance } = await secretjs.query.bank.balance({
       address: sscrt2_contract_address,
+      denom,
     });
 
-    // console.log(balances);
-    // expect(balances?.length).toEqual(0);
+    expect(contractBalance?.amount).toEqual("123");
+
+    const { supply } = await secretjs.query.bank.totalSupply({});
+
+    expect(supply?.find((s) => s.denom === denom)?.amount).toEqual("123");
   }, 90_000);
 });
