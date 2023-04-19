@@ -32,7 +32,6 @@ cosmwasm-std = { package = "secret-cosmwasm-std", version = "1.0.0", features = 
   "staking",
   "ibc3"
 ] }
-cosmwasm-storage = { package = "secret-cosmwasm-storage", version = "1.0.0" }
 secret-toolkit = { version = "0.6.0" }
 schemars = "0.8.1"
 serde = { version = "1.0.114", default-features = false, features = [

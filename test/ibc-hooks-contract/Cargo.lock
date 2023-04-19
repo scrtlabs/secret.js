@@ -266,7 +266,6 @@ version = "0.0.1"
 dependencies = [
  "schemars",
  "secret-cosmwasm-std",
- "secret-cosmwasm-storage",
  "secret-toolkit",
  "serde",
  "serde-json-wasm 0.2.3",

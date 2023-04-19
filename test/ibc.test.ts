@@ -32,7 +32,6 @@ import {
   loopRelayer,
   waitForChainToStart,
 } from "./utils";
-import { log } from "console";
 
 let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
@@ -963,7 +962,9 @@ describe("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
-  let contract_address: string;
+  let wrap_deposit_contract_address: string;
+  let sscrt2_contract_address: string;
+  let sscrt2_code_hash: string;
 
   beforeAll(async () => {
     if (stopRelayer) {
@@ -985,7 +986,7 @@ describe("ibc-hooks middleware", () => {
 
     const { secretjs } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    let tx = await secretjs.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -999,14 +1000,14 @@ describe("ibc-hooks middleware", () => {
       },
     );
 
-    if (txStore.code !== TxResultCode.Success) {
-      console.error(txStore.rawLog);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
     }
-    expect(txStore.code).toBe(TxResultCode.Success);
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    const { code_id } = MsgStoreCodeResponse.decode(txStore.data[0]);
+    let { code_id } = MsgStoreCodeResponse.decode(tx.data[0]);
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    tx = await secretjs.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -1018,14 +1019,86 @@ describe("ibc-hooks middleware", () => {
       },
     );
 
-    if (txInit.code !== TxResultCode.Success) {
-      console.error(txInit.rawLog);
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
     }
-    expect(txInit.code).toBe(TxResultCode.Success);
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    contract_address = MsgInstantiateContractResponse.decode(
-      txInit.data[0],
+    wrap_deposit_contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
     ).address;
+
+    tx = await secretjs.tx.compute.storeCode(
+      {
+        sender: accounts[0].address,
+        wasm_byte_code: fs.readFileSync(
+          `${__dirname}/snip20-ibc.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    ({ code_id } = MsgStoreCodeResponse.decode(tx.data[0]));
+
+    tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: accounts[0].address,
+        code_id,
+        init_msg: {
+          name: "Secret SCRT2",
+          admin: accounts[0].address,
+          symbol: "SSCRTTWO",
+          decimals: 6,
+          initial_balances: [],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: [
+            ibcDenom(
+              [
+                {
+                  incomingChannelId: ibcChannelIdOnChain1,
+                  incomingPortId: "transfer",
+                },
+              ],
+              "uscrt",
+            ),
+          ],
+        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    sscrt2_contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
+    ).address;
+
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
+    sscrt2_code_hash = code_hash!;
   });
 
   test("send funds over IBC to contract", async () => {
@@ -1036,19 +1109,23 @@ describe("ibc-hooks middleware", () => {
       chainId: "secretdev-2",
     });
 
-    const tx = await secretjs2.tx.ibc.transfer(
+    let tx = await secretjs2.tx.ibc.transfer(
       {
         sender: secretjs2.address,
-        receiver: contract_address,
+        receiver: wrap_deposit_contract_address,
         source_channel: ibcChannelIdOnChain2,
         source_port: "transfer",
-        token: stringToCoin("1uscrt"),
+        token: stringToCoin("123uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         memo: JSON.stringify({
           wasm: {
-            contract: contract_address,
+            contract: wrap_deposit_contract_address,
             msg: {
-              receive: {},
+              wrap_deposit: {
+                snip20_address: sscrt2_contract_address,
+                snip20_code_hash: sscrt2_code_hash,
+                recipient_address: secretjs2.address,
+              },
             },
           },
         }),
@@ -1073,10 +1150,35 @@ describe("ibc-hooks middleware", () => {
 
     const { secretjs } = accounts[0];
 
-    const res = await secretjs.query.txsQuery(
-      `message.action='/ibc.core.channel.v1.MsgRecvPacket'`,
+    tx = await secretjs.tx.snip20.setViewingKey(
+      {
+        sender: secretjs.address,
+        contract_address: sscrt2_contract_address,
+        msg: { set_viewing_key: { key: "gm" } },
+      },
+      { gasLimit: 100_000, broadcastCheckIntervalMs: 100 },
     );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    log("res", JSON.stringify(res));
+    const { balance } = await secretjs.query.snip20.getBalance({
+      address: secretjs.address,
+      contract: {
+        address: sscrt2_contract_address,
+        code_hash: sscrt2_code_hash,
+      },
+      auth: { key: "gm" },
+    });
+
+    expect(balance.amount).toEqual("123");
+
+    const { balances } = await secretjs.query.bank.allBalances({
+      address: sscrt2_contract_address,
+    });
+
+    // console.log(balances);
+    // expect(balances?.length).toEqual(0);
   }, 90_000);
 });
