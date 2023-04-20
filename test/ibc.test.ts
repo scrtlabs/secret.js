@@ -3,6 +3,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import fs from "fs";
 import pako from "pako";
 import {
+  coinFromString,
   coinsFromString,
   ibcDenom,
   MsgExecuteContract,
@@ -1194,5 +1195,42 @@ describe("ibc-hooks middleware", () => {
     const { supply } = await secretjs.query.bank.totalSupply({});
 
     expect(supply?.find((s) => s.denom === denom)?.amount).toEqual("123");
+  }, 90_000);
+
+  test("receive ack after sending MsgTransfer from a contract", async () => {
+    const { secretjs } = accounts[0];
+
+    let tx = await secretjs.tx.compute.executeContract(
+      {
+        sender: secretjs.address,
+        contract_address: wrap_deposit_contract_address,
+        sent_funds: coinsFromString("234uscrt"),
+        msg: {
+          ibc_transfer: {
+            channel_id: ibcChannelIdOnChain1,
+            to_address: secretjs.address,
+            amount: coinFromString("234uscrt"),
+            timeout_sec_from_now: "600", //10 minutes
+          },
+        },
+      },
+      {
+        gasLimit: 100_000,
+        broadcastCheckIntervalMs: 100,
+        ibcTxsOptions: {
+          resolveResponsesCheckIntervalMs: 250,
+        },
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("ack");
+
+    expect(ibcResp.tx.arrayLog).toBe([]); // TODO fix this
   }, 90_000);
 });

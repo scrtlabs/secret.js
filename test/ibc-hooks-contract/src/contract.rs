@@ -1,8 +1,9 @@
 use cosmwasm_std::{
-    entry_point, to_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult,
+    entry_point, to_binary, CosmosMsg, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
+    StdResult,
 };
 
-use crate::msg::Msg;
+use crate::msg::{IBCLifecycleComplete, Msg};
 
 #[entry_point]
 pub fn instantiate(
@@ -15,7 +16,7 @@ pub fn instantiate(
 }
 
 #[entry_point]
-pub fn execute(_deps: DepsMut, _env: Env, info: MessageInfo, msg: Msg) -> StdResult<Response> {
+pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResult<Response> {
     match msg {
         Msg::Nop {} => Ok(Response::default()),
         Msg::WrapDeposit {
@@ -43,5 +44,50 @@ pub fn execute(_deps: DepsMut, _env: Env, info: MessageInfo, msg: Msg) -> StdRes
                 funds: vec![],
             }),
         ])),
+        Msg::IBCTransfer {
+            channel_id,
+            to_address,
+            amount,
+            timeout_sec_from_now,
+        } => Ok(
+            Response::default().add_messages(vec![CosmosMsg::Ibc(IbcMsg::Transfer {
+                channel_id,
+                to_address: to_address,
+                amount: amount,
+                timeout: IbcTimeout::with_timestamp(
+                    env.block.time.plus_seconds(timeout_sec_from_now.u64()),
+                ),
+                memo: format!(
+                    "{{\"ibc_callback\":\"{}\"}}",
+                    env.contract.address.to_string()
+                ),
+            })]),
+        ),
+        Msg::IBCLifecycleComplete(IBCLifecycleComplete::IBCAck {
+            channel,
+            sequence,
+            ack,
+            success,
+        }) => Ok(Response::default().add_attributes(vec![
+            ("ibc_lifecycle_complete.ibc_ack.channel", channel),
+            (
+                "ibc_lifecycle_complete.ibc_ack.sequence",
+                sequence.to_string(),
+            ),
+            ("ibc_lifecycle_complete.ibc_ack.ack", ack),
+            (
+                "ibc_lifecycle_complete.ibc_ack.success",
+                success.to_string(),
+            ),
+        ])),
+        Msg::IBCLifecycleComplete(IBCLifecycleComplete::IBCTimeout { channel, sequence }) => {
+            Ok(Response::default().add_attributes(vec![
+                ("ibc_lifecycle_complete.ibc_timeout.channel", channel),
+                (
+                    "ibc_lifecycle_complete.ibc_timeout.sequence",
+                    sequence.to_string(),
+                ),
+            ]))
+        }
     }
 }
