@@ -179,6 +179,7 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
+import { IbcSwitchQuerier } from "./query/ibc_switch";
 import {
   AminoMsg,
   Msg,
@@ -419,6 +420,7 @@ export type Querier = {
   ibc_iterchain_accounts_controller: IbcInterchainAccountsControllerQuerier;
   ibc_fee: IbcFeeQuerier;
   ibc_packet_forward: IbcPacketForwardQuerier;
+  ibc_switch: IbcSwitchQuerier;
   mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
@@ -832,6 +834,7 @@ export class SecretNetworkClient {
         new IbcInterchainAccountsControllerQuerier(options.url),
       ibc_fee: new IbcFeeQuerier(options.url),
       ibc_packet_forward: new IbcPacketForwardQuerier(options.url),
+      ibc_switch: new IbcSwitchQuerier(options.url),
       mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),
