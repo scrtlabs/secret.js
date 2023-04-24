@@ -214,6 +214,7 @@ import {
   isSignDoc,
   isSignDocCamelCase,
 } from "./wallet_amino";
+import {MsgToggleIbcSwitch, MsgToggleIbcSwitchParams} from "./tx/ibc_switch";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -688,6 +689,9 @@ export type TxSender = {
     /** Upload a compiled contract to Secret Network */
     storeCode: SingleMsgTx<MsgStoreCodeParams>;
   };
+  ibc_switch: {
+    toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
+  }
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: SingleMsgTx<MsgVerifyInvariantParams>;
@@ -920,6 +924,9 @@ export class SecretNetworkClient {
         executeContract: doMsg(MsgExecuteContract),
         instantiateContract: doMsg(MsgInstantiateContract),
         storeCode: doMsg(MsgStoreCode),
+      },
+      ibc_switch: {
+        toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
       },
       crisis: {
         verifyInvariant: doMsg(MsgVerifyInvariant),

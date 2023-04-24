@@ -69,6 +69,7 @@ import {
   MsgStoreCode,
 } from "../protobuf/secret/compute/v1beta1/msg";
 import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
+import {MsgToggleIbcSwitch} from "../protobuf/secret/ibc-switch/v1beta1/tx";
 
 export * from "./authz";
 export * from "./bank";
@@ -87,6 +88,7 @@ export * from "./slashing";
 export * from "./staking";
 export * from "./vesting";
 export * from "./types";
+export * from "./ibc_switch";
 
 export type MsgDecoder = {
   decode(input: Uint8Array): any;
@@ -157,4 +159,5 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
   ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
+  ["/secret.ibcswitch.v1beta1.MsgToggleIbcSwitch", MsgToggleIbcSwitch],
 ]);
