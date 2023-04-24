@@ -11,7 +11,7 @@ export class MsgToggleIbcSwitch implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: "/secret.ibcswitch.v1beta1.MsgToggleSwitch",
+      type_url: "/secret.ibcswitch.v1beta1.MsgToggleIbcSwitch",
       value: this.params,
       encode: async () =>
         (await import("../protobuf/secret/ibc-switch/v1beta1/tx")).MsgToggleIbcSwitch.encode(
@@ -22,7 +22,7 @@ export class MsgToggleIbcSwitch implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "cosmos-sdk/MsgSend",
+      type: "ibc-switch/MsgToggleIbcSwitch",
       value: this.params,
     };
   }
