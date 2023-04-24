@@ -4,38 +4,38 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "secret.ibcswitch.v1beta1";
 
-/** MsgToggleSwitch represents a message to toggle the ibc-switch status by the defined pauser. */
-export interface MsgToggleSwitch {
-  sender: Uint8Array;
+/** MsgToggleIbcSwitch represents a message to toggle the ibc-switch status by the defined pauser. */
+export interface MsgToggleIbcSwitch {
+  sender: string;
 }
 
-/** MsgSendResponse defines the response type for the toggle. */
-export interface MsgToggleSwitchResponse {}
+/** MsgToggleIbcSwitchResponse defines the response type for the toggle. */
+export interface MsgToggleIbcSwitchResponse {}
 
-function createBaseMsgToggleSwitch(): MsgToggleSwitch {
-  return { sender: new Uint8Array() };
+function createBaseMsgToggleIbcSwitch(): MsgToggleIbcSwitch {
+  return { sender: "" };
 }
 
-export const MsgToggleSwitch = {
+export const MsgToggleIbcSwitch = {
   encode(
-    message: MsgToggleSwitch,
+    message: MsgToggleIbcSwitch,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.sender.length !== 0) {
-      writer.uint32(10).bytes(message.sender);
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgToggleSwitch {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgToggleIbcSwitch {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgToggleSwitch();
+    const message = createBaseMsgToggleIbcSwitch();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sender = reader.bytes();
+          message.sender = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -45,39 +45,34 @@ export const MsgToggleSwitch = {
     return message;
   },
 
-  fromJSON(object: any): MsgToggleSwitch {
+  fromJSON(object: any): MsgToggleIbcSwitch {
     return {
-      sender: isSet(object.sender)
-        ? bytesFromBase64(object.sender)
-        : new Uint8Array(),
+      sender: isSet(object.sender) ? String(object.sender) : "",
     };
   },
 
-  toJSON(message: MsgToggleSwitch): unknown {
+  toJSON(message: MsgToggleIbcSwitch): unknown {
     const obj: any = {};
-    message.sender !== undefined &&
-      (obj.sender = base64FromBytes(
-        message.sender !== undefined ? message.sender : new Uint8Array(),
-      ));
+    message.sender !== undefined && (obj.sender = message.sender);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MsgToggleSwitch>, I>>(
+  fromPartial<I extends Exact<DeepPartial<MsgToggleIbcSwitch>, I>>(
     object: I,
-  ): MsgToggleSwitch {
-    const message = createBaseMsgToggleSwitch();
-    message.sender = object.sender ?? new Uint8Array();
+  ): MsgToggleIbcSwitch {
+    const message = createBaseMsgToggleIbcSwitch();
+    message.sender = object.sender ?? "";
     return message;
   },
 };
 
-function createBaseMsgToggleSwitchResponse(): MsgToggleSwitchResponse {
+function createBaseMsgToggleIbcSwitchResponse(): MsgToggleIbcSwitchResponse {
   return {};
 }
 
-export const MsgToggleSwitchResponse = {
+export const MsgToggleIbcSwitchResponse = {
   encode(
-    _: MsgToggleSwitchResponse,
+    _: MsgToggleIbcSwitchResponse,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
     return writer;
@@ -86,10 +81,10 @@ export const MsgToggleSwitchResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number,
-  ): MsgToggleSwitchResponse {
+  ): MsgToggleIbcSwitchResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgToggleSwitchResponse();
+    const message = createBaseMsgToggleIbcSwitchResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -101,44 +96,48 @@ export const MsgToggleSwitchResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgToggleSwitchResponse {
+  fromJSON(_: any): MsgToggleIbcSwitchResponse {
     return {};
   },
 
-  toJSON(_: MsgToggleSwitchResponse): unknown {
+  toJSON(_: MsgToggleIbcSwitchResponse): unknown {
     const obj: any = {};
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MsgToggleSwitchResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<MsgToggleIbcSwitchResponse>, I>>(
     _: I,
-  ): MsgToggleSwitchResponse {
-    const message = createBaseMsgToggleSwitchResponse();
+  ): MsgToggleIbcSwitchResponse {
+    const message = createBaseMsgToggleIbcSwitchResponse();
     return message;
   },
 };
 
 /** Msg defines the bank Msg service. */
 export interface Msg {
-  /** ToggleSwitch defines a method for toggling the status of the ibc-switch. */
-  ToggleSwitch(request: MsgToggleSwitch): Promise<MsgToggleSwitchResponse>;
+  /** ToggleIbcSwitch defines a method for toggling the status of the ibc-switch. */
+  ToggleIbcSwitch(
+    request: MsgToggleIbcSwitch,
+  ): Promise<MsgToggleIbcSwitchResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ToggleSwitch = this.ToggleSwitch.bind(this);
+    this.ToggleIbcSwitch = this.ToggleIbcSwitch.bind(this);
   }
-  ToggleSwitch(request: MsgToggleSwitch): Promise<MsgToggleSwitchResponse> {
-    const data = MsgToggleSwitch.encode(request).finish();
+  ToggleIbcSwitch(
+    request: MsgToggleIbcSwitch,
+  ): Promise<MsgToggleIbcSwitchResponse> {
+    const data = MsgToggleIbcSwitch.encode(request).finish();
     const promise = this.rpc.request(
       "secret.ibcswitch.v1beta1.Msg",
-      "ToggleSwitch",
+      "ToggleIbcSwitch",
       data,
     );
     return promise.then((data) =>
-      MsgToggleSwitchResponse.decode(new _m0.Reader(data)),
+      MsgToggleIbcSwitchResponse.decode(new _m0.Reader(data)),
     );
   }
 }
@@ -149,40 +148,6 @@ interface Rpc {
     method: string,
     data: Uint8Array,
   ): Promise<Uint8Array>;
-}
-
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
-  throw "Unable to locate global object";
-})();
-
-const atob: (b64: string) => string =
-  globalThis.atob ||
-  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
-function bytesFromBase64(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; ++i) {
-    arr[i] = bin.charCodeAt(i);
-  }
-  return arr;
-}
-
-const btoa: (bin: string) => string =
-  globalThis.btoa ||
-  ((bin) => globalThis.Buffer.from(bin, "binary").toString("base64"));
-function base64FromBytes(arr: Uint8Array): string {
-  const bin: string[] = [];
-  for (const byte of arr) {
-    bin.push(String.fromCharCode(byte));
-  }
-  return btoa(bin.join(""));
 }
 
 type Builtin =

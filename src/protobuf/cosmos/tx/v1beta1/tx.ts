@@ -12,6 +12,11 @@ import { Coin } from "../../base/v1beta1/coin";
 
 export const protobufPackage = "cosmos.tx.v1beta1";
 
+/** Txs is an array of Tx, used to generate the code needed for the enclave to unpack txs and validate them */
+export interface Txs {
+  tx: Uint8Array[];
+}
+
 /** Tx is the standard type used for broadcasting transactions. */
 export interface Tx {
   /** body is the processable content of the transaction */
@@ -214,6 +219,63 @@ export interface Fee {
    */
   granter: string;
 }
+
+function createBaseTxs(): Txs {
+  return { tx: [] };
+}
+
+export const Txs = {
+  encode(message: Txs, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.tx) {
+      writer.uint32(10).bytes(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Txs {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTxs();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.tx.push(reader.bytes());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Txs {
+    return {
+      tx: Array.isArray(object?.tx)
+        ? object.tx.map((e: any) => bytesFromBase64(e))
+        : [],
+    };
+  },
+
+  toJSON(message: Txs): unknown {
+    const obj: any = {};
+    if (message.tx) {
+      obj.tx = message.tx.map((e) =>
+        base64FromBytes(e !== undefined ? e : new Uint8Array()),
+      );
+    } else {
+      obj.tx = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Txs>, I>>(object: I): Txs {
+    const message = createBaseTxs();
+    message.tx = object.tx?.map((e) => e) || [];
+    return message;
+  },
+};
 
 function createBaseTx(): Tx {
   return { body: undefined, auth_info: undefined, signatures: [] };
