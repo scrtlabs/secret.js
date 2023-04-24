@@ -71,6 +71,7 @@ export interface GetTransferHistoryRequest {
     key: string;
     page?: number;
     page_size: number;
+    should_filter_decoys?: boolean;
   };
 }
 
@@ -81,6 +82,7 @@ export interface GetTransferHistoryRequestWithPermit {
       transfer_history: {
         page?: number;
         page_size: number;
+        should_filter_decoys?: boolean;
       };
     };
   };
@@ -92,6 +94,7 @@ export interface GetTransactionHistoryRequest {
     key: string;
     page?: number;
     page_size: number;
+    should_filter_decoys?: boolean;
   };
 }
 
@@ -102,6 +105,7 @@ export interface GetTransactionHistoryRequestWithPermit {
       transaction_history: {
         page?: number;
         page_size: number;
+        should_filter_decoys?: boolean;
       };
     };
   };
