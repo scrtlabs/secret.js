@@ -39,10 +39,11 @@ import {
   getAllMethodNames,
   getBalance,
   getValueFromRawLog,
-  initContract,
+  initContract, passParameterChangeProposal,
   sleep,
   storeContract,
   storeSnip20Ibc,
+  waitForProposalToPass,
 } from "./utils";
 
 beforeAll(() => {
@@ -372,6 +373,18 @@ describe("query.ibc_packet_forward", () => {
 
     expect(params).toStrictEqual({
       fee_percentage: "0.000000000000000000",
+    });
+  });
+});
+
+describe.only("query.ibc_switch", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } = await secretjs.query.ibc_switch.params({});
+
+    expect(params).toStrictEqual({
+      pauser_address: "",
+      switch_status: "on",
     });
   });
 });
@@ -712,6 +725,64 @@ describe("tx.bank", () => {
     expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.1)));
     expect(bAfter - bBefore).toBe(BigInt(1));
     expect(cAfter - cBefore).toBe(BigInt(1));
+  });
+});
+
+describe.only("tx.ibc_switch", () => {
+  test("MsgToggleIbcSwitch ErrUnauthorizedToggle", async () => {
+    const { secretjs } = accounts[0];
+
+    const msg = {
+      sender: accounts[0].address,
+    };
+    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(3)
+    expect(tx.rawLog).toContain(
+      "failed to execute message; message index: 0: no address is currently approved to toggle ibc-switch: ibc-switch toggle failed",
+    );
+  });
+
+  test("MsgToggleIbcSwitch", async () => {
+    const { secretjs } = accounts[0];
+
+    await passParameterChangeProposal(secretjs, {
+      title: "Changing PauserAddress",
+      description: "Authorizing someone to toggle Switch",
+      changes: [
+        {subspace: "ibc-switch", key: "pauseraddress", value: `"${secretjs.address}"`},
+      ],
+    });
+
+    const sim = await secretjs.tx.ibc_switch.toggleIbcSwitch.simulate({
+      sender: accounts[0].address,
+    });
+
+    const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
+
+    const msg = {
+      sender: accounts[0].address,
+    };
+    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: gasLimit,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // query the new params
+    const { params } = await secretjs.query.ibc_switch.params({});
+
+    console.log("params", params);
+    expect(params).toStrictEqual({
+      pauser_address: `${secretjs.address}`,
+      switch_status: "off",
+    });
   });
 });
 
