@@ -1,6 +1,10 @@
 #!/bin/bash
 set -o errexit -o nounset -o pipefail
 
+# yarn install
+# sudo apt install protobuf-compiler
+# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@06e2564d87d858c791e9ab6a7759401d2485af27
+
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 rm -rf "${SCRIPT_PATH}/SecretNetwork"
@@ -38,7 +42,6 @@ GRPC_GATEWAY_OUT_DIR="${SCRIPT_PATH}/../src/grpc_gateway"
 rm -rf "$GRPC_GATEWAY_OUT_DIR"
 mkdir -p "$GRPC_GATEWAY_OUT_DIR"
 
-# go install github.com/scrtlabs/protoc-gen-grpc-gateway-ts@06e2564d87d858c791e9ab6a7759401d2485af27
 PLUGIN_PATH_GRPC_GATEWAY="$(which protoc-gen-grpc-gateway-ts)"
 
 protoc \
