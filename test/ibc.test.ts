@@ -1,5 +1,5 @@
-import { Link } from "@confio/relayer";
-import { sha256 } from "@noble/hashes/sha256";
+import {Link} from "@confio/relayer";
+import {sha256} from "@noble/hashes/sha256";
 import fs from "fs";
 import pako from "pako";
 import {
@@ -21,7 +21,7 @@ import {
   TxResultCode,
   Wallet,
 } from "../src";
-import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
+import {Coin} from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
 import {
   Account,
   accounts,
@@ -31,7 +31,9 @@ import {
   createIbcConnection,
   exec,
   loopRelayer,
-  passParameterChangeProposal, turnIbcSwitchOff, turnIbcSwitchOn,
+  passParameterChangeProposal,
+  turnIbcSwitchOff,
+  turnIbcSwitchOn,
   waitForChainToStart,
 } from "./utils";
 
@@ -1467,6 +1469,30 @@ describe.only("ibc-switch middleware", () => {
     test.only("switch turned off", async () => {
       const { secretjs } = accounts[0];
 
+      const setViewingKeyTx = await accounts[0].secretjs.tx.snip20.setViewingKey(
+        {
+          sender: accounts[0].address,
+          contract_address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+          msg: {
+            set_viewing_key: {
+              key: "banana",
+            },
+          },
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 500_000,
+          ibcTxsOptions: {
+            resolveResponsesCheckIntervalMs: 250,
+          }
+        }
+      );
+      if (setViewingKeyTx.code !== TxResultCode.Success) {
+        console.error(setViewingKeyTx.rawLog)
+      }
+      expect(setViewingKeyTx.code).toBe(TxResultCode.Success);
+
       let snip20BalanceBefore: { balance: { amount: string } } = await secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
         code_hash: contracts.snip20.codeHash,
@@ -1477,6 +1503,7 @@ describe.only("ibc-switch middleware", () => {
           },
         },
       });
+      console.log("snip20balancebefore", snip20BalanceBefore);
 
       await turnIbcSwitchOff(secretjs)
 
