@@ -802,6 +802,27 @@ describe.only("tx.ibc_switch", () => {
       "failed to execute message; message index: 0: this address is not allowed to toggle ibc-switch: ibc-switch toggle failed",
     );
   });
+
+  afterAll(async () => {
+    // restore the "on" status of the ibc-switch
+    const { secretjs } = accounts[0];
+
+    // do nothing if it's "on" now
+    const { params } = await secretjs.query.ibc_switch.params({});
+    if (params?.switch_status === "on") {
+      return;
+    }
+
+    const msg = {
+      sender: secretjs.address,
+    };
+    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(TxResultCode.Success)
+  });
 });
 
 describe("tx.compute", () => {
