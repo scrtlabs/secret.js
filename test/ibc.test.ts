@@ -1304,11 +1304,12 @@ describe.only("ibc-switch middleware", () => {
     });
 
     test("Failed attempt to turn off switch - still on", async () => {
-      const { secretjs: secretjsAuthorized } = accounts[1]; // authorized
+      const { secretjs: secretjsAuthorized } = accounts[0]; // authorized
       await turnIbcSwitchOn(secretjsAuthorized); // should do nothing
 
       const { secretjs } = accounts[1]; // unauthorized
 
+      // try to turn off switch but fail
       const msg = {
         sender: secretjs.address,
       };
@@ -1322,6 +1323,7 @@ describe.only("ibc-switch middleware", () => {
         "failed to execute message; message index: 0: this address is not allowed to toggle ibc-switch: ibc-switch toggle failed",
       );
 
+      // switch is still on, this should work as usual
       const freshAccount = new Wallet();
 
       const { balance: freshAccountBalanceBefore } =
@@ -1376,25 +1378,10 @@ describe.only("ibc-switch middleware", () => {
       expect(freshAccountBalanceAfter?.amount).toBe("1");
     }, 90_000);
 
-    test.only("switch turned off", async () => {
+    test("switch turned off", async () => {
       const { secretjs } = accounts[0]; // authorized
 
-      // verify the switch is on the "on" position at the beginning
-      const { params } = await secretjs.query.ibc_switch.params({});
-      if (params?.switch_status === "on") {
-        const msg = {
-          sender: secretjs.address,
-        };
-        let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
-        });
-
-        if (tx.code !== TxResultCode.Success) {
-          console.error(tx.rawLog);
-        }
-        expect(tx.code).toEqual(TxResultCode.Success)
-      }
+      await turnIbcSwitchOff(secretjs);
 
       const freshAccount = new Wallet();
 
@@ -1447,7 +1434,7 @@ describe.only("ibc-switch middleware", () => {
     }, 90_000);
   });
 
-  describe("Compute Stack", () => {
+  describe.only("Compute Stack", () => {
     type Contract = {
       wasm: Uint8Array;
       address: string;
@@ -1478,58 +1465,195 @@ describe.only("ibc-switch middleware", () => {
     }, 180_000 /* 3 minutes timeout */);
 
     test.only("switch turned off", async () => {
-      const { secretjs } = accounts[0]; // authorized
+      const { secretjs } = accounts[0];
 
-      await turnIbcSwitchOff(secretjs);
+      let snip20BalanceBefore: { balance: { amount: string } } = await secretjs.query.compute.queryContract({
+        contract_address: contracts.snip20.address,
+        code_hash: contracts.snip20.codeHash,
+        query: {
+          balance: {
+            key: "banana",
+            address: accounts[0].address,
+          },
+        },
+      });
 
-      const freshAccount = new Wallet();
+      await turnIbcSwitchOff(secretjs)
 
-      const { balance: freshAccountBalanceBefore } =
-        await secretjs.query.bank.balance({
-          address: freshAccount.address,
-          denom: "uscrt",
-        });
+      const accountOnSecretdev2: Account = {
+        address: accounts[0].address,
+        mnemonic: accounts[0].mnemonic,
+        walletAmino: accounts[0].walletAmino,
+        walletProto: accounts[0].walletProto,
+        secretjs: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+      };
 
-      expect(freshAccountBalanceBefore?.amount).toBe("0");
+      // register snip20 on cw20-ics20, then send tokens from secretdev-1
+      console.log("Sending tokens from secretdev-1...");
 
-      let tx = await secretjs.tx.ibc.transfer(
-        {
-          sender: secretjs.address,
-          receiver: secretjs.address,
-          source_channel: ibcChannelIdOnChain1,
-          source_port: "transfer",
-          token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
-          memo: JSON.stringify({
-            forward: {
-              receiver: freshAccount.address,
-              port: "transfer",
-              channel: ibcChannelIdOnChain2,
+      const sendTokensTx = await accounts[0].secretjs.tx.broadcast(
+        [
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              set_viewing_key: {
+                key: "banana",
+              },
             },
           }),
-        },
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              send: {
+                recipient: contracts.cw20ics20.address,
+                recipient_code_hash: contracts.cw20ics20.codeHash,
+                amount: "1",
+                msg: toBase64(
+                  toUtf8(
+                    JSON.stringify({
+                      channel: ibcChannelIdOnChain1,
+                      remote_address: accountOnSecretdev2.address,
+                      timeout: 10 * 60, // 10 minutes
+                    }),
+                  ),
+                ),
+              },
+            },
+          }),
+        ],
         {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 100_000,
-          ibcTxsOptions: {
-            resolveResponsesCheckIntervalMs: 250,
-          },
+          gasLimit: 5_000_000,
         },
       );
 
-      expect(tx.rawLog).toBe("failed to execute message; message index: 0: Ibc packets are currently paused in the network: ibc processing failed");
-      expect(tx.code).toBe(1);
+      expect(sendTokensTx.code).toBe(1);
+      expect(sendTokensTx.rawLog).toContain("Ibc packets are currently paused in the network: ibc processing failed");
 
-      // packet forward should resolve only after the final destination is acked
-      expect(tx.ibcResponses.length).toBe(0);
+      const snip20BalanceAfter: { balance: { amount: string }} = await accounts[0].secretjs.query.compute.queryContract({
+        contract_address: contracts.snip20.address,
+        code_hash: contracts.snip20.codeHash,
+        query: {
+          balance: {
+            key: "banana",
+            address: secretjs.address,
+          },
+        },
+      });
 
-      const { balance: freshAccountBalanceAfter } =
-        await secretjs.query.bank.balance({
-          address: freshAccount.address,
-          denom: "uscrt",
+      expect(snip20BalanceAfter.balance.amount).toBe(snip20BalanceBefore.balance.amount);
+
+      expect(sendTokensTx.ibcResponses.length).toBe(0);
+    }, 180_000);
+
+    test.only("switch turned back on", async () => {
+      const { secretjs } = accounts[0];
+      await turnIbcSwitchOn(secretjs)
+
+      const accountOnSecretdev2: Account = {
+        address: accounts[0].address,
+        mnemonic: accounts[0].mnemonic,
+        walletAmino: accounts[0].walletAmino,
+        walletProto: accounts[0].walletProto,
+        secretjs: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+      };
+
+      // register snip20 on cw20-ics20, then send tokens from secretdev-1
+      console.log("Sending tokens from secretdev-1...");
+
+      const sendTokensTx = await accounts[0].secretjs.tx.broadcast(
+        [
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              set_viewing_key: {
+                key: "banana",
+              },
+            },
+          }),
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              send: {
+                recipient: contracts.cw20ics20.address,
+                recipient_code_hash: contracts.cw20ics20.codeHash,
+                amount: "1",
+                msg: toBase64(
+                  toUtf8(
+                    JSON.stringify({
+                      channel: ibcChannelIdOnChain1,
+                      remote_address: accountOnSecretdev2.address,
+                      timeout: 10 * 60, // 10 minutes
+                    }),
+                  ),
+                ),
+              },
+            },
+          }),
+        ],
+        {
+          gasLimit: 5_000_000,
+        },
+      );
+      if (sendTokensTx.code !== TxResultCode.Success) {
+        console.error(sendTokensTx.rawLog);
+      }
+      expect(sendTokensTx.code).toBe(TxResultCode.Success);
+
+      let snip20Balance: { balance: { amount: string } } =
+        await accounts[0].secretjs.query.compute.queryContract({
+          contract_address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+          query: {
+            balance: {
+              key: "banana",
+              address: accounts[0].address,
+            },
+          },
         });
+      expect(snip20Balance.balance.amount).toBe("999");
 
-      expect(freshAccountBalanceAfter?.amount).toBe("0");
-    }, 90_000);
+      console.log("Waiting for tokens to arrive on secretdev-2...");
+
+      const expectedIbcDenom = ibcDenom(
+        [
+          {
+            incomingChannelId: ibcChannelIdOnChain2,
+            incomingPortId: "transfer",
+          },
+        ],
+        `cw20:${contracts.snip20.address}`,
+      );
+
+      // wait for tokens to arrive on secretdev-2
+      expect((await sendTokensTx.ibcResponses[0]).type).toBe("ack");
+
+      // the balance query is lagging for some reason (on mainnet too!)
+      // so we'll wait for it to update
+      let balance: Coin | undefined;
+      while (balance?.amount === "0" || !balance) {
+        ({ balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
+          denom: expectedIbcDenom,
+          address: accountOnSecretdev2.address,
+        }));
+      }
+    }, 180_000);
   });
 });
