@@ -729,7 +729,8 @@ describe("tx.bank", () => {
 });
 
 describe.only("tx.ibc_switch", () => {
-  test("MsgToggleIbcSwitch ErrUnauthorizedToggle", async () => {
+  test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address empty in module's params", async () => {
+    // assume address is empty in ibc-switch's module params
     const { secretjs } = accounts[0];
 
     const msg = {
@@ -778,11 +779,28 @@ describe.only("tx.ibc_switch", () => {
     // query the new params
     const { params } = await secretjs.query.ibc_switch.params({});
 
-    console.log("params", params);
     expect(params).toStrictEqual({
       pauser_address: `${secretjs.address}`,
       switch_status: "off",
     });
+  });
+
+  test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address different in module params", async () => {
+    // assume we just set the address to something in the previous test
+    const { secretjs } = accounts[1];
+
+    const msg = {
+      sender: secretjs.address,
+    };
+    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(2)
+    expect(tx.rawLog).toContain(
+      "failed to execute message; message index: 0: this address is not allowed to toggle ibc-switch: ibc-switch toggle failed",
+    );
   });
 });
 
