@@ -415,6 +415,8 @@ export async function passParameterChangeProposal(
   secretjs: SecretNetworkClient,
   content: ProposalContent,
 ) {
+  console.log("Passing parameter change proposal...");
+
   let tx = await secretjs.tx.gov.submitProposal(
     {
       type: ProposalType.ParameterChangeProposal,
