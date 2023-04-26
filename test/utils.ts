@@ -454,3 +454,49 @@ export async function passParameterChangeProposal(
 
   await waitForProposalToPass(secretjs, proposalId);
 }
+
+export async function turnIbcSwitchOn(
+  secretjs: SecretNetworkClient,
+) {
+  console.log("Turning ibc-switch on...");
+
+  // verify the switch is on the "off" position at the beginning
+  const {params} = await secretjs.query.ibc_switch.params({});
+  if (params?.switch_status === "off") {
+    const msg = {
+      sender: secretjs.address,
+    };
+    let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toEqual(TxResultCode.Success)
+  }
+}
+
+export async function turnIbcSwitchOff(
+  secretjs: SecretNetworkClient,
+) {
+  console.log("Turning ibc-switch off...");
+
+  // verify the switch is on the "off" position at the beginning
+  const {params} = await secretjs.query.ibc_switch.params({});
+  if (params?.switch_status === "on") {
+    const msg = {
+      sender: secretjs.address,
+    };
+    let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toEqual(TxResultCode.Success)
+  }
+}

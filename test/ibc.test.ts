@@ -31,6 +31,7 @@ import {
   createIbcConnection,
   exec,
   loopRelayer,
+  passParameterChangeProposal, turnIbcSwitchOff, turnIbcSwitchOn,
   waitForChainToStart,
 } from "./utils";
 
@@ -63,6 +64,170 @@ beforeAll(async () => {
   console.log("Creating IBC connection...");
   ibcConnection = await createIbcConnection();
 }, 180_000);
+
+const contractsSetup = async () => {
+  type Contract = {
+    wasm: Uint8Array;
+    address: string;
+    codeId: number;
+    ibcPortId: string;
+    codeHash: string;
+  };
+
+  const contracts: { snip20: Contract; cw20ics20: Contract } = {
+    snip20: {
+      wasm: new Uint8Array(),
+      address: "",
+      codeId: -1,
+      ibcPortId: "",
+      codeHash: "",
+    },
+    cw20ics20: {
+      wasm: new Uint8Array(),
+      address: "",
+      codeId: -1,
+      ibcPortId: "",
+      codeHash: "",
+    },
+  };
+
+  let ibcChannelIdOnChain1 = "";
+  let ibcChannelIdOnChain2 = "";
+
+  if (stopRelayer) {
+    console.log("Pausing relayer...");
+    await stopRelayer();
+  }
+
+  contracts.snip20.wasm = fs.readFileSync(
+    `${__dirname}/snip20-ibc.wasm.gz`,
+  ) as Uint8Array;
+  contracts.cw20ics20.wasm = fs.readFileSync(
+    `${__dirname}/cw20-ics20.wasm.gz`,
+  ) as Uint8Array;
+
+  contracts.snip20.codeHash = toHex(
+    sha256(pako.ungzip(contracts.snip20.wasm)),
+  );
+  contracts.cw20ics20.codeHash = toHex(
+    sha256(pako.ungzip(contracts.cw20ics20.wasm)),
+  );
+
+  console.log("Storing contracts on secretdev-1...");
+
+  let tx: TxResponse = await accounts[0].secretjs.tx.broadcast(
+    [
+      new MsgStoreCode({
+        sender: accounts[0].address,
+        wasm_byte_code: contracts.snip20.wasm,
+        source: "",
+        builder: "",
+      }),
+      new MsgStoreCode({
+        sender: accounts[0].address,
+        wasm_byte_code: contracts.cw20ics20.wasm,
+        source: "",
+        builder: "",
+      }),
+    ],
+    { gasLimit: 5_000_000 },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  contracts.snip20.codeId = Number(
+    MsgStoreCodeResponse.decode(tx.data[0]).code_id,
+  );
+  contracts.cw20ics20.codeId = Number(
+    MsgStoreCodeResponse.decode(tx.data[1]).code_id,
+  );
+
+  console.log("Instantiating snip20 on secretdev-1...");
+
+  tx = await accounts[0].secretjs.tx.compute.instantiateContract(
+    {
+      sender: accounts[0].address,
+      code_id: contracts.snip20.codeId,
+      code_hash: contracts.snip20.codeHash,
+      init_msg: {
+        name: "Secret SCRT",
+        admin: accounts[0].address,
+        symbol: "SSCRT",
+        decimals: 6,
+        initial_balances: [{ address: accounts[0].address, amount: "1000" }],
+        prng_seed: "eW8=",
+        config: {
+          public_total_supply: true,
+          enable_deposit: true,
+          enable_redeem: true,
+          enable_mint: false,
+          enable_burn: false,
+        },
+        supported_denoms: ["uscrt"],
+      },
+      label: `snip20-${Date.now()}`,
+    },
+    { gasLimit: 300_000 },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  contracts.snip20.address = MsgInstantiateContractResponse.decode(
+    tx.data[0],
+  ).address;
+  contracts.snip20.ibcPortId = "wasm." + contracts.snip20.address;
+
+  console.log("Instantiating cw20-ics20 on secretdev-1...");
+
+  tx = await accounts[0].secretjs.tx.compute.instantiateContract(
+    {
+      sender: accounts[0].address,
+      code_id: contracts.cw20ics20.codeId,
+      code_hash: contracts.cw20ics20.codeHash,
+      init_msg: {
+        admin: accounts[0].address,
+        allowlist: [
+          {
+            contract: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+          },
+        ],
+      },
+      label: `cw20-ics20-${Date.now()}`,
+    },
+    { gasLimit: 300_000 },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  contracts.cw20ics20.address = MsgInstantiateContractResponse.decode(
+    tx.data[0],
+  ).address;
+  contracts.cw20ics20.ibcPortId = "wasm." + contracts.cw20ics20.address;
+
+  console.log("Creating IBC wasm <-> transfer channel...");
+  const ibcChannelPair = await createIbcChannel(
+    ibcConnection,
+    contracts.cw20ics20.ibcPortId,
+  );
+
+  ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
+  ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
+
+  expect(ibcChannelIdOnChain1).not.toBe("");
+  expect(ibcChannelIdOnChain2).not.toBe("");
+
+  console.log("Looping relayer...");
+  stopRelayer = loopRelayer(ibcConnection);
+
+  return {contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2};
+};
 
 afterAll(async () => {
   if (stopRelayer) {
@@ -284,7 +449,7 @@ describe("cw20-ics20", () => {
     codeHash: string;
   };
 
-  const contracts: { snip20: Contract; cw20ics20: Contract } = {
+  let contracts: { snip20: Contract; cw20ics20: Contract } = {
     snip20: {
       wasm: new Uint8Array(),
       address: "",
@@ -305,137 +470,7 @@ describe("cw20-ics20", () => {
   let ibcChannelIdOnChain2 = "";
 
   beforeAll(async () => {
-    if (stopRelayer) {
-      console.log("Pausing relayer...");
-      await stopRelayer();
-    }
-
-    contracts.snip20.wasm = fs.readFileSync(
-      `${__dirname}/snip20-ibc.wasm.gz`,
-    ) as Uint8Array;
-    contracts.cw20ics20.wasm = fs.readFileSync(
-      `${__dirname}/cw20-ics20.wasm.gz`,
-    ) as Uint8Array;
-
-    contracts.snip20.codeHash = toHex(
-      sha256(pako.ungzip(contracts.snip20.wasm)),
-    );
-    contracts.cw20ics20.codeHash = toHex(
-      sha256(pako.ungzip(contracts.cw20ics20.wasm)),
-    );
-
-    console.log("Storing contracts on secretdev-1...");
-
-    let tx: TxResponse = await accounts[0].secretjs.tx.broadcast(
-      [
-        new MsgStoreCode({
-          sender: accounts[0].address,
-          wasm_byte_code: contracts.snip20.wasm,
-          source: "",
-          builder: "",
-        }),
-        new MsgStoreCode({
-          sender: accounts[0].address,
-          wasm_byte_code: contracts.cw20ics20.wasm,
-          source: "",
-          builder: "",
-        }),
-      ],
-      { gasLimit: 5_000_000 },
-    );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
-    contracts.snip20.codeId = Number(
-      MsgStoreCodeResponse.decode(tx.data[0]).code_id,
-    );
-    contracts.cw20ics20.codeId = Number(
-      MsgStoreCodeResponse.decode(tx.data[1]).code_id,
-    );
-
-    console.log("Instantiating snip20 on secretdev-1...");
-
-    tx = await accounts[0].secretjs.tx.compute.instantiateContract(
-      {
-        sender: accounts[0].address,
-        code_id: contracts.snip20.codeId,
-        code_hash: contracts.snip20.codeHash,
-        init_msg: {
-          name: "Secret SCRT",
-          admin: accounts[0].address,
-          symbol: "SSCRT",
-          decimals: 6,
-          initial_balances: [{ address: accounts[0].address, amount: "1000" }],
-          prng_seed: "eW8=",
-          config: {
-            public_total_supply: true,
-            enable_deposit: true,
-            enable_redeem: true,
-            enable_mint: false,
-            enable_burn: false,
-          },
-          supported_denoms: ["uscrt"],
-        },
-        label: `snip20-${Date.now()}`,
-      },
-      { gasLimit: 300_000 },
-    );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
-    contracts.snip20.address = MsgInstantiateContractResponse.decode(
-      tx.data[0],
-    ).address;
-    contracts.snip20.ibcPortId = "wasm." + contracts.snip20.address;
-
-    console.log("Instantiating cw20-ics20 on secretdev-1...");
-
-    tx = await accounts[0].secretjs.tx.compute.instantiateContract(
-      {
-        sender: accounts[0].address,
-        code_id: contracts.cw20ics20.codeId,
-        code_hash: contracts.cw20ics20.codeHash,
-        init_msg: {
-          admin: accounts[0].address,
-          allowlist: [
-            {
-              contract: contracts.snip20.address,
-              code_hash: contracts.snip20.codeHash,
-            },
-          ],
-        },
-        label: `cw20-ics20-${Date.now()}`,
-      },
-      { gasLimit: 300_000 },
-    );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
-    contracts.cw20ics20.address = MsgInstantiateContractResponse.decode(
-      tx.data[0],
-    ).address;
-    contracts.cw20ics20.ibcPortId = "wasm." + contracts.cw20ics20.address;
-
-    console.log("Creating IBC wasm <-> transfer channel...");
-    const ibcChannelPair = await createIbcChannel(
-      ibcConnection,
-      contracts.cw20ics20.ibcPortId,
-    );
-
-    ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
-    ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
-
-    expect(ibcChannelIdOnChain1).not.toBe("");
-    expect(ibcChannelIdOnChain2).not.toBe("");
-
-    console.log("Looping relayer...");
-    stopRelayer = loopRelayer(ibcConnection);
+    ({contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2} = await contractsSetup());
   }, 180_000 /* 3 minutes timeout */);
 
   test(
@@ -1233,4 +1268,268 @@ describe("ibc-hooks middleware", () => {
 
     expect(ibcResp.tx.arrayLog).toBe([]); // TODO fix this
   }, 90_000);
+});
+
+describe.only("ibc-switch middleware", () => {
+  let ibcChannelIdOnChain1 = "";
+  let ibcChannelIdOnChain2 = "";
+
+  describe("Transfer Stack", () => {
+    beforeAll(async () => {
+      if (stopRelayer) {
+        console.log("Pausing relayer...");
+        await stopRelayer();
+      }
+
+      console.log("Creating IBC transfer <-> transfer channel...");
+      const ibcChannelPair = await createIbcChannel(ibcConnection);
+
+      ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
+      ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
+
+      expect(ibcChannelIdOnChain1).not.toBe("");
+      expect(ibcChannelIdOnChain2).not.toBe("");
+
+      console.log("Looping relayer...");
+      stopRelayer = loopRelayer(ibcConnection);
+
+      const { secretjs } = accounts[0];
+      await passParameterChangeProposal(secretjs, {
+        title: "Changing PauserAddress",
+        description: "Authorizing someone to toggle Switch",
+        changes: [
+          {subspace: "ibc-switch", key: "pauseraddress", value: `"${secretjs.address}"`},
+        ],
+      });
+    });
+
+    test("Failed attempt to turn off switch - still on", async () => {
+      const { secretjs: secretjsAuthorized } = accounts[1]; // authorized
+      await turnIbcSwitchOn(secretjsAuthorized); // should do nothing
+
+      const { secretjs } = accounts[1]; // unauthorized
+
+      const msg = {
+        sender: secretjs.address,
+      };
+      let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      });
+
+      expect(tx.code).toEqual(2)
+      expect(tx.rawLog).toContain(
+        "failed to execute message; message index: 0: this address is not allowed to toggle ibc-switch: ibc-switch toggle failed",
+      );
+
+      const freshAccount = new Wallet();
+
+      const { balance: freshAccountBalanceBefore } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceBefore?.amount).toBe("0");
+
+      tx = await secretjs.tx.ibc.transfer(
+        {
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: stringToCoin("1uscrt"),
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          memo: JSON.stringify({
+            forward: {
+              receiver: freshAccount.address,
+              port: "transfer",
+              channel: ibcChannelIdOnChain2,
+            },
+          }),
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 100_000,
+          ibcTxsOptions: {
+            resolveResponsesCheckIntervalMs: 250,
+          },
+        },
+      );
+
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      // packet forward should resolve only after the final destination is acked
+      expect(tx.ibcResponses.length).toBe(1);
+      const ibcResp = await tx.ibcResponses[0];
+      expect(ibcResp.type).toBe("ack");
+
+      const { balance: freshAccountBalanceAfter } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceAfter?.amount).toBe("1");
+    }, 90_000);
+
+    test.only("switch turned off", async () => {
+      const { secretjs } = accounts[0]; // authorized
+
+      // verify the switch is on the "on" position at the beginning
+      const { params } = await secretjs.query.ibc_switch.params({});
+      if (params?.switch_status === "on") {
+        const msg = {
+          sender: secretjs.address,
+        };
+        let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        });
+
+        if (tx.code !== TxResultCode.Success) {
+          console.error(tx.rawLog);
+        }
+        expect(tx.code).toEqual(TxResultCode.Success)
+      }
+
+      const freshAccount = new Wallet();
+
+      const { balance: freshAccountBalanceBefore } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceBefore?.amount).toBe("0");
+
+      const tx = await secretjs.tx.ibc.transfer(
+        {
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: stringToCoin("1uscrt"),
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          memo: JSON.stringify({
+            forward: {
+              receiver: freshAccount.address,
+              port: "transfer",
+              channel: ibcChannelIdOnChain2,
+            },
+          }),
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 100_000,
+          ibcTxsOptions: {
+            resolveResponsesCheckIntervalMs: 250,
+          },
+        },
+      );
+
+      expect(tx.rawLog).toBe("failed to execute message; message index: 0: Ibc packets are currently paused in the network: ibc processing failed");
+      expect(tx.code).toBe(1);
+
+      // packet forward should resolve only after the final destination is acked
+      expect(tx.ibcResponses.length).toBe(0);
+
+      const { balance: freshAccountBalanceAfter } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceAfter?.amount).toBe("0");
+    }, 90_000);
+  });
+
+  describe("Compute Stack", () => {
+    type Contract = {
+      wasm: Uint8Array;
+      address: string;
+      codeId: number;
+      ibcPortId: string;
+      codeHash: string;
+    };
+
+    let contracts: { snip20: Contract; cw20ics20: Contract } = {
+      snip20: {
+        wasm: new Uint8Array(),
+        address: "",
+        codeId: -1,
+        ibcPortId: "",
+        codeHash: "",
+      },
+      cw20ics20: {
+        wasm: new Uint8Array(),
+        address: "",
+        codeId: -1,
+        ibcPortId: "",
+        codeHash: "",
+      },
+    };
+
+    beforeAll(async () => {
+      ({contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2} = await contractsSetup());
+    }, 180_000 /* 3 minutes timeout */);
+
+    test.only("switch turned off", async () => {
+      const { secretjs } = accounts[0]; // authorized
+
+      await turnIbcSwitchOff(secretjs);
+
+      const freshAccount = new Wallet();
+
+      const { balance: freshAccountBalanceBefore } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceBefore?.amount).toBe("0");
+
+      let tx = await secretjs.tx.ibc.transfer(
+        {
+          sender: secretjs.address,
+          receiver: secretjs.address,
+          source_channel: ibcChannelIdOnChain1,
+          source_port: "transfer",
+          token: stringToCoin("1uscrt"),
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          memo: JSON.stringify({
+            forward: {
+              receiver: freshAccount.address,
+              port: "transfer",
+              channel: ibcChannelIdOnChain2,
+            },
+          }),
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 100_000,
+          ibcTxsOptions: {
+            resolveResponsesCheckIntervalMs: 250,
+          },
+        },
+      );
+
+      expect(tx.rawLog).toBe("failed to execute message; message index: 0: Ibc packets are currently paused in the network: ibc processing failed");
+      expect(tx.code).toBe(1);
+
+      // packet forward should resolve only after the final destination is acked
+      expect(tx.ibcResponses.length).toBe(0);
+
+      const { balance: freshAccountBalanceAfter } =
+        await secretjs.query.bank.balance({
+          address: freshAccount.address,
+          denom: "uscrt",
+        });
+
+      expect(freshAccountBalanceAfter?.amount).toBe("0");
+    }, 90_000);
+  });
 });
