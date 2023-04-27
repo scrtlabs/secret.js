@@ -1315,7 +1315,7 @@ describe.only("ibc-switch middleware", () => {
       const msg = {
         sender: secretjs.address,
       };
-      let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+      let tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
         broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
       });

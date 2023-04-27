@@ -2,9 +2,9 @@ import {
   Query,
   ParamsRequest,
   ParamsResponse,
-} from "../grpc_gateway/secret/ibc-switch/v1beta1/query.pb";
+} from "../grpc_gateway/secret/emergencybutton/v1beta1/query.pb";
 
-export class IbcSwitchQuerier {
+export class EmergencyButtonQuerier {
   constructor(private url: string) {}
 
   params(

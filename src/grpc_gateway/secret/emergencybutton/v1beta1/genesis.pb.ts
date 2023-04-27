@@ -4,7 +4,7 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as SecretIbcswitchV1beta1Params from "./params.pb"
+import * as SecretEmergencybuttonV1beta1Params from "./params.pb"
 export type GenesisState = {
-  params?: SecretIbcswitchV1beta1Params.Params
+  params?: SecretEmergencybuttonV1beta1Params.Params
 }

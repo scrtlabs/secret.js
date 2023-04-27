@@ -179,7 +179,7 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
-import { IbcSwitchQuerier } from "./query/ibc_switch";
+import { EmergencyButtonQuerier } from "./query/emergency_button";
 import {
   AminoMsg,
   Msg,
@@ -215,7 +215,7 @@ import {
   isSignDoc,
   isSignDocCamelCase,
 } from "./wallet_amino";
-import {MsgToggleIbcSwitch, MsgToggleIbcSwitchParams} from "./tx/ibc_switch";
+import {MsgToggleIbcSwitch, MsgToggleIbcSwitchParams} from "./tx/emergency_button";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -420,7 +420,7 @@ export type Querier = {
   ibc_iterchain_accounts_controller: IbcInterchainAccountsControllerQuerier;
   ibc_fee: IbcFeeQuerier;
   ibc_packet_forward: IbcPacketForwardQuerier;
-  ibc_switch: IbcSwitchQuerier;
+  emergency_button: EmergencyButtonQuerier;
   mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
@@ -691,7 +691,7 @@ export type TxSender = {
     /** Upload a compiled contract to Secret Network */
     storeCode: SingleMsgTx<MsgStoreCodeParams>;
   };
-  ibc_switch: {
+  emergency_button: {
     toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
   }
   crisis: {
@@ -834,7 +834,7 @@ export class SecretNetworkClient {
         new IbcInterchainAccountsControllerQuerier(options.url),
       ibc_fee: new IbcFeeQuerier(options.url),
       ibc_packet_forward: new IbcPacketForwardQuerier(options.url),
-      ibc_switch: new IbcSwitchQuerier(options.url),
+      emergency_button: new EmergencyButtonQuerier(options.url),
       mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),
@@ -928,7 +928,7 @@ export class SecretNetworkClient {
         instantiateContract: doMsg(MsgInstantiateContract),
         storeCode: doMsg(MsgStoreCode),
       },
-      ibc_switch: {
+      emergency_button: {
         toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
       },
       crisis: {

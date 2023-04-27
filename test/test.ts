@@ -378,10 +378,10 @@ describe("query.ibc_packet_forward", () => {
   });
 });
 
-describe.only("query.ibc_switch", () => {
+describe.only("query.emergency_button", () => {
   test("params()", async () => {
     const { secretjs } = accounts[0];
-    const { params } = await secretjs.query.ibc_switch.params({});
+    const { params } = await secretjs.query.emergency_button.params({});
 
     expect(params).toStrictEqual({
       pauser_address: "",
@@ -729,7 +729,7 @@ describe("tx.bank", () => {
   });
 });
 
-describe.only("tx.ibc_switch", () => {
+describe.only("tx.emergency_button", () => {
   test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address empty in module's params", async () => {
     // assume address is empty in ibc-switch's module params
     const { secretjs } = accounts[0];
@@ -737,7 +737,7 @@ describe.only("tx.ibc_switch", () => {
     const msg = {
       sender: accounts[0].address,
     };
-    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });
@@ -759,7 +759,7 @@ describe.only("tx.ibc_switch", () => {
       ],
     });
 
-    const sim = await secretjs.tx.ibc_switch.toggleIbcSwitch.simulate({
+    const sim = await secretjs.tx.emergency_button.toggleIbcSwitch.simulate({
       sender: accounts[0].address,
     });
 
@@ -768,7 +768,7 @@ describe.only("tx.ibc_switch", () => {
     const msg = {
       sender: accounts[0].address,
     };
-    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: gasLimit,
     });
@@ -778,7 +778,7 @@ describe.only("tx.ibc_switch", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     // query the new params
-    const { params } = await secretjs.query.ibc_switch.params({});
+    const { params } = await secretjs.query.emergency_button.params({});
 
     expect(params).toStrictEqual({
       pauser_address: `${secretjs.address}`,
@@ -793,7 +793,7 @@ describe.only("tx.ibc_switch", () => {
     const msg = {
       sender: secretjs.address,
     };
-    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });
@@ -809,7 +809,7 @@ describe.only("tx.ibc_switch", () => {
     const { secretjs } = accounts[0];
 
     // do nothing if it's "on" now
-    const { params } = await secretjs.query.ibc_switch.params({});
+    const { params } = await secretjs.query.emergency_button.params({});
     if (params?.switch_status === "on") {
       return;
     }
@@ -817,7 +817,7 @@ describe.only("tx.ibc_switch", () => {
     const msg = {
       sender: secretjs.address,
     };
-    const tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });

@@ -461,12 +461,12 @@ export async function turnIbcSwitchOn(
   console.log("Turning ibc-switch on...");
 
   // verify the switch is on the "off" position at the beginning
-  const {params} = await secretjs.query.ibc_switch.params({});
+  const {params} = await secretjs.query.emergency_button.params({});
   if (params?.switch_status === "off") {
     const msg = {
       sender: secretjs.address,
     };
-    let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    let tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });
@@ -484,12 +484,12 @@ export async function turnIbcSwitchOff(
   console.log("Turning ibc-switch off...");
 
   // verify the switch is on the "off" position at the beginning
-  const {params} = await secretjs.query.ibc_switch.params({});
+  const {params} = await secretjs.query.emergency_button.params({});
   if (params?.switch_status === "on") {
     const msg = {
       sender: secretjs.address,
     };
-    let tx = await secretjs.tx.ibc_switch.toggleIbcSwitch(msg, {
+    let tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
     });

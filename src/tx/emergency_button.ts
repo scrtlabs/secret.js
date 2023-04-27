@@ -14,7 +14,7 @@ export class MsgToggleIbcSwitch implements Msg {
       type_url: "/secret.ibcswitch.v1beta1.MsgToggleIbcSwitch",
       value: this.params,
       encode: async () =>
-        (await import("../protobuf/secret/ibc-switch/v1beta1/tx")).MsgToggleIbcSwitch.encode(
+        (await import("../protobuf/secret/emergencybutton/v1beta1/tx")).MsgToggleIbcSwitch.encode(
           this.params,
         ).finish(),
     };
@@ -22,7 +22,7 @@ export class MsgToggleIbcSwitch implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "ibc-switch/MsgToggleIbcSwitch",
+      type: "emergencybutton/MsgToggleIbcSwitch",
       value: this.params,
     };
   }

@@ -14,6 +14,6 @@ export type MsgToggleIbcSwitchResponse = {
 
 export class Msg {
   static ToggleIbcSwitch(req: MsgToggleIbcSwitch, initReq?: fm.InitReq): Promise<MsgToggleIbcSwitchResponse> {
-    return fm.fetchReq<MsgToggleIbcSwitch, MsgToggleIbcSwitchResponse>(`/secret.ibcswitch.v1beta1.Msg/ToggleIbcSwitch`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<MsgToggleIbcSwitch, MsgToggleIbcSwitchResponse>(`/secret.emergencybutton.v1beta1.Msg/ToggleIbcSwitch`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }
