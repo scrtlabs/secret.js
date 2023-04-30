@@ -998,7 +998,7 @@ describe("fee middleware", () => {
 
 });
 
-describe.only("ibc-switch middleware", () => {
+describe("ibc-switch middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
@@ -1162,7 +1162,7 @@ describe.only("ibc-switch middleware", () => {
     }, 90_000);
   });
 
-  describe.only("Compute Stack", () => {
+  describe("Compute Stack", () => {
     type Contract = {
       wasm: Uint8Array;
       address: string;
@@ -1202,7 +1202,7 @@ describe.only("ibc-switch middleware", () => {
 
     }, 180_000 /* 3 minutes timeout */);
 
-    test.only("switch turned off", async () => {
+    test("switch turned off", async () => {
       const { secretjs } = accounts[0];
       await turnIbcSwitchOn(secretjs);
 
@@ -1317,7 +1317,7 @@ describe.only("ibc-switch middleware", () => {
       expect(sendTokensTx.ibcResponses.length).toBe(0);
     }, 180_000);
 
-    test.only("switch turned back on", async () => {
+    test("switch turned back on", async () => {
       const { secretjs } = accounts[0];
       await turnIbcSwitchOff(secretjs);
       await turnIbcSwitchOn(secretjs);
