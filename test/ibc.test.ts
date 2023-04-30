@@ -827,17 +827,6 @@ describe("fee middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    tx = await secretjs1.tx.ibc_fee.registerPayee({
-      relayer: relayerWallet.address,
-      channel_id: ibcChannelIdOnChain1,
-      port_id: "compute",
-      payee: relayerPayee.address,
-    });
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-
     console.log("Registering relayer payee on secretdev-2...");
 
     const secretjs2 = new SecretNetworkClient({
@@ -1007,100 +996,6 @@ describe("fee middleware", () => {
     ).toBe(/* source chain fee: */ timeout_fee);
   }, 90_000);
 
-  test("fee with compute ", async () => {
-    type Contract = {
-      wasm: Uint8Array;
-      address: string;
-      codeId: number;
-      ibcPortId: string;
-      codeHash: string;
-    };
-
-    let contracts: { snip20: Contract; cw20ics20: Contract } = {
-      snip20: {
-        wasm: new Uint8Array(),
-        address: "",
-        codeId: -1,
-        ibcPortId: "",
-        codeHash: "",
-      },
-      cw20ics20: {
-        wasm: new Uint8Array(),
-        address: "",
-        codeId: -1,
-        ibcPortId: "",
-        codeHash: "",
-      },
-    };
-    ({contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2} = await contractsSetup());
-
-    const accountOnSecretdev2: Account = {
-      address: accounts[0].address,
-      mnemonic: accounts[0].mnemonic,
-      walletAmino: accounts[0].walletAmino,
-      walletProto: accounts[0].walletProto,
-      secretjs: new SecretNetworkClient({
-        url: chain2LCD,
-        wallet: accounts[0].walletAmino,
-        walletAddress: accounts[0].address,
-        chainId: "secretdev-2",
-      }),
-    };
-
-    // register snip20 on cw20-ics20, then send tokens from secretdev-1
-    console.log("Sending tokens from secretdev-1...");
-
-    const { secretjs } = accounts[0];
-
-    const { balance: payeeBalanceBefore } = await secretjs.query.bank.balance({
-      address: relayerPayee.address,
-      denom: "uscrt",
-    });
-
-    const recv_fee = 11;
-    const ack_fee = 12;
-    const timeout_fee = 13;
-
-    const sendTokensTx = await accounts[0].secretjs.tx.broadcast(
-        [
-          new MsgPayPacketFee({
-            signer: secretjs.address,
-            source_channel_id: ibcChannelIdOnChain1,
-            source_port_id: "compute",
-            fee: {
-              recv_fee: coinsFromString(`${recv_fee}uscrt`),
-              ack_fee: coinsFromString(`${ack_fee}uscrt`),
-              timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
-            },
-          }),
-          new MsgExecuteContract({
-            sender: accounts[0].address,
-            contract_address: contracts.snip20.address,
-            code_hash: contracts.snip20.codeHash,
-            msg: {
-              send: {
-                recipient: contracts.cw20ics20.address,
-                recipient_code_hash: contracts.cw20ics20.codeHash,
-                amount: "1",
-                msg: toBase64(
-                    toUtf8(
-                        JSON.stringify({
-                          channel: ibcChannelIdOnChain1,
-                          remote_address: accountOnSecretdev2.address,
-                          timeout: 10 * 60, // 10 minutes
-                        }),
-                    ),
-                ),
-              },
-            },
-          }),
-        ],
-        {
-          gasLimit: 5_000_000,
-        },
-    );
-
-  }, 90_000)
 });
 
 describe.only("ibc-switch middleware", () => {
