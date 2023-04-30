@@ -744,7 +744,7 @@ describe.only("tx.emergency_button", () => {
 
     expect(tx.code).toEqual(3)
     expect(tx.rawLog).toContain(
-      "failed to execute message; message index: 0: no address is currently approved to toggle emergencybutton: emergency button toggle failed",
+      "no address is currently approved to toggle emergency button",
     );
   });
 
