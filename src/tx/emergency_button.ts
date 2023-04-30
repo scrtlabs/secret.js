@@ -11,7 +11,7 @@ export class MsgToggleIbcSwitch implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: "/secret.ibcswitch.v1beta1.MsgToggleIbcSwitch",
+      type_url: "/secret.emergencybutton.v1beta1.MsgToggleIbcSwitch",
       value: this.params,
       encode: async () =>
         (await import("../protobuf/secret/emergencybutton/v1beta1/tx")).MsgToggleIbcSwitch.encode(

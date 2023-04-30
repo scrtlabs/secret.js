@@ -744,7 +744,7 @@ describe.only("tx.emergency_button", () => {
 
     expect(tx.code).toEqual(3)
     expect(tx.rawLog).toContain(
-      "failed to execute message; message index: 0: no address is currently approved to toggle ibc-switch: ibc-switch toggle failed",
+      "failed to execute message; message index: 0: no address is currently approved to toggle emergencybutton: emergency button toggle failed",
     );
   });
 
@@ -755,7 +755,7 @@ describe.only("tx.emergency_button", () => {
       title: "Changing PauserAddress",
       description: "Authorizing someone to toggle Switch",
       changes: [
-        {subspace: "ibc-switch", key: "pauseraddress", value: `"${secretjs.address}"`},
+        {subspace: "emergencybutton", key: "pauseraddress", value: `"${secretjs.address}"`},
       ],
     });
 
@@ -800,7 +800,7 @@ describe.only("tx.emergency_button", () => {
 
     expect(tx.code).toEqual(2)
     expect(tx.rawLog).toContain(
-      "failed to execute message; message index: 0: this address is not allowed to toggle ibc-switch: ibc-switch toggle failed",
+      "failed to execute message; message index: 0: this address is not allowed to toggle emergency button: emergency button toggle failed",
     );
   });
 

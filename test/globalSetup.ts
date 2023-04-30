@@ -15,13 +15,13 @@ module.exports = async () => {
     url: chain1LCD,
   });
 
-  // set block time to 600ms
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-1 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
-  );
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-1`,
-  );
+  // // set block time to 600ms
+  // await exec(
+  //   `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-1 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
+  // );
+  // await exec(
+  //   `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-1`,
+  // );
 
   await waitForChainToStart({
     chainId: "secretdev-1",

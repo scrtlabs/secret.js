@@ -159,5 +159,5 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
   ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
-  ["/secret.ibcswitch.v1beta1.MsgToggleIbcSwitch", MsgToggleIbcSwitch],
+  ["/secret.emergencybutton.v1beta1.MsgToggleIbcSwitch", MsgToggleIbcSwitch],
 ]);

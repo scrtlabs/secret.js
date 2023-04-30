@@ -299,6 +299,10 @@ function flattenRequestPayload<T extends RequestPayload>(
 
       if (isPlainObject(value)) {
         objectToMerge = flattenRequestPayload(value as RequestPayload, newPath);
+      } else if (value && value.constructor === Uint8Array) {
+        objectToMerge = {
+          [newPath]: b64Encode(value, 0, value.length),
+        };
       } else if (isNonZeroValuePrimitive || isNonEmptyPrimitiveArray) {
         objectToMerge = { [newPath]: value };
       }
@@ -337,5 +341,8 @@ export function renderURLSearchParams<T extends RequestPayload>(
     [] as string[][]
   );
 
-  return new URLSearchParams(urlSearchParams).toString();
+  // react-native's URLSearchParams doesn't like working with array of arrays
+  return urlSearchParams
+    .map((x) => new URLSearchParams({ [x[0]]: x[1] }).toString())
+    .join("&");
 }
