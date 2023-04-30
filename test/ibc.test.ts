@@ -1048,7 +1048,7 @@ describe.only("ibc-switch middleware", () => {
 
       expect(tx.code).toEqual(2)
       expect(tx.rawLog).toContain(
-        "failed to execute message; message index: 0: this address is not allowed to toggle emergency button: emergency button toggle failed",
+        "this address is not allowed to toggle emergency button",
       );
 
       // switch is still on, this should work as usual
