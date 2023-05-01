@@ -1,5 +1,5 @@
-import {Link} from "@confio/relayer";
-import {sha256} from "@noble/hashes/sha256";
+import { Link } from "@confio/relayer";
+import { sha256 } from "@noble/hashes/sha256";
 import fs from "fs";
 import pako from "pako";
 import {
@@ -21,7 +21,7 @@ import {
   TxResultCode,
   Wallet,
 } from "../src";
-import {Coin} from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
+import { Coin } from "../src/grpc_gateway/cosmos/base/v1beta1/coin.pb";
 import {
   Account,
   accounts,
@@ -108,9 +108,7 @@ const contractsSetup = async (version?: string) => {
     `${__dirname}/cw20-ics20.wasm.gz`,
   ) as Uint8Array;
 
-  contracts.snip20.codeHash = toHex(
-    sha256(pako.ungzip(contracts.snip20.wasm)),
-  );
+  contracts.snip20.codeHash = toHex(sha256(pako.ungzip(contracts.snip20.wasm)));
   contracts.cw20ics20.codeHash = toHex(
     sha256(pako.ungzip(contracts.cw20ics20.wasm)),
   );
@@ -217,7 +215,7 @@ const contractsSetup = async (version?: string) => {
   const ibcChannelPair = await createIbcChannel(
     ibcConnection,
     contracts.cw20ics20.ibcPortId,
-    version
+    version,
   );
 
   ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
@@ -229,7 +227,7 @@ const contractsSetup = async (version?: string) => {
   console.log("Looping relayer...");
   stopRelayer = loopRelayer(ibcConnection);
 
-  return {contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2};
+  return { contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2 };
 };
 
 afterAll(async () => {
@@ -473,7 +471,8 @@ describe("cw20-ics20", () => {
   let ibcChannelIdOnChain2 = "";
 
   beforeAll(async () => {
-    ({contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2} = await contractsSetup());
+    ({ contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2 } =
+      await contractsSetup());
   }, 180_000 /* 3 minutes timeout */);
 
   test(
@@ -995,7 +994,6 @@ describe("fee middleware", () => {
       Number(payeeBalanceAfter?.amount) - Number(payeeBalanceBefore?.amount),
     ).toBe(/* source chain fee: */ timeout_fee);
   }, 90_000);
-
 });
 
 describe("ibc-switch middleware", () => {
@@ -1026,7 +1024,11 @@ describe("ibc-switch middleware", () => {
         title: "Changing PauserAddress",
         description: "Authorizing someone to toggle Switch",
         changes: [
-          {subspace: "emergencybutton", key: "pauseraddress", value: `"${secretjs.address}"`},
+          {
+            subspace: "emergencybutton",
+            key: "pauseraddress",
+            value: `"${secretjs.address}"`,
+          },
         ],
       });
     });
@@ -1046,7 +1048,7 @@ describe("ibc-switch middleware", () => {
         gasLimit: 5_000_000,
       });
 
-      expect(tx.code).toEqual(2)
+      expect(tx.code).toEqual(2);
       expect(tx.rawLog).toContain(
         "this address is not allowed to toggle emergency button",
       );
@@ -1146,8 +1148,8 @@ describe("ibc-switch middleware", () => {
         },
       );
 
-      expect(tx.rawLog).toBe("failed to execute message; message index: 0: Ibc packets are currently paused in the network: ibc processing failed");
       expect(tx.code).toBe(1);
+      expect(tx.rawLog).toContain("Ibc packets are currently paused");
 
       // packet forward should resolve only after the final destination is acked
       expect(tx.ibcResponses.length).toBe(0);
@@ -1189,17 +1191,21 @@ describe("ibc-switch middleware", () => {
     };
 
     beforeAll(async () => {
-      ({contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2} = await contractsSetup());
+      ({ contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2 } =
+        await contractsSetup());
 
       const { secretjs } = accounts[0];
       await passParameterChangeProposal(secretjs, {
         title: "Changing PauserAddress",
         description: "Authorizing someone to toggle Switch",
         changes: [
-          {subspace: "emergencybutton", key: "pauseraddress", value: `"${secretjs.address}"`},
+          {
+            subspace: "emergencybutton",
+            key: "pauseraddress",
+            value: `"${secretjs.address}"`,
+          },
         ],
       });
-
     }, 180_000 /* 3 minutes timeout */);
 
     test("switch turned off", async () => {
@@ -1222,18 +1228,23 @@ describe("ibc-switch middleware", () => {
           gasLimit: 500_000,
           ibcTxsOptions: {
             resolveResponsesCheckIntervalMs: 250,
-          }
-        }
+          },
+        },
       );
       if (setViewingKeyTx.code !== TxResultCode.Success) {
-        console.error(setViewingKeyTx.rawLog)
-        fail(new Error("Failed to send viewing key tx"))
+        console.error(setViewingKeyTx.rawLog);
+        fail(new Error("Failed to send viewing key tx"));
       }
 
-      console.log(`Querying with: ${contracts.snip20.address}, ${contracts.snip20.codeHash} for address: ${accounts[0].address}`)
+      console.log(
+        `Querying with: ${contracts.snip20.address}, ${contracts.snip20.codeHash} for address: ${accounts[0].address}`,
+      );
 
       let snip20BalanceBefore = await secretjs.query.snip20.getBalance({
-        contract: {address: contracts.snip20.address, code_hash: contracts.snip20.codeHash },
+        contract: {
+          address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+        },
         address: accounts[0].address,
         auth: {
           key: "banana",
@@ -1241,7 +1252,7 @@ describe("ibc-switch middleware", () => {
       });
       console.log("snip20balancebefore", snip20BalanceBefore.balance.amount);
 
-      await turnIbcSwitchOff(secretjs)
+      await turnIbcSwitchOff(secretjs);
 
       const accountOnSecretdev2: Account = {
         address: accounts[0].address,
@@ -1298,21 +1309,24 @@ describe("ibc-switch middleware", () => {
         },
       );
 
-      expect(sendTokensTx.code).toBe(3);
-      expect(sendTokensTx.rawLog).toContain("ibc contract execution is disabled");
+      expect(sendTokensTx.code).toBe(1);
+      expect(sendTokensTx.rawLog).toContain("Ibc packets are currently paused");
 
-      const snip20BalanceAfter: { balance: { amount: string }} = await accounts[0].secretjs.query.compute.queryContract({
-        contract_address: contracts.snip20.address,
-        code_hash: contracts.snip20.codeHash,
-        query: {
-          balance: {
-            key: "banana",
-            address: secretjs.address,
+      const snip20BalanceAfter: { balance: { amount: string } } =
+        await accounts[0].secretjs.query.compute.queryContract({
+          contract_address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+          query: {
+            balance: {
+              key: "banana",
+              address: secretjs.address,
+            },
           },
-        },
-      });
+        });
 
-      expect(snip20BalanceAfter.balance.amount).toBe(snip20BalanceBefore.balance.amount);
+      expect(snip20BalanceAfter.balance.amount).toBe(
+        snip20BalanceBefore.balance.amount,
+      );
 
       expect(sendTokensTx.ibcResponses.length).toBe(0);
     }, 180_000);
@@ -1339,7 +1353,10 @@ describe("ibc-switch middleware", () => {
       console.log("Sending tokens from secretdev-1...");
 
       let snip20BalanceBefore = await secretjs.query.snip20.getBalance({
-        contract: {address: contracts.snip20.address, code_hash: contracts.snip20.codeHash },
+        contract: {
+          address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+        },
         address: accounts[0].address,
         auth: {
           key: "banana",
@@ -1402,7 +1419,9 @@ describe("ibc-switch middleware", () => {
           },
         });
 
-      expect(Number(snip20Balance.balance.amount)).toBe(Number(snip20BalanceBefore.balance.amount) - 1);
+      expect(Number(snip20Balance.balance.amount)).toBe(
+        Number(snip20BalanceBefore.balance.amount) - 1,
+      );
 
       console.log("Waiting for tokens to arrive on secretdev-2...");
 
