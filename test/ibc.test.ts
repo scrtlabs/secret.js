@@ -270,7 +270,7 @@ describe("ibcResponses", () => {
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
-        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         memo: "hi",
       },
       {
@@ -313,7 +313,7 @@ describe("ibcResponses", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         }),
         new MsgTransfer({
           sender: secretjs.address,
@@ -321,7 +321,7 @@ describe("ibcResponses", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         }),
       ],
       {
@@ -419,7 +419,7 @@ describe("ibcResponses", () => {
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
-        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -473,7 +473,7 @@ describe("cw20-ics20", () => {
   beforeAll(async () => {
     ({ contracts, ibcChannelIdOnChain1, ibcChannelIdOnChain2 } =
       await contractsSetup());
-  }, 180_000 /* 3 minutes timeout */);
+  }, 180_000 /* 3 minute timeout */);
 
   test(
     "send from secretdev-1 to secretdev-2 then back to secretdev-1",
@@ -679,7 +679,7 @@ describe("cw20-ics20", () => {
 
       expect(snip20Balance.balance.amount).toBe("1000");
     },
-    5 * 60 * 1000 /* 5 minutes */,
+    5 * 60 * 1000 /* 5 minute timeout */,
   );
 });
 
@@ -726,7 +726,7 @@ describe("packet-forward-middleware", () => {
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
-        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+        timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         memo: JSON.stringify({
           forward: {
             receiver: freshAccount.address,
@@ -769,6 +769,34 @@ describe("fee middleware", () => {
   let ibcChannelIdOnChain2 = "";
 
   const relayerPayee = new Wallet();
+
+  type Contract = {
+    wasm: Uint8Array;
+    address: string;
+    codeId: number;
+    ibcPortId: string;
+    codeHash: string;
+  };
+
+  let contracts: { snip20: Contract; cw20ics20: Contract } = {
+    snip20: {
+      wasm: new Uint8Array(),
+      address: "",
+      codeId: -1,
+      ibcPortId: "",
+      codeHash: "",
+    },
+    cw20ics20: {
+      wasm: new Uint8Array(),
+      address: "",
+      codeId: -1,
+      ibcPortId: "",
+      codeHash: "",
+    },
+  };
+
+  let ibcWasmChannelIdOnChain1 = "";
+  let ibcWasmChannelIdOnChain2 = "";
 
   beforeAll(async () => {
     if (stopRelayer) {
@@ -862,9 +890,17 @@ describe("fee middleware", () => {
 
     console.log("Looping relayer...");
     stopRelayer = loopRelayer(ibcConnection);
-  });
 
-  test("fee recv + ack", async () => {
+    ({
+      contracts,
+      ibcChannelIdOnChain1: ibcWasmChannelIdOnChain1,
+      ibcChannelIdOnChain2: ibcWasmChannelIdOnChain2,
+    } = await contractsSetup(
+      '{"fee_version":"ics29-1","app_version":"ics20-1"}',
+    ));
+  }, 120_000);
+
+  test("transfer fee recv + ack", async () => {
     const { secretjs } = accounts[0];
 
     const { balance: payeeBalanceBefore } = await secretjs.query.bank.balance({
@@ -896,7 +932,7 @@ describe("fee middleware", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         }),
       ],
       {
@@ -930,7 +966,7 @@ describe("fee middleware", () => {
     );
   }, 90_000);
 
-  test("fee recv + timeout", async () => {
+  test("transfer fee recv + timeout", async () => {
     const { secretjs } = accounts[0];
 
     const { balance: payeeBalanceBefore } = await secretjs.query.bank.balance({
@@ -962,7 +998,7 @@ describe("fee middleware", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second
         }),
       ],
       {
@@ -994,6 +1030,262 @@ describe("fee middleware", () => {
       Number(payeeBalanceAfter?.amount) - Number(payeeBalanceBefore?.amount),
     ).toBe(/* source chain fee: */ timeout_fee);
   }, 90_000);
+
+  test(
+    "wasm fee recv + ack + timeout",
+    async () => {
+      const accountOnSecretdev2: Account = {
+        address: accounts[0].address,
+        mnemonic: accounts[0].mnemonic,
+        walletAmino: accounts[0].walletAmino,
+        walletProto: accounts[0].walletProto,
+        secretjs: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+      };
+
+      const { balance: payeeBalanceBefore } =
+        await accounts[0].secretjs.query.bank.balance({
+          address: relayerPayee.address,
+          denom: "uscrt",
+        });
+
+      const recv_fee = 11;
+      const ack_fee = 12;
+      const timeout_fee = 13;
+
+      // register snip20 on cw20-ics20, then send tokens from secretdev-1
+      console.log("Sending tokens from secretdev-1...");
+
+      let tx = await accounts[0].secretjs.tx.broadcast(
+        [
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              set_viewing_key: {
+                key: "banana",
+              },
+            },
+          }),
+          // MsgPayPacketFee must come before the IBC packet
+          // https://github.com/cosmos/ibc-go/blob/v4.3.0/modules/apps/29-fee/keeper/msg_server.go#L104
+          new MsgPayPacketFee({
+            signer: accounts[0].address,
+            source_channel_id: ibcWasmChannelIdOnChain1,
+            source_port_id: "transfer",
+            fee: {
+              recv_fee: coinsFromString(`${recv_fee}uscrt`),
+              ack_fee: coinsFromString(`${ack_fee}uscrt`),
+              timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
+            },
+          }),
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              send: {
+                recipient: contracts.cw20ics20.address,
+                recipient_code_hash: contracts.cw20ics20.codeHash,
+                amount: "1",
+                msg: toBase64(
+                  toUtf8(
+                    JSON.stringify({
+                      channel: ibcChannelIdOnChain1,
+                      remote_address: accountOnSecretdev2.address,
+                      timeout: 10 * 60, // 10 minutes
+                    }),
+                  ),
+                ),
+              },
+            },
+          }),
+        ],
+        {
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      let snip20Balance: { balance: { amount: string } } =
+        await accounts[0].secretjs.query.compute.queryContract({
+          contract_address: contracts.snip20.address,
+          code_hash: contracts.snip20.codeHash,
+          query: {
+            balance: {
+              key: "banana",
+              address: accounts[0].address,
+            },
+          },
+        });
+      expect(snip20Balance.balance.amount).toBe("999");
+
+      console.log("Waiting for tokens to arrive on secretdev-2...");
+
+      const expectedIbcDenom = ibcDenom(
+        [
+          {
+            incomingChannelId: ibcWasmChannelIdOnChain2,
+            incomingPortId: "transfer",
+          },
+        ],
+        `cw20:${contracts.snip20.address}`,
+      );
+
+      // wait for tokens to arrive on secretdev-2
+      expect((await tx.ibcResponses[0]).type).toBe("ack");
+
+      const { balance: payeeBalanceAfterRecv } =
+        await accounts[0].secretjs.query.bank.balance({
+          address: relayerPayee.address,
+          denom: "uscrt",
+        });
+
+      // recv_fee on secretdev-2 + ack_fee on secretdev-1
+      expect(
+        Number(payeeBalanceAfterRecv?.amount) -
+          Number(payeeBalanceBefore?.amount),
+      ).toBe(
+        /* counterparty chain fee: */ recv_fee +
+          /* source chain fee: */ ack_fee,
+      );
+
+      // the balance query is lagging for some reason (on mainnet too!)
+      // so we'll wait for it to update
+      let balance: Coin | undefined;
+      while (balance?.amount === "0" || !balance) {
+        ({ balance } = await accountOnSecretdev2.secretjs.query.bank.balance({
+          denom: expectedIbcDenom,
+          address: accountOnSecretdev2.address,
+        }));
+      }
+
+      expect(balance?.amount).toBe("1");
+
+      console.log("Sending tokens back from secretdev-2...");
+
+      // send tokens back from secretdev-2
+      tx = await accountOnSecretdev2.secretjs.tx.ibc.transfer({
+        sender: accountOnSecretdev2.address,
+        source_port: "transfer",
+        source_channel: ibcWasmChannelIdOnChain2,
+        token: {
+          denom: expectedIbcDenom,
+          amount: "1",
+        },
+        receiver: accounts[0].address,
+        timeout_timestamp: String(
+          Math.floor(Date.now() / 1000) + 10 * 60,
+        ) /* 10 minutes */,
+      });
+
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      console.log("Waiting for tokens to arrive back to secretdev-1...");
+
+      expect((await tx.ibcResponses[0]).type).toBe("ack");
+
+      snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
+        contract_address: contracts.snip20.address,
+        code_hash: contracts.snip20.codeHash,
+        query: {
+          balance: { key: "banana", address: accounts[0].address },
+        },
+      });
+
+      expect(snip20Balance.balance.amount).toBe("1000");
+
+      console.log("Sending tokens from secretdev-1 with a short timeout...");
+
+      tx = await accounts[0].secretjs.tx.broadcast(
+        [
+          new MsgExecuteContract({
+            sender: accounts[0].address,
+            contract_address: contracts.snip20.address,
+            code_hash: contracts.snip20.codeHash,
+            msg: {
+              send: {
+                recipient: contracts.cw20ics20.address,
+                recipient_code_hash: contracts.cw20ics20.codeHash,
+                amount: "1",
+                msg: toBase64(
+                  toUtf8(
+                    JSON.stringify({
+                      channel: ibcWasmChannelIdOnChain1,
+                      remote_address: accountOnSecretdev2.address,
+                      timeout: 1, // 1 second
+                    }),
+                  ),
+                ),
+              },
+            },
+          }),
+        ],
+        {
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      // Balance is deducted optimistically so we should see 999 right away
+      snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
+        contract_address: contracts.snip20.address,
+        code_hash: contracts.snip20.codeHash,
+        query: {
+          balance: {
+            key: "banana",
+            address: accounts[0].address,
+          },
+        },
+      });
+      expect(snip20Balance.balance.amount).toBe("999");
+
+      console.log(
+        "Waiting for tokens refund to secretdev-1 after the timeout...",
+      );
+
+      const ibcResp = await tx.ibcResponses[0];
+      expect(ibcResp.type).toBe("timeout");
+
+      snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
+        contract_address: contracts.snip20.address,
+        code_hash: contracts.snip20.codeHash,
+        query: {
+          balance: { key: "banana", address: accounts[0].address },
+        },
+      });
+
+      expect(snip20Balance.balance.amount).toBe("1000");
+
+      const { balance: payeeBalanceAfterTimeout } =
+        await accounts[0].secretjs.query.bank.balance({
+          address: relayerPayee.address,
+          denom: "uscrt",
+        });
+
+      // only timeout_fee on secretdev-1
+      // no recv_fee because the packet timed out before recv_packet
+      expect(
+        Number(payeeBalanceAfterTimeout?.amount) -
+          Number(payeeBalanceAfterRecv?.amount),
+      ).toBe(/* source chain fee: */ timeout_fee);
+    },
+    5 * 60 * 1000 /* 5 minute timeout */,
+  );
 });
 
 describe("ibc-switch middleware", () => {
@@ -1071,7 +1363,7 @@ describe("ibc-switch middleware", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
           memo: JSON.stringify({
             forward: {
               receiver: freshAccount.address,
@@ -1130,7 +1422,7 @@ describe("ibc-switch middleware", () => {
           source_channel: ibcChannelIdOnChain1,
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
-          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minute timeout
+          timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
           memo: JSON.stringify({
             forward: {
               receiver: freshAccount.address,
@@ -1151,7 +1443,6 @@ describe("ibc-switch middleware", () => {
       expect(tx.code).toBe(1);
       expect(tx.rawLog).toContain("Ibc packets are currently paused");
 
-      // packet forward should resolve only after the final destination is acked
       expect(tx.ibcResponses.length).toBe(0);
 
       const { balance: freshAccountBalanceAfter } =
@@ -1206,7 +1497,7 @@ describe("ibc-switch middleware", () => {
           },
         ],
       });
-    }, 180_000 /* 3 minutes timeout */);
+    }, 180_000 /* 3 minute timeout */);
 
     test("switch turned off", async () => {
       const { secretjs } = accounts[0];
