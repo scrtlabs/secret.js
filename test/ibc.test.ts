@@ -898,6 +898,39 @@ describe("fee middleware", () => {
     } = await contractsSetup(
       '{"fee_version":"ics29-1","app_version":"ics20-1"}',
     ));
+
+    if (stopRelayer) {
+      console.log("Pausing relayer...");
+      await stopRelayer();
+    }
+
+    // Unnecessary as by default the payee on this chain is the relayer
+    // but we want to test that the fee is payed and it's easier on a fresh account
+    tx = await secretjs1.tx.ibc_fee.registerPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcWasmChannelIdOnChain1,
+      port_id: `wasm.${contracts.cw20ics20.address}`,
+      payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // Unnecessary as by default the payee on this chain is the relayer
+    // but we want to test that the fee is payed and it's easier on a fresh account
+    tx = await secretjs2.tx.ibc_fee.registerPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcWasmChannelIdOnChain2,
+      port_id: "transfer",
+      payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    stopRelayer = loopRelayer(ibcConnection);
   }, 120_000);
 
   test("transfer fee recv + ack", async () => {
