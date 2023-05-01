@@ -1096,7 +1096,7 @@ describe("fee middleware", () => {
                 msg: toBase64(
                   toUtf8(
                     JSON.stringify({
-                      channel: ibcChannelIdOnChain1,
+                      channel: ibcWasmChannelIdOnChain1,
                       remote_address: accountOnSecretdev2.address,
                       timeout: 10 * 60, // 10 minutes
                     }),
