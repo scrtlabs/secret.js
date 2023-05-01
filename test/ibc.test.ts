@@ -211,7 +211,9 @@ const contractsSetup = async (version?: string) => {
   ).address;
   contracts.cw20ics20.ibcPortId = "wasm." + contracts.cw20ics20.address;
 
-  console.log("Creating IBC wasm <-> transfer channel...");
+  console.log(
+    `Creating IBC wasm <-> transfer channel with version='${version}'...`,
+  );
   const ibcChannelPair = await createIbcChannel(
     ibcConnection,
     contracts.cw20ics20.ibcPortId,
@@ -909,8 +911,20 @@ describe("fee middleware", () => {
     tx = await secretjs1.tx.ibc_fee.registerPayee({
       relayer: relayerWallet.address,
       channel_id: ibcWasmChannelIdOnChain1,
-      port_id: `wasm.${contracts.cw20ics20.address}`,
+      port_id: contracts.cw20ics20.ibcPortId,
       payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // For recv_packet on secretdev-2 that the relayer submits
+    tx = await secretjs1.tx.ibc_fee.registerCounterpartyPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcWasmChannelIdOnChain1,
+      port_id: contracts.cw20ics20.ibcPortId,
+      counterparty_payee: relayerPayee.address,
     });
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
@@ -924,6 +938,18 @@ describe("fee middleware", () => {
       channel_id: ibcWasmChannelIdOnChain2,
       port_id: "transfer",
       payee: relayerPayee.address,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // For recv_packet on secretdev-1 that the relayer submits
+    tx = await secretjs2.tx.ibc_fee.registerCounterpartyPayee({
+      relayer: relayerWallet.address,
+      channel_id: ibcWasmChannelIdOnChain2,
+      port_id: "transfer",
+      counterparty_payee: relayerPayee.address,
     });
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
@@ -1110,7 +1136,7 @@ describe("fee middleware", () => {
           new MsgPayPacketFee({
             signer: accounts[0].address,
             source_channel_id: ibcWasmChannelIdOnChain1,
-            source_port_id: "transfer",
+            source_port_id: contracts.cw20ics20.ibcPortId,
             fee: {
               recv_fee: coinsFromString(`${recv_fee}uscrt`),
               ack_fee: coinsFromString(`${ack_fee}uscrt`),
@@ -1243,6 +1269,18 @@ describe("fee middleware", () => {
 
       tx = await accounts[0].secretjs.tx.broadcast(
         [
+          // MsgPayPacketFee must come before the IBC packet
+          // https://github.com/cosmos/ibc-go/blob/v4.3.0/modules/apps/29-fee/keeper/msg_server.go#L104
+          new MsgPayPacketFee({
+            signer: accounts[0].address,
+            source_channel_id: ibcWasmChannelIdOnChain1,
+            source_port_id: contracts.cw20ics20.ibcPortId,
+            fee: {
+              recv_fee: coinsFromString(`${recv_fee}uscrt`),
+              ack_fee: coinsFromString(`${ack_fee}uscrt`),
+              timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
+            },
+          }),
           new MsgExecuteContract({
             sender: accounts[0].address,
             contract_address: contracts.snip20.address,
