@@ -11,12 +11,13 @@ import {
   SecretNetworkClient,
   stringToCoins,
   TxResponse,
-  TxResultCode, VoteOption,
+  TxResultCode,
+  VoteOption,
   Wallet,
 } from "../src";
 import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
-import {ProposalStatus} from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import { ProposalStatus } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
 
 export const exec = util.promisify(require("child_process").exec);
 
@@ -389,12 +390,14 @@ export async function waitForProposalToPass(
   while (true) {
     try {
       const response = await secretjs.query.gov.proposal({
-        proposal_id: proposalId
+        proposal_id: proposalId,
       });
 
       if (
-          response.proposal?.status === ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD ||
-          response.proposal?.status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD
+        response.proposal?.status ===
+          ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD ||
+        response.proposal?.status ===
+          ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD
       ) {
         continue;
       }
@@ -435,12 +438,17 @@ export async function passParameterChangeProposal(
   }
   expect(tx.code).toBe(TxResultCode.Success);
 
-  const proposalId = getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id");
+  const proposalId = getValueFromRawLog(
+    tx.rawLog,
+    "submit_proposal.proposal_id",
+  );
   expect(Number(proposalId)).toBeGreaterThanOrEqual(1);
 
   tx = await secretjs.tx.gov.vote(
     {
-      option: VoteOption.VOTE_OPTION_YES, proposal_id: proposalId, voter: secretjs.address,
+      option: VoteOption.VOTE_OPTION_YES,
+      proposal_id: proposalId,
+      voter: secretjs.address,
     },
     {
       broadcastCheckIntervalMs: 100,
@@ -455,13 +463,11 @@ export async function passParameterChangeProposal(
   await waitForProposalToPass(secretjs, proposalId);
 }
 
-export async function turnIbcSwitchOn(
-  secretjs: SecretNetworkClient,
-) {
+export async function turnIbcSwitchOn(secretjs: SecretNetworkClient) {
   console.log("Turning ibc-switch on...");
 
   // verify the switch is on the "off" position at the beginning
-  const {params} = await secretjs.query.emergency_button.params({});
+  const { params } = await secretjs.query.emergency_button.params({});
   if (params?.switch_status === "off") {
     const msg = {
       sender: secretjs.address,
@@ -474,17 +480,15 @@ export async function turnIbcSwitchOn(
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toEqual(TxResultCode.Success)
+    expect(tx.code).toEqual(TxResultCode.Success);
   }
 }
 
-export async function turnIbcSwitchOff(
-  secretjs: SecretNetworkClient,
-) {
+export async function turnIbcSwitchOff(secretjs: SecretNetworkClient) {
   console.log("Turning ibc-switch off...");
 
   // verify the switch is on the "off" position at the beginning
-  const {params} = await secretjs.query.emergency_button.params({});
+  const { params } = await secretjs.query.emergency_button.params({});
   if (params?.switch_status === "on") {
     const msg = {
       sender: secretjs.address,
@@ -497,6 +501,6 @@ export async function turnIbcSwitchOff(
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    expect(tx.code).toEqual(TxResultCode.Success)
+    expect(tx.code).toEqual(TxResultCode.Success);
   }
 }
