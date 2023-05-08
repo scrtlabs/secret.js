@@ -77,14 +77,25 @@ See [project board](https://github.com/scrtlabs/secret.js/projects/1) for list o
 
 # Installation
 
+Using npm:
+
 ```bash
 npm install secretjs
 ```
 
-or
+Using yarn:
 
 ```bash
 yarn add secretjs
+```
+
+Directly in the browser:
+
+```html
+<script src="https://www.unpkg.com/secretjs/dist/browser.js" />
+<script>
+  const { SecretNetworkClient } = window.secretjs;
+</script>
 ```
 
 **Additional step for React Native:**
