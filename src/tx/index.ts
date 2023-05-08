@@ -34,6 +34,12 @@ import {
 import { MsgCreateVestingAccount } from "../protobuf/cosmos/vesting/v1beta1/tx";
 import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
 import {
+  MsgPayPacketFee,
+  MsgPayPacketFeeAsync,
+  MsgRegisterPayee,
+  MsgRegisterCounterpartyPayee,
+} from "../protobuf/ibc/applications/fee/v1/tx";
+import {
   MsgAcknowledgement,
   MsgChannelCloseConfirm,
   MsgChannelCloseInit,
@@ -63,6 +69,7 @@ import {
   MsgStoreCode,
 } from "../protobuf/secret/compute/v1beta1/msg";
 import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
+import {MsgToggleIbcSwitch} from "../protobuf/secret/emergencybutton/v1beta1/tx";
 
 export * from "./authz";
 export * from "./bank";
@@ -76,10 +83,12 @@ export * from "./ibc_channel";
 export * from "./ibc_client";
 export * from "./ibc_connection";
 export * from "./ibc_transfer";
+export * from "./ibc_fee";
 export * from "./slashing";
 export * from "./staking";
 export * from "./vesting";
 export * from "./types";
+export * from "./emergency_button";
 
 export type MsgDecoder = {
   decode(input: Uint8Array): any;
@@ -117,6 +126,13 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/cosmos.staking.v1beta1.MsgBeginRedelegate", MsgBeginRedelegate],
   ["/cosmos.staking.v1beta1.MsgUndelegate", MsgUndelegate],
   ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
+  ["/ibc.applications.fee.v1.MsgPayPacketFee", MsgPayPacketFee],
+  ["/ibc.applications.fee.v1.MsgPayPacketFeeAsync", MsgPayPacketFeeAsync],
+  ["/ibc.applications.fee.v1.MsgRegisterPayee", MsgRegisterPayee],
+  [
+    "/ibc.applications.fee.v1.MsgRegisterCounterpartyPayee",
+    MsgRegisterCounterpartyPayee,
+  ],
   ["/ibc.core.channel.v1.MsgChannelOpenInit", MsgChannelOpenInit],
   ["/ibc.core.channel.v1.MsgChannelOpenTry", MsgChannelOpenTry],
   ["/ibc.core.channel.v1.MsgChannelOpenAck", MsgChannelOpenAck],
@@ -143,4 +159,5 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
   ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
+  ["/secret.emergencybutton.v1beta1.MsgToggleIbcSwitch", MsgToggleIbcSwitch],
 ]);

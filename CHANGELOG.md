@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 1.9.0
+
+- Support Secret Network v1.9
+- Fix `secretjs.tx.vesting.createVestingAccount()`
+- Fix `secretjs.tx.registration.register()`
+- Support IBC panic button:
+  - `secretjs.tx.emergency_button.toggleIbcSwitch()` & `MsgToggleIbcSwitch`
+  - `secretjs.query.emergency_button.params()`
+- Support IBC Fee middleware:
+  - `secretjs.tx.ibc_fee.payPacketFee()` & `MsgPayPacketFee`
+  - `secretjs.tx.ibc_fee.payPacketFeeAsync()` & `MsgPayPacketFeeAsync`
+  - `secretjs.tx.ibc_fee.registerPayee()` & `MsgRegisterPayee`
+  - `secretjs.tx.ibc_fee.registerCounterpartyPayee()` & `MsgRegisterCounterpartyPayee`
+  - `secretjs.query.ibc_fee.incentivizedPackets()`
+  - `secretjs.query.ibc_fee.incentivizedPacket()`
+  - `secretjs.query.ibc_fee.incentivizedPacketsForChannel()`
+  - `secretjs.query.ibc_fee.totalRecvFees()`
+  - `secretjs.query.ibc_fee.totalAckFees()`
+  - `secretjs.query.ibc_fee.totalTimeoutFees()`
+  - `secretjs.query.ibc_fee.payee()`
+  - `secretjs.query.ibc_fee.counterpartyPayee()`
+  - `secretjs.query.ibc_fee.feeEnabledChannels()`
+  - `secretjs.query.ibc_fee.feeEnabledChannel()`
+- Support IBC Packet Forward Middleware (PFM):
+  - `secretjs.query.ibc_packet_forward.params()`
+
 ## 1.8.1
 
 Fix: Don't actually sign the tx in simulation mode.

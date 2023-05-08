@@ -40,9 +40,11 @@ import {
   getBalance,
   getValueFromRawLog,
   initContract,
+  passParameterChangeProposal,
   sleep,
   storeContract,
   storeSnip20Ibc,
+  waitForProposalToPass,
 } from "./utils";
 
 beforeAll(() => {
@@ -361,6 +363,29 @@ describe("query.ibc_iterchain_accounts_host", () => {
     expect(params).toStrictEqual({
       host_enabled: true,
       allow_messages: [],
+    });
+  });
+});
+
+describe("query.ibc_packet_forward", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } = await secretjs.query.ibc_packet_forward.params({});
+
+    expect(params).toStrictEqual({
+      fee_percentage: "0.000000000000000000",
+    });
+  });
+});
+
+describe.only("query.emergency_button", () => {
+  test("params()", async () => {
+    const { secretjs } = accounts[0];
+    const { params } = await secretjs.query.emergency_button.params({});
+
+    expect(params).toStrictEqual({
+      pauser_address: "",
+      switch_status: "on",
     });
   });
 });
@@ -701,6 +726,103 @@ describe("tx.bank", () => {
     expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.1)));
     expect(bAfter - bBefore).toBe(BigInt(1));
     expect(cAfter - cBefore).toBe(BigInt(1));
+  });
+});
+
+describe.only("tx.emergency_button", () => {
+  test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address empty in module's params", async () => {
+    // assume address is empty in ibc-switch's module params
+    const { secretjs } = accounts[0];
+
+    const msg = {
+      sender: accounts[0].address,
+    };
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(3)
+    expect(tx.rawLog).toContain(
+      "no address is currently approved to toggle emergency button",
+    );
+  });
+
+  test("MsgToggleIbcSwitch", async () => {
+    const { secretjs } = accounts[0];
+
+    await passParameterChangeProposal(secretjs, {
+      title: "Changing PauserAddress",
+      description: "Authorizing someone to toggle Switch",
+      changes: [
+        {subspace: "emergencybutton", key: "pauseraddress", value: `"${secretjs.address}"`},
+      ],
+    });
+
+    const sim = await secretjs.tx.emergency_button.toggleIbcSwitch.simulate({
+      sender: accounts[0].address,
+    });
+
+    const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
+
+    const msg = {
+      sender: accounts[0].address,
+    };
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: gasLimit,
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    // query the new params
+    const { params } = await secretjs.query.emergency_button.params({});
+
+    expect(params).toStrictEqual({
+      pauser_address: `${secretjs.address}`,
+      switch_status: "off",
+    });
+  });
+
+  test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address different in module params", async () => {
+    // assume we just set the address to something in the previous test
+    const { secretjs } = accounts[1];
+
+    const msg = {
+      sender: secretjs.address,
+    };
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(2)
+    expect(tx.rawLog).toContain(
+      "failed to execute message; message index: 0: this address is not allowed to toggle emergency button: emergency button toggle failed",
+    );
+  });
+
+  afterAll(async () => {
+    // restore the "on" status of the ibc-switch
+    const { secretjs } = accounts[0];
+
+    // do nothing if it's "on" now
+    const { params } = await secretjs.query.emergency_button.params({});
+    if (params?.switch_status === "on") {
+      return;
+    }
+
+    const msg = {
+      sender: secretjs.address,
+    };
+    const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    expect(tx.code).toEqual(TxResultCode.Success)
   });
 });
 

@@ -138,8 +138,8 @@ import { TxResponse as TxResponsePb } from "./grpc_gateway/cosmos/base/abci/v1be
 import { PageRequest } from "./grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
 import {
   OrderBy,
-  Service as TxService,
   SimulateResponse,
+  Service as TxService,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
@@ -159,7 +159,7 @@ import {
 import { AuthQuerier } from "./query/auth";
 import { AuthzQuerier } from "./query/authz";
 import { BankQuerier } from "./query/bank";
-import { bytesToAddress, ComputeQuerier } from "./query/compute";
+import { ComputeQuerier, bytesToAddress } from "./query/compute";
 import { DistributionQuerier } from "./query/distribution";
 import { EvidenceQuerier } from "./query/evidence";
 import { FeegrantQuerier } from "./query/feegrant";
@@ -167,6 +167,10 @@ import { GovQuerier } from "./query/gov";
 import { IbcChannelQuerier } from "./query/ibc_channel";
 import { IbcClientQuerier } from "./query/ibc_client";
 import { IbcConnectionQuerier } from "./query/ibc_connection";
+import { IbcFeeQuerier } from "./query/ibc_fee";
+import { IbcInterchainAccountsControllerQuerier } from "./query/ibc_interchain_accounts_controller";
+import { IbcInterchainAccountsHostQuerier } from "./query/ibc_interchain_accounts_host";
+import { IbcPacketForwardQuerier } from "./query/ibc_packet_forward";
 import { IbcTransferQuerier } from "./query/ibc_transfer";
 import { MintQuerier } from "./query/mint";
 import { ParamsQuerier } from "./query/params";
@@ -175,33 +179,43 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
+import { EmergencyButtonQuerier } from "./query/emergency_button";
 import {
   AminoMsg,
   Msg,
   MsgParams,
+  MsgPayPacketFee,
+  MsgPayPacketFeeAsync,
+  MsgPayPacketFeeAsyncParams,
+  MsgPayPacketFeeParams,
+  MsgRegisterCounterpartyPayee,
+  MsgRegisterCounterpartyPayeeParams,
+  MsgRegisterPayee,
+  MsgRegisterPayeeParams,
   MsgRegistry,
   MsgSetAutoRestake,
   MsgSetAutoRestakeParams,
   ProtoMsg,
 } from "./tx";
-import { RaAuthenticate } from "./tx/registration";
-import { MsgCreateVestingAccount } from "./tx/vesting";
+import { RaAuthenticate, RaAuthenticateParams } from "./tx/registration";
+import {
+  MsgCreateVestingAccount,
+  MsgCreateVestingAccountParams,
+} from "./tx/vesting";
 import {
   AccountData,
-  AminoSigner,
   AminoSignResponse,
-  encodeSecp256k1Pubkey,
-  encodeSecp256k1Signature,
-  isDirectSigner,
-  isSignDoc,
-  isSignDocCamelCase,
+  AminoSigner,
   Pubkey,
   Signer,
   StdFee,
   StdSignDoc,
+  encodeSecp256k1Pubkey,
+  isDirectSigner,
+  isSignDoc,
+  isSignDocCamelCase,
 } from "./wallet_amino";
-import { IbcInterchainAccountsHostQuerier } from "./query/ibc_interchain_accounts_host";
-import { IbcInterchainAccountsControllerQuerier } from "./query/ibc_interchain_accounts_controller";
+import {MsgToggleIbcSwitch, MsgToggleIbcSwitchParams} from "./tx/emergency_button";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -404,6 +418,9 @@ export type Querier = {
   ibc_transfer: IbcTransferQuerier;
   ibc_iterchain_accounts_host: IbcInterchainAccountsHostQuerier;
   ibc_iterchain_accounts_controller: IbcInterchainAccountsControllerQuerier;
+  ibc_fee: IbcFeeQuerier;
+  ibc_packet_forward: IbcPacketForwardQuerier;
+  emergency_button: EmergencyButtonQuerier;
   mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
@@ -674,6 +691,9 @@ export type TxSender = {
     /** Upload a compiled contract to Secret Network */
     storeCode: SingleMsgTx<MsgStoreCodeParams>;
   };
+  emergency_button: {
+    toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
+  }
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: SingleMsgTx<MsgVerifyInvariantParams>;
@@ -742,8 +762,14 @@ export type TxSender = {
      */
     transfer: SingleMsgTx<MsgTransferParams>;
   };
+  ibc_fee: {
+    payPacketFee: SingleMsgTx<MsgPayPacketFeeParams>;
+    payPacketFeeAsync: SingleMsgTx<MsgPayPacketFeeAsyncParams>;
+    registerPayee: SingleMsgTx<MsgRegisterPayeeParams>;
+    registerCounterpartyPayee: SingleMsgTx<MsgRegisterCounterpartyPayeeParams>;
+  };
   registration: {
-    register: SingleMsgTx<RaAuthenticate>;
+    register: SingleMsgTx<RaAuthenticateParams>;
   };
   slashing: {
     /** MsgUnjail defines a message to release a validator from jail. */
@@ -763,7 +789,7 @@ export type TxSender = {
   };
   vesting: {
     /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
-    createVestingAccount: SingleMsgTx<MsgCreateVestingAccount>;
+    createVestingAccount: SingleMsgTx<MsgCreateVestingAccountParams>;
   };
 };
 
@@ -806,6 +832,9 @@ export class SecretNetworkClient {
       ),
       ibc_iterchain_accounts_controller:
         new IbcInterchainAccountsControllerQuerier(options.url),
+      ibc_fee: new IbcFeeQuerier(options.url),
+      ibc_packet_forward: new IbcPacketForwardQuerier(options.url),
+      emergency_button: new EmergencyButtonQuerier(options.url),
       mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),
@@ -899,6 +928,9 @@ export class SecretNetworkClient {
         instantiateContract: doMsg(MsgInstantiateContract),
         storeCode: doMsg(MsgStoreCode),
       },
+      emergency_button: {
+        toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
+      },
       crisis: {
         verifyInvariant: doMsg(MsgVerifyInvariant),
       },
@@ -924,6 +956,12 @@ export class SecretNetworkClient {
       },
       ibc: {
         transfer: doMsg(MsgTransfer),
+      },
+      ibc_fee: {
+        payPacketFee: doMsg(MsgPayPacketFee),
+        payPacketFeeAsync: doMsg(MsgPayPacketFeeAsync),
+        registerPayee: doMsg(MsgRegisterPayee),
+        registerCounterpartyPayee: doMsg(MsgRegisterCounterpartyPayee),
       },
       registration: {
         register: doMsg(RaAuthenticate),

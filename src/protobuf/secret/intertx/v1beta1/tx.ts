@@ -9,6 +9,7 @@ export const protobufPackage = "secret.intertx.v1beta1";
 export interface MsgRegisterAccount {
   owner: string;
   connection_id: string;
+  version: string;
 }
 
 /** MsgRegisterAccountResponse is the response type for Msg/RegisterAccount */
@@ -25,7 +26,7 @@ export interface MsgSubmitTx {
 export interface MsgSubmitTxResponse {}
 
 function createBaseMsgRegisterAccount(): MsgRegisterAccount {
-  return { owner: "", connection_id: "" };
+  return { owner: "", connection_id: "", version: "" };
 }
 
 export const MsgRegisterAccount = {
@@ -38,6 +39,9 @@ export const MsgRegisterAccount = {
     }
     if (message.connection_id !== "") {
       writer.uint32(18).string(message.connection_id);
+    }
+    if (message.version !== "") {
+      writer.uint32(26).string(message.version);
     }
     return writer;
   },
@@ -55,6 +59,9 @@ export const MsgRegisterAccount = {
         case 2:
           message.connection_id = reader.string();
           break;
+        case 3:
+          message.version = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -69,6 +76,7 @@ export const MsgRegisterAccount = {
       connection_id: isSet(object.connection_id)
         ? String(object.connection_id)
         : "",
+      version: isSet(object.version) ? String(object.version) : "",
     };
   },
 
@@ -77,6 +85,7 @@ export const MsgRegisterAccount = {
     message.owner !== undefined && (obj.owner = message.owner);
     message.connection_id !== undefined &&
       (obj.connection_id = message.connection_id);
+    message.version !== undefined && (obj.version = message.version);
     return obj;
   },
 
@@ -86,6 +95,7 @@ export const MsgRegisterAccount = {
     const message = createBaseMsgRegisterAccount();
     message.owner = object.owner ?? "";
     message.connection_id = object.connection_id ?? "";
+    message.version = object.version ?? "";
     return message;
   },
 };
@@ -153,7 +163,7 @@ export const MsgSubmitTx = {
       writer.uint32(18).string(message.connection_id);
     }
     if (message.msg !== undefined) {
-      Any.encode(message.msg, writer.uint32(34).fork()).ldelim();
+      Any.encode(message.msg, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -171,7 +181,7 @@ export const MsgSubmitTx = {
         case 2:
           message.connection_id = reader.string();
           break;
-        case 4:
+        case 3:
           message.msg = Any.decode(reader, reader.uint32());
           break;
         default:

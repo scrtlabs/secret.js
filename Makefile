@@ -22,8 +22,8 @@ npm-publish-beta: build
 	git push --follow-tags
 
 run-localsecret:
-	docker compose -f test/docker-compose.yml up
+	sudo docker compose -f test/docker-compose.yml up
 
 kill-localsecret:
-	docker compose -f test/docker-compose.yml stop 
-	docker compose -f test/docker-compose.yml rm -f 
+	sudo docker compose -f test/docker-compose.yml stop 
+	sudo docker compose -f test/docker-compose.yml rm -f 

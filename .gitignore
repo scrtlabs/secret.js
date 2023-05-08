@@ -3,3 +3,4 @@ dist
 scripts/SecretNetwork
 yarn-error.log
 docs
+.idea/

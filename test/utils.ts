@@ -6,14 +6,18 @@ import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import {
+  ProposalContent,
+  ProposalType,
   SecretNetworkClient,
   stringToCoins,
   TxResponse,
   TxResultCode,
+  VoteOption,
   Wallet,
 } from "../src";
 import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
+import { ProposalStatus } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
 
 export const exec = util.promisify(require("child_process").exec);
 
@@ -267,7 +271,8 @@ export async function createIbcConnection(): Promise<Link> {
 }
 export async function createIbcChannel(
   ibcConnection: Link,
-  srcPort?: string,
+  srcPort = "transfer",
+  version = "ics20-1",
 ): Promise<ChannelPair> {
   await Promise.all([
     ibcConnection.updateClient("A"),
@@ -277,10 +282,10 @@ export async function createIbcChannel(
   // Create a channel for the connections
   return await ibcConnection.createChannel(
     "A",
-    srcPort ?? "transfer",
+    srcPort,
     "transfer",
     Order.ORDER_UNORDERED,
-    "ics20-1",
+    version,
   );
 }
 
@@ -375,5 +380,127 @@ export async function waitForChainToStart({
       // console.error(e);
     }
     await sleep(250);
+  }
+}
+
+export async function waitForProposalToPass(
+  secretjs: SecretNetworkClient,
+  proposalId: string,
+) {
+  while (true) {
+    try {
+      const response = await secretjs.query.gov.proposal({
+        proposal_id: proposalId,
+      });
+
+      if (
+        response.proposal?.status ===
+          ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD ||
+        response.proposal?.status ===
+          ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD
+      ) {
+        continue;
+      }
+      if (response.proposal?.status !== ProposalStatus.PROPOSAL_STATUS_PASSED) {
+        console.error("the proposal we waited for - did not pass");
+        expect(0).toEqual(1);
+      } else {
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    await sleep(2500);
+  }
+}
+
+export async function passParameterChangeProposal(
+  secretjs: SecretNetworkClient,
+  content: ProposalContent,
+) {
+  console.log("Passing parameter change proposal...");
+
+  let tx = await secretjs.tx.gov.submitProposal(
+    {
+      type: ProposalType.ParameterChangeProposal,
+      proposer: secretjs.address,
+      initial_deposit: stringToCoins("100000000000uscrt"),
+      is_expedited: true,
+      content,
+    },
+    {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  const proposalId = getValueFromRawLog(
+    tx.rawLog,
+    "submit_proposal.proposal_id",
+  );
+  expect(Number(proposalId)).toBeGreaterThanOrEqual(1);
+
+  tx = await secretjs.tx.gov.vote(
+    {
+      option: VoteOption.VOTE_OPTION_YES,
+      proposal_id: proposalId,
+      voter: secretjs.address,
+    },
+    {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    },
+  );
+  if (tx.code !== TxResultCode.Success) {
+    console.error(tx.rawLog);
+  }
+  expect(tx.code).toBe(TxResultCode.Success);
+
+  await waitForProposalToPass(secretjs, proposalId);
+}
+
+export async function turnIbcSwitchOn(secretjs: SecretNetworkClient) {
+  console.log("Turning ibc-switch on...");
+
+  // verify the switch is on the "off" position at the beginning
+  const { params } = await secretjs.query.emergency_button.params({});
+  if (params?.switch_status === "off") {
+    const msg = {
+      sender: secretjs.address,
+    };
+    let tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toEqual(TxResultCode.Success);
+  }
+}
+
+export async function turnIbcSwitchOff(secretjs: SecretNetworkClient) {
+  console.log("Turning ibc-switch off...");
+
+  // verify the switch is on the "off" position at the beginning
+  const { params } = await secretjs.query.emergency_button.params({});
+  if (params?.switch_status === "on") {
+    const msg = {
+      sender: secretjs.address,
+    };
+    let tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+      broadcastCheckIntervalMs: 100,
+      gasLimit: 5_000_000,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toEqual(TxResultCode.Success);
   }
 }

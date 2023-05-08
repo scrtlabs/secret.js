@@ -1,0 +1,45 @@
+[package]
+name = "ibc-hooks-contract"
+version = "0.0.1"
+authors = ["SCRT Labs <info@scrtlabs.com>"]
+edition = "2018"
+description = "A Test contract intended to use in integration tests for the Secret Netowrk"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+default = []
+backtraces = ["cosmwasm-std/backtraces"]
+with_floats = []
+
+[dependencies]
+cosmwasm-std = { git = "https://github.com/scrtlabs/cosmwasm", default-features = false, package = "secret-cosmwasm-std", branch = "ibc-msg-transfer-memo", features = [
+  "stargate",
+  "staking",
+  "ibc3"
+] }
+secret-toolkit = { version = "0.7.0" }
+schemars = "0.8.1"
+serde = { version = "1.0.114", default-features = false, features = [
+  "derive",
+  "alloc"
+] }
+serde-json-wasm = "0.2.1"
+
+[patch.crates-io]
+cosmwasm-std = { git = "https://github.com/scrtlabs/cosmwasm", branch = "ibc-msg-transfer-memo", package = "secret-cosmwasm-std" }
+cosmwasm-storage = { git = "https://github.com/scrtlabs/cosmwasm", branch = "ibc-msg-transfer-memo", package = "secret-cosmwasm-storage" }

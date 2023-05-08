@@ -16,6 +16,6 @@ export type QueryInterchainAccountFromAddressResponse = {
 
 export class Query {
   static InterchainAccountFromAddress(req: QueryInterchainAccountFromAddressRequest, initReq?: fm.InitReq): Promise<QueryInterchainAccountFromAddressResponse> {
-    return fm.fetchReq<QueryInterchainAccountFromAddressRequest, QueryInterchainAccountFromAddressResponse>(`/mauth/v1beta1/address-to-ica?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<QueryInterchainAccountFromAddressRequest, QueryInterchainAccountFromAddressResponse>(`/mauth/interchain_account/owner/${req["owner"]}/connection/${req["connection_id"]}?${fm.renderURLSearchParams(req, ["owner", "connection_id"])}`, {...initReq, method: "GET"})
   }
 }

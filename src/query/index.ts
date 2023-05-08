@@ -21,3 +21,4 @@ export * from "./slashing";
 export * from "./staking";
 export * from "./tendermint";
 export * from "./upgrade";
+export * from "./emergency_button";
