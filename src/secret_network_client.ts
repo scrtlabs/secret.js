@@ -1,5 +1,8 @@
-import fetch from "cross-fetch";
-global.fetch = fetch;
+// conditinally load cross-fetch for nodejs and react-native
+if (typeof window === "undefined" || typeof window.fetch === "undefined") {
+  const fetch = require("cross-fetch");
+  global.fetch = fetch;
+}
 
 import {
   fromBase64,
@@ -215,7 +218,10 @@ import {
   isSignDoc,
   isSignDocCamelCase,
 } from "./wallet_amino";
-import {MsgToggleIbcSwitch, MsgToggleIbcSwitchParams} from "./tx/emergency_button";
+import {
+  MsgToggleIbcSwitch,
+  MsgToggleIbcSwitchParams,
+} from "./tx/emergency_button";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -693,7 +699,7 @@ export type TxSender = {
   };
   emergency_button: {
     toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
-  }
+  };
   crisis: {
     /** MsgVerifyInvariant represents a message to verify a particular invariance. */
     verifyInvariant: SingleMsgTx<MsgVerifyInvariantParams>;
