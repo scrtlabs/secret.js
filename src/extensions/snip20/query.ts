@@ -91,6 +91,7 @@ export class Snip20Querier extends ComputeQuerier {
     auth,
     page,
     page_size,
+    should_filter_decoys,
   }: {
     contract: SecretContract;
     address: string;
@@ -100,6 +101,7 @@ export class Snip20Querier extends ComputeQuerier {
     };
     page?: number;
     page_size: number;
+    should_filter_decoys?: boolean;
   }): Promise<TransferHistoryResponse> => {
     if (auth.key) {
       return await this.queryContract<
@@ -114,6 +116,7 @@ export class Snip20Querier extends ComputeQuerier {
             key: auth.key,
             page,
             page_size,
+            should_filter_decoys,
           },
         },
       });
@@ -131,6 +134,7 @@ export class Snip20Querier extends ComputeQuerier {
               transfer_history: {
                 page,
                 page_size,
+                should_filter_decoys,
               },
             },
           },
@@ -149,6 +153,7 @@ export class Snip20Querier extends ComputeQuerier {
     auth,
     page,
     page_size,
+    should_filter_decoys,
   }: {
     contract: SecretContract;
     address: string;
@@ -158,6 +163,7 @@ export class Snip20Querier extends ComputeQuerier {
     };
     page?: number;
     page_size: number;
+    should_filter_decoys?: boolean;
   }): Promise<TransactionHistoryResponse> => {
     if (auth.key) {
       return await this.queryContract<
@@ -172,6 +178,7 @@ export class Snip20Querier extends ComputeQuerier {
             key: auth.key,
             page,
             page_size,
+            should_filter_decoys,
           },
         },
       });
@@ -189,6 +196,7 @@ export class Snip20Querier extends ComputeQuerier {
               transaction_history: {
                 page,
                 page_size,
+                should_filter_decoys,
               },
             },
           },
