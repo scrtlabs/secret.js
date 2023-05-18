@@ -1813,7 +1813,7 @@ describe("ibc-switch middleware", () => {
   });
 });
 
-describe.skip("ibc-hooks middleware", () => {
+describe("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
