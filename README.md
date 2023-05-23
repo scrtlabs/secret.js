@@ -554,11 +554,11 @@ DenomsMetadata queries the client metadata of a given coin denomination.
 
 DenomsMetadata queries the client metadata for all registered coin denominations.
 
-#### `secretjs.query.compute.contractCodeHash()`
+#### `secretjs.query.compute.codeHashByContractAddress()`
 
 Get codeHash of a Secret Contract.
 
-#### `secretjs.query.compute.codeHash()`
+#### `secretjs.query.compute.codeHashByCodeId()`
 
 Get codeHash from a code id.
 
