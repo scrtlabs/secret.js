@@ -1,10 +1,12 @@
 import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
+import { sha256 } from "@noble/hashes/sha256";
 import { fromHex, pubkeyToAddress, toHex, toUtf8 } from ".";
 import {
   AccountData,
   AminoSignResponse,
   encodeSecp256k1Signature,
+  serializeStdSignDoc,
   sortObject,
   StdSignDoc,
 } from "./wallet_amino";
@@ -133,7 +135,33 @@ export class MetaMaskWallet {
       signature: encodeSecp256k1Signature(this.publicKey, sig),
     };
   }
+
+  public async signPermit(
+    address: string,
+    signDoc: StdSignDoc,
+  ): Promise<AminoSignResponse> {
+      if (address !== pubkeyToAddress(this.publicKey)) {
+      throw new Error(`Address ${address} not found in wallet`);
+    }
+
+    const messageHash = sha256(serializeStdSignDoc(signDoc));
+    const sigResult: string = await this.ethProvider.request({
+      method: "eth_sign",
+      params: [this.ethAddress, "0x" + toHex(messageHash)],
+    });
+
+    // strip leading 0x and trailing recovery id
+    const sig = fromHex(sigResult.slice(2, -2));
+
+    return {
+      signed: signDoc,
+      signature: encodeSecp256k1Signature(this.publicKey, sig),
+    };
+
+  }  
 }
+
+
 
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
   const point = secp256k1.Point.fromHex(publicKeyHex);
