@@ -294,6 +294,11 @@ export interface AminoSigner {
     signerAddress: string,
     signDoc: StdSignDoc,
   ) => Promise<AminoSignResponse>;
+
+  readonly signPermit?: (
+    signerAddress: string,
+    signDoc: StdSignDoc
+  ) => Promise<AminoSignResponse>;
 }
 
 export interface AminoEip191Signer {

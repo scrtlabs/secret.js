@@ -126,11 +126,16 @@ export const newPermit = async (
 ): Promise<Permit> => {
   let signature;
   if (!keplr) {
-    signature = (
-      await signer.signAmino(
-        owner,
-        newSignDoc(chainId, permitName, allowedTokens, permissions),
-      )
+    // Check if the signer has "signPermit" function and use it instead
+    signature = typeof signer.signPermit === 'function' ? 
+    (await signer.signPermit(
+      owner,
+      newSignDoc(chainId, permitName, allowedTokens, permissions))
+    ).signature : 
+
+    (await signer.signAmino(
+      owner,
+      newSignDoc(chainId, permitName, allowedTokens, permissions))
     ).signature;
   }
   //@ts-ignore
