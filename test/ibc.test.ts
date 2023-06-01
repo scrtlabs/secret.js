@@ -67,7 +67,7 @@ beforeAll(async () => {
   ibcConnection = await createIbcConnection();
 }, 180_000);
 
-const contractsSetup = async (version?: string) => {
+const contractsSetup = async (version: string = "ics20-1") => {
   type Contract = {
     wasm: Uint8Array;
     address: string;
