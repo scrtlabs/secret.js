@@ -9,6 +9,11 @@ fi
 make kill-localsecret >/dev/null 2>/dev/null
 make run-localsecret >/dev/null 2>/dev/null &
 
+set +e
+
 npx jest --forceExit --runInBand "$@"
+RESULT=$(echo $?)
 
 make kill-localsecret >/dev/null 2>/dev/null
+
+exit $RESULT
