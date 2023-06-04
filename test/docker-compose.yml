@@ -7,7 +7,7 @@ services:
       - "26656:26656" # P2P
       - "9090:9090" # gRPC
       - "9091:9091" # gRPC-web
-      - "1317:1316" # LCD / gRPC gatewasy
+      - "1317:1317" # LCD / gRPC gatewasy
       - "5000:5000" # Faucet
     environment:
       FAST_BLOCKS: "true"
@@ -19,7 +19,7 @@ services:
       - "36656:26656" # P2P
       - "9390:9090" # gRPC
       - "9391:9091" # gRPC-web
-      - "2317:1316" # LCD / gRPC gatewasy
+      - "2317:1317" # LCD / gRPC gatewasy
       - "5100:5000" # Faucet
     environment:
       FAST_BLOCKS: "true"
