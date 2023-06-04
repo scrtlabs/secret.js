@@ -2143,6 +2143,13 @@ describe("ibc-hooks middleware", () => {
     const { supply } = await secretjs.query.bank.totalSupply({});
 
     expect(supply?.find((s) => s.denom === denom)?.amount).toEqual("123");
+
+    const { balance } = await secretjs.query.bank.balance({
+      address: sscrt2_contract_address,
+      denom,
+    });
+
+    expect(balance?.amount).toEqual("123");
   }, 90_000);
 
   test("receive ack after sending MsgTransfer from a contract", async () => {
