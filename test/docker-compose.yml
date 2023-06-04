@@ -10,6 +10,7 @@ services:
       - "1317:1316" # LCD / gRPC gatewasy
       - "5000:5000" # Faucet
     environment:
+      FAST_BLOCKS: "true"
       LOG_LEVEL: "TRACE"
   localsecret-2:
     image: "ghcr.io/scrtlabs/localsecret:v1.9.0-beta.2"
@@ -21,5 +22,6 @@ services:
       - "2317:1316" # LCD / gRPC gatewasy
       - "5100:5000" # Faucet
     environment:
+      FAST_BLOCKS: "true"
       CHAINID: "secretdev-2"
       LOG_LEVEL: "TRACE"
