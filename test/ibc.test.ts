@@ -50,19 +50,6 @@ beforeAll(async () => {
     url: chain2LCD,
   });
 
-  // set block time to 600ms
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" exec localsecret-2 sed -E -i '/timeout_(propose|prevote|precommit|commit)/s/[0-9]+m?s/200ms/' .secretd/config/config.toml`,
-  );
-  await exec(
-    `docker compose -f "${__dirname}/docker-compose.yml" restart localsecret-2`,
-  );
-
-  await waitForChainToStart({
-    chainId: "secretdev-2",
-    url: chain2LCD,
-  });
-
   console.log("Creating IBC connection...");
   ibcConnection = await createIbcConnection();
 }, 180_000);
@@ -1360,6 +1347,119 @@ describe("fee middleware", () => {
 });
 
 describe("ibc-switch middleware", () => {
+  describe("query.emergency_button", () => {
+    test("params()", async () => {
+      const { secretjs } = accounts[0];
+      const { params } = await secretjs.query.emergency_button.params({});
+
+      expect(params).toStrictEqual({
+        pauser_address: "",
+        switch_status: "on",
+      });
+    });
+  });
+
+  describe("tx.emergency_button", () => {
+    test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address empty in module's params", async () => {
+      // assume address is empty in ibc-switch's module params
+      const { secretjs } = accounts[0];
+
+      const msg = {
+        sender: accounts[0].address,
+      };
+      const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      });
+
+      expect(tx.code).toEqual(3);
+      expect(tx.rawLog).toContain(
+        "no address is currently approved to toggle emergency button",
+      );
+    });
+
+    test("MsgToggleIbcSwitch", async () => {
+      const { secretjs } = accounts[0];
+
+      await passParameterChangeProposal(secretjs, {
+        title: "Changing PauserAddress",
+        description: "Authorizing someone to toggle Switch",
+        changes: [
+          {
+            subspace: "emergencybutton",
+            key: "pauseraddress",
+            value: `"${secretjs.address}"`,
+          },
+        ],
+      });
+
+      const sim = await secretjs.tx.emergency_button.toggleIbcSwitch.simulate({
+        sender: accounts[0].address,
+      });
+
+      const gasLimit = Math.ceil(Number(sim.gas_info!.gas_used) * 1.25);
+
+      const msg = {
+        sender: accounts[0].address,
+      };
+      const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: gasLimit,
+      });
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
+
+      // query the new params
+      const { params } = await secretjs.query.emergency_button.params({});
+
+      expect(params).toStrictEqual({
+        pauser_address: `${secretjs.address}`,
+        switch_status: "off",
+      });
+    });
+
+    test("MsgToggleIbcSwitch ErrUnauthorizedToggle - address different in module params", async () => {
+      // assume we just set the address to something in the previous test
+      const { secretjs } = accounts[1];
+
+      const msg = {
+        sender: secretjs.address,
+      };
+      const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      });
+
+      expect(tx.code).toEqual(2);
+      expect(tx.rawLog).toContain(
+        "failed to execute message; message index: 0: this address is not allowed to toggle emergency button: emergency button toggle failed",
+      );
+    });
+
+    afterAll(async () => {
+      // restore the "on" status of the ibc-switch
+      const { secretjs } = accounts[0];
+
+      // do nothing if it's "on" now
+      const { params } = await secretjs.query.emergency_button.params({});
+      if (params?.switch_status === "on") {
+        return;
+      }
+
+      const msg = {
+        sender: secretjs.address,
+      };
+      const tx = await secretjs.tx.emergency_button.toggleIbcSwitch(msg, {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      });
+
+      expect(tx.code).toEqual(TxResultCode.Success);
+    });
+  });
+
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
@@ -1598,10 +1698,6 @@ describe("ibc-switch middleware", () => {
         fail(new Error("Failed to send viewing key tx"));
       }
 
-      console.log(
-        `Querying with: ${contracts.snip20.address}, ${contracts.snip20.codeHash} for address: ${accounts[0].address}`,
-      );
-
       let snip20BalanceBefore = await secretjs.query.snip20.getBalance({
         contract: {
           address: contracts.snip20.address,
@@ -1612,7 +1708,6 @@ describe("ibc-switch middleware", () => {
           key: "banana",
         },
       });
-      console.log("snip20balancebefore", snip20BalanceBefore.balance.amount);
 
       await turnIbcSwitchOff(secretjs);
 
@@ -1724,7 +1819,6 @@ describe("ibc-switch middleware", () => {
           key: "banana",
         },
       });
-      console.log("snip20balancebefore", snip20BalanceBefore.balance.amount);
 
       const sendTokensTx = await accounts[0].secretjs.tx.broadcast(
         [
