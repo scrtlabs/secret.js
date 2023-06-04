@@ -29,7 +29,6 @@ import {
   chain2LCD,
   createIbcChannel,
   createIbcConnection,
-  exec,
   loopRelayer,
   passParameterChangeProposal,
   turnIbcSwitchOff,
@@ -1911,9 +1910,9 @@ describe("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
-  let wrap_deposit_contract_address: string;
-  let sscrt2_contract_address: string;
-  let sscrt2_code_hash: string;
+  let wrapDepositContractAddress: string;
+  let sscrt2ContractAddress: string;
+  let sscrt2CodeHash: string;
 
   beforeAll(async () => {
     if (stopRelayer) {
@@ -1973,7 +1972,7 @@ describe("ibc-hooks middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    wrap_deposit_contract_address = MsgInstantiateContractResponse.decode(
+    wrapDepositContractAddress = MsgInstantiateContractResponse.decode(
       tx.data[0],
     ).address;
 
@@ -2040,14 +2039,14 @@ describe("ibc-hooks middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    sscrt2_contract_address = MsgInstantiateContractResponse.decode(
+    sscrt2ContractAddress = MsgInstantiateContractResponse.decode(
       tx.data[0],
     ).address;
 
     const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
       code_id,
     });
-    sscrt2_code_hash = code_hash!;
+    sscrt2CodeHash = code_hash!;
   });
 
   test("send funds over IBC to contract", async () => {
@@ -2061,18 +2060,18 @@ describe("ibc-hooks middleware", () => {
     let tx = await secretjs2.tx.ibc.transfer(
       {
         sender: secretjs2.address,
-        receiver: wrap_deposit_contract_address,
+        receiver: wrapDepositContractAddress,
         source_channel: ibcChannelIdOnChain2,
         source_port: "transfer",
         token: stringToCoin("123uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         memo: JSON.stringify({
           wasm: {
-            contract: wrap_deposit_contract_address,
+            contract: wrapDepositContractAddress,
             msg: {
               wrap_deposit: {
-                snip20_address: sscrt2_contract_address,
-                snip20_code_hash: sscrt2_code_hash,
+                snip20_address: sscrt2ContractAddress,
+                snip20_code_hash: sscrt2CodeHash,
                 recipient_address: secretjs2.address,
               },
             },
@@ -2102,7 +2101,7 @@ describe("ibc-hooks middleware", () => {
     tx = await secretjs.tx.snip20.setViewingKey(
       {
         sender: secretjs.address,
-        contract_address: sscrt2_contract_address,
+        contract_address: sscrt2ContractAddress,
         msg: { set_viewing_key: { key: "gm" } },
       },
       { gasLimit: 100_000, broadcastCheckIntervalMs: 100 },
@@ -2115,8 +2114,8 @@ describe("ibc-hooks middleware", () => {
     const { balance: sscrt2Balance } = await secretjs.query.snip20.getBalance({
       address: secretjs.address,
       contract: {
-        address: sscrt2_contract_address,
-        code_hash: sscrt2_code_hash,
+        address: sscrt2ContractAddress,
+        code_hash: sscrt2CodeHash,
       },
       auth: { key: "gm" },
     });
@@ -2133,19 +2132,20 @@ describe("ibc-hooks middleware", () => {
       "uscrt",
     );
 
-    const { balance: contractBalance } = await secretjs.query.bank.balance({
-      address: sscrt2_contract_address,
-      denom,
-    });
+    const { balance: sscrt2ContractBalance } =
+      await secretjs.query.bank.balance({
+        address: sscrt2ContractAddress,
+        denom,
+      });
 
-    expect(contractBalance?.amount).toEqual("123");
+    expect(sscrt2ContractBalance?.amount).toEqual("123");
 
     const { supply } = await secretjs.query.bank.totalSupply({});
 
     expect(supply?.find((s) => s.denom === denom)?.amount).toEqual("123");
 
     const { balance } = await secretjs.query.bank.balance({
-      address: sscrt2_contract_address,
+      address: sscrt2ContractAddress,
       denom,
     });
 
@@ -2158,7 +2158,7 @@ describe("ibc-hooks middleware", () => {
     let tx = await secretjs.tx.compute.executeContract(
       {
         sender: secretjs.address,
-        contract_address: wrap_deposit_contract_address,
+        contract_address: wrapDepositContractAddress,
         sent_funds: coinsFromString("234uscrt"),
         msg: {
           ibc_transfer: {
@@ -2192,7 +2192,7 @@ describe("ibc-hooks middleware", () => {
           l.msg === 0 &&
           l.type === "wasm" &&
           l.key === "contract_address" &&
-          l.value === wrap_deposit_contract_address,
+          l.value === wrapDepositContractAddress,
       ),
     ).toBeTruthy();
     expect(
@@ -2212,7 +2212,7 @@ describe("ibc-hooks middleware", () => {
     let tx = await secretjs.tx.compute.executeContract(
       {
         sender: secretjs.address,
-        contract_address: wrap_deposit_contract_address,
+        contract_address: wrapDepositContractAddress,
         sent_funds: coinsFromString("234uscrt"),
         msg: {
           ibc_transfer: {
@@ -2246,7 +2246,7 @@ describe("ibc-hooks middleware", () => {
           l.msg === 0 &&
           l.type === "wasm" &&
           l.key === "contract_address" &&
-          l.value === wrap_deposit_contract_address,
+          l.value === wrapDepositContractAddress,
       ),
     ).toBeTruthy();
     expect(
