@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.1
+
+- Support SNIP-20 & SNIP-721 permit signing with MetaMaskWallet.
+
 ## 1.9.0
 
 - Support Secret Network v1.9
