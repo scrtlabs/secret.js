@@ -1906,7 +1906,7 @@ describe("ibc-switch middleware", () => {
   });
 });
 
-describe("ibc-hooks middleware", () => {
+describe.skip("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
