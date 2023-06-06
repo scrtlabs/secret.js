@@ -22,6 +22,6 @@ services:
       - "2317:1317" # LCD / gRPC gatewasy
       - "5100:5000" # Faucet
     environment:
-      FAST_BLOCKS: "true"
       CHAINID: "secretdev-2"
+      FAST_BLOCKS: "true"
       LOG_LEVEL: "TRACE"
