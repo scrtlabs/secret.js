@@ -601,9 +601,24 @@ export type TxSender = {
    */
   broadcast: (messages: Msg[], txOptions?: TxOptions) => Promise<TxResponse>;
 
-  signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<string>;
+  /**
+   * Prepare and sign an array of messages as a transaction
+   * @async
+   * @param {Msg[]} messages - Array of messages to prepare and sign
+   * @param {TxOptions} [txOptions] - An optional object of transaction options
+   * @returns {Promise<Uint8Array>} Returns a Promise that resolves txBytes, which can be passed into broadcastSignedTx().
+   */
+  signTx: (messages: Msg[], txOptions?: TxOptions) => Promise<Uint8Array>;
+
+  /**
+   * Broadcast a signed transactions
+   * @async
+   * @param {Uint8Array} txBytes - Signed transaction bytes, can be the output of signTx()
+   * @param {TxOptions} [txOptions] - An optional object of transaction options
+   * @returns {Promise<TxResponse>}
+   */
   broadcastSignedTx: (
-    signedMessage: string,
+    txBytes: Uint8Array,
     txOptions?: TxOptions,
   ) => Promise<TxResponse>;
 
@@ -1595,20 +1610,33 @@ export class SecretNetworkClient {
     }
   }
 
+  /**
+   * Prepare and sign an array of messages as a transaction
+   * @async
+   * @private
+   * @param {Msg[]} messages - Array of messages to prepare and sign
+   * @param {TxOptions} [txOptions] - An optional object of transaction options
+   * @returns {Promise<Uint8Array>} Returns a Promise that resolves txBytes, which can be passed into broadcastSignedTx().
+   */
   private async signTx(
     messages: Msg[],
     txOptions?: TxOptions,
-  ): Promise<string> {
-    let signed = await this.prepareAndSign(messages, txOptions);
-
-    return toBase64(signed);
+  ): Promise<Uint8Array> {
+    return this.prepareAndSign(messages, txOptions);
   }
 
+  /**
+   * Broadcast a signed transactions
+   * @async
+   * @private
+   * @param {Uint8Array} txBytes - Signed transaction bytes, can be the output of signTx()
+   * @param {TxOptions} [txOptions] - An optional object of transaction options
+   * @returns {Promise<TxResponse>}
+   */
   private async broadcastSignedTx(
-    messages: string,
+    txBytes: Uint8Array,
     txOptions?: TxOptions,
   ): Promise<TxResponse> {
-    let txBytes = fromBase64(messages);
     return this.broadcastTx(
       txBytes,
       txOptions?.broadcastTimeoutMs ?? 60_000,

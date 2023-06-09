@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- API breaking: `secretjs.tx.signTx()` now returns `txBytes` as a `Uint8Array` instead of a base64 `string`.
+- API breaking: `secretjs.tx.broadcastSignedTx()` now receives `txBytes` as a `Uint8Array` instead of a base64 `string`.
+
 ## 1.9.3
 
 Fix a bug where error messages would sometimes not decrypt on highly nested contract calls.
