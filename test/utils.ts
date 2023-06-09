@@ -27,6 +27,7 @@ export type Account = {
   walletAmino: AminoWallet;
   walletProto: Wallet;
   secretjs: SecretNetworkClient;
+  secretjsProto: SecretNetworkClient;
 };
 
 export const accounts: Account[] = [];
@@ -69,15 +70,22 @@ const mnemonics = [
 for (let i = 0; i < mnemonics.length; i++) {
   const mnemonic = mnemonics[i];
   const walletAmino = new AminoWallet(mnemonic);
+  const walletProto = new Wallet(mnemonic);
   accounts[i] = {
     address: walletAmino.address,
     mnemonic: mnemonic,
     walletAmino,
-    walletProto: new Wallet(mnemonic),
+    walletProto,
     secretjs: new SecretNetworkClient({
       url: chain1LCD,
       wallet: walletAmino,
       walletAddress: walletAmino.address,
+      chainId: "secretdev-1",
+    }),
+    secretjsProto: new SecretNetworkClient({
+      url: chain1LCD,
+      wallet: walletProto,
+      walletAddress: walletProto.address,
       chainId: "secretdev-1",
     }),
   };

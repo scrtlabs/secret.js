@@ -4,6 +4,7 @@ import fs from "fs";
 import {
   base64PubkeyToAddress,
   base64TendermintPubkeyToValconsAddress,
+  coinsFromString,
   gasToFee,
   MsgDelegate,
   MsgExecuteContract,
@@ -3054,4 +3055,44 @@ test("url with trailing slashes", async () => {
   const res = await secretjs.query.tendermint.getLatestBlock({});
 
   expect(Number(res.block?.header?.height)).toBeGreaterThan(0);
+});
+
+describe.skip("tx.vesting", () => {
+  test("MsgCreateVestingAccount & send tx form a vesting account", async () => {
+    const { secretjsProto: secretjsProto0 } = accounts[0];
+
+    let tx = await secretjsProto0.tx.vesting.createVestingAccount({
+      from_address: accounts[0].address,
+      to_address: accounts[1].address,
+      amount: coinsFromString("1uscrt"),
+      end_time: String(Math.floor(Date.now() / 1000 + 10 * 60)), // 10 minutes
+      delayed: false,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let { account } = await secretjsProto0.query.auth.account({
+      address: accounts[1].address,
+    });
+
+    expect(account!["@type"]).toBe(
+      "/cosmos.vesting.v1beta1.BaseVestingAccount",
+    );
+
+    const { secretjs: secretjs1 } = accounts[1];
+
+    tx = await secretjs1.tx.bank.send({
+      from_address: accounts[1].address,
+      to_address: accounts[1].address,
+      amount: coinsFromString("1uscrt"),
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
 });

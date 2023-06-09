@@ -477,6 +477,12 @@ describe("cw20-ics20", () => {
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
+        secretjsProto: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletProto,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
       };
 
       // register snip20 on cw20-ics20, then send tokens from secretdev-1
@@ -1087,6 +1093,12 @@ describe("fee middleware", () => {
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
           wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+        secretjsProto: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
@@ -1721,6 +1733,12 @@ describe("ibc-switch middleware", () => {
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
+        secretjsProto: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletProto,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
       };
 
       // register snip20 on cw20-ics20, then send tokens from secretdev-1
@@ -1800,6 +1818,12 @@ describe("ibc-switch middleware", () => {
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
           wallet: accounts[0].walletAmino,
+          walletAddress: accounts[0].address,
+          chainId: "secretdev-2",
+        }),
+        secretjsProto: new SecretNetworkClient({
+          url: chain2LCD,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),

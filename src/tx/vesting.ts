@@ -5,6 +5,7 @@ export interface MsgCreateVestingAccountParams extends MsgParams {
   from_address: string;
   to_address: string;
   amount: Coin[];
+  /** end of vesting as unix time (in seconds). */
   end_time: string;
   delayed: boolean;
 }
