@@ -225,7 +225,11 @@ import {
   MsgToggleIbcSwitch,
   MsgToggleIbcSwitchParams,
 } from "./tx/emergency_button";
-import { BaseVestingAccount } from "./grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
+import {
+  BaseVestingAccount,
+  ContinuousVestingAccount,
+  DelayedVestingAccount,
+} from "./grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -1716,13 +1720,19 @@ export class SecretNetworkClient {
       let baseAccount: BaseAccount | undefined;
       if (account["@type"] === "/cosmos.auth.v1beta1.BaseAccount") {
         baseAccount = account as BaseAccount;
+      } else if (
+        account["@type"] === "/cosmos.vesting.v1beta1.ContinuousVestingAccount"
+      ) {
+        baseAccount = (account as ContinuousVestingAccount).base_vesting_account
+          ?.base_account;
+      } else if (
+        account["@type"] === "/cosmos.vesting.v1beta1.DelayedVestingAccount"
+      ) {
+        baseAccount = (account as DelayedVestingAccount).base_vesting_account
+          ?.base_account;
       } else if (account["@type"] === "/cosmos.auth.v1beta1.ModuleAccount") {
         // wat?
         baseAccount = (account as ModuleAccount).base_account;
-      } else if (
-        account["@type"] === "/cosmos.vesting.v1beta1.BaseVestingAccount"
-      ) {
-        baseAccount = (account as BaseVestingAccount).base_account;
       } else {
         throw new Error(
           `Cannot sign with account of type "${account["@type"]}".`,

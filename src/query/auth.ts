@@ -15,15 +15,24 @@ import {
   QueryParamsResponse,
 } from "../grpc_gateway/cosmos/auth/v1beta1/query.pb";
 import { PageResponse } from "../grpc_gateway/cosmos/base/query/v1beta1/pagination.pb";
-import { BaseVestingAccount } from "../grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
+import {
+  ContinuousVestingAccount,
+  DelayedVestingAccount,
+} from "../grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 import { QueryModuleAccountByNameRequest } from "../protobuf/cosmos/auth/v1beta1/query";
 
 export type Account = {
   "@type":
     | "/cosmos.auth.v1beta1.BaseAccount"
     | "/cosmos.auth.v1beta1.ModuleAccount"
-    | "/cosmos.vesting.v1beta1.BaseVestingAccount";
-} & (BaseAccount | ModuleAccount | BaseVestingAccount);
+    | "/cosmos.vesting.v1beta1.ContinuousVestingAccount"
+    | "/cosmos.vesting.v1beta1.DelayedVestingAccount";
+} & (
+  | BaseAccount
+  | ModuleAccount
+  | ContinuousVestingAccount
+  | DelayedVestingAccount
+);
 
 /** AuthQuerier is the query interface for the x/auth module */
 export class AuthQuerier {
