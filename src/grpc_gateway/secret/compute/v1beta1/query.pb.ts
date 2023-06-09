@@ -5,6 +5,7 @@
 */
 
 import * as CosmosBaseAbciV1beta1Abci from "../../../cosmos/base/abci/v1beta1/abci.pb"
+import * as CosmosBaseQueryV1beta1Pagination from "../../../cosmos/base/query/v1beta1/pagination.pb"
 import * as fm from "../../../fetch.pb"
 import * as GoogleProtobufEmpty from "../../../google/protobuf/empty.pb"
 import * as SecretComputeV1beta1Types from "./types.pb"
@@ -86,6 +87,16 @@ export type DecryptedAnswers = {
   plaintext_error?: string
 }
 
+export type QueryContractHistoryRequest = {
+  contract_address?: string
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+}
+
+export type QueryContractHistoryResponse = {
+  entries?: SecretComputeV1beta1Types.ContractCodeHistoryEntry[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
 export class Query {
   static ContractInfo(req: QueryByContractAddressRequest, initReq?: fm.InitReq): Promise<QueryContractInfoResponse> {
     return fm.fetchReq<QueryByContractAddressRequest, QueryContractInfoResponse>(`/compute/v1beta1/info/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
@@ -113,5 +124,8 @@ export class Query {
   }
   static AddressByLabel(req: QueryByLabelRequest, initReq?: fm.InitReq): Promise<QueryContractAddressResponse> {
     return fm.fetchReq<QueryByLabelRequest, QueryContractAddressResponse>(`/compute/v1beta1/contract_address/${req["label"]}?${fm.renderURLSearchParams(req, ["label"])}`, {...initReq, method: "GET"})
+  }
+  static ContractHistory(req: QueryContractHistoryRequest, initReq?: fm.InitReq): Promise<QueryContractHistoryResponse> {
+    return fm.fetchReq<QueryContractHistoryRequest, QueryContractHistoryResponse>(`/compute/v1beta1/contract_history/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
   }
 }

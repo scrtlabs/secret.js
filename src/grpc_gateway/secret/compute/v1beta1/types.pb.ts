@@ -11,6 +11,13 @@ export enum AccessType {
   EVERYBODY = "EVERYBODY",
 }
 
+export enum ContractCodeHistoryOperationType {
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED = "CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED",
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT = "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE = "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS = "CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS",
+}
+
 export type AccessTypeParam = {
   value?: AccessType
 }
@@ -27,12 +34,24 @@ export type ContractCustomInfo = {
   label?: string
 }
 
+export type ContractKey = {
+  key?: Uint8Array
+  original?: ContractKeyWithProof
+}
+
+export type ContractKeyWithProof = {
+  key?: Uint8Array
+  proof?: Uint8Array
+}
+
 export type ContractInfo = {
   code_id?: string
   creator?: Uint8Array
   label?: string
   created?: AbsoluteTxPosition
   ibc_port_id?: string
+  admin?: Uint8Array
+  admin_proof?: Uint8Array
 }
 
 export type AbsoluteTxPosition = {
@@ -43,4 +62,11 @@ export type AbsoluteTxPosition = {
 export type Model = {
   Key?: Uint8Array
   Value?: Uint8Array
+}
+
+export type ContractCodeHistoryEntry = {
+  operation?: ContractCodeHistoryOperationType
+  code_id?: string
+  updated?: AbsoluteTxPosition
+  msg?: Uint8Array
 }

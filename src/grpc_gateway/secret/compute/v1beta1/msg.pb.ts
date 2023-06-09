@@ -25,6 +25,7 @@ export type MsgInstantiateContract = {
   init_msg?: Uint8Array
   init_funds?: CosmosBaseV1beta1Coin.Coin[]
   callback_sig?: Uint8Array
+  admin?: Uint8Array
 }
 
 export type MsgInstantiateContractResponse = {
@@ -45,6 +46,34 @@ export type MsgExecuteContractResponse = {
   data?: Uint8Array
 }
 
+export type MsgMigrateContract = {
+  sender?: string
+  contract?: string
+  code_id?: string
+  msg?: Uint8Array
+}
+
+export type MsgMigrateContractResponse = {
+  data?: Uint8Array
+}
+
+export type MsgUpdateAdmin = {
+  sender?: string
+  new_admin?: string
+  contract?: string
+}
+
+export type MsgUpdateAdminResponse = {
+}
+
+export type MsgClearAdmin = {
+  sender?: string
+  contract?: string
+}
+
+export type MsgClearAdminResponse = {
+}
+
 export class Msg {
   static StoreCode(req: MsgStoreCode, initReq?: fm.InitReq): Promise<MsgStoreCodeResponse> {
     return fm.fetchReq<MsgStoreCode, MsgStoreCodeResponse>(`/secret.compute.v1beta1.Msg/StoreCode`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -54,5 +83,8 @@ export class Msg {
   }
   static ExecuteContract(req: MsgExecuteContract, initReq?: fm.InitReq): Promise<MsgExecuteContractResponse> {
     return fm.fetchReq<MsgExecuteContract, MsgExecuteContractResponse>(`/secret.compute.v1beta1.Msg/ExecuteContract`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static MigrateContract(req: MsgMigrateContract, initReq?: fm.InitReq): Promise<MsgMigrateContractResponse> {
+    return fm.fetchReq<MsgMigrateContract, MsgMigrateContractResponse>(`/secret.compute.v1beta1.Msg/MigrateContract`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

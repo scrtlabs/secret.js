@@ -18,6 +18,8 @@ import {
   QueryCodeResponse,
   QueryCodesResponse,
   QueryContractAddressResponse,
+  QueryContractHistoryRequest,
+  QueryContractHistoryResponse,
   QueryContractInfoResponse,
   QueryContractLabelResponse,
   QueryContractsByCodeIdResponse,
@@ -230,15 +232,14 @@ export class ComputeQuerier {
       }
     }
   }
-}
 
-export function addressToBytes(address: string): Uint8Array {
-  return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
-}
-
-export function bytesToAddress(
-  bytes: Uint8Array,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(prefix, bech32.toWords(bytes));
+  contractHistory(
+    req: QueryContractHistoryRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryContractHistoryResponse> {
+    return Query.ContractHistory(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 }
