@@ -199,7 +199,7 @@ export class ComputeQuerier {
     } catch (err) {
       try {
         const errorMessageRgx =
-          /encrypted: (.+?): (?:instantiate|execute|query) contract failed/g;
+          /encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
         const rgxMatches = errorMessageRgx.exec(err.message);
         if (rgxMatches == null || rgxMatches?.length != 2) {
           throw err;
