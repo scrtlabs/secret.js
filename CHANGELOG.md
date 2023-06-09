@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 1.9.2
+
+Fix sending txs from vesting accounts.
+
 ## 1.9.1
 
-- Support SNIP-20 & SNIP-721 permit signing with MetaMaskWallet.
+Support SNIP-20 & SNIP-721 permit signing with MetaMaskWallet.
 
 ## 1.9.0
 
