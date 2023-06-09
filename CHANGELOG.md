@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.3
+
+Fix a bug where error messages would sometimes not decrypt on highly nested contract calls.
+
 ## 1.9.2
 
 Fix sending txs from vesting accounts.
