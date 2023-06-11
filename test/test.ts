@@ -6,6 +6,7 @@ import {
   base64TendermintPubkeyToValconsAddress,
   coinsFromString,
   gasToFee,
+  MsgCreateVestingAccount,
   MsgDelegate,
   MsgExecuteContract,
   MsgExecuteContractResponse,
@@ -26,6 +27,7 @@ import {
   validateAddress,
   validatorAddressToSelfDelegatorAddress,
   VoteOption,
+  Wallet,
 } from "../src";
 import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
@@ -3057,17 +3059,28 @@ test("url with trailing slashes", async () => {
   expect(Number(res.block?.header?.height)).toBeGreaterThan(0);
 });
 
-describe.skip("tx.vesting", () => {
-  test("MsgCreateVestingAccount & send tx form a vesting account", async () => {
+describe.skip("vesting", () => {
+  test("MsgCreateVestingAccount & send tx form ContinuousVestingAccount", async () => {
     const { secretjsProto: secretjsProto0 } = accounts[0];
 
-    let tx = await secretjsProto0.tx.vesting.createVestingAccount({
-      from_address: accounts[0].address,
-      to_address: accounts[1].address,
-      amount: coinsFromString("1uscrt"),
-      end_time: String(Math.floor(Date.now() / 1000 + 10 * 60)), // 10 minutes
-      delayed: false,
-    });
+    // Test MsgCreateVestingAccount
+
+    const newWallet = new Wallet();
+
+    let tx = await secretjsProto0.tx.broadcast([
+      new MsgCreateVestingAccount({
+        from_address: accounts[0].address,
+        to_address: newWallet.address, // to_address must be a new address
+        amount: coinsFromString("1uscrt"),
+        end_time: String(Math.floor(Date.now() / 1000 + 10 * 60)), // 10 minutes
+        delayed: false,
+      }),
+      new MsgSend({
+        from_address: accounts[0].address,
+        to_address: newWallet.address,
+        amount: coinsFromString("10000000uscrt"),
+      }),
+    ]);
 
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
@@ -3075,18 +3088,81 @@ describe.skip("tx.vesting", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     let { account } = await secretjsProto0.query.auth.account({
-      address: accounts[1].address,
+      address: newWallet.address,
     });
 
     expect(account!["@type"]).toBe(
-      "/cosmos.vesting.v1beta1.BaseVestingAccount",
+      "/cosmos.vesting.v1beta1.ContinuousVestingAccount",
     );
 
-    const { secretjs: secretjs1 } = accounts[1];
+    // Test sending txs from ContinuousVestingAccount
 
-    tx = await secretjs1.tx.bank.send({
-      from_address: accounts[1].address,
-      to_address: accounts[1].address,
+    const secretjsNewWallet = new SecretNetworkClient({
+      url: chain1LCD,
+      chainId: "secretdev-1",
+      wallet: newWallet,
+      walletAddress: newWallet.address,
+    });
+
+    tx = await secretjsNewWallet.tx.bank.send({
+      from_address: newWallet.address,
+      to_address: accounts[0].address,
+      amount: coinsFromString("1uscrt"),
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgCreateVestingAccount & send tx form DelayedVestingAccount", async () => {
+    const { secretjsProto: secretjsProto0 } = accounts[0];
+
+    // Test MsgCreateVestingAccount
+
+    const newWallet = new Wallet();
+
+    let tx = await secretjsProto0.tx.broadcast([
+      new MsgCreateVestingAccount({
+        from_address: accounts[0].address,
+        to_address: newWallet.address, // to_address must be a new address
+        amount: coinsFromString("1uscrt"),
+        end_time: String(Math.floor(Date.now() / 1000 + 10 * 60)), // 10 minutes
+        delayed: true,
+      }),
+      new MsgSend({
+        from_address: accounts[0].address,
+        to_address: newWallet.address,
+        amount: coinsFromString("10000000uscrt"),
+      }),
+    ]);
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let { account } = await secretjsProto0.query.auth.account({
+      address: newWallet.address,
+    });
+
+    expect(account!["@type"]).toBe(
+      "/cosmos.vesting.v1beta1.DelayedVestingAccount",
+    );
+
+    // Test sending txs from DelayedVestingAccount
+
+    const secretjsNewWallet = new SecretNetworkClient({
+      url: chain1LCD,
+      chainId: "secretdev-1",
+      wallet: newWallet,
+      walletAddress: newWallet.address,
+    });
+
+    tx = await secretjsNewWallet.tx.bank.send({
+      from_address: newWallet.address,
+      to_address: accounts[0].address,
       amount: coinsFromString("1uscrt"),
     });
 

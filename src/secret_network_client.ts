@@ -148,6 +148,10 @@ import {
   Service as TxService,
 } from "./grpc_gateway/cosmos/tx/v1beta1/service.pb";
 import { Tx as TxPb } from "./grpc_gateway/cosmos/tx/v1beta1/tx.pb";
+import {
+  ContinuousVestingAccount,
+  DelayedVestingAccount,
+} from "./grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
 import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
 import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
@@ -167,6 +171,7 @@ import { AuthzQuerier } from "./query/authz";
 import { BankQuerier } from "./query/bank";
 import { ComputeQuerier, bytesToAddress } from "./query/compute";
 import { DistributionQuerier } from "./query/distribution";
+import { EmergencyButtonQuerier } from "./query/emergency_button";
 import { EvidenceQuerier } from "./query/evidence";
 import { FeegrantQuerier } from "./query/feegrant";
 import { GovQuerier } from "./query/gov";
@@ -185,7 +190,6 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
-import { EmergencyButtonQuerier } from "./query/emergency_button";
 import {
   AminoMsg,
   Msg,
@@ -203,6 +207,10 @@ import {
   MsgSetAutoRestakeParams,
   ProtoMsg,
 } from "./tx";
+import {
+  MsgToggleIbcSwitch,
+  MsgToggleIbcSwitchParams,
+} from "./tx/emergency_button";
 import { RaAuthenticate, RaAuthenticateParams } from "./tx/registration";
 import {
   MsgCreateVestingAccount,
@@ -221,15 +229,6 @@ import {
   isSignDoc,
   isSignDocCamelCase,
 } from "./wallet_amino";
-import {
-  MsgToggleIbcSwitch,
-  MsgToggleIbcSwitchParams,
-} from "./tx/emergency_button";
-import {
-  BaseVestingAccount,
-  ContinuousVestingAccount,
-  DelayedVestingAccount,
-} from "./grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
