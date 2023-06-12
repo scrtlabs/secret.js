@@ -34,7 +34,7 @@ export interface MsgInstantiateContract {
   /** used internally for encryption, should always be empty in a signed transaction */
   callback_sig: Uint8Array;
   /** Admin is an optional address that can execute migrations */
-  admin: Uint8Array;
+  admin: string;
 }
 
 /** MsgInstantiateContractResponse return instantiation result data */
@@ -273,7 +273,7 @@ function createBaseMsgInstantiateContract(): MsgInstantiateContract {
     init_msg: new Uint8Array(),
     init_funds: [],
     callback_sig: new Uint8Array(),
-    admin: new Uint8Array(),
+    admin: "",
   };
 }
 
@@ -303,8 +303,8 @@ export const MsgInstantiateContract = {
     if (message.callback_sig.length !== 0) {
       writer.uint32(58).bytes(message.callback_sig);
     }
-    if (message.admin.length !== 0) {
-      writer.uint32(66).bytes(message.admin);
+    if (message.admin !== "") {
+      writer.uint32(66).string(message.admin);
     }
     return writer;
   },
@@ -341,7 +341,7 @@ export const MsgInstantiateContract = {
           message.callback_sig = reader.bytes();
           break;
         case 8:
-          message.admin = reader.bytes();
+          message.admin = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -370,9 +370,7 @@ export const MsgInstantiateContract = {
       callback_sig: isSet(object.callback_sig)
         ? bytesFromBase64(object.callback_sig)
         : new Uint8Array(),
-      admin: isSet(object.admin)
-        ? bytesFromBase64(object.admin)
-        : new Uint8Array(),
+      admin: isSet(object.admin) ? String(object.admin) : "",
     };
   },
 
@@ -403,10 +401,7 @@ export const MsgInstantiateContract = {
           ? message.callback_sig
           : new Uint8Array(),
       ));
-    message.admin !== undefined &&
-      (obj.admin = base64FromBytes(
-        message.admin !== undefined ? message.admin : new Uint8Array(),
-      ));
+    message.admin !== undefined && (obj.admin = message.admin);
     return obj;
   },
 
@@ -422,7 +417,7 @@ export const MsgInstantiateContract = {
     message.init_funds =
       object.init_funds?.map((e) => Coin.fromPartial(e)) || [];
     message.callback_sig = object.callback_sig ?? new Uint8Array();
-    message.admin = object.admin ?? new Uint8Array();
+    message.admin = object.admin ?? "";
     return message;
   },
 };

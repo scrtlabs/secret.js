@@ -25,7 +25,7 @@ export type MsgInstantiateContract = {
   init_msg?: Uint8Array
   init_funds?: CosmosBaseV1beta1Coin.Coin[]
   callback_sig?: Uint8Array
-  admin?: Uint8Array
+  admin?: string
 }
 
 export type MsgInstantiateContractResponse = {

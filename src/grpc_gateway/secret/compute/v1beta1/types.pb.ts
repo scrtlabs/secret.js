@@ -50,7 +50,7 @@ export type ContractInfo = {
   label?: string
   created?: AbsoluteTxPosition
   ibc_port_id?: string
-  admin?: Uint8Array
+  admin?: string
   admin_proof?: Uint8Array
 }
 

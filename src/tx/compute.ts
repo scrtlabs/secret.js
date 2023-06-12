@@ -95,7 +95,7 @@ export class MsgInstantiateContract implements Msg {
       // callback_sig & callback_code_hash are internal stuff that doesn't matter here
       callback_sig: new Uint8Array(0),
       callback_code_hash: "",
-      admin: addressToBytes(this.admin),
+      admin: this.admin,
     };
 
     return {

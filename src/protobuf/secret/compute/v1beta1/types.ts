@@ -140,7 +140,7 @@ export interface ContractInfo {
   created?: AbsoluteTxPosition;
   ibc_port_id: string;
   /** Admin is an optional address that can execute migrations */
-  admin: Uint8Array;
+  admin: string;
   /** Proof that enclave executed the instantiate command */
   admin_proof: Uint8Array;
 }
@@ -551,7 +551,7 @@ function createBaseContractInfo(): ContractInfo {
     label: "",
     created: undefined,
     ibc_port_id: "",
-    admin: new Uint8Array(),
+    admin: "",
     admin_proof: new Uint8Array(),
   };
 }
@@ -579,8 +579,8 @@ export const ContractInfo = {
     if (message.ibc_port_id !== "") {
       writer.uint32(50).string(message.ibc_port_id);
     }
-    if (message.admin.length !== 0) {
-      writer.uint32(58).bytes(message.admin);
+    if (message.admin !== "") {
+      writer.uint32(58).string(message.admin);
     }
     if (message.admin_proof.length !== 0) {
       writer.uint32(66).bytes(message.admin_proof);
@@ -611,7 +611,7 @@ export const ContractInfo = {
           message.ibc_port_id = reader.string();
           break;
         case 7:
-          message.admin = reader.bytes();
+          message.admin = reader.string();
           break;
         case 8:
           message.admin_proof = reader.bytes();
@@ -635,9 +635,7 @@ export const ContractInfo = {
         ? AbsoluteTxPosition.fromJSON(object.created)
         : undefined,
       ibc_port_id: isSet(object.ibc_port_id) ? String(object.ibc_port_id) : "",
-      admin: isSet(object.admin)
-        ? bytesFromBase64(object.admin)
-        : new Uint8Array(),
+      admin: isSet(object.admin) ? String(object.admin) : "",
       admin_proof: isSet(object.admin_proof)
         ? bytesFromBase64(object.admin_proof)
         : new Uint8Array(),
@@ -658,10 +656,7 @@ export const ContractInfo = {
         : undefined);
     message.ibc_port_id !== undefined &&
       (obj.ibc_port_id = message.ibc_port_id);
-    message.admin !== undefined &&
-      (obj.admin = base64FromBytes(
-        message.admin !== undefined ? message.admin : new Uint8Array(),
-      ));
+    message.admin !== undefined && (obj.admin = message.admin);
     message.admin_proof !== undefined &&
       (obj.admin_proof = base64FromBytes(
         message.admin_proof !== undefined
@@ -683,7 +678,7 @@ export const ContractInfo = {
         ? AbsoluteTxPosition.fromPartial(object.created)
         : undefined;
     message.ibc_port_id = object.ibc_port_id ?? "";
-    message.admin = object.admin ?? new Uint8Array();
+    message.admin = object.admin ?? "";
     message.admin_proof = object.admin_proof ?? new Uint8Array();
     return message;
   },
