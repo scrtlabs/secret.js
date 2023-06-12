@@ -218,6 +218,9 @@ export const validateAddress = (
  * @returns {Uint8Array} - The resulting bytes address.
  */
 export function addressToBytes(address: string): Uint8Array {
+  if (address === "") {
+    return new Uint8Array(0);
+  }
   return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
 }
 
@@ -231,5 +234,8 @@ export function bytesToAddress(
   bytes: Uint8Array,
   prefix: string = "secret",
 ): string {
+  if (bytes.length === 0) {
+    return "";
+  }
   return bech32.encode(prefix, bech32.toWords(bytes));
 }
