@@ -432,7 +432,7 @@ export interface MsgUpdateAdminParams extends MsgParams {
   /** New admin address to be set */
   new_admin: string;
   /** The address of the secret contract */
-  contract: string;
+  contract_address: string;
 }
 
 /** MsgUpdateAdmin sets a new admin for a secret contract. */
@@ -446,7 +446,11 @@ export class MsgUpdateAdmin implements Msg {
       encode: async () =>
         (
           await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgUpdateAdmin.encode(this.params).finish(),
+        ).MsgUpdateAdmin.encode({
+          sender: this.params.sender,
+          new_admin: this.params.new_admin,
+          contract: this.params.contract_address,
+        }).finish(),
     };
   }
 
@@ -462,7 +466,7 @@ export interface MsgClearAdminParams extends MsgParams {
   /** Sender is the actor that signed the messages (should be the current admin) */
   sender: string;
   /** Contract is the address of the smart contract */
-  contract: string;
+  contract_address: string;
 }
 
 /** MsgClearAdmin removes any admin stored for a secret contract. */
@@ -476,7 +480,10 @@ export class MsgClearAdmin implements Msg {
       encode: async () =>
         (
           await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgClearAdmin.encode(this.params).finish(),
+        ).MsgClearAdmin.encode({
+          sender: this.params.sender,
+          contract: this.params.contract_address,
+        }).finish(),
     };
   }
 
