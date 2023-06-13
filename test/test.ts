@@ -1284,6 +1284,8 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
+    const initHeight = String(tx.height);
+
     tx = await secretjs.tx.compute.storeCode(
       {
         sender: secretjs.address,
@@ -1360,13 +1362,6 @@ describe("tx.compute", () => {
       },
       {
         msg: 0,
-        type: "migrate",
-        key: "contract_address",
-        value: contract_address,
-      },
-      { msg: 0, type: "migrate", key: "code_id", value: new_code_id },
-      {
-        msg: 0,
         type: "wasm",
         key: "contract_address",
         value: contract_address,
@@ -1382,6 +1377,31 @@ describe("tx.compute", () => {
         type: "wasm",
         key: "migrate.msg",
         value: "Nop",
+      },
+    ]);
+
+    const { entries } = await secretjs.query.compute.contractHistory({
+      contract_address,
+    });
+
+    expect(entries).toStrictEqual([
+      {
+        code_id: code_id,
+        msg: '{"name":"Secret SCRT","admin":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","symbol":"SSCRT","decimals":6,"initial_balances":[{"address":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","amount":"1"}],"prng_seed":"eW8=","config":{"public_total_supply":true,"enable_deposit":true,"enable_redeem":true,"enable_mint":false,"enable_burn":false},"supported_denoms":["uscrt"]}',
+        operation: "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+        updated: {
+          block_height: initHeight,
+          tx_index: "0",
+        },
+      },
+      {
+        code_id: new_code_id,
+        msg: '{"nop":{}}',
+        operation: "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE",
+        updated: {
+          block_height: String(tx.height),
+          tx_index: "0",
+        },
       },
     ]);
   });
