@@ -2,10 +2,6 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { ContractInfo, ContractCodeHistoryEntry } from "./types";
-import {
-  PageRequest,
-  PageResponse,
-} from "../../../cosmos/base/query/v1beta1/pagination";
 import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Empty } from "../../../google/protobuf/empty";
 
@@ -105,8 +101,6 @@ export interface DecryptedAnswers {
 export interface QueryContractHistoryRequest {
   /** address is the address of the contract to query */
   contract_address: string;
-  /** pagination defines an optional pagination for the request. */
-  pagination?: PageRequest;
 }
 
 /**
@@ -115,8 +109,6 @@ export interface QueryContractHistoryRequest {
  */
 export interface QueryContractHistoryResponse {
   entries: ContractCodeHistoryEntry[];
-  /** pagination defines the pagination in the response. */
-  pagination?: PageResponse;
 }
 
 function createBaseQuerySecretContractRequest(): QuerySecretContractRequest {
@@ -1262,7 +1254,7 @@ export const DecryptedAnswers = {
 };
 
 function createBaseQueryContractHistoryRequest(): QueryContractHistoryRequest {
-  return { contract_address: "", pagination: undefined };
+  return { contract_address: "" };
 }
 
 export const QueryContractHistoryRequest = {
@@ -1272,9 +1264,6 @@ export const QueryContractHistoryRequest = {
   ): _m0.Writer {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
-    }
-    if (message.pagination !== undefined) {
-      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1292,9 +1281,6 @@ export const QueryContractHistoryRequest = {
         case 1:
           message.contract_address = reader.string();
           break;
-        case 2:
-          message.pagination = PageRequest.decode(reader, reader.uint32());
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1308,9 +1294,6 @@ export const QueryContractHistoryRequest = {
       contract_address: isSet(object.contract_address)
         ? String(object.contract_address)
         : "",
-      pagination: isSet(object.pagination)
-        ? PageRequest.fromJSON(object.pagination)
-        : undefined,
     };
   },
 
@@ -1318,10 +1301,6 @@ export const QueryContractHistoryRequest = {
     const obj: any = {};
     message.contract_address !== undefined &&
       (obj.contract_address = message.contract_address);
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageRequest.toJSON(message.pagination)
-        : undefined);
     return obj;
   },
 
@@ -1330,16 +1309,12 @@ export const QueryContractHistoryRequest = {
   ): QueryContractHistoryRequest {
     const message = createBaseQueryContractHistoryRequest();
     message.contract_address = object.contract_address ?? "";
-    message.pagination =
-      object.pagination !== undefined && object.pagination !== null
-        ? PageRequest.fromPartial(object.pagination)
-        : undefined;
     return message;
   },
 };
 
 function createBaseQueryContractHistoryResponse(): QueryContractHistoryResponse {
-  return { entries: [], pagination: undefined };
+  return { entries: [] };
 }
 
 export const QueryContractHistoryResponse = {
@@ -1349,12 +1324,6 @@ export const QueryContractHistoryResponse = {
   ): _m0.Writer {
     for (const v of message.entries) {
       ContractCodeHistoryEntry.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.pagination !== undefined) {
-      PageResponse.encode(
-        message.pagination,
-        writer.uint32(18).fork(),
-      ).ldelim();
     }
     return writer;
   },
@@ -1374,9 +1343,6 @@ export const QueryContractHistoryResponse = {
             ContractCodeHistoryEntry.decode(reader, reader.uint32()),
           );
           break;
-        case 2:
-          message.pagination = PageResponse.decode(reader, reader.uint32());
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1390,9 +1356,6 @@ export const QueryContractHistoryResponse = {
       entries: Array.isArray(object?.entries)
         ? object.entries.map((e: any) => ContractCodeHistoryEntry.fromJSON(e))
         : [],
-      pagination: isSet(object.pagination)
-        ? PageResponse.fromJSON(object.pagination)
-        : undefined,
     };
   },
 
@@ -1405,10 +1368,6 @@ export const QueryContractHistoryResponse = {
     } else {
       obj.entries = [];
     }
-    message.pagination !== undefined &&
-      (obj.pagination = message.pagination
-        ? PageResponse.toJSON(message.pagination)
-        : undefined);
     return obj;
   },
 
@@ -1418,10 +1377,6 @@ export const QueryContractHistoryResponse = {
     const message = createBaseQueryContractHistoryResponse();
     message.entries =
       object.entries?.map((e) => ContractCodeHistoryEntry.fromPartial(e)) || [];
-    message.pagination =
-      object.pagination !== undefined && object.pagination !== null
-        ? PageResponse.fromPartial(object.pagination)
-        : undefined;
     return message;
   },
 };

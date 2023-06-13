@@ -5,7 +5,6 @@
 */
 
 import * as CosmosBaseAbciV1beta1Abci from "../../../cosmos/base/abci/v1beta1/abci.pb"
-import * as CosmosBaseQueryV1beta1Pagination from "../../../cosmos/base/query/v1beta1/pagination.pb"
 import * as fm from "../../../fetch.pb"
 import * as GoogleProtobufEmpty from "../../../google/protobuf/empty.pb"
 import * as SecretComputeV1beta1Types from "./types.pb"
@@ -89,12 +88,10 @@ export type DecryptedAnswers = {
 
 export type QueryContractHistoryRequest = {
   contract_address?: string
-  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
 }
 
 export type QueryContractHistoryResponse = {
   entries?: SecretComputeV1beta1Types.ContractCodeHistoryEntry[]
-  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
 export class Query {
