@@ -91,3 +91,11 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
         }
     }
 }
+
+#[entry_point]
+pub fn migrate(_deps: DepsMut, env: Env, msg: Msg) -> StdResult<Response> {
+    Ok(Response::default().add_attributes(vec![
+        ("migrate.env", format!("{:?}", env)),
+        ("migrate.msg", format!("{:?}", msg)),
+    ]))
+}

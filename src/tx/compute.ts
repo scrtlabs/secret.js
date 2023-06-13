@@ -19,7 +19,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -147,7 +147,7 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -324,13 +324,13 @@ export interface MsgMigrateContractParams<T> extends MsgParams {
   /** The contract's address */
   contract_address: string;
   /** The new code id */
-  new_code_id: number | string;
+  code_id: number | string;
   /** The input message */
   msg: T;
   /** The SHA256 hash value of the contract's *new* WASM bytecode, represented as case-insensitive 64 character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -338,7 +338,7 @@ export interface MsgMigrateContractParams<T> extends MsgParams {
    * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
-  new_code_hash?: string;
+  code_hash?: string;
 }
 
 /** Execute a function on a contract */
@@ -355,8 +355,8 @@ export class MsgMigrateContract<T extends object> implements Msg {
     sender,
     contract_address: contractAddress,
     msg,
-    new_code_id: codeId,
-    new_code_hash: codeHash,
+    code_id: codeId,
+    code_hash: codeHash,
   }: MsgMigrateContractParams<T>) {
     this.sender = sender;
     this.contractAddress = contractAddress;

@@ -159,6 +159,7 @@ import { Any } from "./protobuf/google/protobuf/any";
 import {
   MsgExecuteContractResponse,
   MsgInstantiateContractResponse,
+  MsgMigrateContractResponse,
 } from "./protobuf/secret/compute/v1beta1/msg";
 import { AuthQuerier } from "./query/auth";
 import { AuthzQuerier } from "./query/authz";
@@ -187,6 +188,10 @@ import { UpgradeQuerier } from "./query/upgrade";
 import {
   AminoMsg,
   Msg,
+  MsgClearAdmin,
+  MsgClearAdminParams,
+  MsgMigrateContract,
+  MsgMigrateContractParams,
   MsgParams,
   MsgPayPacketFee,
   MsgPayPacketFeeAsync,
@@ -199,6 +204,7 @@ import {
   MsgRegistry,
   MsgSetAutoRestake,
   MsgSetAutoRestakeParams,
+  MsgUpdateAdmin,
   ProtoMsg,
 } from "./tx";
 import {
@@ -691,12 +697,18 @@ export type TxSender = {
     send: SingleMsgTx<MsgSendParams>;
   };
   compute: {
-    /** Execute a function on a contract */
-    executeContract: SingleMsgTx<MsgExecuteContractParams<object>>;
+    /** Upload a compiled contract */
+    storeCode: SingleMsgTx<MsgStoreCodeParams>;
     /** Instantiate a contract from code id */
     instantiateContract: SingleMsgTx<MsgInstantiateContractParams>;
-    /** Upload a compiled contract to Secret Network */
-    storeCode: SingleMsgTx<MsgStoreCodeParams>;
+    /** Execute a function on a contract */
+    executeContract: SingleMsgTx<MsgExecuteContractParams<object>>;
+    /** Runs a code upgrade/downgrade for a contract */
+    migrateContract: SingleMsgTx<MsgMigrateContractParams<object>>;
+    /** Update the admin of a contract */
+    updateAdmin: SingleMsgTx<MsgUpdateAdminParams>;
+    /** Clear the admin of a contract */
+    clearAdmin: SingleMsgTx<MsgClearAdminParams>;
   };
   emergency_button: {
     toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
@@ -931,9 +943,12 @@ export class SecretNetworkClient {
         send: doMsg(MsgSend),
       },
       compute: {
-        executeContract: doMsg(MsgExecuteContract),
-        instantiateContract: doMsg(MsgInstantiateContract),
         storeCode: doMsg(MsgStoreCode),
+        instantiateContract: doMsg(MsgInstantiateContract),
+        executeContract: doMsg(MsgExecuteContract),
+        migrateContract: doMsg(MsgMigrateContract),
+        updateAdmin: doMsg(MsgUpdateAdmin),
+        clearAdmin: doMsg(MsgClearAdmin),
       },
       emergency_button: {
         toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
@@ -1151,7 +1166,8 @@ export class SecretNetworkClient {
       if (msg["@type"] === "/secret.compute.v1beta1.MsgInstantiateContract") {
         contractInputMsgFieldName = "init_msg";
       } else if (
-        msg["@type"] === "/secret.compute.v1beta1.MsgExecuteContract"
+        msg["@type"] === "/secret.compute.v1beta1.MsgExecuteContract" ||
+        msg["@type"] === "/secret.compute.v1beta1.MsgMigrateContract"
       ) {
         contractInputMsgFieldName = "msg";
       }
@@ -1296,6 +1312,18 @@ export class SecretNetworkClient {
               fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
             );
             data[msgIndex] = MsgExecuteContractResponse.encode({
+              data: decrypted,
+            }).finish();
+          } else if (
+            type_url === "/secret.compute.v1beta1.MsgMigrateContract"
+          ) {
+            const decoded = MsgMigrateContractResponse.decode(
+              txMsgData.data[msgIndex].data,
+            );
+            const decrypted = fromBase64(
+              fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
+            );
+            data[msgIndex] = MsgMigrateContractResponse.encode({
               data: decrypted,
             }).finish();
           }
@@ -1509,6 +1537,10 @@ export class SecretNetworkClient {
           } else if (msg.type_url === "/secret.compute.v1beta1.MsgStoreCode") {
             msg.value.sender = bytesToAddress(msg.value.sender);
             msg.value.wasm_byte_code = toBase64(msg.value.wasm_byte_code);
+          } else if (
+            msg.type_url === "/secret.compute.v1beta1.MsgMigrateContract"
+          ) {
+            msg.value.msg = toBase64(msg.value.msg);
           }
 
           tx.body!.messages![i] = msg;
@@ -1836,6 +1868,14 @@ export class SecretNetworkClient {
         ).code_hash!;
       }
     } else if (msg instanceof MsgInstantiateContract) {
+      if (!msg.codeHash) {
+        msg.codeHash = (
+          await this.query.compute.codeHashByCodeId({
+            code_id: msg.codeId,
+          })
+        ).code_hash!;
+      }
+    } else if (msg instanceof MsgMigrateContract) {
       if (!msg.codeHash) {
         msg.codeHash = (
           await this.query.compute.codeHashByCodeId({
