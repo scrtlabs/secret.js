@@ -1411,6 +1411,74 @@ describe("tx.compute", () => {
     expect(ContractInfo?.admin).toBe(accounts[1].address);
   });
 
+  test("MsgClearAdmin", async () => {
+    const { secretjs } = accounts[0];
+
+    const code_id = await storeSnip20Ibc(secretjs, secretjs.address);
+
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
+
+    let tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: secretjs.address,
+        admin: secretjs.address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: secretjs.address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: secretjs.address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    checkInstantiateSuccess(tx);
+
+    const contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
+    ).address;
+
+    let { ContractInfo } = await secretjs.query.compute.contractInfo({
+      contract_address,
+    });
+
+    expect(ContractInfo?.admin).toBe(secretjs.address);
+
+    tx = await secretjs.tx.compute.clearAdmin({
+      sender: secretjs.address,
+      contract_address,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    ({ ContractInfo } = await secretjs.query.compute.contractInfo({
+      contract_address,
+    }));
+
+    expect(ContractInfo?.admin).toBe("");
+  });
+
   test("MsgMigrateContract", async () => {
     const { secretjs } = accounts[0];
 
