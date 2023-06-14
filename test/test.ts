@@ -1283,11 +1283,11 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
-    const { ContractInfo } = await secretjs.query.compute.contractInfo({
+    const { contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     });
 
-    expect(ContractInfo?.admin).toBe("");
+    expect(contract_info?.admin).toBe("");
   });
 
   test("init with admin", async () => {
@@ -1335,11 +1335,11 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
-    const { ContractInfo } = await secretjs.query.compute.contractInfo({
+    const { contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     });
 
-    expect(ContractInfo?.admin).toBe(secretjs.address);
+    expect(contract_info?.admin).toBe(secretjs.address);
   });
 
   test("MsgUpdateAdmin", async () => {
@@ -1387,11 +1387,11 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
-    let { ContractInfo } = await secretjs.query.compute.contractInfo({
+    let { contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     });
 
-    expect(ContractInfo?.admin).toBe(secretjs.address);
+    expect(contract_info?.admin).toBe(secretjs.address);
 
     tx = await secretjs.tx.compute.updateAdmin({
       sender: secretjs.address,
@@ -1404,11 +1404,11 @@ describe("tx.compute", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    ({ ContractInfo } = await secretjs.query.compute.contractInfo({
+    ({ contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     }));
 
-    expect(ContractInfo?.admin).toBe(accounts[1].address);
+    expect(contract_info?.admin).toBe(accounts[1].address);
   });
 
   test("MsgClearAdmin", async () => {
@@ -1456,11 +1456,11 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
-    let { ContractInfo } = await secretjs.query.compute.contractInfo({
+    let { contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     });
 
-    expect(ContractInfo?.admin).toBe(secretjs.address);
+    expect(contract_info?.admin).toBe(secretjs.address);
 
     tx = await secretjs.tx.compute.clearAdmin({
       sender: secretjs.address,
@@ -1472,11 +1472,11 @@ describe("tx.compute", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    ({ ContractInfo } = await secretjs.query.compute.contractInfo({
+    ({ contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     }));
 
-    expect(ContractInfo?.admin).toBe("");
+    expect(contract_info?.admin).toBe("");
   });
 
   test("MsgMigrateContract", async () => {
@@ -1524,11 +1524,11 @@ describe("tx.compute", () => {
       tx.data[0],
     ).address;
 
-    const { ContractInfo } = await secretjs.query.compute.contractInfo({
+    const { contract_info } = await secretjs.query.compute.contractInfo({
       contract_address,
     });
 
-    expect(ContractInfo?.admin).toBe(secretjs.address);
+    expect(contract_info?.admin).toBe(secretjs.address);
 
     const initHeight = String(tx.height);
 

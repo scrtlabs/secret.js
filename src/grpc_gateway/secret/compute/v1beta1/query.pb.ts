@@ -31,12 +31,12 @@ export type QuerySecretContractResponse = {
 
 export type QueryContractInfoResponse = {
   contract_address?: string
-  ContractInfo?: SecretComputeV1beta1Types.ContractInfo
+  contract_info?: SecretComputeV1beta1Types.ContractInfo
 }
 
 export type ContractInfoWithAddress = {
   contract_address?: string
-  ContractInfo?: SecretComputeV1beta1Types.ContractInfo
+  contract_info?: SecretComputeV1beta1Types.ContractInfo
 }
 
 export type QueryContractsByCodeIdResponse = {

@@ -34,14 +34,14 @@ export interface QuerySecretContractResponse {
 export interface QueryContractInfoResponse {
   /** contract_address is the bech32 human readable address of the contract */
   contract_address: string;
-  ContractInfo?: ContractInfo;
+  contract_info?: ContractInfo;
 }
 
 /** ContractInfoWithAddress adds the contract address to the ContractInfo representation */
 export interface ContractInfoWithAddress {
   /** contract_address is the bech32 human readable address of the contract */
   contract_address: string;
-  ContractInfo?: ContractInfo;
+  contract_info?: ContractInfo;
 }
 
 export interface QueryContractsByCodeIdResponse {
@@ -419,7 +419,7 @@ export const QuerySecretContractResponse = {
 };
 
 function createBaseQueryContractInfoResponse(): QueryContractInfoResponse {
-  return { contract_address: "", ContractInfo: undefined };
+  return { contract_address: "", contract_info: undefined };
 }
 
 export const QueryContractInfoResponse = {
@@ -430,9 +430,9 @@ export const QueryContractInfoResponse = {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
     }
-    if (message.ContractInfo !== undefined) {
+    if (message.contract_info !== undefined) {
       ContractInfo.encode(
-        message.ContractInfo,
+        message.contract_info,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -453,7 +453,7 @@ export const QueryContractInfoResponse = {
           message.contract_address = reader.string();
           break;
         case 2:
-          message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
+          message.contract_info = ContractInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -468,8 +468,8 @@ export const QueryContractInfoResponse = {
       contract_address: isSet(object.contract_address)
         ? String(object.contract_address)
         : "",
-      ContractInfo: isSet(object.ContractInfo)
-        ? ContractInfo.fromJSON(object.ContractInfo)
+      contract_info: isSet(object.contract_info)
+        ? ContractInfo.fromJSON(object.contract_info)
         : undefined,
     };
   },
@@ -478,9 +478,9 @@ export const QueryContractInfoResponse = {
     const obj: any = {};
     message.contract_address !== undefined &&
       (obj.contract_address = message.contract_address);
-    message.ContractInfo !== undefined &&
-      (obj.ContractInfo = message.ContractInfo
-        ? ContractInfo.toJSON(message.ContractInfo)
+    message.contract_info !== undefined &&
+      (obj.contract_info = message.contract_info
+        ? ContractInfo.toJSON(message.contract_info)
         : undefined);
     return obj;
   },
@@ -490,16 +490,16 @@ export const QueryContractInfoResponse = {
   ): QueryContractInfoResponse {
     const message = createBaseQueryContractInfoResponse();
     message.contract_address = object.contract_address ?? "";
-    message.ContractInfo =
-      object.ContractInfo !== undefined && object.ContractInfo !== null
-        ? ContractInfo.fromPartial(object.ContractInfo)
+    message.contract_info =
+      object.contract_info !== undefined && object.contract_info !== null
+        ? ContractInfo.fromPartial(object.contract_info)
         : undefined;
     return message;
   },
 };
 
 function createBaseContractInfoWithAddress(): ContractInfoWithAddress {
-  return { contract_address: "", ContractInfo: undefined };
+  return { contract_address: "", contract_info: undefined };
 }
 
 export const ContractInfoWithAddress = {
@@ -510,9 +510,9 @@ export const ContractInfoWithAddress = {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
     }
-    if (message.ContractInfo !== undefined) {
+    if (message.contract_info !== undefined) {
       ContractInfo.encode(
-        message.ContractInfo,
+        message.contract_info,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -533,7 +533,7 @@ export const ContractInfoWithAddress = {
           message.contract_address = reader.string();
           break;
         case 2:
-          message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
+          message.contract_info = ContractInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -548,8 +548,8 @@ export const ContractInfoWithAddress = {
       contract_address: isSet(object.contract_address)
         ? String(object.contract_address)
         : "",
-      ContractInfo: isSet(object.ContractInfo)
-        ? ContractInfo.fromJSON(object.ContractInfo)
+      contract_info: isSet(object.contract_info)
+        ? ContractInfo.fromJSON(object.contract_info)
         : undefined,
     };
   },
@@ -558,9 +558,9 @@ export const ContractInfoWithAddress = {
     const obj: any = {};
     message.contract_address !== undefined &&
       (obj.contract_address = message.contract_address);
-    message.ContractInfo !== undefined &&
-      (obj.ContractInfo = message.ContractInfo
-        ? ContractInfo.toJSON(message.ContractInfo)
+    message.contract_info !== undefined &&
+      (obj.contract_info = message.contract_info
+        ? ContractInfo.toJSON(message.contract_info)
         : undefined);
     return obj;
   },
@@ -570,9 +570,9 @@ export const ContractInfoWithAddress = {
   ): ContractInfoWithAddress {
     const message = createBaseContractInfoWithAddress();
     message.contract_address = object.contract_address ?? "";
-    message.ContractInfo =
-      object.ContractInfo !== undefined && object.ContractInfo !== null
-        ? ContractInfo.fromPartial(object.ContractInfo)
+    message.contract_info =
+      object.contract_info !== undefined && object.contract_info !== null
+        ? ContractInfo.fromPartial(object.contract_info)
         : undefined;
     return message;
   },
