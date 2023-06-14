@@ -441,7 +441,7 @@ export class MsgUpdateAdmin implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: "/cosmos.compute.v1beta1.MsgUpdateAdmin",
+      type_url: "/secret.compute.v1beta1.MsgUpdateAdmin",
       value: this.params,
       encode: async () =>
         (
@@ -475,7 +475,7 @@ export class MsgClearAdmin implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: "/cosmos.compute.v1beta1.MsgClearAdmin",
+      type_url: "/secret.compute.v1beta1.MsgClearAdmin",
       value: this.params,
       encode: async () =>
         (
