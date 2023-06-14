@@ -420,7 +420,11 @@ describe("ibcResponses", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const txs = await secretjs.query.txsQuery(
+    const readonly = new SecretNetworkClient({
+      chainId: "secretdev-1",
+      url: "http://localhost:1317",
+    });
+    const txs = await readonly.query.txsQuery(
       `tx.hash='${tx.transactionHash}'`,
     );
 
