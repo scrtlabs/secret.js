@@ -1,9 +1,9 @@
 use cosmwasm_std::{
     entry_point, to_binary, CosmosMsg, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
-    StdResult,
+    StdError, StdResult,
 };
 
-use crate::msg::{IBCLifecycleComplete, Msg};
+use crate::msg::{IBCLifecycleComplete, MigrateMsg, Msg};
 
 #[entry_point]
 pub fn instantiate(
@@ -93,9 +93,12 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
 }
 
 #[entry_point]
-pub fn migrate(_deps: DepsMut, env: Env, msg: Msg) -> StdResult<Response> {
-    Ok(Response::default().add_attributes(vec![
-        ("migrate.env", format!("{:?}", env)),
-        ("migrate.msg", format!("{:?}", msg)),
-    ]))
+pub fn migrate(_deps: DepsMut, env: Env, msg: MigrateMsg) -> StdResult<Response> {
+    match msg {
+        MigrateMsg::Nop {} => Ok(Response::default().add_attributes(vec![
+            ("migrate.env", format!("{:?}", env)),
+            ("migrate.msg", format!("{:?}", msg)),
+        ])),
+        MigrateMsg::StdError {} => Err(StdError::generic_err("std error")),
+    }
 }

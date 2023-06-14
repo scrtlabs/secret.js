@@ -1652,6 +1652,232 @@ describe("tx.compute", () => {
     ]);
   });
 
+  test("MsgMigrateContract VmError", async () => {
+    const { secretjs } = accounts[0];
+
+    const code_id = await storeSnip20Ibc(secretjs, secretjs.address);
+
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
+
+    let tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: secretjs.address,
+        admin: secretjs.address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: secretjs.address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: secretjs.address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    checkInstantiateSuccess(tx);
+
+    const contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
+    ).address;
+
+    const { contract_info } = await secretjs.query.compute.contractInfo({
+      contract_address,
+    });
+
+    expect(contract_info?.admin).toBe(secretjs.address);
+
+    const initHeight = String(tx.height);
+
+    tx = await secretjs.tx.compute.storeCode(
+      {
+        sender: secretjs.address,
+        wasm_byte_code: fs.readFileSync(
+          `${__dirname}/ibc-hooks.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const new_code_id = MsgStoreCodeResponse.decode(tx.data[0]).code_id;
+    const { code_hash: new_code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: new_code_id,
+      });
+
+    tx = await secretjs.tx.compute.migrateContract(
+      {
+        sender: secretjs.address,
+        contract_address,
+        code_id: new_code_id,
+        code_hash: new_code_hash,
+        msg: { yolo: {} },
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(tx.rawLog).toEqual(
+      "failed to execute message; message index: 0: Error parsing into type ibc_hooks_contract::msg::Msg: unknown variant `yolo`, expected one of `nop`, `wrap_deposit`, `ibc_transfer`, `ibc_lifecycle_complete`: execute contract failed",
+    );
+
+    const { entries } = await secretjs.query.compute.contractHistory({
+      contract_address,
+    });
+
+    expect(entries).toStrictEqual([
+      {
+        code_id: code_id,
+        msg: '{"name":"Secret SCRT","admin":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","symbol":"SSCRT","decimals":6,"initial_balances":[{"address":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","amount":"1"}],"prng_seed":"eW8=","config":{"public_total_supply":true,"enable_deposit":true,"enable_redeem":true,"enable_mint":false,"enable_burn":false},"supported_denoms":["uscrt"]}',
+        operation: "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+        updated: {
+          block_height: initHeight,
+          tx_index: "0",
+        },
+      },
+    ]);
+  });
+
+  test("MsgMigrateContract StdError", async () => {
+    const { secretjs } = accounts[0];
+
+    const code_id = await storeSnip20Ibc(secretjs, secretjs.address);
+
+    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+      code_id,
+    });
+
+    let tx = await secretjs.tx.compute.instantiateContract(
+      {
+        sender: secretjs.address,
+        admin: secretjs.address,
+        code_id,
+        code_hash,
+        init_msg: {
+          name: "Secret SCRT",
+          admin: secretjs.address,
+          symbol: "SSCRT",
+          decimals: 6,
+          initial_balances: [{ address: secretjs.address, amount: "1" }],
+          prng_seed: "eW8=",
+          config: {
+            public_total_supply: true,
+            enable_deposit: true,
+            enable_redeem: true,
+            enable_mint: false,
+            enable_burn: false,
+          },
+          supported_denoms: ["uscrt"],
+        },
+        label: `label-${Date.now()}`,
+        init_funds: [],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    checkInstantiateSuccess(tx);
+
+    const contract_address = MsgInstantiateContractResponse.decode(
+      tx.data[0],
+    ).address;
+
+    const { contract_info } = await secretjs.query.compute.contractInfo({
+      contract_address,
+    });
+
+    expect(contract_info?.admin).toBe(secretjs.address);
+
+    const initHeight = String(tx.height);
+
+    tx = await secretjs.tx.compute.storeCode(
+      {
+        sender: secretjs.address,
+        wasm_byte_code: fs.readFileSync(
+          `${__dirname}/ibc-hooks.wasm.gz`,
+        ) as Uint8Array,
+        source: "",
+        builder: "",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const new_code_id = MsgStoreCodeResponse.decode(tx.data[0]).code_id;
+    const { code_hash: new_code_hash } =
+      await secretjs.query.compute.codeHashByCodeId({
+        code_id: new_code_id,
+      });
+
+    tx = await secretjs.tx.compute.migrateContract(
+      {
+        sender: secretjs.address,
+        contract_address,
+        code_id: new_code_id,
+        code_hash: new_code_hash,
+        msg: { std_error: {} },
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+
+    expect(tx.rawLog).toEqual(
+      "failed to execute message; message index: 0: Generic error: std error: migrate contract failed",
+    );
+
+    const { entries } = await secretjs.query.compute.contractHistory({
+      contract_address,
+    });
+
+    expect(entries).toStrictEqual([
+      {
+        code_id: code_id,
+        msg: '{"name":"Secret SCRT","admin":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","symbol":"SSCRT","decimals":6,"initial_balances":[{"address":"secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03","amount":"1"}],"prng_seed":"eW8=","config":{"public_total_supply":true,"enable_deposit":true,"enable_redeem":true,"enable_mint":false,"enable_burn":false},"supported_denoms":["uscrt"]}',
+        operation: "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT",
+        updated: {
+          block_height: initHeight,
+          tx_index: "0",
+        },
+      },
+    ]);
+  });
+
   test("MsgUpdateAdmin", async () => {
     const { secretjs } = accounts[0];
 
