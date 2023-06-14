@@ -457,7 +457,11 @@ export class MsgUpdateAdmin implements Msg {
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "wasm/MsgUpdateAdmin",
-      value: this.params,
+      value: {
+        sender: this.params.sender,
+        new_admin: this.params.new_admin,
+        contract: this.params.contract_address,
+      },
     };
   }
 }
@@ -490,7 +494,10 @@ export class MsgClearAdmin implements Msg {
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "wasm/MsgClearAdmin",
-      value: this.params,
+      value: {
+        sender: this.params.sender,
+        contract: this.params.contract_address,
+      },
     };
   }
 }
