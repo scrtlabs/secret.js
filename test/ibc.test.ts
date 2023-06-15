@@ -30,7 +30,7 @@ import {
   createIbcChannel,
   createIbcConnection,
   loopRelayer,
-  passParameterChangeProposal,
+  passParameterChangeProposal, sleep,
   turnIbcSwitchOff,
   turnIbcSwitchOn,
   waitForChainToStart,
@@ -420,13 +420,17 @@ describe("ibcResponses", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const readonly = new SecretNetworkClient({
-      chainId: "secretdev-1",
-      url: "http://localhost:1317",
-    });
-    const txs = await readonly.query.txsQuery(
-      `tx.hash='${tx.transactionHash}'`,
-    );
+    let txs: TxResponse[] = [];
+    let tries = 4;
+    while (txs?.length === 0 && tries > 0) {
+      // since this is immediately after tx broadcast,
+      // give some time for it to register in the node
+      await sleep(150);
+      txs = await secretjs.query.txsQuery(
+        `tx.hash='${tx.transactionHash}'`,
+      );
+      tries--;
+    }
 
     expect(txs.length).toBe(1);
     expect(txs[0].ibcResponses.length).toBe(0);
