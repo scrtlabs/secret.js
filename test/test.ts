@@ -1393,11 +1393,17 @@ describe("tx.compute", () => {
 
     expect(contract_info?.admin).toBe(secretjs.address);
 
-    tx = await secretjs.tx.compute.updateAdmin({
-      sender: secretjs.address,
-      contract_address,
-      new_admin: accounts[1].address,
-    });
+    tx = await secretjs.tx.compute.updateAdmin(
+      {
+        sender: secretjs.address,
+        contract_address,
+        new_admin: accounts[1].address,
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
 
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
@@ -1462,10 +1468,16 @@ describe("tx.compute", () => {
 
     expect(contract_info?.admin).toBe(secretjs.address);
 
-    tx = await secretjs.tx.compute.clearAdmin({
-      sender: secretjs.address,
-      contract_address,
-    });
+    tx = await secretjs.tx.compute.clearAdmin(
+      {
+        sender: secretjs.address,
+        contract_address,
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
 
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
@@ -1745,7 +1757,7 @@ describe("tx.compute", () => {
     );
 
     expect(tx.rawLog).toEqual(
-      "failed to execute message; message index: 0: Error parsing into type ibc_hooks_contract::msg::Msg: unknown variant `yolo`, expected one of `nop`, `wrap_deposit`, `ibc_transfer`, `ibc_lifecycle_complete`: execute contract failed",
+      "failed to execute message; message index: 0: Error parsing into type ibc_hooks_contract::msg::MigrateMsg: unknown variant `yolo`, expected `nop` or `std_error`: migrate contract failed",
     );
 
     const { entries } = await secretjs.query.compute.contractHistory({
