@@ -65,7 +65,7 @@ export class MsgInstantiateContract implements Msg {
     this.admin = admin ?? "";
 
     if (code_hash) {
-      this.codeHash = code_hash.replace("0x", "").toLowerCase();
+      this.codeHash = code_hash.replace(/^0x/, "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
@@ -182,7 +182,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     this.sentFunds = sentFunds ?? [];
 
     if (codeHash) {
-      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+      this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
@@ -365,7 +365,7 @@ export class MsgMigrateContract<T extends object> implements Msg {
     this.codeId = String(codeId);
 
     if (codeHash) {
-      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+      this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
