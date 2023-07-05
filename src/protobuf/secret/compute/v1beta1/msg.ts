@@ -52,6 +52,7 @@ export interface MsgExecuteContract {
   contract: Uint8Array;
   /** msg is an encrypted input to pass to the contract on execute */
   msg: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
   callback_code_hash: string;
   sent_funds: Coin[];
   /** used internally for encryption, should always be empty in a signed transaction */
@@ -74,6 +75,10 @@ export interface MsgMigrateContract {
   code_id: string;
   /** msg is an encrypted input to pass to the contract on migration */
   msg: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_code_hash: string;
 }
 
 /** MsgMigrateContractResponse returns contract migration result data. */
@@ -93,6 +98,8 @@ export interface MsgUpdateAdmin {
   new_admin: string;
   /** Contract is the address of the smart contract */
   contract: string;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
 }
 
 /** MsgUpdateAdminResponse returns empty data */
@@ -104,6 +111,8 @@ export interface MsgClearAdmin {
   sender: string;
   /** Contract is the address of the smart contract */
   contract: string;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
 }
 
 /** MsgClearAdminResponse returns empty data */
@@ -694,7 +703,14 @@ export const MsgExecuteContractResponse = {
 };
 
 function createBaseMsgMigrateContract(): MsgMigrateContract {
-  return { sender: "", contract: "", code_id: "0", msg: new Uint8Array() };
+  return {
+    sender: "",
+    contract: "",
+    code_id: "0",
+    msg: new Uint8Array(),
+    callback_sig: new Uint8Array(),
+    callback_code_hash: "",
+  };
 }
 
 export const MsgMigrateContract = {
@@ -713,6 +729,12 @@ export const MsgMigrateContract = {
     }
     if (message.msg.length !== 0) {
       writer.uint32(34).bytes(message.msg);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
+    }
+    if (message.callback_code_hash !== "") {
+      writer.uint32(66).string(message.callback_code_hash);
     }
     return writer;
   },
@@ -736,6 +758,12 @@ export const MsgMigrateContract = {
         case 4:
           message.msg = reader.bytes();
           break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
+        case 8:
+          message.callback_code_hash = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -750,6 +778,12 @@ export const MsgMigrateContract = {
       contract: isSet(object.contract) ? String(object.contract) : "",
       code_id: isSet(object.code_id) ? String(object.code_id) : "0",
       msg: isSet(object.msg) ? bytesFromBase64(object.msg) : new Uint8Array(),
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
+      callback_code_hash: isSet(object.callback_code_hash)
+        ? String(object.callback_code_hash)
+        : "",
     };
   },
 
@@ -762,6 +796,14 @@ export const MsgMigrateContract = {
       (obj.msg = base64FromBytes(
         message.msg !== undefined ? message.msg : new Uint8Array(),
       ));
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
+    message.callback_code_hash !== undefined &&
+      (obj.callback_code_hash = message.callback_code_hash);
     return obj;
   },
 
@@ -773,6 +815,8 @@ export const MsgMigrateContract = {
     message.contract = object.contract ?? "";
     message.code_id = object.code_id ?? "0";
     message.msg = object.msg ?? new Uint8Array();
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
+    message.callback_code_hash = object.callback_code_hash ?? "";
     return message;
   },
 };
@@ -840,7 +884,12 @@ export const MsgMigrateContractResponse = {
 };
 
 function createBaseMsgUpdateAdmin(): MsgUpdateAdmin {
-  return { sender: "", new_admin: "", contract: "" };
+  return {
+    sender: "",
+    new_admin: "",
+    contract: "",
+    callback_sig: new Uint8Array(),
+  };
 }
 
 export const MsgUpdateAdmin = {
@@ -856,6 +905,9 @@ export const MsgUpdateAdmin = {
     }
     if (message.contract !== "") {
       writer.uint32(26).string(message.contract);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
     }
     return writer;
   },
@@ -876,6 +928,9 @@ export const MsgUpdateAdmin = {
         case 3:
           message.contract = reader.string();
           break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -889,6 +944,9 @@ export const MsgUpdateAdmin = {
       sender: isSet(object.sender) ? String(object.sender) : "",
       new_admin: isSet(object.new_admin) ? String(object.new_admin) : "",
       contract: isSet(object.contract) ? String(object.contract) : "",
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
     };
   },
 
@@ -897,6 +955,12 @@ export const MsgUpdateAdmin = {
     message.sender !== undefined && (obj.sender = message.sender);
     message.new_admin !== undefined && (obj.new_admin = message.new_admin);
     message.contract !== undefined && (obj.contract = message.contract);
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
     return obj;
   },
 
@@ -907,6 +971,7 @@ export const MsgUpdateAdmin = {
     message.sender = object.sender ?? "";
     message.new_admin = object.new_admin ?? "";
     message.contract = object.contract ?? "";
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
     return message;
   },
 };
@@ -959,7 +1024,7 @@ export const MsgUpdateAdminResponse = {
 };
 
 function createBaseMsgClearAdmin(): MsgClearAdmin {
-  return { sender: "", contract: "" };
+  return { sender: "", contract: "", callback_sig: new Uint8Array() };
 }
 
 export const MsgClearAdmin = {
@@ -972,6 +1037,9 @@ export const MsgClearAdmin = {
     }
     if (message.contract !== "") {
       writer.uint32(26).string(message.contract);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
     }
     return writer;
   },
@@ -989,6 +1057,9 @@ export const MsgClearAdmin = {
         case 3:
           message.contract = reader.string();
           break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1001,6 +1072,9 @@ export const MsgClearAdmin = {
     return {
       sender: isSet(object.sender) ? String(object.sender) : "",
       contract: isSet(object.contract) ? String(object.contract) : "",
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
     };
   },
 
@@ -1008,6 +1082,12 @@ export const MsgClearAdmin = {
     const obj: any = {};
     message.sender !== undefined && (obj.sender = message.sender);
     message.contract !== undefined && (obj.contract = message.contract);
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
     return obj;
   },
 
@@ -1017,6 +1097,7 @@ export const MsgClearAdmin = {
     const message = createBaseMsgClearAdmin();
     message.sender = object.sender ?? "";
     message.contract = object.contract ?? "";
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
     return message;
   },
 };
@@ -1080,9 +1161,14 @@ export interface Msg {
   ExecuteContract(
     request: MsgExecuteContract,
   ): Promise<MsgExecuteContractResponse>;
+  /** Migrate runs a code upgrade/ downgrade for a smart contract */
   MigrateContract(
     request: MsgMigrateContract,
   ): Promise<MsgMigrateContractResponse>;
+  /** UpdateAdmin sets a new   admin for a smart contract */
+  UpdateAdmin(request: MsgUpdateAdmin): Promise<MsgUpdateAdminResponse>;
+  /** ClearAdmin removes any admin stored for a smart contract */
+  ClearAdmin(request: MsgClearAdmin): Promise<MsgClearAdminResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -1093,6 +1179,8 @@ export class MsgClientImpl implements Msg {
     this.InstantiateContract = this.InstantiateContract.bind(this);
     this.ExecuteContract = this.ExecuteContract.bind(this);
     this.MigrateContract = this.MigrateContract.bind(this);
+    this.UpdateAdmin = this.UpdateAdmin.bind(this);
+    this.ClearAdmin = this.ClearAdmin.bind(this);
   }
   StoreCode(request: MsgStoreCode): Promise<MsgStoreCodeResponse> {
     const data = MsgStoreCode.encode(request).finish();
@@ -1145,6 +1233,30 @@ export class MsgClientImpl implements Msg {
     );
     return promise.then((data) =>
       MsgMigrateContractResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  UpdateAdmin(request: MsgUpdateAdmin): Promise<MsgUpdateAdminResponse> {
+    const data = MsgUpdateAdmin.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Msg",
+      "UpdateAdmin",
+      data,
+    );
+    return promise.then((data) =>
+      MsgUpdateAdminResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ClearAdmin(request: MsgClearAdmin): Promise<MsgClearAdminResponse> {
+    const data = MsgClearAdmin.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Msg",
+      "ClearAdmin",
+      data,
+    );
+    return promise.then((data) =>
+      MsgClearAdminResponse.decode(new _m0.Reader(data)),
     );
   }
 }

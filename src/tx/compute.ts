@@ -391,6 +391,9 @@ export class MsgMigrateContract<T extends object> implements Msg {
       contract: this.contractAddress,
       msg: this.msgEncrypted,
       code_id: this.codeId,
+      // callback_sig & callback_code_hash are internal stuff that doesn't matter here
+      callback_sig: new Uint8Array(),
+      callback_code_hash: "",
     };
 
     return {
@@ -450,6 +453,8 @@ export class MsgUpdateAdmin implements Msg {
           sender: this.params.sender,
           new_admin: this.params.new_admin,
           contract: this.params.contract_address,
+          // callback_sig is internal stuff that doesn't matter here
+          callback_sig: new Uint8Array(),
         }).finish(),
     };
   }
@@ -487,6 +492,8 @@ export class MsgClearAdmin implements Msg {
         ).MsgClearAdmin.encode({
           sender: this.params.sender,
           contract: this.params.contract_address,
+          // callback_sig is internal stuff that doesn't matter here
+          callback_sig: new Uint8Array(),
         }).finish(),
     };
   }

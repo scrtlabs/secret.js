@@ -35,13 +35,9 @@ export type ContractCustomInfo = {
 }
 
 export type ContractKey = {
-  key?: Uint8Array
-  original?: ContractKeyWithProof
-}
-
-export type ContractKeyWithProof = {
-  key?: Uint8Array
-  proof?: Uint8Array
+  og_contract_key?: Uint8Array
+  current_contract_key?: Uint8Array
+  current_contract_key_proof?: Uint8Array
 }
 
 export type ContractInfo = {

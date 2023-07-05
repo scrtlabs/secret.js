@@ -51,6 +51,8 @@ export type MsgMigrateContract = {
   contract?: string
   code_id?: string
   msg?: Uint8Array
+  callback_sig?: Uint8Array
+  callback_code_hash?: string
 }
 
 export type MsgMigrateContractResponse = {
@@ -61,6 +63,7 @@ export type MsgUpdateAdmin = {
   sender?: string
   new_admin?: string
   contract?: string
+  callback_sig?: Uint8Array
 }
 
 export type MsgUpdateAdminResponse = {
@@ -69,6 +72,7 @@ export type MsgUpdateAdminResponse = {
 export type MsgClearAdmin = {
   sender?: string
   contract?: string
+  callback_sig?: Uint8Array
 }
 
 export type MsgClearAdminResponse = {
@@ -86,5 +90,11 @@ export class Msg {
   }
   static MigrateContract(req: MsgMigrateContract, initReq?: fm.InitReq): Promise<MsgMigrateContractResponse> {
     return fm.fetchReq<MsgMigrateContract, MsgMigrateContractResponse>(`/secret.compute.v1beta1.Msg/MigrateContract`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateAdmin(req: MsgUpdateAdmin, initReq?: fm.InitReq): Promise<MsgUpdateAdminResponse> {
+    return fm.fetchReq<MsgUpdateAdmin, MsgUpdateAdminResponse>(`/secret.compute.v1beta1.Msg/UpdateAdmin`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ClearAdmin(req: MsgClearAdmin, initReq?: fm.InitReq): Promise<MsgClearAdminResponse> {
+    return fm.fetchReq<MsgClearAdmin, MsgClearAdminResponse>(`/secret.compute.v1beta1.Msg/ClearAdmin`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }
