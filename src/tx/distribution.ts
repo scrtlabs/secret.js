@@ -92,7 +92,7 @@ export class MsgWithdrawValidatorCommission implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "cosmos-sdk/MsgWithdrawValidatorCommission",
+      type: "cosmos-sdk/MsgWithdrawValCommission",
       value: this.params,
     };
   }
