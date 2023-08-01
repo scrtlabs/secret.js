@@ -3,59 +3,87 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 /** MsgUpdateClient defines an sdk.Msg to update a IBC client state using the given header. */
 export class MsgUpdateClient implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/client/v1/tx").MsgUpdateClient,
+    private msg: import("../protobuf/ibc/core/client/v1/tx").MsgUpdateClient,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgUpdateClient not implemented.");
+    return {
+      type_url: "/ibc.core.client.v1.MsgUpdateClient",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/client/v1/tx")
+        ).MsgUpdateClient.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgUpdateClient not implemented.");
+    throw new Error("MsgUpdateClient doesn't support Amino encoding.");
   }
 }
 
 /** MsgUpdateClient defines an sdk.Msg to update a IBC client state using the given header. */
 export class MsgUpgradeClient implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/client/v1/tx").MsgUpgradeClient,
+    private msg: import("../protobuf/ibc/core/client/v1/tx").MsgUpgradeClient,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgUpgradeClient not implemented.");
+    return {
+      type_url: "/ibc.core.client.v1.MsgUpgradeClient",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/client/v1/tx")
+        ).MsgUpgradeClient.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgUpgradeClient not implemented.");
+    throw new Error("MsgUpgradeClient doesn't support Amino encoding.");
   }
 }
 
 /** MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for light client misbehaviour. */
 export class MsgSubmitMisbehaviour implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/client/v1/tx").MsgSubmitMisbehaviour,
+    private msg: import("../protobuf/ibc/core/client/v1/tx").MsgSubmitMisbehaviour,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgSubmitMisbehaviour not implemented.");
+    return {
+      type_url: "/ibc.core.client.v1.MsgSubmitMisbehaviour",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/client/v1/tx")
+        ).MsgSubmitMisbehaviour.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgSubmitMisbehaviour not implemented.");
+    throw new Error("MsgSubmitMisbehaviour doesn't support Amino encoding.");
   }
 }
 
 /** MsgCreateClient defines a message to create an IBC client */
 export class MsgCreateClient implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/client/v1/tx").MsgCreateClient,
+    private msg: import("../protobuf/ibc/core/client/v1/tx").MsgCreateClient,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgCreateClient not implemented.");
+    return {
+      type_url: "/ibc.core.client.v1.MsgCreateClient",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/client/v1/tx")
+        ).MsgCreateClient.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgCreateClient not implemented.");
+    throw new Error("MsgCreateClient doesn't support Amino encoding.");
   }
 }
