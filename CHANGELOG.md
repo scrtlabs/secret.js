@@ -1,9 +1,20 @@
 # Changelog & Version Info
 
-## Unreleased
+## 1.11.0
 
+- Support Secret Network v1.11
+- Contract upgrade support:
+  - Add `secretjs.tx.compute.migrateContract()`
+  - Add `secretjs.tx.compute.updateAdmin()`
+  - Add `secretjs.tx.compute.clearAdmin()`
+  - Add `admin` field to `secretjs.query.compute.instantiatedContract()`
+  - Add `secretjs.query.compute.contractHistory()`
+  - Add `admin` field to the result of `secretjs.query.compute.contractInfo()`
 - API breaking: `secretjs.tx.signTx()` now returns `txBytes` as a `Uint8Array` instead of a base64 `string`.
 - API breaking: `secretjs.tx.broadcastSignedTx()` now receives `txBytes` as a `Uint8Array` instead of a base64 `string`.
+- #154: Move sinon to devDependencies (Thanks [@egasimus](https://github.com/egasimus)!)
+- #155: Make test.sh portable (Thanks [@egasimus](https://github.com/egasimus)!)
+- #156: Fix CVE-2023-36665 by upgrading protobufjs to 6.11.4 (Thanks [@egasimus](https://github.com/egasimus)!)
 
 ## 1.9.3
 
