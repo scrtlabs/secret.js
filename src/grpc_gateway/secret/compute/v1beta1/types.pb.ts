@@ -40,12 +40,6 @@ export type ContractCustomInfo = {
   label?: string
 }
 
-export type ContractKey = {
-  og_contract_key?: Uint8Array
-  current_contract_key?: Uint8Array
-  current_contract_key_proof?: Uint8Array
-}
-
 export type ContractInfo = {
   code_id?: string
   creator?: Uint8Array

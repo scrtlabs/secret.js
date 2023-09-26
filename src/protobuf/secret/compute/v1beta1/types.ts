@@ -124,12 +124,6 @@ export interface ContractCustomInfo {
   label: string;
 }
 
-export interface ContractKey {
-  og_contract_key: Uint8Array;
-  current_contract_key: Uint8Array;
-  current_contract_key_proof: Uint8Array;
-}
-
 /** ContractInfo stores a WASM contract instance */
 export interface ContractInfo {
   /** CodeID is the reference to the stored Wasm code */
@@ -491,105 +485,6 @@ export const ContractCustomInfo = {
         ? ContractKey.fromPartial(object.enclave_key)
         : undefined;
     message.label = object.label ?? "";
-    return message;
-  },
-};
-
-function createBaseContractKey(): ContractKey {
-  return {
-    og_contract_key: new Uint8Array(),
-    current_contract_key: new Uint8Array(),
-    current_contract_key_proof: new Uint8Array(),
-  };
-}
-
-export const ContractKey = {
-  encode(
-    message: ContractKey,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
-    if (message.og_contract_key.length !== 0) {
-      writer.uint32(10).bytes(message.og_contract_key);
-    }
-    if (message.current_contract_key.length !== 0) {
-      writer.uint32(18).bytes(message.current_contract_key);
-    }
-    if (message.current_contract_key_proof.length !== 0) {
-      writer.uint32(26).bytes(message.current_contract_key_proof);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ContractKey {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseContractKey();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.og_contract_key = reader.bytes();
-          break;
-        case 2:
-          message.current_contract_key = reader.bytes();
-          break;
-        case 3:
-          message.current_contract_key_proof = reader.bytes();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ContractKey {
-    return {
-      og_contract_key: isSet(object.og_contract_key)
-        ? bytesFromBase64(object.og_contract_key)
-        : new Uint8Array(),
-      current_contract_key: isSet(object.current_contract_key)
-        ? bytesFromBase64(object.current_contract_key)
-        : new Uint8Array(),
-      current_contract_key_proof: isSet(object.current_contract_key_proof)
-        ? bytesFromBase64(object.current_contract_key_proof)
-        : new Uint8Array(),
-    };
-  },
-
-  toJSON(message: ContractKey): unknown {
-    const obj: any = {};
-    message.og_contract_key !== undefined &&
-      (obj.og_contract_key = base64FromBytes(
-        message.og_contract_key !== undefined
-          ? message.og_contract_key
-          : new Uint8Array(),
-      ));
-    message.current_contract_key !== undefined &&
-      (obj.current_contract_key = base64FromBytes(
-        message.current_contract_key !== undefined
-          ? message.current_contract_key
-          : new Uint8Array(),
-      ));
-    message.current_contract_key_proof !== undefined &&
-      (obj.current_contract_key_proof = base64FromBytes(
-        message.current_contract_key_proof !== undefined
-          ? message.current_contract_key_proof
-          : new Uint8Array(),
-      ));
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ContractKey>, I>>(
-    object: I,
-  ): ContractKey {
-    const message = createBaseContractKey();
-    message.og_contract_key = object.og_contract_key ?? new Uint8Array();
-    message.current_contract_key =
-      object.current_contract_key ?? new Uint8Array();
-    message.current_contract_key_proof =
-      object.current_contract_key_proof ?? new Uint8Array();
     return message;
   },
 };
