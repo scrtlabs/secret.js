@@ -1,6 +1,6 @@
 # Changelog & Version Info
 
-## 1.11.0
+## 1.11.1
 
 - Support Secret Network v1.11
 - Contract upgrade support:
