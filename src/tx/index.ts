@@ -32,13 +32,13 @@ import {
   MsgUndelegate,
 } from "../protobuf/cosmos/staking/v1beta1/tx";
 import { MsgCreateVestingAccount } from "../protobuf/cosmos/vesting/v1beta1/tx";
-import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
 import {
   MsgPayPacketFee,
   MsgPayPacketFeeAsync,
-  MsgRegisterPayee,
   MsgRegisterCounterpartyPayee,
+  MsgRegisterPayee,
 } from "../protobuf/ibc/applications/fee/v1/tx";
+import { MsgTransfer } from "../protobuf/ibc/applications/transfer/v1/tx";
 import {
   MsgAcknowledgement,
   MsgChannelCloseConfirm,
@@ -64,31 +64,34 @@ import {
   MsgConnectionOpenTry,
 } from "../protobuf/ibc/core/connection/v1/tx";
 import {
+  MsgClearAdmin,
   MsgExecuteContract,
   MsgInstantiateContract,
+  MsgMigrateContract,
   MsgStoreCode,
+  MsgUpdateAdmin,
 } from "../protobuf/secret/compute/v1beta1/msg";
+import { MsgToggleIbcSwitch } from "../protobuf/secret/emergencybutton/v1beta1/tx";
 import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
-import {MsgToggleIbcSwitch} from "../protobuf/secret/emergencybutton/v1beta1/tx";
 
 export * from "./authz";
 export * from "./bank";
 export * from "./compute";
 export * from "./crisis";
 export * from "./distribution";
+export * from "./emergency_button";
 export * from "./evidence";
 export * from "./feegrant";
 export * from "./gov";
 export * from "./ibc_channel";
 export * from "./ibc_client";
 export * from "./ibc_connection";
-export * from "./ibc_transfer";
 export * from "./ibc_fee";
+export * from "./ibc_transfer";
 export * from "./slashing";
 export * from "./staking";
-export * from "./vesting";
 export * from "./types";
-export * from "./emergency_button";
+export * from "./vesting";
 
 export type MsgDecoder = {
   decode(input: Uint8Array): any;
@@ -157,6 +160,9 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgStoreCode", MsgStoreCode],
   ["/secret.compute.v1beta1.MsgInstantiateContract", MsgInstantiateContract],
   ["/secret.compute.v1beta1.MsgExecuteContract", MsgExecuteContract],
+  ["/secret.compute.v1beta1.MsgMigrateContract", MsgMigrateContract],
+  ["/secret.compute.v1beta1.MsgUpdateAdmin", MsgUpdateAdmin],
+  ["/secret.compute.v1beta1.MsgClearAdmin", MsgClearAdmin],
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
   ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
   ["/secret.emergencybutton.v1beta1.MsgToggleIbcSwitch", MsgToggleIbcSwitch],

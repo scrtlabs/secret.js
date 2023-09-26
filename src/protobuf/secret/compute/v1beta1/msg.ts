@@ -28,10 +28,13 @@ export interface MsgInstantiateContract {
   callback_code_hash: string;
   code_id: string;
   label: string;
+  /** init_msg is an encrypted input to pass to the contract on init */
   init_msg: Uint8Array;
   init_funds: Coin[];
   /** used internally for encryption, should always be empty in a signed transaction */
   callback_sig: Uint8Array;
+  /** Admin is an optional address that can execute migrations */
+  admin: string;
 }
 
 /** MsgInstantiateContractResponse return instantiation result data */
@@ -47,7 +50,9 @@ export interface MsgExecuteContract {
   sender: Uint8Array;
   /** contract is the canonical address of the contract */
   contract: Uint8Array;
+  /** msg is an encrypted input to pass to the contract on execute */
   msg: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
   callback_code_hash: string;
   sent_funds: Coin[];
   /** used internally for encryption, should always be empty in a signed transaction */
@@ -59,6 +64,59 @@ export interface MsgExecuteContractResponse {
   /** Data contains base64-encoded bytes to returned from the contract */
   data: Uint8Array;
 }
+
+/** MsgMigrateContract runs a code upgrade/ downgrade for a smart contract */
+export interface MsgMigrateContract {
+  /** Sender is the that actor that signed the messages */
+  sender: string;
+  /** Contract is the address of the smart contract */
+  contract: string;
+  /** CodeID references the new WASM code */
+  code_id: string;
+  /** msg is an encrypted input to pass to the contract on migration */
+  msg: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_code_hash: string;
+}
+
+/** MsgMigrateContractResponse returns contract migration result data. */
+export interface MsgMigrateContractResponse {
+  /**
+   * Data contains same raw bytes returned as data from the wasm contract.
+   * (May be empty)
+   */
+  data: Uint8Array;
+}
+
+/** MsgUpdateAdmin sets a new admin for a smart contract */
+export interface MsgUpdateAdmin {
+  /** Sender is the that actor that signed the messages */
+  sender: string;
+  /** NewAdmin address to be set */
+  new_admin: string;
+  /** Contract is the address of the smart contract */
+  contract: string;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
+}
+
+/** MsgUpdateAdminResponse returns empty data */
+export interface MsgUpdateAdminResponse {}
+
+/** MsgClearAdmin removes any admin stored for a smart contract */
+export interface MsgClearAdmin {
+  /** Sender is the that actor that signed the messages */
+  sender: string;
+  /** Contract is the address of the smart contract */
+  contract: string;
+  /** used internally for encryption, should always be empty in a signed transaction */
+  callback_sig: Uint8Array;
+}
+
+/** MsgClearAdminResponse returns empty data */
+export interface MsgClearAdminResponse {}
 
 function createBaseMsgStoreCode(): MsgStoreCode {
   return {
@@ -224,6 +282,7 @@ function createBaseMsgInstantiateContract(): MsgInstantiateContract {
     init_msg: new Uint8Array(),
     init_funds: [],
     callback_sig: new Uint8Array(),
+    admin: "",
   };
 }
 
@@ -252,6 +311,9 @@ export const MsgInstantiateContract = {
     }
     if (message.callback_sig.length !== 0) {
       writer.uint32(58).bytes(message.callback_sig);
+    }
+    if (message.admin !== "") {
+      writer.uint32(66).string(message.admin);
     }
     return writer;
   },
@@ -287,6 +349,9 @@ export const MsgInstantiateContract = {
         case 7:
           message.callback_sig = reader.bytes();
           break;
+        case 8:
+          message.admin = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -314,6 +379,7 @@ export const MsgInstantiateContract = {
       callback_sig: isSet(object.callback_sig)
         ? bytesFromBase64(object.callback_sig)
         : new Uint8Array(),
+      admin: isSet(object.admin) ? String(object.admin) : "",
     };
   },
 
@@ -344,6 +410,7 @@ export const MsgInstantiateContract = {
           ? message.callback_sig
           : new Uint8Array(),
       ));
+    message.admin !== undefined && (obj.admin = message.admin);
     return obj;
   },
 
@@ -359,6 +426,7 @@ export const MsgInstantiateContract = {
     message.init_funds =
       object.init_funds?.map((e) => Coin.fromPartial(e)) || [];
     message.callback_sig = object.callback_sig ?? new Uint8Array();
+    message.admin = object.admin ?? "";
     return message;
   },
 };
@@ -634,6 +702,453 @@ export const MsgExecuteContractResponse = {
   },
 };
 
+function createBaseMsgMigrateContract(): MsgMigrateContract {
+  return {
+    sender: "",
+    contract: "",
+    code_id: "0",
+    msg: new Uint8Array(),
+    callback_sig: new Uint8Array(),
+    callback_code_hash: "",
+  };
+}
+
+export const MsgMigrateContract = {
+  encode(
+    message: MsgMigrateContract,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.contract !== "") {
+      writer.uint32(18).string(message.contract);
+    }
+    if (message.code_id !== "0") {
+      writer.uint32(24).uint64(message.code_id);
+    }
+    if (message.msg.length !== 0) {
+      writer.uint32(34).bytes(message.msg);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
+    }
+    if (message.callback_code_hash !== "") {
+      writer.uint32(66).string(message.callback_code_hash);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgMigrateContract {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgMigrateContract();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sender = reader.string();
+          break;
+        case 2:
+          message.contract = reader.string();
+          break;
+        case 3:
+          message.code_id = longToString(reader.uint64() as Long);
+          break;
+        case 4:
+          message.msg = reader.bytes();
+          break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
+        case 8:
+          message.callback_code_hash = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgMigrateContract {
+    return {
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      contract: isSet(object.contract) ? String(object.contract) : "",
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
+      msg: isSet(object.msg) ? bytesFromBase64(object.msg) : new Uint8Array(),
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
+      callback_code_hash: isSet(object.callback_code_hash)
+        ? String(object.callback_code_hash)
+        : "",
+    };
+  },
+
+  toJSON(message: MsgMigrateContract): unknown {
+    const obj: any = {};
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.contract !== undefined && (obj.contract = message.contract);
+    message.code_id !== undefined && (obj.code_id = message.code_id);
+    message.msg !== undefined &&
+      (obj.msg = base64FromBytes(
+        message.msg !== undefined ? message.msg : new Uint8Array(),
+      ));
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
+    message.callback_code_hash !== undefined &&
+      (obj.callback_code_hash = message.callback_code_hash);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgMigrateContract>, I>>(
+    object: I,
+  ): MsgMigrateContract {
+    const message = createBaseMsgMigrateContract();
+    message.sender = object.sender ?? "";
+    message.contract = object.contract ?? "";
+    message.code_id = object.code_id ?? "0";
+    message.msg = object.msg ?? new Uint8Array();
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
+    message.callback_code_hash = object.callback_code_hash ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgMigrateContractResponse(): MsgMigrateContractResponse {
+  return { data: new Uint8Array() };
+}
+
+export const MsgMigrateContractResponse = {
+  encode(
+    message: MsgMigrateContractResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.data.length !== 0) {
+      writer.uint32(10).bytes(message.data);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgMigrateContractResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgMigrateContractResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.data = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgMigrateContractResponse {
+    return {
+      data: isSet(object.data)
+        ? bytesFromBase64(object.data)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: MsgMigrateContractResponse): unknown {
+    const obj: any = {};
+    message.data !== undefined &&
+      (obj.data = base64FromBytes(
+        message.data !== undefined ? message.data : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgMigrateContractResponse>, I>>(
+    object: I,
+  ): MsgMigrateContractResponse {
+    const message = createBaseMsgMigrateContractResponse();
+    message.data = object.data ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseMsgUpdateAdmin(): MsgUpdateAdmin {
+  return {
+    sender: "",
+    new_admin: "",
+    contract: "",
+    callback_sig: new Uint8Array(),
+  };
+}
+
+export const MsgUpdateAdmin = {
+  encode(
+    message: MsgUpdateAdmin,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.new_admin !== "") {
+      writer.uint32(18).string(message.new_admin);
+    }
+    if (message.contract !== "") {
+      writer.uint32(26).string(message.contract);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateAdmin {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateAdmin();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sender = reader.string();
+          break;
+        case 2:
+          message.new_admin = reader.string();
+          break;
+        case 3:
+          message.contract = reader.string();
+          break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgUpdateAdmin {
+    return {
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      new_admin: isSet(object.new_admin) ? String(object.new_admin) : "",
+      contract: isSet(object.contract) ? String(object.contract) : "",
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: MsgUpdateAdmin): unknown {
+    const obj: any = {};
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.new_admin !== undefined && (obj.new_admin = message.new_admin);
+    message.contract !== undefined && (obj.contract = message.contract);
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateAdmin>, I>>(
+    object: I,
+  ): MsgUpdateAdmin {
+    const message = createBaseMsgUpdateAdmin();
+    message.sender = object.sender ?? "";
+    message.new_admin = object.new_admin ?? "";
+    message.contract = object.contract ?? "";
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseMsgUpdateAdminResponse(): MsgUpdateAdminResponse {
+  return {};
+}
+
+export const MsgUpdateAdminResponse = {
+  encode(
+    _: MsgUpdateAdminResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgUpdateAdminResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateAdminResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgUpdateAdminResponse {
+    return {};
+  },
+
+  toJSON(_: MsgUpdateAdminResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateAdminResponse>, I>>(
+    _: I,
+  ): MsgUpdateAdminResponse {
+    const message = createBaseMsgUpdateAdminResponse();
+    return message;
+  },
+};
+
+function createBaseMsgClearAdmin(): MsgClearAdmin {
+  return { sender: "", contract: "", callback_sig: new Uint8Array() };
+}
+
+export const MsgClearAdmin = {
+  encode(
+    message: MsgClearAdmin,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.contract !== "") {
+      writer.uint32(26).string(message.contract);
+    }
+    if (message.callback_sig.length !== 0) {
+      writer.uint32(58).bytes(message.callback_sig);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgClearAdmin {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgClearAdmin();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sender = reader.string();
+          break;
+        case 3:
+          message.contract = reader.string();
+          break;
+        case 7:
+          message.callback_sig = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgClearAdmin {
+    return {
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      contract: isSet(object.contract) ? String(object.contract) : "",
+      callback_sig: isSet(object.callback_sig)
+        ? bytesFromBase64(object.callback_sig)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: MsgClearAdmin): unknown {
+    const obj: any = {};
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.contract !== undefined && (obj.contract = message.contract);
+    message.callback_sig !== undefined &&
+      (obj.callback_sig = base64FromBytes(
+        message.callback_sig !== undefined
+          ? message.callback_sig
+          : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgClearAdmin>, I>>(
+    object: I,
+  ): MsgClearAdmin {
+    const message = createBaseMsgClearAdmin();
+    message.sender = object.sender ?? "";
+    message.contract = object.contract ?? "";
+    message.callback_sig = object.callback_sig ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseMsgClearAdminResponse(): MsgClearAdminResponse {
+  return {};
+}
+
+export const MsgClearAdminResponse = {
+  encode(
+    _: MsgClearAdminResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): MsgClearAdminResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgClearAdminResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgClearAdminResponse {
+    return {};
+  },
+
+  toJSON(_: MsgClearAdminResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgClearAdminResponse>, I>>(
+    _: I,
+  ): MsgClearAdminResponse {
+    const message = createBaseMsgClearAdminResponse();
+    return message;
+  },
+};
+
 /** Msg defines the wasm Msg service. */
 export interface Msg {
   /** StoreCode to submit Wasm code to the system */
@@ -646,6 +1161,14 @@ export interface Msg {
   ExecuteContract(
     request: MsgExecuteContract,
   ): Promise<MsgExecuteContractResponse>;
+  /** Migrate runs a code upgrade/ downgrade for a smart contract */
+  MigrateContract(
+    request: MsgMigrateContract,
+  ): Promise<MsgMigrateContractResponse>;
+  /** UpdateAdmin sets a new   admin for a smart contract */
+  UpdateAdmin(request: MsgUpdateAdmin): Promise<MsgUpdateAdminResponse>;
+  /** ClearAdmin removes any admin stored for a smart contract */
+  ClearAdmin(request: MsgClearAdmin): Promise<MsgClearAdminResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -655,6 +1178,9 @@ export class MsgClientImpl implements Msg {
     this.StoreCode = this.StoreCode.bind(this);
     this.InstantiateContract = this.InstantiateContract.bind(this);
     this.ExecuteContract = this.ExecuteContract.bind(this);
+    this.MigrateContract = this.MigrateContract.bind(this);
+    this.UpdateAdmin = this.UpdateAdmin.bind(this);
+    this.ClearAdmin = this.ClearAdmin.bind(this);
   }
   StoreCode(request: MsgStoreCode): Promise<MsgStoreCodeResponse> {
     const data = MsgStoreCode.encode(request).finish();
@@ -693,6 +1219,44 @@ export class MsgClientImpl implements Msg {
     );
     return promise.then((data) =>
       MsgExecuteContractResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  MigrateContract(
+    request: MsgMigrateContract,
+  ): Promise<MsgMigrateContractResponse> {
+    const data = MsgMigrateContract.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Msg",
+      "MigrateContract",
+      data,
+    );
+    return promise.then((data) =>
+      MsgMigrateContractResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  UpdateAdmin(request: MsgUpdateAdmin): Promise<MsgUpdateAdminResponse> {
+    const data = MsgUpdateAdmin.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Msg",
+      "UpdateAdmin",
+      data,
+    );
+    return promise.then((data) =>
+      MsgUpdateAdminResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ClearAdmin(request: MsgClearAdmin): Promise<MsgClearAdminResponse> {
+    const data = MsgClearAdmin.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Msg",
+      "ClearAdmin",
+      data,
+    );
+    return promise.then((data) =>
+      MsgClearAdminResponse.decode(new _m0.Reader(data)),
     );
   }
 }

@@ -18,7 +18,6 @@
     "unresolved-macro-call",
     "unresolved-proc-macro"
   ],
-
   "[rust]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "rust-lang.rust-analyzer"

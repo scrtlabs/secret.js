@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
-import { ContractInfo } from "./types";
+import { ContractInfo, ContractCodeHistoryEntry } from "./types";
 import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Empty } from "../../../google/protobuf/empty";
 
@@ -34,14 +34,14 @@ export interface QuerySecretContractResponse {
 export interface QueryContractInfoResponse {
   /** contract_address is the bech32 human readable address of the contract */
   contract_address: string;
-  ContractInfo?: ContractInfo;
+  contract_info?: ContractInfo;
 }
 
 /** ContractInfoWithAddress adds the contract address to the ContractInfo representation */
 export interface ContractInfoWithAddress {
   /** contract_address is the bech32 human readable address of the contract */
   contract_address: string;
-  ContractInfo?: ContractInfo;
+  contract_info?: ContractInfo;
 }
 
 export interface QueryContractsByCodeIdResponse {
@@ -92,6 +92,23 @@ export interface DecryptedAnswers {
   output_logs: StringEvent[];
   output_error: string;
   plaintext_error: string;
+}
+
+/**
+ * QueryContractHistoryRequest is the request type for the Query/ContractHistory
+ * RPC method
+ */
+export interface QueryContractHistoryRequest {
+  /** address is the address of the contract to query */
+  contract_address: string;
+}
+
+/**
+ * QueryContractHistoryResponse is the response type for the
+ * Query/ContractHistory RPC method
+ */
+export interface QueryContractHistoryResponse {
+  entries: ContractCodeHistoryEntry[];
 }
 
 function createBaseQuerySecretContractRequest(): QuerySecretContractRequest {
@@ -402,7 +419,7 @@ export const QuerySecretContractResponse = {
 };
 
 function createBaseQueryContractInfoResponse(): QueryContractInfoResponse {
-  return { contract_address: "", ContractInfo: undefined };
+  return { contract_address: "", contract_info: undefined };
 }
 
 export const QueryContractInfoResponse = {
@@ -413,9 +430,9 @@ export const QueryContractInfoResponse = {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
     }
-    if (message.ContractInfo !== undefined) {
+    if (message.contract_info !== undefined) {
       ContractInfo.encode(
-        message.ContractInfo,
+        message.contract_info,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -436,7 +453,7 @@ export const QueryContractInfoResponse = {
           message.contract_address = reader.string();
           break;
         case 2:
-          message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
+          message.contract_info = ContractInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -451,8 +468,8 @@ export const QueryContractInfoResponse = {
       contract_address: isSet(object.contract_address)
         ? String(object.contract_address)
         : "",
-      ContractInfo: isSet(object.ContractInfo)
-        ? ContractInfo.fromJSON(object.ContractInfo)
+      contract_info: isSet(object.contract_info)
+        ? ContractInfo.fromJSON(object.contract_info)
         : undefined,
     };
   },
@@ -461,9 +478,9 @@ export const QueryContractInfoResponse = {
     const obj: any = {};
     message.contract_address !== undefined &&
       (obj.contract_address = message.contract_address);
-    message.ContractInfo !== undefined &&
-      (obj.ContractInfo = message.ContractInfo
-        ? ContractInfo.toJSON(message.ContractInfo)
+    message.contract_info !== undefined &&
+      (obj.contract_info = message.contract_info
+        ? ContractInfo.toJSON(message.contract_info)
         : undefined);
     return obj;
   },
@@ -473,16 +490,16 @@ export const QueryContractInfoResponse = {
   ): QueryContractInfoResponse {
     const message = createBaseQueryContractInfoResponse();
     message.contract_address = object.contract_address ?? "";
-    message.ContractInfo =
-      object.ContractInfo !== undefined && object.ContractInfo !== null
-        ? ContractInfo.fromPartial(object.ContractInfo)
+    message.contract_info =
+      object.contract_info !== undefined && object.contract_info !== null
+        ? ContractInfo.fromPartial(object.contract_info)
         : undefined;
     return message;
   },
 };
 
 function createBaseContractInfoWithAddress(): ContractInfoWithAddress {
-  return { contract_address: "", ContractInfo: undefined };
+  return { contract_address: "", contract_info: undefined };
 }
 
 export const ContractInfoWithAddress = {
@@ -493,9 +510,9 @@ export const ContractInfoWithAddress = {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
     }
-    if (message.ContractInfo !== undefined) {
+    if (message.contract_info !== undefined) {
       ContractInfo.encode(
-        message.ContractInfo,
+        message.contract_info,
         writer.uint32(18).fork(),
       ).ldelim();
     }
@@ -516,7 +533,7 @@ export const ContractInfoWithAddress = {
           message.contract_address = reader.string();
           break;
         case 2:
-          message.ContractInfo = ContractInfo.decode(reader, reader.uint32());
+          message.contract_info = ContractInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -531,8 +548,8 @@ export const ContractInfoWithAddress = {
       contract_address: isSet(object.contract_address)
         ? String(object.contract_address)
         : "",
-      ContractInfo: isSet(object.ContractInfo)
-        ? ContractInfo.fromJSON(object.ContractInfo)
+      contract_info: isSet(object.contract_info)
+        ? ContractInfo.fromJSON(object.contract_info)
         : undefined,
     };
   },
@@ -541,9 +558,9 @@ export const ContractInfoWithAddress = {
     const obj: any = {};
     message.contract_address !== undefined &&
       (obj.contract_address = message.contract_address);
-    message.ContractInfo !== undefined &&
-      (obj.ContractInfo = message.ContractInfo
-        ? ContractInfo.toJSON(message.ContractInfo)
+    message.contract_info !== undefined &&
+      (obj.contract_info = message.contract_info
+        ? ContractInfo.toJSON(message.contract_info)
         : undefined);
     return obj;
   },
@@ -553,9 +570,9 @@ export const ContractInfoWithAddress = {
   ): ContractInfoWithAddress {
     const message = createBaseContractInfoWithAddress();
     message.contract_address = object.contract_address ?? "";
-    message.ContractInfo =
-      object.ContractInfo !== undefined && object.ContractInfo !== null
-        ? ContractInfo.fromPartial(object.ContractInfo)
+    message.contract_info =
+      object.contract_info !== undefined && object.contract_info !== null
+        ? ContractInfo.fromPartial(object.contract_info)
         : undefined;
     return message;
   },
@@ -1236,6 +1253,134 @@ export const DecryptedAnswers = {
   },
 };
 
+function createBaseQueryContractHistoryRequest(): QueryContractHistoryRequest {
+  return { contract_address: "" };
+}
+
+export const QueryContractHistoryRequest = {
+  encode(
+    message: QueryContractHistoryRequest,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryContractHistoryRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryContractHistoryRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.contract_address = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryContractHistoryRequest {
+    return {
+      contract_address: isSet(object.contract_address)
+        ? String(object.contract_address)
+        : "",
+    };
+  },
+
+  toJSON(message: QueryContractHistoryRequest): unknown {
+    const obj: any = {};
+    message.contract_address !== undefined &&
+      (obj.contract_address = message.contract_address);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryContractHistoryRequest>, I>>(
+    object: I,
+  ): QueryContractHistoryRequest {
+    const message = createBaseQueryContractHistoryRequest();
+    message.contract_address = object.contract_address ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryContractHistoryResponse(): QueryContractHistoryResponse {
+  return { entries: [] };
+}
+
+export const QueryContractHistoryResponse = {
+  encode(
+    message: QueryContractHistoryResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.entries) {
+      ContractCodeHistoryEntry.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): QueryContractHistoryResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryContractHistoryResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.entries.push(
+            ContractCodeHistoryEntry.decode(reader, reader.uint32()),
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryContractHistoryResponse {
+    return {
+      entries: Array.isArray(object?.entries)
+        ? object.entries.map((e: any) => ContractCodeHistoryEntry.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryContractHistoryResponse): unknown {
+    const obj: any = {};
+    if (message.entries) {
+      obj.entries = message.entries.map((e) =>
+        e ? ContractCodeHistoryEntry.toJSON(e) : undefined,
+      );
+    } else {
+      obj.entries = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryContractHistoryResponse>, I>>(
+    object: I,
+  ): QueryContractHistoryResponse {
+    const message = createBaseQueryContractHistoryResponse();
+    message.entries =
+      object.entries?.map((e) => ContractCodeHistoryEntry.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service */
 export interface Query {
   /** Query contract info by address */
@@ -1270,6 +1415,10 @@ export interface Query {
   AddressByLabel(
     request: QueryByLabelRequest,
   ): Promise<QueryContractAddressResponse>;
+  /** ContractHistory gets the contract code history */
+  ContractHistory(
+    request: QueryContractHistoryRequest,
+  ): Promise<QueryContractHistoryResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1285,6 +1434,7 @@ export class QueryClientImpl implements Query {
     this.CodeHashByCodeId = this.CodeHashByCodeId.bind(this);
     this.LabelByAddress = this.LabelByAddress.bind(this);
     this.AddressByLabel = this.AddressByLabel.bind(this);
+    this.ContractHistory = this.ContractHistory.bind(this);
   }
   ContractInfo(
     request: QueryByContractAddressRequest,
@@ -1405,6 +1555,20 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryContractAddressResponse.decode(new _m0.Reader(data)),
+    );
+  }
+
+  ContractHistory(
+    request: QueryContractHistoryRequest,
+  ): Promise<QueryContractHistoryResponse> {
+    const data = QueryContractHistoryRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "secret.compute.v1beta1.Query",
+      "ContractHistory",
+      data,
+    );
+    return promise.then((data) =>
+      QueryContractHistoryResponse.decode(new _m0.Reader(data)),
     );
   }
 }
