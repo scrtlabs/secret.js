@@ -28,6 +28,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
   code_hash?: string;
+  /** Admin is an optional address that can execute migrations */
   admin?: string;
 }
 

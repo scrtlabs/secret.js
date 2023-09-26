@@ -113,8 +113,14 @@ export interface CodeInfo {
   builder: string;
 }
 
+export interface ContractKey {
+  og_contract_key: Uint8Array;
+  current_contract_key: Uint8Array;
+  current_contract_key_proof: Uint8Array;
+}
+
 export interface ContractCustomInfo {
-  enclave_key: Uint8Array;
+  enclave_key?: ContractKey;
   label: string;
 }
 
@@ -316,8 +322,107 @@ export const CodeInfo = {
   },
 };
 
+function createBaseContractKey(): ContractKey {
+  return {
+    og_contract_key: new Uint8Array(),
+    current_contract_key: new Uint8Array(),
+    current_contract_key_proof: new Uint8Array(),
+  };
+}
+
+export const ContractKey = {
+  encode(
+    message: ContractKey,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.og_contract_key.length !== 0) {
+      writer.uint32(10).bytes(message.og_contract_key);
+    }
+    if (message.current_contract_key.length !== 0) {
+      writer.uint32(18).bytes(message.current_contract_key);
+    }
+    if (message.current_contract_key_proof.length !== 0) {
+      writer.uint32(26).bytes(message.current_contract_key_proof);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContractKey {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseContractKey();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.og_contract_key = reader.bytes();
+          break;
+        case 2:
+          message.current_contract_key = reader.bytes();
+          break;
+        case 3:
+          message.current_contract_key_proof = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ContractKey {
+    return {
+      og_contract_key: isSet(object.og_contract_key)
+        ? bytesFromBase64(object.og_contract_key)
+        : new Uint8Array(),
+      current_contract_key: isSet(object.current_contract_key)
+        ? bytesFromBase64(object.current_contract_key)
+        : new Uint8Array(),
+      current_contract_key_proof: isSet(object.current_contract_key_proof)
+        ? bytesFromBase64(object.current_contract_key_proof)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: ContractKey): unknown {
+    const obj: any = {};
+    message.og_contract_key !== undefined &&
+      (obj.og_contract_key = base64FromBytes(
+        message.og_contract_key !== undefined
+          ? message.og_contract_key
+          : new Uint8Array(),
+      ));
+    message.current_contract_key !== undefined &&
+      (obj.current_contract_key = base64FromBytes(
+        message.current_contract_key !== undefined
+          ? message.current_contract_key
+          : new Uint8Array(),
+      ));
+    message.current_contract_key_proof !== undefined &&
+      (obj.current_contract_key_proof = base64FromBytes(
+        message.current_contract_key_proof !== undefined
+          ? message.current_contract_key_proof
+          : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContractKey>, I>>(
+    object: I,
+  ): ContractKey {
+    const message = createBaseContractKey();
+    message.og_contract_key = object.og_contract_key ?? new Uint8Array();
+    message.current_contract_key =
+      object.current_contract_key ?? new Uint8Array();
+    message.current_contract_key_proof =
+      object.current_contract_key_proof ?? new Uint8Array();
+    return message;
+  },
+};
+
 function createBaseContractCustomInfo(): ContractCustomInfo {
-  return { enclave_key: new Uint8Array(), label: "" };
+  return { enclave_key: undefined, label: "" };
 }
 
 export const ContractCustomInfo = {
@@ -325,8 +430,11 @@ export const ContractCustomInfo = {
     message: ContractCustomInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.enclave_key.length !== 0) {
-      writer.uint32(10).bytes(message.enclave_key);
+    if (message.enclave_key !== undefined) {
+      ContractKey.encode(
+        message.enclave_key,
+        writer.uint32(10).fork(),
+      ).ldelim();
     }
     if (message.label !== "") {
       writer.uint32(18).string(message.label);
@@ -342,7 +450,7 @@ export const ContractCustomInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.enclave_key = reader.bytes();
+          message.enclave_key = ContractKey.decode(reader, reader.uint32());
           break;
         case 2:
           message.label = reader.string();
@@ -358,8 +466,8 @@ export const ContractCustomInfo = {
   fromJSON(object: any): ContractCustomInfo {
     return {
       enclave_key: isSet(object.enclave_key)
-        ? bytesFromBase64(object.enclave_key)
-        : new Uint8Array(),
+        ? ContractKey.fromJSON(object.enclave_key)
+        : undefined,
       label: isSet(object.label) ? String(object.label) : "",
     };
   },
@@ -367,11 +475,9 @@ export const ContractCustomInfo = {
   toJSON(message: ContractCustomInfo): unknown {
     const obj: any = {};
     message.enclave_key !== undefined &&
-      (obj.enclave_key = base64FromBytes(
-        message.enclave_key !== undefined
-          ? message.enclave_key
-          : new Uint8Array(),
-      ));
+      (obj.enclave_key = message.enclave_key
+        ? ContractKey.toJSON(message.enclave_key)
+        : undefined);
     message.label !== undefined && (obj.label = message.label);
     return obj;
   },
@@ -380,7 +486,10 @@ export const ContractCustomInfo = {
     object: I,
   ): ContractCustomInfo {
     const message = createBaseContractCustomInfo();
-    message.enclave_key = object.enclave_key ?? new Uint8Array();
+    message.enclave_key =
+      object.enclave_key !== undefined && object.enclave_key !== null
+        ? ContractKey.fromPartial(object.enclave_key)
+        : undefined;
     message.label = object.label ?? "";
     return message;
   },

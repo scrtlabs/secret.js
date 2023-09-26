@@ -29,8 +29,14 @@ export type CodeInfo = {
   builder?: string
 }
 
+export type ContractKey = {
+  og_contract_key?: Uint8Array
+  current_contract_key?: Uint8Array
+  current_contract_key_proof?: Uint8Array
+}
+
 export type ContractCustomInfo = {
-  enclave_key?: Uint8Array
+  enclave_key?: ContractKey
   label?: string
 }
 

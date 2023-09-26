@@ -3,23 +3,23 @@ use cosmwasm_std::{
     StdError, StdResult,
 };
 
-use crate::msg::{IBCLifecycleComplete, MigrateMsg, Msg, SudoMsg};
+use crate::msg::{ExecMsg, IBCLifecycleComplete, MigrateMsg, SudoMsg};
 
 #[entry_point]
 pub fn instantiate(
     _deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: Msg,
+    _msg: ExecMsg,
 ) -> StdResult<Response> {
     Ok(Response::default())
 }
 
 #[entry_point]
-pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResult<Response> {
+pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> StdResult<Response> {
     match msg {
-        Msg::Nop {} => Ok(Response::default()),
-        Msg::WrapDeposit {
+        ExecMsg::Nop {} => Ok(Response::default()),
+        ExecMsg::WrapDeposit {
             snip20_address,
             snip20_code_hash,
             recipient_address,
@@ -44,7 +44,7 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
                 funds: vec![],
             }),
         ])),
-        Msg::IBCTransfer {
+        ExecMsg::IBCTransfer {
             channel_id,
             to_address,
             amount,

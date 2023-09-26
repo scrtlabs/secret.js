@@ -5,4 +5,4 @@ all: src/contract.rs src/lib.rs src/msg.rs Cargo.toml Cargo.lock
 
 clean:
 	cargo clean
-	-rm -f ./ibc-hooks-contract.wasm
+	-rm -f ./ibc-hooks-contract.wasm ../ibc-hooks-contract.wasm.gz
