@@ -603,6 +603,10 @@ const { codeInfo } = await secretjs.query.compute.code(codeId);
 
 Query all contract codes on-chain.
 
+#### `secretjs.query.compute.contractHistory()`
+
+Get upgrades history of a Secret Contract.
+
 #### `secretjs.query.distribution.params()`
 
 Params queries params of the distribution module.
@@ -1052,7 +1056,7 @@ Notes:
 
 - :warning: On mainnet it's recommended to not simulate every transaction as this can burden your node provider. Instead, use this while testing to determine the gas limit for each of your app's transactions, then in production use hard-coded values.
 - Gas estimation is known to be a bit off, so you might need to adjust it a bit before broadcasting.
-- `MsgInstantiateContract` & `MsgExecuteContract` simulation is not supported for security reasons.
+- `MsgInstantiateContract`, `MsgExecuteContract`, `MsgMigrateContract`, `MsgUpdateAdmin` & `MsgClearAdmin` simulations are not supported for security reasons.
 
 ```ts
 const sendToAlice = new MsgSend({
@@ -1233,6 +1237,7 @@ ateContractParams)
 const tx = await secretjs.tx.compute.instantiateContract(
   {
     sender: myAddress,
+    admin: myAddress, // optional admin address that can perform code migrations
     code_id: codeId,
     code_hash: codeHash, // optional but way faster
     initMsg: {
@@ -1268,7 +1273,7 @@ const contractAddress = tx.arrayLog.find(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
-WARNING: `secretjs.tx.compute.instantiateContract()` & `secretjs.tx.compute.executeContract()` simulation is not supported for security reasons.
+WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
 
 #### `secretjs.tx.compute.executeContract()`
 
@@ -1300,7 +1305,86 @@ const tx = await secretjs.tx.compute.executeContract(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
-WARNING: `secretjs.tx.compute.instantiateContract()` & `secretjs.tx.compute.executeContract()` simulation is not supported for security reasons.
+WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
+
+#### `secretjs.tx.compute.migrateContract()`
+
+Migrate a contract's code while keeping the same address. Invokes the `migrate()` function on the new code.
+
+Input: [MsgMigrateContractParams](https://secretjs.scrt.network/interfaces/MsgMigrateContractParams)
+
+```ts
+const tx = await secretjs.tx.compute.migrateContract(
+  {
+    sender: myAddress,
+    contract_address: contractAddress,
+    code_id: newCodeId,
+    code_hash: codeHash, // optional but way faster
+    msg: {
+      migrate_state_to_new_format: {},
+    },
+    sent_funds: [], // optional
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+```
+
+##### `secretjs.tx.compute.migrateContract.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
+
+#### `secretjs.tx.compute.updateAdmin()`
+
+Update a contract's admin.
+
+Input: [MsgUpdateAdminParams](https://secretjs.scrt.network/interfaces/MsgUpdateAdminParams)
+
+```ts
+const tx = await secretjs.tx.compute.updateAdmin(
+  {
+    sender: currentAdminAddress,
+    contract_address: contractAddress,
+    new_admin: newAdminAddress,
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+```
+
+##### `secretjs.tx.compute.updateAdmin.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
+
+#### `secretjs.tx.compute.clearAdmin()`
+
+clear a contract's admin.
+
+Input: [MsgClearAdminParams](https://secretjs.scrt.network/interfaces/MsgClearAdminParams)
+
+```ts
+const tx = await secretjs.tx.compute.clearAdmin(
+  {
+    sender: currentAdminAddress,
+    contract_address: contractAddress,
+  },
+  {
+    gasLimit: 100_000,
+  },
+);
+```
+
+##### `secretjs.tx.compute.clearAdmin.simulate()`
+
+Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
 
 #### `secretjs.tx.crisis.verifyInvariant()`
 
