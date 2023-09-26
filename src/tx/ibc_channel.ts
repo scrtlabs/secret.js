@@ -3,43 +3,66 @@ import { AminoMsg, Msg, ProtoMsg } from "./types";
 /** MsgRecvPacket receives incoming IBC packet */
 export class MsgRecvPacket implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgRecvPacket,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgRecvPacket,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgRecvPacket not implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgRecvPacket",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgRecvPacket.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgRecvPacket not implemented.");
+    throw new Error("MsgRecvPacket doesn't support Amino encoding.");
   }
 }
 
 /** MsgTimeout receives timed-out packet */
 export class MsgTimeout implements Msg {
-  constructor(msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeout) {}
+  constructor(
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeout,
+  ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("MsgTimeout not implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgTimeout",
+      value: this.msg,
+      encode: async () =>
+        (await import("../protobuf/ibc/core/channel/v1/tx")).MsgTimeout.encode(
+          this.msg,
+        ).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgTimeout not implemented.");
+    throw new Error("MsgTimeout doesn't support Amino encoding.");
   }
 }
 
 /** MsgTimeoutOnClose timed-out packet upon counterparty channel closure. */
 export class MsgTimeoutOnClose implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgTimeoutOnClose implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgTimeoutOnClose",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgTimeoutOnClose.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgTimeoutOnClose not implemented.");
+    throw new Error("MsgTimeoutOnClose doesn't support Amino encoding.");
   }
 }
 
@@ -49,30 +72,44 @@ export class MsgTimeoutOnClose implements Msg {
  */
 export class MsgChannelOpenInit implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenInit,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenInit,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgChannelOpenInit implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelOpenInit",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelOpenInit.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelOpenInit not implemented.");
+    throw new Error("MsgChannelOpenInit doesn't support Amino encoding.");
   }
 }
 
 /** MsgAcknowledgement receives incoming IBC acknowledgement */
 export class MsgAcknowledgement implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgAcknowledgement,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgAcknowledgement,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgAcknowledgement implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgAcknowledgement",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgAcknowledgement.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgAcknowledgement not implemented.");
+    throw new Error("MsgAcknowledgement doesn't support Amino encoding.");
   }
 }
 
@@ -82,15 +119,22 @@ export class MsgAcknowledgement implements Msg {
  */
 export class MsgChannelOpenTry implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenTry,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenTry,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgChannelOpenTry implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelOpenTry",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelOpenTry.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelOpenTry not implemented.");
+    throw new Error("MsgChannelOpenTry doesn't support Amino encoding.");
   }
 }
 
@@ -100,15 +144,22 @@ export class MsgChannelOpenTry implements Msg {
  */
 export class MsgChannelOpenAck implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenAck,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenAck,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgChannelOpenAck implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelOpenAck",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelOpenAck.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelOpenAck not implemented.");
+    throw new Error("MsgChannelOpenAck doesn't support Amino encoding.");
   }
 }
 
@@ -118,15 +169,22 @@ export class MsgChannelOpenAck implements Msg {
  */
 export class MsgChannelOpenConfirm implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not MsgChannelOpenConfirm.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelOpenConfirm",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelOpenConfirm.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelOpenConfirm not implemented.");
+    throw new Error("MsgChannelOpenConfirm doesn't support Amino encoding.");
   }
 }
 
@@ -136,29 +194,43 @@ export class MsgChannelOpenConfirm implements Msg {
  */
 export class MsgChannelCloseInit implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseInit,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseInit,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method MsgChannelCloseInit implemented.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelCloseInit",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelCloseInit.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelCloseInit not implemented.");
+    throw new Error("MsgChannelCloseInit doesn't support Amino encoding.");
   }
 }
 
 /** MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B to acknowledge the change of channel state to CLOSED on Chain A. */
 export class MsgChannelCloseConfirm implements Msg {
   constructor(
-    msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,
+    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,
   ) {}
 
   async toProto(): Promise<ProtoMsg> {
-    throw new Error("Method not MsgChannelCloseConfirm.");
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelCloseConfirm",
+      value: this.msg,
+      encode: async () =>
+        (
+          await import("../protobuf/ibc/core/channel/v1/tx")
+        ).MsgChannelCloseConfirm.encode(this.msg).finish(),
+    };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    throw new Error("MsgChannelCloseConfirm not implemented.");
+    throw new Error("MsgChannelCloseConfirm doesn't support Amino encoding.");
   }
 }

@@ -211,3 +211,31 @@ export const validateAddress = (
     isValid: true,
   };
 };
+
+/**
+ * Converts an address from a bech32 string to the bytes representation.
+ * @param {string} address - The address bech32 string to convert.
+ * @returns {Uint8Array} - The resulting bytes address.
+ */
+export function addressToBytes(address: string): Uint8Array {
+  if (address === "") {
+    return new Uint8Array(0);
+  }
+  return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
+}
+
+/**
+ * Converts an address from bytes to the strong representation.
+ * @param {Uint8Array} bytes - The address bytes to convert.
+ * @param {string} prefix - The bech32 prefix to use.
+ * @returns {string} - The resulting bech32 string address.
+ */
+export function bytesToAddress(
+  bytes: Uint8Array,
+  prefix: string = "secret",
+): string {
+  if (bytes.length === 0) {
+    return "";
+  }
+  return bech32.encode(prefix, bech32.toWords(bytes));
+}

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum Msg {
+pub enum ExecMsg {
     Nop {},
     WrapDeposit {
         snip20_address: String,
@@ -18,8 +18,13 @@ pub enum Msg {
         amount: Coin,
         timeout_sec_from_now: Uint64,
     },
-    #[serde(rename = "ibc_lifecycle_complete")]
-    IBCLifecycleComplete(IBCLifecycleComplete),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum MigrateMsg {
+    Nop {},
+    StdError {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -42,4 +47,11 @@ pub enum IBCLifecycleComplete {
         /// The sequence number that the packet was sent with
         sequence: u64,
     },
+}
+
+/// Message type for `sudo` entry_point
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub enum SudoMsg {
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
 }

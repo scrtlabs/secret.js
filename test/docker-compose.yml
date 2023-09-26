@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   localsecret-1:
-    image: "ghcr.io/scrtlabs/localsecret:v1.10.0-beta.0"
+    image: "ghcr.io/scrtlabs/localsecret:v1.11.0"
     ports:
       - "26657:26657" # RPC
       - "26656:26656" # P2P
@@ -13,7 +13,7 @@ services:
       FAST_BLOCKS: "true"
       LOG_LEVEL: "TRACE"
   localsecret-2:
-    image: "ghcr.io/scrtlabs/localsecret:v1.10.0-beta.0"
+    image: "ghcr.io/scrtlabs/localsecret:v1.11.0"
     ports:
       - "36657:26657" # RPC
       - "36656:26656" # P2P

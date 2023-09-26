@@ -31,12 +31,12 @@ export type QuerySecretContractResponse = {
 
 export type QueryContractInfoResponse = {
   contract_address?: string
-  ContractInfo?: SecretComputeV1beta1Types.ContractInfo
+  contract_info?: SecretComputeV1beta1Types.ContractInfo
 }
 
 export type ContractInfoWithAddress = {
   contract_address?: string
-  ContractInfo?: SecretComputeV1beta1Types.ContractInfo
+  contract_info?: SecretComputeV1beta1Types.ContractInfo
 }
 
 export type QueryContractsByCodeIdResponse = {
@@ -86,6 +86,14 @@ export type DecryptedAnswers = {
   plaintext_error?: string
 }
 
+export type QueryContractHistoryRequest = {
+  contract_address?: string
+}
+
+export type QueryContractHistoryResponse = {
+  entries?: SecretComputeV1beta1Types.ContractCodeHistoryEntry[]
+}
+
 export class Query {
   static ContractInfo(req: QueryByContractAddressRequest, initReq?: fm.InitReq): Promise<QueryContractInfoResponse> {
     return fm.fetchReq<QueryByContractAddressRequest, QueryContractInfoResponse>(`/compute/v1beta1/info/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
@@ -113,5 +121,8 @@ export class Query {
   }
   static AddressByLabel(req: QueryByLabelRequest, initReq?: fm.InitReq): Promise<QueryContractAddressResponse> {
     return fm.fetchReq<QueryByLabelRequest, QueryContractAddressResponse>(`/compute/v1beta1/contract_address/${req["label"]}?${fm.renderURLSearchParams(req, ["label"])}`, {...initReq, method: "GET"})
+  }
+  static ContractHistory(req: QueryContractHistoryRequest, initReq?: fm.InitReq): Promise<QueryContractHistoryResponse> {
+    return fm.fetchReq<QueryContractHistoryRequest, QueryContractHistoryResponse>(`/compute/v1beta1/contract_history/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
   }
 }

@@ -48,6 +48,59 @@ export function accessTypeToJSON(object: AccessType): string {
   }
 }
 
+/** ContractCodeHistoryOperationType actions that caused a code change */
+export enum ContractCodeHistoryOperationType {
+  /** CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED - ContractCodeHistoryOperationTypeUnspecified placeholder for empty value */
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED = 0,
+  /** CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT - ContractCodeHistoryOperationTypeInit on chain contract instantiation */
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT = 1,
+  /** CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE - ContractCodeHistoryOperationTypeMigrate code migration */
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE = 2,
+  /** CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS - ContractCodeHistoryOperationTypeGenesis based on genesis data */
+  CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function contractCodeHistoryOperationTypeFromJSON(
+  object: any,
+): ContractCodeHistoryOperationType {
+  switch (object) {
+    case 0:
+    case "CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED":
+      return ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED;
+    case 1:
+    case "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT":
+      return ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT;
+    case 2:
+    case "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE":
+      return ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE;
+    case 3:
+    case "CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS":
+      return ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ContractCodeHistoryOperationType.UNRECOGNIZED;
+  }
+}
+
+export function contractCodeHistoryOperationTypeToJSON(
+  object: ContractCodeHistoryOperationType,
+): string {
+  switch (object) {
+    case ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED:
+      return "CONTRACT_CODE_HISTORY_OPERATION_TYPE_UNSPECIFIED";
+    case ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT:
+      return "CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT";
+    case ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE:
+      return "CONTRACT_CODE_HISTORY_OPERATION_TYPE_MIGRATE";
+    case ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS:
+      return "CONTRACT_CODE_HISTORY_OPERATION_TYPE_GENESIS";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 export interface AccessTypeParam {
   value: AccessType;
 }
@@ -60,22 +113,32 @@ export interface CodeInfo {
   builder: string;
 }
 
+export interface ContractKey {
+  og_contract_key: Uint8Array;
+  current_contract_key: Uint8Array;
+  current_contract_key_proof: Uint8Array;
+}
+
 export interface ContractCustomInfo {
-  enclave_key: Uint8Array;
+  enclave_key?: ContractKey;
   label: string;
 }
 
 /** ContractInfo stores a WASM contract instance */
 export interface ContractInfo {
+  /** CodeID is the reference to the stored Wasm code */
   code_id: string;
+  /** Creator address who initially instantiated the contract */
   creator: Uint8Array;
+  /** Label is mandatory metadata to be stored with a contract instance. */
   label: string;
-  /**
-   * never show this in query results, just use for sorting
-   * (Note: when using json tag "-" amino refused to serialize it...)
-   */
+  /** Created Tx position when the contract was instantiated. */
   created?: AbsoluteTxPosition;
   ibc_port_id: string;
+  /** Admin is an optional address that can execute migrations */
+  admin: string;
+  /** Proof that enclave executed the instantiate command */
+  admin_proof: Uint8Array;
 }
 
 /** AbsoluteTxPosition can be used to sort contracts */
@@ -92,6 +155,16 @@ export interface Model {
   Key: Uint8Array;
   /** base64-encode raw value */
   Value: Uint8Array;
+}
+
+/** ContractCodeHistoryEntry metadata to a contract. */
+export interface ContractCodeHistoryEntry {
+  operation: ContractCodeHistoryOperationType;
+  /** CodeID is the reference to the stored WASM code */
+  code_id: string;
+  /** Updated Tx position when the operation was executed. */
+  updated?: AbsoluteTxPosition;
+  msg: Uint8Array;
 }
 
 function createBaseAccessTypeParam(): AccessTypeParam {
@@ -243,8 +316,107 @@ export const CodeInfo = {
   },
 };
 
+function createBaseContractKey(): ContractKey {
+  return {
+    og_contract_key: new Uint8Array(),
+    current_contract_key: new Uint8Array(),
+    current_contract_key_proof: new Uint8Array(),
+  };
+}
+
+export const ContractKey = {
+  encode(
+    message: ContractKey,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.og_contract_key.length !== 0) {
+      writer.uint32(10).bytes(message.og_contract_key);
+    }
+    if (message.current_contract_key.length !== 0) {
+      writer.uint32(18).bytes(message.current_contract_key);
+    }
+    if (message.current_contract_key_proof.length !== 0) {
+      writer.uint32(26).bytes(message.current_contract_key_proof);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContractKey {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseContractKey();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.og_contract_key = reader.bytes();
+          break;
+        case 2:
+          message.current_contract_key = reader.bytes();
+          break;
+        case 3:
+          message.current_contract_key_proof = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ContractKey {
+    return {
+      og_contract_key: isSet(object.og_contract_key)
+        ? bytesFromBase64(object.og_contract_key)
+        : new Uint8Array(),
+      current_contract_key: isSet(object.current_contract_key)
+        ? bytesFromBase64(object.current_contract_key)
+        : new Uint8Array(),
+      current_contract_key_proof: isSet(object.current_contract_key_proof)
+        ? bytesFromBase64(object.current_contract_key_proof)
+        : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: ContractKey): unknown {
+    const obj: any = {};
+    message.og_contract_key !== undefined &&
+      (obj.og_contract_key = base64FromBytes(
+        message.og_contract_key !== undefined
+          ? message.og_contract_key
+          : new Uint8Array(),
+      ));
+    message.current_contract_key !== undefined &&
+      (obj.current_contract_key = base64FromBytes(
+        message.current_contract_key !== undefined
+          ? message.current_contract_key
+          : new Uint8Array(),
+      ));
+    message.current_contract_key_proof !== undefined &&
+      (obj.current_contract_key_proof = base64FromBytes(
+        message.current_contract_key_proof !== undefined
+          ? message.current_contract_key_proof
+          : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContractKey>, I>>(
+    object: I,
+  ): ContractKey {
+    const message = createBaseContractKey();
+    message.og_contract_key = object.og_contract_key ?? new Uint8Array();
+    message.current_contract_key =
+      object.current_contract_key ?? new Uint8Array();
+    message.current_contract_key_proof =
+      object.current_contract_key_proof ?? new Uint8Array();
+    return message;
+  },
+};
+
 function createBaseContractCustomInfo(): ContractCustomInfo {
-  return { enclave_key: new Uint8Array(), label: "" };
+  return { enclave_key: undefined, label: "" };
 }
 
 export const ContractCustomInfo = {
@@ -252,8 +424,11 @@ export const ContractCustomInfo = {
     message: ContractCustomInfo,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
-    if (message.enclave_key.length !== 0) {
-      writer.uint32(10).bytes(message.enclave_key);
+    if (message.enclave_key !== undefined) {
+      ContractKey.encode(
+        message.enclave_key,
+        writer.uint32(10).fork(),
+      ).ldelim();
     }
     if (message.label !== "") {
       writer.uint32(18).string(message.label);
@@ -269,7 +444,7 @@ export const ContractCustomInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.enclave_key = reader.bytes();
+          message.enclave_key = ContractKey.decode(reader, reader.uint32());
           break;
         case 2:
           message.label = reader.string();
@@ -285,8 +460,8 @@ export const ContractCustomInfo = {
   fromJSON(object: any): ContractCustomInfo {
     return {
       enclave_key: isSet(object.enclave_key)
-        ? bytesFromBase64(object.enclave_key)
-        : new Uint8Array(),
+        ? ContractKey.fromJSON(object.enclave_key)
+        : undefined,
       label: isSet(object.label) ? String(object.label) : "",
     };
   },
@@ -294,11 +469,9 @@ export const ContractCustomInfo = {
   toJSON(message: ContractCustomInfo): unknown {
     const obj: any = {};
     message.enclave_key !== undefined &&
-      (obj.enclave_key = base64FromBytes(
-        message.enclave_key !== undefined
-          ? message.enclave_key
-          : new Uint8Array(),
-      ));
+      (obj.enclave_key = message.enclave_key
+        ? ContractKey.toJSON(message.enclave_key)
+        : undefined);
     message.label !== undefined && (obj.label = message.label);
     return obj;
   },
@@ -307,7 +480,10 @@ export const ContractCustomInfo = {
     object: I,
   ): ContractCustomInfo {
     const message = createBaseContractCustomInfo();
-    message.enclave_key = object.enclave_key ?? new Uint8Array();
+    message.enclave_key =
+      object.enclave_key !== undefined && object.enclave_key !== null
+        ? ContractKey.fromPartial(object.enclave_key)
+        : undefined;
     message.label = object.label ?? "";
     return message;
   },
@@ -320,6 +496,8 @@ function createBaseContractInfo(): ContractInfo {
     label: "",
     created: undefined,
     ibc_port_id: "",
+    admin: "",
+    admin_proof: new Uint8Array(),
   };
 }
 
@@ -346,6 +524,12 @@ export const ContractInfo = {
     if (message.ibc_port_id !== "") {
       writer.uint32(50).string(message.ibc_port_id);
     }
+    if (message.admin !== "") {
+      writer.uint32(58).string(message.admin);
+    }
+    if (message.admin_proof.length !== 0) {
+      writer.uint32(66).bytes(message.admin_proof);
+    }
     return writer;
   },
 
@@ -371,6 +555,12 @@ export const ContractInfo = {
         case 6:
           message.ibc_port_id = reader.string();
           break;
+        case 7:
+          message.admin = reader.string();
+          break;
+        case 8:
+          message.admin_proof = reader.bytes();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -390,6 +580,10 @@ export const ContractInfo = {
         ? AbsoluteTxPosition.fromJSON(object.created)
         : undefined,
       ibc_port_id: isSet(object.ibc_port_id) ? String(object.ibc_port_id) : "",
+      admin: isSet(object.admin) ? String(object.admin) : "",
+      admin_proof: isSet(object.admin_proof)
+        ? bytesFromBase64(object.admin_proof)
+        : new Uint8Array(),
     };
   },
 
@@ -407,6 +601,13 @@ export const ContractInfo = {
         : undefined);
     message.ibc_port_id !== undefined &&
       (obj.ibc_port_id = message.ibc_port_id);
+    message.admin !== undefined && (obj.admin = message.admin);
+    message.admin_proof !== undefined &&
+      (obj.admin_proof = base64FromBytes(
+        message.admin_proof !== undefined
+          ? message.admin_proof
+          : new Uint8Array(),
+      ));
     return obj;
   },
 
@@ -422,6 +623,8 @@ export const ContractInfo = {
         ? AbsoluteTxPosition.fromPartial(object.created)
         : undefined;
     message.ibc_port_id = object.ibc_port_id ?? "";
+    message.admin = object.admin ?? "";
+    message.admin_proof = object.admin_proof ?? new Uint8Array();
     return message;
   },
 };
@@ -554,6 +757,114 @@ export const Model = {
     const message = createBaseModel();
     message.Key = object.Key ?? new Uint8Array();
     message.Value = object.Value ?? new Uint8Array();
+    return message;
+  },
+};
+
+function createBaseContractCodeHistoryEntry(): ContractCodeHistoryEntry {
+  return {
+    operation: 0,
+    code_id: "0",
+    updated: undefined,
+    msg: new Uint8Array(),
+  };
+}
+
+export const ContractCodeHistoryEntry = {
+  encode(
+    message: ContractCodeHistoryEntry,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.operation !== 0) {
+      writer.uint32(8).int32(message.operation);
+    }
+    if (message.code_id !== "0") {
+      writer.uint32(16).uint64(message.code_id);
+    }
+    if (message.updated !== undefined) {
+      AbsoluteTxPosition.encode(
+        message.updated,
+        writer.uint32(26).fork(),
+      ).ldelim();
+    }
+    if (message.msg.length !== 0) {
+      writer.uint32(34).bytes(message.msg);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number,
+  ): ContractCodeHistoryEntry {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseContractCodeHistoryEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.operation = reader.int32() as any;
+          break;
+        case 2:
+          message.code_id = longToString(reader.uint64() as Long);
+          break;
+        case 3:
+          message.updated = AbsoluteTxPosition.decode(reader, reader.uint32());
+          break;
+        case 4:
+          message.msg = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ContractCodeHistoryEntry {
+    return {
+      operation: isSet(object.operation)
+        ? contractCodeHistoryOperationTypeFromJSON(object.operation)
+        : 0,
+      code_id: isSet(object.code_id) ? String(object.code_id) : "0",
+      updated: isSet(object.updated)
+        ? AbsoluteTxPosition.fromJSON(object.updated)
+        : undefined,
+      msg: isSet(object.msg) ? bytesFromBase64(object.msg) : new Uint8Array(),
+    };
+  },
+
+  toJSON(message: ContractCodeHistoryEntry): unknown {
+    const obj: any = {};
+    message.operation !== undefined &&
+      (obj.operation = contractCodeHistoryOperationTypeToJSON(
+        message.operation,
+      ));
+    message.code_id !== undefined && (obj.code_id = message.code_id);
+    message.updated !== undefined &&
+      (obj.updated = message.updated
+        ? AbsoluteTxPosition.toJSON(message.updated)
+        : undefined);
+    message.msg !== undefined &&
+      (obj.msg = base64FromBytes(
+        message.msg !== undefined ? message.msg : new Uint8Array(),
+      ));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ContractCodeHistoryEntry>, I>>(
+    object: I,
+  ): ContractCodeHistoryEntry {
+    const message = createBaseContractCodeHistoryEntry();
+    message.operation = object.operation ?? 0;
+    message.code_id = object.code_id ?? "0";
+    message.updated =
+      object.updated !== undefined && object.updated !== null
+        ? AbsoluteTxPosition.fromPartial(object.updated)
+        : undefined;
+    message.msg = object.msg ?? new Uint8Array();
     return message;
   },
 };

@@ -1,25 +1,25 @@
 use cosmwasm_std::{
     entry_point, to_binary, CosmosMsg, DepsMut, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
-    StdResult,
+    StdError, StdResult,
 };
 
-use crate::msg::{IBCLifecycleComplete, Msg};
+use crate::msg::{ExecMsg, IBCLifecycleComplete, MigrateMsg, SudoMsg};
 
 #[entry_point]
 pub fn instantiate(
     _deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: Msg,
+    _msg: ExecMsg,
 ) -> StdResult<Response> {
     Ok(Response::default())
 }
 
 #[entry_point]
-pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResult<Response> {
+pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: ExecMsg) -> StdResult<Response> {
     match msg {
-        Msg::Nop {} => Ok(Response::default()),
-        Msg::WrapDeposit {
+        ExecMsg::Nop {} => Ok(Response::default()),
+        ExecMsg::WrapDeposit {
             snip20_address,
             snip20_code_hash,
             recipient_address,
@@ -44,7 +44,7 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
                 funds: vec![],
             }),
         ])),
-        Msg::IBCTransfer {
+        ExecMsg::IBCTransfer {
             channel_id,
             to_address,
             amount,
@@ -63,7 +63,24 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
                 ),
             })]),
         ),
-        Msg::IBCLifecycleComplete(IBCLifecycleComplete::IBCAck {
+    }
+}
+
+#[entry_point]
+pub fn migrate(_deps: DepsMut, env: Env, msg: MigrateMsg) -> StdResult<Response> {
+    match msg {
+        MigrateMsg::Nop {} => Ok(Response::default().add_attributes(vec![
+            ("migrate.env", format!("{:?}", env)),
+            ("migrate.msg", format!("{:?}", msg)),
+        ])),
+        MigrateMsg::StdError {} => Err(StdError::generic_err("std error")),
+    }
+}
+
+#[entry_point]
+pub fn sudo(_deps: DepsMut, _env: Env, msg: SudoMsg) -> StdResult<Response> {
+    match msg {
+        SudoMsg::IBCLifecycleComplete(IBCLifecycleComplete::IBCAck {
             channel,
             sequence,
             ack,
@@ -80,7 +97,7 @@ pub fn execute(_deps: DepsMut, env: Env, info: MessageInfo, msg: Msg) -> StdResu
                 success.to_string(),
             ),
         ])),
-        Msg::IBCLifecycleComplete(IBCLifecycleComplete::IBCTimeout { channel, sequence }) => {
+        SudoMsg::IBCLifecycleComplete(IBCLifecycleComplete::IBCTimeout { channel, sequence }) => {
             Ok(Response::default().add_attributes(vec![
                 ("ibc_lifecycle_complete.ibc_timeout.channel", channel),
                 (

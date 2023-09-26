@@ -4,8 +4,7 @@
 // 2. Abstract "address: Uint8Array" in the underlying types as "address: string".
 // 3. Add Secret Network encryption
 
-import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
+import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
 import { getMissingCodeHashWarning } from "..";
 import { EncryptionUtils, EncryptionUtilsImpl } from "../encryption";
 import { Empty } from "../grpc_gateway/google/protobuf/empty.pb";
@@ -18,10 +17,15 @@ import {
   QueryCodeResponse,
   QueryCodesResponse,
   QueryContractAddressResponse,
+  QueryContractHistoryRequest,
   QueryContractInfoResponse,
   QueryContractLabelResponse,
   QueryContractsByCodeIdResponse,
 } from "../grpc_gateway/secret/compute/v1beta1/query.pb";
+import {
+  AbsoluteTxPosition,
+  ContractCodeHistoryOperationType,
+} from "../grpc_gateway/secret/compute/v1beta1/types.pb";
 
 export type QueryContractRequest<T> = {
   /** The address of the contract */
@@ -41,6 +45,13 @@ export type QueryContractRequest<T> = {
   code_hash?: string;
   /** A JSON object that will be passed to the contract as a query */
   query: T;
+};
+
+export type ContractCodeHistoryEntry = {
+  operation: ContractCodeHistoryOperationType;
+  code_id: string;
+  updated: AbsoluteTxPosition;
+  msg: string;
 };
 
 export class ComputeQuerier {
@@ -199,7 +210,7 @@ export class ComputeQuerier {
     } catch (err) {
       try {
         const errorMessageRgx =
-          /encrypted: (.+?): (?:instantiate|execute|query|reply to) contract failed/g;
+          /encrypted: (.+?): (?:instantiate|execute|query|reply to|migrate) contract failed/g;
         const rgxMatches = errorMessageRgx.exec(err.message);
         if (rgxMatches == null || rgxMatches?.length != 2) {
           throw err;
@@ -230,15 +241,39 @@ export class ComputeQuerier {
       }
     }
   }
-}
 
-export function addressToBytes(address: string): Uint8Array {
-  return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
-}
+  async contractHistory(
+    req: QueryContractHistoryRequest,
+    headers?: HeadersInit,
+  ): Promise<{ entries: ContractCodeHistoryEntry[] }> {
+    const { entries } = await Query.ContractHistory(req, {
+      headers,
+      pathPrefix: this.url,
+    });
 
-export function bytesToAddress(
-  bytes: Uint8Array,
-  prefix: string = "secret",
-): string {
-  return bech32.encode(prefix, bech32.toWords(bytes));
+    let decryptedEntries: ContractCodeHistoryEntry[] = [];
+    for (const entry of entries ?? []) {
+      let msg = entry.msg as unknown as string;
+      try {
+        const encryptedInput = fromBase64(msg);
+        const nonce = encryptedInput.slice(0, 32);
+        const encryptedInitMsg = encryptedInput.slice(64);
+
+        const plaintextInitMsg = await this.encryption!.decrypt(
+          encryptedInitMsg,
+          nonce,
+        );
+        msg = fromUtf8(plaintextInitMsg).slice(64);
+      } catch (err) {}
+
+      decryptedEntries.push({
+        operation: entry.operation!,
+        code_id: entry.code_id!,
+        updated: entry.updated!,
+        msg,
+      });
+    }
+
+    return { entries: decryptedEntries };
+  }
 }

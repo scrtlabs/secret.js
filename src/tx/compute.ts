@@ -1,11 +1,11 @@
 import { toBase64 } from "@cosmjs/encoding";
-import { is_gzip } from "../utils";
 import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
-import { addressToBytes } from "../query";
+import { addressToBytes, is_gzip } from "../utils";
 import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
+  /** The actor that signed the messages */
   sender: string;
   /** The id of the contract's WASM code */
   code_id: number | string;
@@ -19,7 +19,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -28,6 +28,8 @@ export interface MsgInstantiateContractParams extends MsgParams {
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
   code_hash?: string;
+  /** Admin is an optional address that can execute migrations */
+  admin?: string;
 }
 
 export function getMissingCodeHashWarning(method: string): string {
@@ -44,6 +46,7 @@ export class MsgInstantiateContract implements Msg {
   public initFunds: Coin[];
   public codeHash: string;
   private warnCodeHash: boolean = false;
+  public admin: string;
 
   constructor({
     sender,
@@ -52,6 +55,7 @@ export class MsgInstantiateContract implements Msg {
     init_msg,
     init_funds,
     code_hash,
+    admin,
   }: MsgInstantiateContractParams) {
     this.sender = sender;
     this.codeId = String(code_id);
@@ -59,9 +63,10 @@ export class MsgInstantiateContract implements Msg {
     this.initMsg = init_msg;
     this.initMsgEncrypted = null;
     this.initFunds = init_funds ?? [];
+    this.admin = admin ?? "";
 
     if (code_hash) {
-      this.codeHash = code_hash.replace("0x", "").toLowerCase();
+      this.codeHash = code_hash.replace(/^0x/, "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
@@ -89,8 +94,9 @@ export class MsgInstantiateContract implements Msg {
       init_msg: this.initMsgEncrypted,
       init_funds: this.initFunds,
       // callback_sig & callback_code_hash are internal stuff that doesn't matter here
-      callback_sig: new Uint8Array(),
+      callback_sig: new Uint8Array(0),
       callback_code_hash: "",
+      admin: this.admin,
     };
 
     return {
@@ -123,12 +129,14 @@ export class MsgInstantiateContract implements Msg {
         label: this.label,
         init_msg: toBase64(this.initMsgEncrypted),
         init_funds: this.initFunds,
+        admin: this.admin.length > 0 ? this.admin : undefined,
       },
     };
   }
 }
 
 export interface MsgExecuteContractParams<T> extends MsgParams {
+  /** The actor that signed the messages */
   sender: string;
   /** The contract's address */
   contract_address: string;
@@ -140,7 +148,7 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
    * character hex string.
    * This is used to make sure only the contract that's being invoked can decrypt the query data.
    *
-   * codeHash is an optional parameter but using it will result in way faster execution time.
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
    *
    * Valid examples:
    * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
@@ -175,7 +183,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     this.sentFunds = sentFunds ?? [];
 
     if (codeHash) {
-      this.codeHash = codeHash.replace("0x", "").toLowerCase();
+      this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
     } else {
       // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
       this.codeHash = "";
@@ -240,6 +248,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 }
 
 export interface MsgStoreCodeParams extends MsgParams {
+  /** The actor that signed the messages */
   sender: string;
   /** WASMByteCode can be raw or gzip compressed */
   wasm_byte_code: Uint8Array;
@@ -305,6 +314,197 @@ export class MsgStoreCode implements Msg {
         wasm_byte_code: toBase64(this.wasmByteCode),
         source: this.source.length > 0 ? this.source : undefined,
         builder: this.builder.length > 0 ? this.builder : undefined,
+      },
+    };
+  }
+}
+
+export interface MsgMigrateContractParams<T> extends MsgParams {
+  /** The actor that signed the messages (should be the current admin) */
+  sender: string;
+  /** The contract's address */
+  contract_address: string;
+  /** The new code id */
+  code_id: number | string;
+  /** The input message */
+  msg: T;
+  /** The SHA256 hash value of the contract's *new* WASM bytecode, represented as case-insensitive 64 character hex string.
+   * This is used to make sure only the contract that's being invoked can decrypt the query data.
+   *
+   * codeHash is an optional parameter but using it will result in way faster execution time (otherwise secret.js will make an query to get the code_hash from the chain).
+   *
+   * Valid examples:
+   * - "af74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
+   * - "0xaf74387e276be8874f07bec3a87023ee49b0e7ebe08178c49d0a49c3c98ed60e"
+   * - "AF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
+   * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
+   */
+  code_hash?: string;
+}
+
+/** Execute a function on a contract */
+export class MsgMigrateContract<T extends object> implements Msg {
+  public sender: string;
+  public contractAddress: string;
+  public msg: T;
+  private msgEncrypted: Uint8Array | null;
+  public codeId: string;
+  public codeHash: string;
+  private warnCodeHash: boolean = false;
+
+  constructor({
+    sender,
+    contract_address: contractAddress,
+    msg,
+    code_id: codeId,
+    code_hash: codeHash,
+  }: MsgMigrateContractParams<T>) {
+    this.sender = sender;
+    this.contractAddress = contractAddress;
+    this.msg = msg;
+    this.msgEncrypted = null;
+    this.codeId = String(codeId);
+
+    if (codeHash) {
+      this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
+    } else {
+      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      this.codeHash = "";
+      this.warnCodeHash = true;
+      console.warn(getMissingCodeHashWarning("MsgMigrateContract"));
+    }
+  }
+
+  async toProto(utils: EncryptionUtils): Promise<ProtoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgMigrateContract"));
+    }
+
+    if (!this.msgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
+    }
+
+    const msgContent = {
+      sender: this.sender,
+      contract: this.contractAddress,
+      msg: this.msgEncrypted,
+      code_id: this.codeId,
+      // callback_sig & callback_code_hash are internal stuff that doesn't matter here
+      callback_sig: new Uint8Array(),
+      callback_code_hash: "",
+    };
+
+    return {
+      type_url: "/secret.compute.v1beta1.MsgMigrateContract",
+      value: msgContent,
+      encode: async () =>
+        (
+          await import("../protobuf/secret/compute/v1beta1/msg")
+        ).MsgMigrateContract.encode(msgContent).finish(),
+    };
+  }
+  async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
+    if (this.warnCodeHash) {
+      console.warn(getMissingCodeHashWarning("MsgMigrateContract"));
+    }
+
+    if (!this.msgEncrypted) {
+      // The encryption uses a random nonce
+      // toProto() & toAmino() are called multiple times during signing
+      // so to keep the msg consistant across calls we encrypt the msg only once
+      this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
+    }
+
+    return {
+      type: "wasm/MsgMigrateContract",
+      value: {
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toBase64(this.msgEncrypted),
+        code_id: this.codeId,
+      },
+    };
+  }
+}
+
+export interface MsgUpdateAdminParams extends MsgParams {
+  /** The actor that signed the messages (should be the current admin) */
+  sender: string;
+  /** New admin address to be set */
+  new_admin: string;
+  /** The address of the secret contract */
+  contract_address: string;
+}
+
+/** MsgUpdateAdmin sets a new admin for a secret contract. */
+export class MsgUpdateAdmin implements Msg {
+  constructor(public params: MsgUpdateAdminParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/secret.compute.v1beta1.MsgUpdateAdmin",
+      value: this.params,
+      encode: async () =>
+        (
+          await import("../protobuf/secret/compute/v1beta1/msg")
+        ).MsgUpdateAdmin.encode({
+          sender: this.params.sender,
+          new_admin: this.params.new_admin,
+          contract: this.params.contract_address,
+          // callback_sig is internal stuff that doesn't matter here
+          callback_sig: new Uint8Array(),
+        }).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "wasm/MsgUpdateAdmin",
+      value: {
+        sender: this.params.sender,
+        new_admin: this.params.new_admin,
+        contract: this.params.contract_address,
+      },
+    };
+  }
+}
+
+export interface MsgClearAdminParams extends MsgParams {
+  /** Sender is the actor that signed the messages (should be the current admin) */
+  sender: string;
+  /** Contract is the address of the smart contract */
+  contract_address: string;
+}
+
+/** MsgClearAdmin removes any admin stored for a secret contract. */
+export class MsgClearAdmin implements Msg {
+  constructor(public params: MsgClearAdminParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/secret.compute.v1beta1.MsgClearAdmin",
+      value: this.params,
+      encode: async () =>
+        (
+          await import("../protobuf/secret/compute/v1beta1/msg")
+        ).MsgClearAdmin.encode({
+          sender: this.params.sender,
+          contract: this.params.contract_address,
+          // callback_sig is internal stuff that doesn't matter here
+          callback_sig: new Uint8Array(),
+        }).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "wasm/MsgClearAdmin",
+      value: {
+        sender: this.params.sender,
+        contract: this.params.contract_address,
       },
     };
   }

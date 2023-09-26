@@ -30,7 +30,8 @@ import {
   createIbcChannel,
   createIbcConnection,
   loopRelayer,
-  passParameterChangeProposal, sleep,
+  passParameterChangeProposal,
+  sleep,
   turnIbcSwitchOff,
   turnIbcSwitchOn,
   waitForChainToStart,
@@ -426,9 +427,7 @@ describe("ibcResponses", () => {
       // since this is immediately after tx broadcast,
       // give some time for it to register in the node
       await sleep(150);
-      txs = await secretjs.query.txsQuery(
-        `tx.hash='${tx.transactionHash}'`,
-      );
+      txs = await secretjs.query.txsQuery(`tx.hash='${tx.transactionHash}'`);
       tries--;
     }
 

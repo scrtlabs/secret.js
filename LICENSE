@@ -1,34 +1,21 @@
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+MIT License
 
-1.  Definitions.
-    "License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 6 of this license.
-    "Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
-    "You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
-    "Source" form shall mean the preferred form for making modifications, including but not limited to
-    software source code, documentation source, and configuration files.
-    "Object" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.
-    “The Program” shall mean the work, software, source code, documentation, application and any other documents in the repository to which this license refers.
-    "Work" shall mean the work of authorship, whether in Source or Object form, made available under this License.
-    "Derivative Works" shall mean any work, whether in Source or Object form, that is based on (or derived from) the work.
-    "Contribution" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, "submitted"
-    means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as "Not a Contribution."
-    "Contributor" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.
-    “Non-Commercial Use” shall mean each use as described in clauses (a)-(c) below, as reasonably determined by Gamma in its sole discretion: (a) personal use for research, personal study, private entertainment, hobby projects or amateur pursuits, in each case without any anticipated commercial application; (b) use by any charitable organization, educational institution, public research organization, public safety or health organization, environmental protection organization or government institution; or (c) the number of monthly active users of the Resulting Program across all versions thereof and platforms globally do not exceed the amount specifically authorized by Gamma in writing, and subject to its sole discretion, at any time.
+Copyright (c) 2022 SCRT Labs
 
-2.  Legal Rights.
-    You acknowledge and agree that Gamma Research and Development Ltd. (“Gamma”) or Gamma’s licensors, own all legal right, title and interest in and to the Program, including any intellectual property rights, registered or unregistered, which subsist in the Program.
-    Subject to the limited license below You may not publish, copy, modify, adapt, merge, translate or create derivative works based upon the Program. You will not reverse engineer, decompile, disassemble or otherwise attempt to discover the source code of any Software in this repository except to the extent you may be expressly permitted to reverse engineer or decompile under applicable law.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-3.  Permitted Uses.
-    For the sole purpose of contribution to this repository, you are granted a non-exclusive, non-transferable, non-sublicensable license to publish, copy, modify, adapt, merge, translate or create derivative works based upon, the Program (such resulting program, collectively, the “Resulting Program”) solely for Non-Commercial Use as long as you: a. give prominent notice (“Notice”) with each copy of the Resulting Program that the Program is used in the Resulting Program and that the Program is the copyright of Gamma; and b. subject the Resulting Program and any distribution, publication, copy, modification, merger therewith, combination with another program or derivative works thereof to the same Notice requirement and Non-Commercial Use (as defined in section 1) restriction set forth herein. c. You will not use any trade names, trademarks, service marks, or product names or logos of Gamma, Secret Network, Secret Coin, or any other contributor or related entity, in a way that may cause confusion about the identity of the owner or authorized user of such marks, names or logos.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-4.  Disclaimer of Warranty.
-    THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE PROGRAM IS PROVIDED “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
-
-5.  Limitation of Liability.
-    IN NO EVENT, AND UNDER NO LEGAL THEORY, SHALL GAMMA, OR ANY OF ITS LICESORS OR AFFILIATES, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
-6.  Accepting Warranty or Additional Liability.
-    While redistributing the Work or Derivative Works thereof, You may choose to offer acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.
-
-END OF TERMS AND CONDITIONS
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
