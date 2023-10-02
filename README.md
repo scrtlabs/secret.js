@@ -105,18 +105,18 @@ Follow the instruction of [react-native-get-random-values](https://www.npmjs.com
 
 # Usage Examples
 
-Note: Public gRPC-web endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
+Note: Public LCD endpoints can be found in https://github.com/scrtlabs/api-registry for both mainnet and testnet.
 
 For a lot more usage examples [refer to the tests](./test/test.ts).
 
 ## Sending Queries
 
 ```ts
-import { SecretNetworkClient, grpc } from "secretjs";
+import { SecretNetworkClient } from "secretjs";
 
 const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
-// To create a readonly secret.js client, just pass in a gRPC-web endpoint
+// To create a readonly secret.js client, just pass in a LCD endpoint
 const secretjs = new SecretNetworkClient({
   url,
   chainId: "secret-4",
@@ -211,7 +211,7 @@ Notes:
 1. MetaMask supports mobile!
 2. MetaMask supports Ledger.
 3. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
-4. See Keplr's [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino) for list of unsupported transactions.
+4. See Keplr's [`getOfflineSignerOnlyAmino()`](#windowkeplrgetofflinesigneronlyamino) for list of unsupported transactions.
 
 <img src="./media/metamask-signing-example.jpg" width="55%" style="border-radius: 10px;" />
 
@@ -270,9 +270,9 @@ Links:
 
 TLDR:
 
-- [`getOfflineSignerOnlyAmino()`](#getofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
-- [`getOfflineSigner()`](#getofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
-- [`getOfflineSignerAuto()`](#getofflinesignerauto): If Ledger alias for `getOfflineSignerOnlyAmino()`, otherwise alias for `getOfflineSigner()`.
+- [`getOfflineSignerOnlyAmino()`](#windowkeplrgetofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
+- [`getOfflineSigner()`](#windowkeplrgetofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
+- [`getOfflineSignerAuto()`](#windowkeplrgetofflinesignerauto): If Ledger alias for `getOfflineSignerOnlyAmino()`, otherwise alias for `getOfflineSigner()`.
 
 #### `window.keplr.getOfflineSignerOnlyAmino()`
 
@@ -474,7 +474,7 @@ import { SecretNetworkClient } from "secretjs";
 
 const url = "TODO get from https://github.com/scrtlabs/api-registry";
 
-// To create a readonly secret.js client, just pass in a gRPC-web endpoint
+// To create a readonly secret.js client, just pass in a LCD endpoint
 const secretjs = new SecretNetworkClient({
   chainId: "secret-4",
   url,
