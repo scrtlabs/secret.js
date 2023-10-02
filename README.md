@@ -35,6 +35,7 @@
     - [Deep linking](#deep-linking)
   - [Leap Cosmos Wallet](#leap-cosmos-wallet)
   - [StarShell Wallet](#starshell-wallet)
+  - [Ledger Wallet](#ledger-wallet)
 - [API](#api)
   - [Wallet](#wallet)
     - [Importing account from mnemonic](#importing-account-from-mnemonic)
@@ -381,6 +382,55 @@ StarShell implements the Keplr API, so [the above Keplr docs](#keplr-wallet) app
 Links:
 
 - <a href="https://starshell.net" target="_blank"><strong>Official StarShell Website »</strong></a>
+
+## Ledger Wallet
+
+`@cosmjs/ledger-amino` can be used to sign transactions with a Ledger wallet running the Cosmos app.
+
+```ts
+import { SecretNetworkClient } from 'secretjs';
+import { makeCosmoshubPath } from "@cosmjs/amino";
+import { LedgerSigner } from "@cosmjs/ledger-amino";
+
+// NodeJS only
+import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
+
+// Browser only
+//import TransportNodeHid from "@ledgerhq/hw-transport-webusb";
+
+const interactiveTimeout = 120_000;
+const accountIndex = 0;
+const cosmosPath = makeCosmoshubPath(accountIndex);
+
+const ledgerTransport = await TransportNodeHid.create(interactiveTimeout, interactiveTimeout);
+const ledgerSigner = new LedgerSigner(
+  ledgerTransport,
+  {
+    testModeAllowed: true,
+    hdPaths: [cosmosPath],
+    prefix: 'secret'
+  }
+);
+const [{ address }] = await signer.getAccounts();
+
+const client = new SecretNetworkClient({
+  url: "TODO get from https://github.com/scrtlabs/api-registry",
+  chainId: "secret-4",
+  wallet: ledgerSigner,
+  walletAddress: address,
+});
+```
+
+Notes:
+
+1. Use the appropriate `hw-transport` package for your environment (Node or Browser)
+2. The Ledger Cosmos app only supports coin type 118
+3. You might want to pass `encryptionSeed` to `SecretNetworkClient.create()` to use the same encryption key for the user across sessions. This value should be a true random 32 byte number that is stored securly in your app, such that only the user can decrypt it. This can also be a `sha256(user_password)` but might impair UX.
+4. See Keplr's [`getOfflineSignerOnlyAmino()`](#windowkeplrgetofflinesigneronlyamino) for list of unsupported transactions.
+
+Links:
+
+- <a href="https://cosmos.github.io/cosmjs/latest/ledger-amino/" target="_blank"><strong>@cosmjs/ledger-amino Documentation »</strong></a>
 
 # API
 
