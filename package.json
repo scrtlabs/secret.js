@@ -33,7 +33,6 @@
     "@cosmjs/math": "0.27.1",
     "@noble/hashes": "1.0.0",
     "@noble/secp256k1": "1.7.0",
-    "@osmonauts/helpers": "0.3.8",
     "bech32": "2.0.0",
     "big-integer": "1.6.51",
     "bignumber.js": "9.0.2",
@@ -44,7 +43,7 @@
     "google-protobuf": "^3.14.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
-    "protobufjs": "7.2.4",
+    "protobufjs": "7.2.5",
     "secure-random": "1.1.2"
   },
   "devDependencies": {
