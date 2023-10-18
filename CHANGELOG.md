@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.12.0
+
+- Support Secret Network v1.12
+
 ## 1.11.1
 
 - Support Secret Network v1.11
