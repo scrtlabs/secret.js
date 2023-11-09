@@ -1,8 +1,12 @@
 # Changelog & Version Info
 
+## 1.12.1
+
+Fix error handling for "tx not found" in `getTx()`
+
 ## 1.12.0
 
-- Support Secret Network v1.12
+Support Secret Network v1.12
 
 ## 1.11.1
 
