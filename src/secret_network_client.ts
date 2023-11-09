@@ -1053,7 +1053,10 @@ export class SecretNetworkClient {
         ? this.decodeTxResponse(tx_response, ibcTxOptions)
         : null;
     } catch (error) {
-      if (error?.message === `tx not found: ${hash}`) {
+      if (
+        typeof error?.message == "string" &&
+        error?.message?.includes(`tx not found: ${hash}`)
+      ) {
         return null;
       } else {
         throw error;
