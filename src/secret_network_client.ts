@@ -1053,9 +1053,14 @@ export class SecretNetworkClient {
         ? this.decodeTxResponse(tx_response, ibcTxOptions)
         : null;
     } catch (error) {
+      const txNotFoundRegex = new RegExp(
+        `tx not found: ${hash}|tx \\(${hash}\\) not found`,
+        "i",
+      );
+
       if (
         typeof error?.message == "string" &&
-        error?.message?.includes(`tx not found: ${hash}`)
+        error?.message?.match(txNotFoundRegex) !== null
       ) {
         return null;
       } else {

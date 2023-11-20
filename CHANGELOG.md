@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.12.3
+
+Fix (another case of) error handling for "tx not found" in `getTx()`
+
 ## 1.12.1
 
 Fix error handling for "tx not found" in `getTx()`
