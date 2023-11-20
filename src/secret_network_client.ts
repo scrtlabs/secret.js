@@ -1055,7 +1055,9 @@ export class SecretNetworkClient {
     } catch (error) {
       if (
         typeof error?.message == "string" &&
-        error?.message?.includes(`tx not found: ${hash}`)
+        (error?.message as String).match(
+          new RegExp(`tx not found:.+?${hash}`, "i"),
+        ) !== null
       ) {
         return null;
       } else {
