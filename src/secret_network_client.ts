@@ -1113,8 +1113,8 @@ export class SecretNetworkClient {
       }
 
       const query = [
-        `${txType}_packet.packet_src_channel = '${packetSrcChannel}'`,
-        `${txType}_packet.packet_sequence = '${packetSequence}'`,
+        `${txType}_packet.packet_src_channel='${packetSrcChannel}'`,
+        `${txType}_packet.packet_sequence='${packetSequence}'`,
       ].join(" AND ");
 
       while (tries > 0 && !isDoneObject.isDone) {
