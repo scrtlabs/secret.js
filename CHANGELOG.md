@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.12.4
+
+Fix `txsQuery()` for Cosmos SDK v0.46+ chains
+
 ## 1.12.3
 
 Fix (another case of) error handling for "tx not found" in `getTx()`
