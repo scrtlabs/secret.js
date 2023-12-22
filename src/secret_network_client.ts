@@ -402,18 +402,21 @@ export type Querier = {
    * operation can be "=", "<", "<=", ">", ">=", "CONTAINS" AND "EXISTS". operand can be a string (escaped with single quotes), number, date or time.
    *
    * Examples:
-   * - `tx.hash = 'XYZ'` # single transaction
-   * - `tx.height = 5` # all txs of the fifth block
-   * - `create_validator.validator = 'ABC'` # tx where validator ABC was created
+   * - `tx.hash='XYZ'` # single transaction
+   * - `tx.height=5` # all txs of the fifth block
+   * - `create_validator.validator='ABC'` # tx where validator ABC was created
    *
-   * Tendermint provides a few predefined keys: tm.event, tx.hash and tx.height. You can provide additional event keys that were emitted during the transaction.
+   * Tendermint provides a few predefined keys: `tm.event`, `tx.hash` and `tx.height`. You can provide additional event keys that were emitted during the transaction.
    *
    * All events are indexed by a composite key of the form `{eventType}.{evenAttrKey}`.
    *
    * Multiple event types with duplicate keys are allowed and are meant to categorize unique and distinct events.
    *
-   * To create a query for txs where AddrA transferred funds: `transfer.sender = 'AddrA'`.
+   * To create a query for txs where AddrA transferred funds: `transfer.sender='AddrA'`.
    *
+   * NOTE: Stating from Cosmos SDK v0.46+, expressions cannot contain spaces anymore:
+   * - Legal: `a.b='c'`
+   * - Illegal: `a.b = 'c'`
    */
   txsQuery: (
     query: string,
