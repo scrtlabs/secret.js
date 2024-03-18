@@ -1904,7 +1904,7 @@ export class SecretNetworkClient {
             return asProto;
           }),
         ),
-        memo: signDoc.memo, // memo might have been changed by the wallet before signing
+        memo: signed.memo, // memo might have been changed by the wallet before signing
       },
     };
     const txBodyBytes = await this.encodeTx(txBody);
