@@ -1,5 +1,9 @@
 # Changelog & Version Info
 
+## 1.12.5
+
+Fix `signAmino()` to broadcast the memo from the signer (wallet) instead of the memo from the caller.
+
 ## 1.12.4
 
 Fix `txsQuery()` for Cosmos SDK v0.46+ chains
