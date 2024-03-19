@@ -358,6 +358,19 @@
     long "^4.0.0"
     pako "^2.0.2"
 
+"@cosmjs/crypto@0.29.4":
+  version "0.29.4"
+  resolved "https://registry.yarnpkg.com/@cosmjs/crypto/-/crypto-0.29.4.tgz#2198e1d2da9eb310df9ed8b8609dbf1a370e900b"
+  integrity sha512-PmSxoFl/Won7kHZv3PQUUgdmEiAMqdY7XnEnVh9PbU7Hht6uo7PQ+M0eIGW3NIXYKmn6oVExER+xOfLfq4YNGw==
+  dependencies:
+    "@cosmjs/encoding" "^0.29.4"
+    "@cosmjs/math" "^0.29.4"
+    "@cosmjs/utils" "^0.29.4"
+    "@noble/hashes" "^1"
+    bn.js "^5.2.0"
+    elliptic "^6.5.4"
+    libsodium-wrappers "^0.7.6"
+
 "@cosmjs/crypto@^0.29.2", "@cosmjs/crypto@^0.29.5":
   version "0.29.5"
   resolved "https://registry.yarnpkg.com/@cosmjs/crypto/-/crypto-0.29.5.tgz#ab99fc382b93d8a8db075780cf07487a0f9519fd"
