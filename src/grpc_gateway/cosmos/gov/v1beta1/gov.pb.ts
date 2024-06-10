@@ -52,7 +52,6 @@ export type Proposal = {
   total_deposit?: CosmosBaseV1beta1Coin.Coin[]
   voting_start_time?: GoogleProtobufTimestamp.Timestamp
   voting_end_time?: GoogleProtobufTimestamp.Timestamp
-  is_expedited?: boolean
 }
 
 export type TallyResult = {
@@ -72,17 +71,14 @@ export type Vote = {
 export type DepositParams = {
   min_deposit?: CosmosBaseV1beta1Coin.Coin[]
   max_deposit_period?: GoogleProtobufDuration.Duration
-  min_expedited_deposit?: CosmosBaseV1beta1Coin.Coin[]
 }
 
 export type VotingParams = {
   voting_period?: GoogleProtobufDuration.Duration
-  expedited_voting_period?: GoogleProtobufDuration.Duration
 }
 
 export type TallyParams = {
   quorum?: Uint8Array
   threshold?: Uint8Array
   veto_threshold?: Uint8Array
-  expedited_threshold?: Uint8Array
 }

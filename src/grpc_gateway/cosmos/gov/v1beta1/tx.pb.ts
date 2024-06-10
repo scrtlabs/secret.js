@@ -12,7 +12,6 @@ export type MsgSubmitProposal = {
   content?: GoogleProtobufAny.Any
   initial_deposit?: CosmosBaseV1beta1Coin.Coin[]
   proposer?: string
-  is_expedited?: boolean
 }
 
 export type MsgSubmitProposalResponse = {

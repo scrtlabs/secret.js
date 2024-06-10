@@ -4,7 +4,7 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as Ics23Proofs from "../../../../confio/proofs.pb"
+import * as CosmosIcs23V1Proofs from "../../../../cosmos/ics23/v1/proofs.pb"
 export type MerkleRoot = {
   hash?: Uint8Array
 }
@@ -18,5 +18,5 @@ export type MerklePath = {
 }
 
 export type MerkleProof = {
-  proofs?: Ics23Proofs.CommitmentProof[]
+  proofs?: CosmosIcs23V1Proofs.CommitmentProof[]
 }

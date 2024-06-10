@@ -8,7 +8,7 @@ set -o errexit -o nounset -o pipefail
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 rm -rf "${SCRIPT_PATH}/SecretNetwork"
-git clone --depth 1 --branch v1.12.1 https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
+git clone --depth 1 --branch cosmos-sdk-0.50.x https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
 
 # plugins paths, note this must be an abolsute path on Windows
 
@@ -17,7 +17,7 @@ SECRET_DIR="${SCRIPT_PATH}/SecretNetwork/proto"
 SECRET_THIRD_PARTY_DIR="${SCRIPT_PATH}/SecretNetwork/third_party/proto"
 
 # ts-proto
-TS_PROTO_OPTS="esModuleInterop=true,forceLong=string,useOptionals=messages,useDate=false,snakeToCamel=false"
+TS_PROTO_OPTS="esModuleInterop=true,forceLong=string,useOptionals=messages,useDate=false,snakeToCamel=false,useExactTypes=false"
 
 PROTO_OUT_DIR="${SCRIPT_PATH}/../src/protobuf"
 rm -rf "$PROTO_OUT_DIR"

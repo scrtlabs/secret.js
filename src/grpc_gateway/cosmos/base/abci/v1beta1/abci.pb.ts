@@ -6,6 +6,7 @@
 
 import * as GoogleProtobufAny from "../../../../google/protobuf/any.pb"
 import * as TendermintAbciTypes from "../../../../tendermint/abci/types.pb"
+import * as TendermintTypesBlock from "../../../../tendermint/types/block.pb"
 export type TxResponse = {
   height?: string
   txhash?: string
@@ -47,6 +48,7 @@ export type Result = {
   data?: Uint8Array
   log?: string
   events?: TendermintAbciTypes.Event[]
+  msg_responses?: GoogleProtobufAny.Any[]
 }
 
 export type SimulationResponse = {
@@ -61,6 +63,7 @@ export type MsgData = {
 
 export type TxMsgData = {
   data?: MsgData[]
+  msg_responses?: GoogleProtobufAny.Any[]
 }
 
 export type SearchTxsResult = {
@@ -70,4 +73,13 @@ export type SearchTxsResult = {
   page_total?: string
   limit?: string
   txs?: TxResponse[]
+}
+
+export type SearchBlocksResult = {
+  total_count?: string
+  count?: string
+  page_number?: string
+  page_total?: string
+  limit?: string
+  blocks?: TendermintTypesBlock.Block[]
 }

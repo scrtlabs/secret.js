@@ -28,12 +28,16 @@ export type GetTxsEventRequest = {
   events?: string[]
   pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
   order_by?: OrderBy
+  page?: string
+  limit?: string
+  query?: string
 }
 
 export type GetTxsEventResponse = {
   txs?: CosmosTxV1beta1Tx.Tx[]
   tx_responses?: CosmosBaseAbciV1beta1Abci.TxResponse[]
   pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+  total?: string
 }
 
 export type BroadcastTxRequest = {
@@ -76,6 +80,38 @@ export type GetBlockWithTxsResponse = {
   pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
+export type TxDecodeRequest = {
+  tx_bytes?: Uint8Array
+}
+
+export type TxDecodeResponse = {
+  tx?: CosmosTxV1beta1Tx.Tx
+}
+
+export type TxEncodeRequest = {
+  tx?: CosmosTxV1beta1Tx.Tx
+}
+
+export type TxEncodeResponse = {
+  tx_bytes?: Uint8Array
+}
+
+export type TxEncodeAminoRequest = {
+  amino_json?: string
+}
+
+export type TxEncodeAminoResponse = {
+  amino_binary?: Uint8Array
+}
+
+export type TxDecodeAminoRequest = {
+  amino_binary?: Uint8Array
+}
+
+export type TxDecodeAminoResponse = {
+  amino_json?: string
+}
+
 export class Service {
   static Simulate(req: SimulateRequest, initReq?: fm.InitReq): Promise<SimulateResponse> {
     return fm.fetchReq<SimulateRequest, SimulateResponse>(`/cosmos/tx/v1beta1/simulate`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -91,5 +127,17 @@ export class Service {
   }
   static GetBlockWithTxs(req: GetBlockWithTxsRequest, initReq?: fm.InitReq): Promise<GetBlockWithTxsResponse> {
     return fm.fetchReq<GetBlockWithTxsRequest, GetBlockWithTxsResponse>(`/cosmos/tx/v1beta1/txs/block/${req["height"]}?${fm.renderURLSearchParams(req, ["height"])}`, {...initReq, method: "GET"})
+  }
+  static TxDecode(req: TxDecodeRequest, initReq?: fm.InitReq): Promise<TxDecodeResponse> {
+    return fm.fetchReq<TxDecodeRequest, TxDecodeResponse>(`/cosmos/tx/v1beta1/decode`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static TxEncode(req: TxEncodeRequest, initReq?: fm.InitReq): Promise<TxEncodeResponse> {
+    return fm.fetchReq<TxEncodeRequest, TxEncodeResponse>(`/cosmos/tx/v1beta1/encode`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static TxEncodeAmino(req: TxEncodeAminoRequest, initReq?: fm.InitReq): Promise<TxEncodeAminoResponse> {
+    return fm.fetchReq<TxEncodeAminoRequest, TxEncodeAminoResponse>(`/cosmos/tx/v1beta1/encode/amino`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static TxDecodeAmino(req: TxDecodeAminoRequest, initReq?: fm.InitReq): Promise<TxDecodeAminoResponse> {
+    return fm.fetchReq<TxDecodeAminoRequest, TxDecodeAminoResponse>(`/cosmos/tx/v1beta1/decode/amino`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

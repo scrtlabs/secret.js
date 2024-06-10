@@ -20,6 +20,7 @@ export type QueryBalanceResponse = {
 export type QueryAllBalancesRequest = {
   address?: string
   pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+  resolve_denom?: boolean
 }
 
 export type QueryAllBalancesResponse = {
@@ -35,6 +36,15 @@ export type QuerySpendableBalancesRequest = {
 export type QuerySpendableBalancesResponse = {
   balances?: CosmosBaseV1beta1Coin.Coin[]
   pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
+export type QuerySpendableBalanceByDenomRequest = {
+  address?: string
+  denom?: string
+}
+
+export type QuerySpendableBalanceByDenomResponse = {
+  balance?: CosmosBaseV1beta1Coin.Coin
 }
 
 export type QueryTotalSupplyRequest = {
@@ -78,6 +88,49 @@ export type QueryDenomMetadataResponse = {
   metadata?: CosmosBankV1beta1Bank.Metadata
 }
 
+export type QueryDenomMetadataByQueryStringRequest = {
+  denom?: string
+}
+
+export type QueryDenomMetadataByQueryStringResponse = {
+  metadata?: CosmosBankV1beta1Bank.Metadata
+}
+
+export type QueryDenomOwnersRequest = {
+  denom?: string
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+}
+
+export type DenomOwner = {
+  address?: string
+  balance?: CosmosBaseV1beta1Coin.Coin
+}
+
+export type QueryDenomOwnersResponse = {
+  denom_owners?: DenomOwner[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
+export type QueryDenomOwnersByQueryRequest = {
+  denom?: string
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+}
+
+export type QueryDenomOwnersByQueryResponse = {
+  denom_owners?: DenomOwner[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
+export type QuerySendEnabledRequest = {
+  denoms?: string[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
+}
+
+export type QuerySendEnabledResponse = {
+  send_enabled?: CosmosBankV1beta1Bank.SendEnabled[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
+}
+
 export class Query {
   static Balance(req: QueryBalanceRequest, initReq?: fm.InitReq): Promise<QueryBalanceResponse> {
     return fm.fetchReq<QueryBalanceRequest, QueryBalanceResponse>(`/cosmos/bank/v1beta1/balances/${req["address"]}/by_denom?${fm.renderURLSearchParams(req, ["address"])}`, {...initReq, method: "GET"})
@@ -88,11 +141,14 @@ export class Query {
   static SpendableBalances(req: QuerySpendableBalancesRequest, initReq?: fm.InitReq): Promise<QuerySpendableBalancesResponse> {
     return fm.fetchReq<QuerySpendableBalancesRequest, QuerySpendableBalancesResponse>(`/cosmos/bank/v1beta1/spendable_balances/${req["address"]}?${fm.renderURLSearchParams(req, ["address"])}`, {...initReq, method: "GET"})
   }
+  static SpendableBalanceByDenom(req: QuerySpendableBalanceByDenomRequest, initReq?: fm.InitReq): Promise<QuerySpendableBalanceByDenomResponse> {
+    return fm.fetchReq<QuerySpendableBalanceByDenomRequest, QuerySpendableBalanceByDenomResponse>(`/cosmos/bank/v1beta1/spendable_balances/${req["address"]}/by_denom?${fm.renderURLSearchParams(req, ["address"])}`, {...initReq, method: "GET"})
+  }
   static TotalSupply(req: QueryTotalSupplyRequest, initReq?: fm.InitReq): Promise<QueryTotalSupplyResponse> {
     return fm.fetchReq<QueryTotalSupplyRequest, QueryTotalSupplyResponse>(`/cosmos/bank/v1beta1/supply?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static SupplyOf(req: QuerySupplyOfRequest, initReq?: fm.InitReq): Promise<QuerySupplyOfResponse> {
-    return fm.fetchReq<QuerySupplyOfRequest, QuerySupplyOfResponse>(`/cosmos/bank/v1beta1/supply/${req["denom"]}?${fm.renderURLSearchParams(req, ["denom"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<QuerySupplyOfRequest, QuerySupplyOfResponse>(`/cosmos/bank/v1beta1/supply/by_denom?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static Params(req: QueryParamsRequest, initReq?: fm.InitReq): Promise<QueryParamsResponse> {
     return fm.fetchReq<QueryParamsRequest, QueryParamsResponse>(`/cosmos/bank/v1beta1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -100,7 +156,19 @@ export class Query {
   static DenomMetadata(req: QueryDenomMetadataRequest, initReq?: fm.InitReq): Promise<QueryDenomMetadataResponse> {
     return fm.fetchReq<QueryDenomMetadataRequest, QueryDenomMetadataResponse>(`/cosmos/bank/v1beta1/denoms_metadata/${req["denom"]}?${fm.renderURLSearchParams(req, ["denom"])}`, {...initReq, method: "GET"})
   }
+  static DenomMetadataByQueryString(req: QueryDenomMetadataByQueryStringRequest, initReq?: fm.InitReq): Promise<QueryDenomMetadataByQueryStringResponse> {
+    return fm.fetchReq<QueryDenomMetadataByQueryStringRequest, QueryDenomMetadataByQueryStringResponse>(`/cosmos/bank/v1beta1/denoms_metadata_by_query_string?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
   static DenomsMetadata(req: QueryDenomsMetadataRequest, initReq?: fm.InitReq): Promise<QueryDenomsMetadataResponse> {
     return fm.fetchReq<QueryDenomsMetadataRequest, QueryDenomsMetadataResponse>(`/cosmos/bank/v1beta1/denoms_metadata?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static DenomOwners(req: QueryDenomOwnersRequest, initReq?: fm.InitReq): Promise<QueryDenomOwnersResponse> {
+    return fm.fetchReq<QueryDenomOwnersRequest, QueryDenomOwnersResponse>(`/cosmos/bank/v1beta1/denom_owners/${req["denom"]}?${fm.renderURLSearchParams(req, ["denom"])}`, {...initReq, method: "GET"})
+  }
+  static DenomOwnersByQuery(req: QueryDenomOwnersByQueryRequest, initReq?: fm.InitReq): Promise<QueryDenomOwnersByQueryResponse> {
+    return fm.fetchReq<QueryDenomOwnersByQueryRequest, QueryDenomOwnersByQueryResponse>(`/cosmos/bank/v1beta1/denom_owners_by_query?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static SendEnabled(req: QuerySendEnabledRequest, initReq?: fm.InitReq): Promise<QuerySendEnabledResponse> {
+    return fm.fetchReq<QuerySendEnabledRequest, QuerySendEnabledResponse>(`/cosmos/bank/v1beta1/send_enabled?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

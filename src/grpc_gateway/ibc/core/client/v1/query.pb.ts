@@ -109,7 +109,7 @@ export class Query {
     return fm.fetchReq<QueryClientStatusRequest, QueryClientStatusResponse>(`/ibc/core/client/v1/client_status/${req["client_id"]}?${fm.renderURLSearchParams(req, ["client_id"])}`, {...initReq, method: "GET"})
   }
   static ClientParams(req: QueryClientParamsRequest, initReq?: fm.InitReq): Promise<QueryClientParamsResponse> {
-    return fm.fetchReq<QueryClientParamsRequest, QueryClientParamsResponse>(`/ibc/client/v1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<QueryClientParamsRequest, QueryClientParamsResponse>(`/ibc/core/client/v1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static UpgradedClientState(req: QueryUpgradedClientStateRequest, initReq?: fm.InitReq): Promise<QueryUpgradedClientStateResponse> {
     return fm.fetchReq<QueryUpgradedClientStateRequest, QueryUpgradedClientStateResponse>(`/ibc/core/client/v1/upgraded_client_states?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

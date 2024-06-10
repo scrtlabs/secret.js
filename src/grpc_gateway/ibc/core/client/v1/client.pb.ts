@@ -21,6 +21,15 @@ export type ClientConsensusStates = {
   consensus_states?: ConsensusStateWithHeight[]
 }
 
+export type Height = {
+  revision_number?: string
+  revision_height?: string
+}
+
+export type Params = {
+  allowed_clients?: string[]
+}
+
 export type ClientUpdateProposal = {
   title?: string
   description?: string
@@ -33,13 +42,4 @@ export type UpgradeProposal = {
   description?: string
   plan?: CosmosUpgradeV1beta1Upgrade.Plan
   upgraded_client_state?: GoogleProtobufAny.Any
-}
-
-export type Height = {
-  revision_number?: string
-  revision_height?: string
-}
-
-export type Params = {
-  allowed_clients?: string[]
 }

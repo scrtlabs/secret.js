@@ -9,6 +9,7 @@ import * as fm from "../../../../fetch.pb"
 import * as GoogleProtobufAny from "../../../../google/protobuf/any.pb"
 import * as IbcCoreClientV1Client from "../../client/v1/client.pb"
 import * as IbcCoreChannelV1Channel from "./channel.pb"
+import * as IbcCoreChannelV1Upgrade from "./upgrade.pb"
 export type QueryChannelRequest = {
   port_id?: string
   channel_id?: string
@@ -160,6 +161,46 @@ export type QueryNextSequenceReceiveResponse = {
   proof_height?: IbcCoreClientV1Client.Height
 }
 
+export type QueryNextSequenceSendRequest = {
+  port_id?: string
+  channel_id?: string
+}
+
+export type QueryNextSequenceSendResponse = {
+  next_sequence_send?: string
+  proof?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+}
+
+export type QueryUpgradeErrorRequest = {
+  port_id?: string
+  channel_id?: string
+}
+
+export type QueryUpgradeErrorResponse = {
+  error_receipt?: IbcCoreChannelV1Upgrade.ErrorReceipt
+  proof?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+}
+
+export type QueryUpgradeRequest = {
+  port_id?: string
+  channel_id?: string
+}
+
+export type QueryUpgradeResponse = {
+  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  proof?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+}
+
+export type QueryChannelParamsRequest = {
+}
+
+export type QueryChannelParamsResponse = {
+  params?: IbcCoreChannelV1Channel.Params
+}
+
 export class Query {
   static Channel(req: QueryChannelRequest, initReq?: fm.InitReq): Promise<QueryChannelResponse> {
     return fm.fetchReq<QueryChannelRequest, QueryChannelResponse>(`/ibc/core/channel/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
@@ -199,5 +240,17 @@ export class Query {
   }
   static NextSequenceReceive(req: QueryNextSequenceReceiveRequest, initReq?: fm.InitReq): Promise<QueryNextSequenceReceiveResponse> {
     return fm.fetchReq<QueryNextSequenceReceiveRequest, QueryNextSequenceReceiveResponse>(`/ibc/core/channel/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}/next_sequence?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
+  }
+  static NextSequenceSend(req: QueryNextSequenceSendRequest, initReq?: fm.InitReq): Promise<QueryNextSequenceSendResponse> {
+    return fm.fetchReq<QueryNextSequenceSendRequest, QueryNextSequenceSendResponse>(`/ibc/core/channel/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}/next_sequence_send?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
+  }
+  static UpgradeError(req: QueryUpgradeErrorRequest, initReq?: fm.InitReq): Promise<QueryUpgradeErrorResponse> {
+    return fm.fetchReq<QueryUpgradeErrorRequest, QueryUpgradeErrorResponse>(`/ibc/core/channel/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}/upgrade_error?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
+  }
+  static Upgrade(req: QueryUpgradeRequest, initReq?: fm.InitReq): Promise<QueryUpgradeResponse> {
+    return fm.fetchReq<QueryUpgradeRequest, QueryUpgradeResponse>(`/ibc/core/channel/v1/channels/${req["channel_id"]}/ports/${req["port_id"]}/upgrade?${fm.renderURLSearchParams(req, ["channel_id", "port_id"])}`, {...initReq, method: "GET"})
+  }
+  static ChannelParams(req: QueryChannelParamsRequest, initReq?: fm.InitReq): Promise<QueryChannelParamsResponse> {
+    return fm.fetchReq<QueryChannelParamsRequest, QueryChannelParamsResponse>(`/ibc/core/channel/v1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

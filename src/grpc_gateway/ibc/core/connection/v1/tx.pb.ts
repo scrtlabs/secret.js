@@ -32,6 +32,7 @@ export type MsgConnectionOpenTry = {
   proof_consensus?: Uint8Array
   consensus_height?: IbcCoreClientV1Client.Height
   signer?: string
+  host_consensus_state_proof?: Uint8Array
 }
 
 export type MsgConnectionOpenTryResponse = {
@@ -48,6 +49,7 @@ export type MsgConnectionOpenAck = {
   proof_consensus?: Uint8Array
   consensus_height?: IbcCoreClientV1Client.Height
   signer?: string
+  host_consensus_state_proof?: Uint8Array
 }
 
 export type MsgConnectionOpenAckResponse = {
@@ -63,6 +65,14 @@ export type MsgConnectionOpenConfirm = {
 export type MsgConnectionOpenConfirmResponse = {
 }
 
+export type MsgUpdateParams = {
+  signer?: string
+  params?: IbcCoreConnectionV1Connection.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
 export class Msg {
   static ConnectionOpenInit(req: MsgConnectionOpenInit, initReq?: fm.InitReq): Promise<MsgConnectionOpenInitResponse> {
     return fm.fetchReq<MsgConnectionOpenInit, MsgConnectionOpenInitResponse>(`/ibc.core.connection.v1.Msg/ConnectionOpenInit`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -75,5 +85,8 @@ export class Msg {
   }
   static ConnectionOpenConfirm(req: MsgConnectionOpenConfirm, initReq?: fm.InitReq): Promise<MsgConnectionOpenConfirmResponse> {
     return fm.fetchReq<MsgConnectionOpenConfirm, MsgConnectionOpenConfirmResponse>(`/ibc.core.connection.v1.Msg/ConnectionOpenConfirm`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateConnectionParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/ibc.core.connection.v1.Msg/UpdateConnectionParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

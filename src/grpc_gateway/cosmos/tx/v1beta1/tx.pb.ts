@@ -17,10 +17,6 @@ type OneOf<T> =
       (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
         : never)
     : never);
-export type Txs = {
-  tx?: Uint8Array[]
-}
-
 export type Tx = {
   body?: TxBody
   auth_info?: AuthInfo
@@ -40,6 +36,15 @@ export type SignDoc = {
   account_number?: string
 }
 
+export type SignDocDirectAux = {
+  body_bytes?: Uint8Array
+  public_key?: GoogleProtobufAny.Any
+  chain_id?: string
+  account_number?: string
+  sequence?: string
+  tip?: Tip
+}
+
 export type TxBody = {
   messages?: GoogleProtobufAny.Any[]
   memo?: string
@@ -51,6 +56,7 @@ export type TxBody = {
 export type AuthInfo = {
   signer_infos?: SignerInfo[]
   fee?: Fee
+  tip?: Tip
 }
 
 export type SignerInfo = {
@@ -80,4 +86,16 @@ export type Fee = {
   gas_limit?: string
   payer?: string
   granter?: string
+}
+
+export type Tip = {
+  amount?: CosmosBaseV1beta1Coin.Coin[]
+  tipper?: string
+}
+
+export type AuxSignerData = {
+  address?: string
+  sign_doc?: SignDocDirectAux
+  mode?: CosmosTxSigningV1beta1Signing.SignMode
+  sig?: Uint8Array
 }

@@ -7,11 +7,13 @@
 import * as fm from "../../../../fetch.pb"
 import * as IbcCoreClientV1Client from "../../client/v1/client.pb"
 import * as IbcCoreChannelV1Channel from "./channel.pb"
+import * as IbcCoreChannelV1Upgrade from "./upgrade.pb"
 
 export enum ResponseResultType {
   RESPONSE_RESULT_TYPE_UNSPECIFIED = "RESPONSE_RESULT_TYPE_UNSPECIFIED",
   RESPONSE_RESULT_TYPE_NOOP = "RESPONSE_RESULT_TYPE_NOOP",
   RESPONSE_RESULT_TYPE_SUCCESS = "RESPONSE_RESULT_TYPE_SUCCESS",
+  RESPONSE_RESULT_TYPE_FAILURE = "RESPONSE_RESULT_TYPE_FAILURE",
 }
 
 export type MsgChannelOpenInit = {
@@ -37,6 +39,7 @@ export type MsgChannelOpenTry = {
 
 export type MsgChannelOpenTryResponse = {
   version?: string
+  channel_id?: string
 }
 
 export type MsgChannelOpenAck = {
@@ -78,6 +81,7 @@ export type MsgChannelCloseConfirm = {
   proof_init?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
   signer?: string
+  counterparty_upgrade_sequence?: string
 }
 
 export type MsgChannelCloseConfirmResponse = {
@@ -113,6 +117,7 @@ export type MsgTimeoutOnClose = {
   proof_height?: IbcCoreClientV1Client.Height
   next_sequence_recv?: string
   signer?: string
+  counterparty_upgrade_sequence?: string
 }
 
 export type MsgTimeoutOnCloseResponse = {
@@ -129,6 +134,122 @@ export type MsgAcknowledgement = {
 
 export type MsgAcknowledgementResponse = {
   result?: ResponseResultType
+}
+
+export type MsgChannelUpgradeInit = {
+  port_id?: string
+  channel_id?: string
+  fields?: IbcCoreChannelV1Upgrade.UpgradeFields
+  signer?: string
+}
+
+export type MsgChannelUpgradeInitResponse = {
+  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  upgrade_sequence?: string
+}
+
+export type MsgChannelUpgradeTry = {
+  port_id?: string
+  channel_id?: string
+  proposed_upgrade_connection_hops?: string[]
+  counterparty_upgrade_fields?: IbcCoreChannelV1Upgrade.UpgradeFields
+  counterparty_upgrade_sequence?: string
+  proof_channel?: Uint8Array
+  proof_upgrade?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeTryResponse = {
+  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  upgrade_sequence?: string
+  result?: ResponseResultType
+}
+
+export type MsgChannelUpgradeAck = {
+  port_id?: string
+  channel_id?: string
+  counterparty_upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  proof_channel?: Uint8Array
+  proof_upgrade?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeAckResponse = {
+  result?: ResponseResultType
+}
+
+export type MsgChannelUpgradeConfirm = {
+  port_id?: string
+  channel_id?: string
+  counterparty_channel_state?: IbcCoreChannelV1Channel.State
+  counterparty_upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  proof_channel?: Uint8Array
+  proof_upgrade?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeConfirmResponse = {
+  result?: ResponseResultType
+}
+
+export type MsgChannelUpgradeOpen = {
+  port_id?: string
+  channel_id?: string
+  counterparty_channel_state?: IbcCoreChannelV1Channel.State
+  counterparty_upgrade_sequence?: string
+  proof_channel?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeOpenResponse = {
+}
+
+export type MsgChannelUpgradeTimeout = {
+  port_id?: string
+  channel_id?: string
+  counterparty_channel?: IbcCoreChannelV1Channel.Channel
+  proof_channel?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeTimeoutResponse = {
+}
+
+export type MsgChannelUpgradeCancel = {
+  port_id?: string
+  channel_id?: string
+  error_receipt?: IbcCoreChannelV1Upgrade.ErrorReceipt
+  proof_error_receipt?: Uint8Array
+  proof_height?: IbcCoreClientV1Client.Height
+  signer?: string
+}
+
+export type MsgChannelUpgradeCancelResponse = {
+}
+
+export type MsgUpdateParams = {
+  authority?: string
+  params?: IbcCoreChannelV1Channel.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
+export type MsgPruneAcknowledgements = {
+  port_id?: string
+  channel_id?: string
+  limit?: string
+  signer?: string
+}
+
+export type MsgPruneAcknowledgementsResponse = {
+  total_pruned_sequences?: string
+  total_remaining_sequences?: string
 }
 
 export class Msg {
@@ -161,5 +282,32 @@ export class Msg {
   }
   static Acknowledgement(req: MsgAcknowledgement, initReq?: fm.InitReq): Promise<MsgAcknowledgementResponse> {
     return fm.fetchReq<MsgAcknowledgement, MsgAcknowledgementResponse>(`/ibc.core.channel.v1.Msg/Acknowledgement`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeInit(req: MsgChannelUpgradeInit, initReq?: fm.InitReq): Promise<MsgChannelUpgradeInitResponse> {
+    return fm.fetchReq<MsgChannelUpgradeInit, MsgChannelUpgradeInitResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeInit`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeTry(req: MsgChannelUpgradeTry, initReq?: fm.InitReq): Promise<MsgChannelUpgradeTryResponse> {
+    return fm.fetchReq<MsgChannelUpgradeTry, MsgChannelUpgradeTryResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeTry`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeAck(req: MsgChannelUpgradeAck, initReq?: fm.InitReq): Promise<MsgChannelUpgradeAckResponse> {
+    return fm.fetchReq<MsgChannelUpgradeAck, MsgChannelUpgradeAckResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeAck`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeConfirm(req: MsgChannelUpgradeConfirm, initReq?: fm.InitReq): Promise<MsgChannelUpgradeConfirmResponse> {
+    return fm.fetchReq<MsgChannelUpgradeConfirm, MsgChannelUpgradeConfirmResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeConfirm`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeOpen(req: MsgChannelUpgradeOpen, initReq?: fm.InitReq): Promise<MsgChannelUpgradeOpenResponse> {
+    return fm.fetchReq<MsgChannelUpgradeOpen, MsgChannelUpgradeOpenResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeOpen`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeTimeout(req: MsgChannelUpgradeTimeout, initReq?: fm.InitReq): Promise<MsgChannelUpgradeTimeoutResponse> {
+    return fm.fetchReq<MsgChannelUpgradeTimeout, MsgChannelUpgradeTimeoutResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeTimeout`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ChannelUpgradeCancel(req: MsgChannelUpgradeCancel, initReq?: fm.InitReq): Promise<MsgChannelUpgradeCancelResponse> {
+    return fm.fetchReq<MsgChannelUpgradeCancel, MsgChannelUpgradeCancelResponse>(`/ibc.core.channel.v1.Msg/ChannelUpgradeCancel`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateChannelParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/ibc.core.channel.v1.Msg/UpdateChannelParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static PruneAcknowledgements(req: MsgPruneAcknowledgements, initReq?: fm.InitReq): Promise<MsgPruneAcknowledgementsResponse> {
+    return fm.fetchReq<MsgPruneAcknowledgements, MsgPruneAcknowledgementsResponse>(`/ibc.core.channel.v1.Msg/PruneAcknowledgements`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

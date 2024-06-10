@@ -42,4 +42,6 @@ export type Metadata = {
   display?: string
   name?: string
   symbol?: string
+  uri?: string
+  uri_hash?: string
 }

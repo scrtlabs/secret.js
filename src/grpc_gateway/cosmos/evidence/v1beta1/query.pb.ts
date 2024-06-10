@@ -9,6 +9,7 @@ import * as GoogleProtobufAny from "../../../google/protobuf/any.pb"
 import * as CosmosBaseQueryV1beta1Pagination from "../../base/query/v1beta1/pagination.pb"
 export type QueryEvidenceRequest = {
   evidence_hash?: Uint8Array
+  hash?: string
 }
 
 export type QueryEvidenceResponse = {
@@ -26,7 +27,7 @@ export type QueryAllEvidenceResponse = {
 
 export class Query {
   static Evidence(req: QueryEvidenceRequest, initReq?: fm.InitReq): Promise<QueryEvidenceResponse> {
-    return fm.fetchReq<QueryEvidenceRequest, QueryEvidenceResponse>(`/cosmos/evidence/v1beta1/evidence/${req["evidence_hash"]}?${fm.renderURLSearchParams(req, ["evidence_hash"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<QueryEvidenceRequest, QueryEvidenceResponse>(`/cosmos/evidence/v1beta1/evidence/${req["hash"]}?${fm.renderURLSearchParams(req, ["hash"])}`, {...initReq, method: "GET"})
   }
   static AllEvidence(req: QueryAllEvidenceRequest, initReq?: fm.InitReq): Promise<QueryAllEvidenceResponse> {
     return fm.fetchReq<QueryAllEvidenceRequest, QueryAllEvidenceResponse>(`/cosmos/evidence/v1beta1/evidence?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

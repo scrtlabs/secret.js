@@ -9,13 +9,6 @@ import * as TendermintCryptoProof from "../crypto/proof.pb"
 import * as TendermintVersionTypes from "../version/types.pb"
 import * as TendermintTypesValidator from "./validator.pb"
 
-export enum BlockIDFlag {
-  BLOCK_ID_FLAG_UNKNOWN = "BLOCK_ID_FLAG_UNKNOWN",
-  BLOCK_ID_FLAG_ABSENT = "BLOCK_ID_FLAG_ABSENT",
-  BLOCK_ID_FLAG_COMMIT = "BLOCK_ID_FLAG_COMMIT",
-  BLOCK_ID_FLAG_NIL = "BLOCK_ID_FLAG_NIL",
-}
-
 export enum SignedMsgType {
   SIGNED_MSG_TYPE_UNKNOWN = "SIGNED_MSG_TYPE_UNKNOWN",
   SIGNED_MSG_TYPE_PREVOTE = "SIGNED_MSG_TYPE_PREVOTE",
@@ -75,6 +68,8 @@ export type Vote = {
   validator_address?: Uint8Array
   validator_index?: number
   signature?: Uint8Array
+  extension?: Uint8Array
+  extension_signature?: Uint8Array
 }
 
 export type Commit = {
@@ -85,10 +80,26 @@ export type Commit = {
 }
 
 export type CommitSig = {
-  block_id_flag?: BlockIDFlag
+  block_id_flag?: TendermintTypesValidator.BlockIDFlag
   validator_address?: Uint8Array
   timestamp?: GoogleProtobufTimestamp.Timestamp
   signature?: Uint8Array
+}
+
+export type ExtendedCommit = {
+  height?: string
+  round?: number
+  block_id?: BlockID
+  extended_signatures?: ExtendedCommitSig[]
+}
+
+export type ExtendedCommitSig = {
+  block_id_flag?: TendermintTypesValidator.BlockIDFlag
+  validator_address?: Uint8Array
+  timestamp?: GoogleProtobufTimestamp.Timestamp
+  signature?: Uint8Array
+  extension?: Uint8Array
+  extension_signature?: Uint8Array
 }
 
 export type Proposal = {

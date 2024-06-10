@@ -7,6 +7,7 @@
 import * as GoogleProtobufAny from "../../../google/protobuf/any.pb"
 import * as GoogleProtobufDuration from "../../../google/protobuf/duration.pb"
 import * as GoogleProtobufTimestamp from "../../../google/protobuf/timestamp.pb"
+import * as TendermintAbciTypes from "../../../tendermint/abci/types.pb"
 import * as TendermintTypesTypes from "../../../tendermint/types/types.pb"
 import * as CosmosBaseV1beta1Coin from "../../base/v1beta1/coin.pb"
 
@@ -15,6 +16,12 @@ export enum BondStatus {
   BOND_STATUS_UNBONDED = "BOND_STATUS_UNBONDED",
   BOND_STATUS_UNBONDING = "BOND_STATUS_UNBONDING",
   BOND_STATUS_BONDED = "BOND_STATUS_BONDED",
+}
+
+export enum Infraction {
+  INFRACTION_UNSPECIFIED = "INFRACTION_UNSPECIFIED",
+  INFRACTION_DOUBLE_SIGN = "INFRACTION_DOUBLE_SIGN",
+  INFRACTION_DOWNTIME = "INFRACTION_DOWNTIME",
 }
 
 export type HistoricalInfo = {
@@ -53,6 +60,8 @@ export type Validator = {
   unbonding_time?: GoogleProtobufTimestamp.Timestamp
   commission?: Commission
   min_self_delegation?: string
+  unbonding_on_hold_ref_count?: string
+  unbonding_ids?: string[]
 }
 
 export type ValAddresses = {
@@ -95,6 +104,8 @@ export type UnbondingDelegationEntry = {
   completion_time?: GoogleProtobufTimestamp.Timestamp
   initial_balance?: string
   balance?: string
+  unbonding_id?: string
+  unbonding_on_hold_ref_count?: string
 }
 
 export type RedelegationEntry = {
@@ -102,6 +113,8 @@ export type RedelegationEntry = {
   completion_time?: GoogleProtobufTimestamp.Timestamp
   initial_balance?: string
   shares_dst?: string
+  unbonding_id?: string
+  unbonding_on_hold_ref_count?: string
 }
 
 export type Redelegation = {
@@ -117,6 +130,7 @@ export type Params = {
   max_entries?: number
   historical_entries?: number
   bond_denom?: string
+  min_commission_rate?: string
 }
 
 export type DelegationResponse = {
@@ -137,4 +151,8 @@ export type RedelegationResponse = {
 export type Pool = {
   not_bonded_tokens?: string
   bonded_tokens?: string
+}
+
+export type ValidatorUpdates = {
+  updates?: TendermintAbciTypes.ValidatorUpdate[]
 }

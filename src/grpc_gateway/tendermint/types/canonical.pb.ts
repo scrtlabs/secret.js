@@ -34,3 +34,10 @@ export type CanonicalVote = {
   timestamp?: GoogleProtobufTimestamp.Timestamp
   chain_id?: string
 }
+
+export type CanonicalVoteExtension = {
+  extension?: Uint8Array
+  height?: string
+  round?: string
+  chain_id?: string
+}

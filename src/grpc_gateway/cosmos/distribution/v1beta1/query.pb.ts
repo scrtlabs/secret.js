@@ -30,6 +30,16 @@ export type QueryParamsResponse = {
   params?: CosmosDistributionV1beta1Distribution.Params
 }
 
+export type QueryValidatorDistributionInfoRequest = {
+  validator_address?: string
+}
+
+export type QueryValidatorDistributionInfoResponse = {
+  operator_address?: string
+  self_bond_rewards?: CosmosBaseV1beta1Coin.DecCoin[]
+  commission?: CosmosBaseV1beta1Coin.DecCoin[]
+}
+
 export type QueryValidatorOutstandingRewardsRequest = {
   validator_address?: string
 }
@@ -110,6 +120,9 @@ export type QueryCommunityPoolResponse = {
 export class Query {
   static Params(req: QueryParamsRequest, initReq?: fm.InitReq): Promise<QueryParamsResponse> {
     return fm.fetchReq<QueryParamsRequest, QueryParamsResponse>(`/cosmos/distribution/v1beta1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ValidatorDistributionInfo(req: QueryValidatorDistributionInfoRequest, initReq?: fm.InitReq): Promise<QueryValidatorDistributionInfoResponse> {
+    return fm.fetchReq<QueryValidatorDistributionInfoRequest, QueryValidatorDistributionInfoResponse>(`/cosmos/distribution/v1beta1/validators/${req["validator_address"]}?${fm.renderURLSearchParams(req, ["validator_address"])}`, {...initReq, method: "GET"})
   }
   static ValidatorOutstandingRewards(req: QueryValidatorOutstandingRewardsRequest, initReq?: fm.InitReq): Promise<QueryValidatorOutstandingRewardsResponse> {
     return fm.fetchReq<QueryValidatorOutstandingRewardsRequest, QueryValidatorOutstandingRewardsResponse>(`/cosmos/distribution/v1beta1/validators/${req["validator_address"]}/outstanding_rewards?${fm.renderURLSearchParams(req, ["validator_address"])}`, {...initReq, method: "GET"})

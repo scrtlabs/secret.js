@@ -21,6 +21,8 @@ export enum State {
   STATE_TRYOPEN = "STATE_TRYOPEN",
   STATE_OPEN = "STATE_OPEN",
   STATE_CLOSED = "STATE_CLOSED",
+  STATE_FLUSHING = "STATE_FLUSHING",
+  STATE_FLUSHCOMPLETE = "STATE_FLUSHCOMPLETE",
 }
 
 export enum Order {
@@ -35,6 +37,7 @@ export type Channel = {
   counterparty?: Counterparty
   connection_hops?: string[]
   version?: string
+  upgrade_sequence?: string
 }
 
 export type IdentifiedChannel = {
@@ -45,6 +48,7 @@ export type IdentifiedChannel = {
   version?: string
   port_id?: string
   channel_id?: string
+  upgrade_sequence?: string
 }
 
 export type Counterparty = {
@@ -82,3 +86,12 @@ type BaseAcknowledgement = {
 
 export type Acknowledgement = BaseAcknowledgement
   & OneOf<{ result: Uint8Array; error: string }>
+
+export type Timeout = {
+  height?: IbcCoreClientV1Client.Height
+  timestamp?: string
+}
+
+export type Params = {
+  upgrade_timeout?: Timeout
+}

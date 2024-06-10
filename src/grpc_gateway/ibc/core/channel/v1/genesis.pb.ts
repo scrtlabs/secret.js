@@ -14,6 +14,7 @@ export type GenesisState = {
   recv_sequences?: PacketSequence[]
   ack_sequences?: PacketSequence[]
   next_channel_sequence?: string
+  params?: IbcCoreChannelV1Channel.Params
 }
 
 export type PacketSequence = {

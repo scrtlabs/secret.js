@@ -9,7 +9,7 @@ import * as GoogleProtobufTimestamp from "../../google/protobuf/timestamp.pb"
 import * as TendermintCryptoKeys from "../crypto/keys.pb"
 import * as TendermintCryptoProof from "../crypto/proof.pb"
 import * as TendermintTypesParams from "../types/params.pb"
-import * as TendermintTypesTypes from "../types/types.pb"
+import * as TendermintTypesValidator from "../types/validator.pb"
 
 type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
 type OneOf<T> =
@@ -25,7 +25,7 @@ export enum CheckTxType {
   RECHECK = "RECHECK",
 }
 
-export enum EvidenceType {
+export enum MisbehaviorType {
   UNKNOWN = "UNKNOWN",
   DUPLICATE_VOTE = "DUPLICATE_VOTE",
   LIGHT_CLIENT_ATTACK = "LIGHT_CLIENT_ATTACK",
@@ -49,12 +49,24 @@ export enum ResponseApplySnapshotChunkResult {
   REJECT_SNAPSHOT = "REJECT_SNAPSHOT",
 }
 
+export enum ResponseProcessProposalProposalStatus {
+  UNKNOWN = "UNKNOWN",
+  ACCEPT = "ACCEPT",
+  REJECT = "REJECT",
+}
+
+export enum ResponseVerifyVoteExtensionVerifyStatus {
+  UNKNOWN = "UNKNOWN",
+  ACCEPT = "ACCEPT",
+  REJECT = "REJECT",
+}
+
 
 type BaseRequest = {
 }
 
 export type Request = BaseRequest
-  & OneOf<{ echo: RequestEcho; flush: RequestFlush; info: RequestInfo; set_option: RequestSetOption; init_chain: RequestInitChain; query: RequestQuery; begin_block: RequestBeginBlock; check_tx: RequestCheckTx; deliver_tx: RequestDeliverTx; end_block: RequestEndBlock; commit: RequestCommit; list_snapshots: RequestListSnapshots; offer_snapshot: RequestOfferSnapshot; load_snapshot_chunk: RequestLoadSnapshotChunk; apply_snapshot_chunk: RequestApplySnapshotChunk }>
+  & OneOf<{ echo: RequestEcho; flush: RequestFlush; info: RequestInfo; init_chain: RequestInitChain; query: RequestQuery; check_tx: RequestCheckTx; commit: RequestCommit; list_snapshots: RequestListSnapshots; offer_snapshot: RequestOfferSnapshot; load_snapshot_chunk: RequestLoadSnapshotChunk; apply_snapshot_chunk: RequestApplySnapshotChunk; prepare_proposal: RequestPrepareProposal; process_proposal: RequestProcessProposal; extend_vote: RequestExtendVote; verify_vote_extension: RequestVerifyVoteExtension; finalize_block: RequestFinalizeBlock }>
 
 export type RequestEcho = {
   message?: string
@@ -67,17 +79,13 @@ export type RequestInfo = {
   version?: string
   block_version?: string
   p2p_version?: string
-}
-
-export type RequestSetOption = {
-  key?: string
-  value?: string
+  abci_version?: string
 }
 
 export type RequestInitChain = {
   time?: GoogleProtobufTimestamp.Timestamp
   chain_id?: string
-  consensus_params?: ConsensusParams
+  consensus_params?: TendermintTypesParams.ConsensusParams
   validators?: ValidatorUpdate[]
   app_state_bytes?: Uint8Array
   initial_height?: string
@@ -90,26 +98,9 @@ export type RequestQuery = {
   prove?: boolean
 }
 
-export type RequestBeginBlock = {
-  hash?: Uint8Array
-  header?: TendermintTypesTypes.Header
-  last_commit_info?: LastCommitInfo
-  byzantine_validators?: Evidence[]
-  commit?: TendermintTypesTypes.Commit
-  txs?: Uint8Array[]
-}
-
 export type RequestCheckTx = {
   tx?: Uint8Array
   type?: CheckTxType
-}
-
-export type RequestDeliverTx = {
-  tx?: Uint8Array
-}
-
-export type RequestEndBlock = {
-  height?: string
 }
 
 export type RequestCommit = {
@@ -135,12 +126,63 @@ export type RequestApplySnapshotChunk = {
   sender?: string
 }
 
+export type RequestPrepareProposal = {
+  max_tx_bytes?: string
+  txs?: Uint8Array[]
+  local_last_commit?: ExtendedCommitInfo
+  misbehavior?: Misbehavior[]
+  height?: string
+  time?: GoogleProtobufTimestamp.Timestamp
+  next_validators_hash?: Uint8Array
+  proposer_address?: Uint8Array
+}
+
+export type RequestProcessProposal = {
+  txs?: Uint8Array[]
+  proposed_last_commit?: CommitInfo
+  misbehavior?: Misbehavior[]
+  hash?: Uint8Array
+  height?: string
+  time?: GoogleProtobufTimestamp.Timestamp
+  next_validators_hash?: Uint8Array
+  proposer_address?: Uint8Array
+}
+
+export type RequestExtendVote = {
+  hash?: Uint8Array
+  height?: string
+  time?: GoogleProtobufTimestamp.Timestamp
+  txs?: Uint8Array[]
+  proposed_last_commit?: CommitInfo
+  misbehavior?: Misbehavior[]
+  next_validators_hash?: Uint8Array
+  proposer_address?: Uint8Array
+}
+
+export type RequestVerifyVoteExtension = {
+  hash?: Uint8Array
+  validator_address?: Uint8Array
+  height?: string
+  vote_extension?: Uint8Array
+}
+
+export type RequestFinalizeBlock = {
+  txs?: Uint8Array[]
+  decided_last_commit?: CommitInfo
+  misbehavior?: Misbehavior[]
+  hash?: Uint8Array
+  height?: string
+  time?: GoogleProtobufTimestamp.Timestamp
+  next_validators_hash?: Uint8Array
+  proposer_address?: Uint8Array
+}
+
 
 type BaseResponse = {
 }
 
 export type Response = BaseResponse
-  & OneOf<{ exception: ResponseException; echo: ResponseEcho; flush: ResponseFlush; info: ResponseInfo; set_option: ResponseSetOption; init_chain: ResponseInitChain; query: ResponseQuery; begin_block: ResponseBeginBlock; check_tx: ResponseCheckTx; deliver_tx: ResponseDeliverTx; end_block: ResponseEndBlock; commit: ResponseCommit; list_snapshots: ResponseListSnapshots; offer_snapshot: ResponseOfferSnapshot; load_snapshot_chunk: ResponseLoadSnapshotChunk; apply_snapshot_chunk: ResponseApplySnapshotChunk }>
+  & OneOf<{ exception: ResponseException; echo: ResponseEcho; flush: ResponseFlush; info: ResponseInfo; init_chain: ResponseInitChain; query: ResponseQuery; check_tx: ResponseCheckTx; commit: ResponseCommit; list_snapshots: ResponseListSnapshots; offer_snapshot: ResponseOfferSnapshot; load_snapshot_chunk: ResponseLoadSnapshotChunk; apply_snapshot_chunk: ResponseApplySnapshotChunk; prepare_proposal: ResponsePrepareProposal; process_proposal: ResponseProcessProposal; extend_vote: ResponseExtendVote; verify_vote_extension: ResponseVerifyVoteExtension; finalize_block: ResponseFinalizeBlock }>
 
 export type ResponseException = {
   error?: string
@@ -161,14 +203,8 @@ export type ResponseInfo = {
   last_block_app_hash?: Uint8Array
 }
 
-export type ResponseSetOption = {
-  code?: number
-  log?: string
-  info?: string
-}
-
 export type ResponseInitChain = {
-  consensus_params?: ConsensusParams
+  consensus_params?: TendermintTypesParams.ConsensusParams
   validators?: ValidatorUpdate[]
   app_hash?: Uint8Array
 }
@@ -185,10 +221,6 @@ export type ResponseQuery = {
   codespace?: string
 }
 
-export type ResponseBeginBlock = {
-  events?: Event[]
-}
-
 export type ResponseCheckTx = {
   code?: number
   data?: Uint8Array
@@ -198,30 +230,9 @@ export type ResponseCheckTx = {
   gas_used?: string
   events?: Event[]
   codespace?: string
-  sender?: string
-  priority?: string
-  mempool_error?: string
-}
-
-export type ResponseDeliverTx = {
-  code?: number
-  data?: Uint8Array
-  log?: string
-  info?: string
-  gas_wanted?: string
-  gas_used?: string
-  events?: Event[]
-  codespace?: string
-}
-
-export type ResponseEndBlock = {
-  validator_updates?: ValidatorUpdate[]
-  consensus_param_updates?: ConsensusParams
-  events?: Event[]
 }
 
 export type ResponseCommit = {
-  data?: Uint8Array
   retain_height?: string
 }
 
@@ -243,21 +254,38 @@ export type ResponseApplySnapshotChunk = {
   reject_senders?: string[]
 }
 
-export type ConsensusParams = {
-  block?: BlockParams
-  evidence?: TendermintTypesParams.EvidenceParams
-  validator?: TendermintTypesParams.ValidatorParams
-  version?: TendermintTypesParams.VersionParams
+export type ResponsePrepareProposal = {
+  txs?: Uint8Array[]
 }
 
-export type BlockParams = {
-  max_bytes?: string
-  max_gas?: string
+export type ResponseProcessProposal = {
+  status?: ResponseProcessProposalProposalStatus
 }
 
-export type LastCommitInfo = {
+export type ResponseExtendVote = {
+  vote_extension?: Uint8Array
+}
+
+export type ResponseVerifyVoteExtension = {
+  status?: ResponseVerifyVoteExtensionVerifyStatus
+}
+
+export type ResponseFinalizeBlock = {
+  events?: Event[]
+  tx_results?: ExecTxResult[]
+  validator_updates?: ValidatorUpdate[]
+  consensus_param_updates?: TendermintTypesParams.ConsensusParams
+  app_hash?: Uint8Array
+}
+
+export type CommitInfo = {
   round?: number
   votes?: VoteInfo[]
+}
+
+export type ExtendedCommitInfo = {
+  round?: number
+  votes?: ExtendedVoteInfo[]
 }
 
 export type Event = {
@@ -266,16 +294,27 @@ export type Event = {
 }
 
 export type EventAttribute = {
-  key?: Uint8Array
-  value?: Uint8Array
+  key?: string
+  value?: string
   index?: boolean
+}
+
+export type ExecTxResult = {
+  code?: number
+  data?: Uint8Array
+  log?: string
+  info?: string
+  gas_wanted?: string
+  gas_used?: string
+  events?: Event[]
+  codespace?: string
 }
 
 export type TxResult = {
   height?: string
   index?: number
   tx?: Uint8Array
-  result?: ResponseDeliverTx
+  result?: ExecTxResult
 }
 
 export type Validator = {
@@ -290,11 +329,18 @@ export type ValidatorUpdate = {
 
 export type VoteInfo = {
   validator?: Validator
-  signed_last_block?: boolean
+  block_id_flag?: TendermintTypesValidator.BlockIDFlag
 }
 
-export type Evidence = {
-  type?: EvidenceType
+export type ExtendedVoteInfo = {
+  validator?: Validator
+  vote_extension?: Uint8Array
+  extension_signature?: Uint8Array
+  block_id_flag?: TendermintTypesValidator.BlockIDFlag
+}
+
+export type Misbehavior = {
+  type?: MisbehaviorType
   validator?: Validator
   height?: string
   time?: GoogleProtobufTimestamp.Timestamp
@@ -309,50 +355,53 @@ export type Snapshot = {
   metadata?: Uint8Array
 }
 
-export class ABCIApplication {
+export class ABCI {
   static Echo(req: RequestEcho, initReq?: fm.InitReq): Promise<ResponseEcho> {
-    return fm.fetchReq<RequestEcho, ResponseEcho>(`/tendermint.abci.ABCIApplication/Echo`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestEcho, ResponseEcho>(`/tendermint.abci.ABCI/Echo`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static Flush(req: RequestFlush, initReq?: fm.InitReq): Promise<ResponseFlush> {
-    return fm.fetchReq<RequestFlush, ResponseFlush>(`/tendermint.abci.ABCIApplication/Flush`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestFlush, ResponseFlush>(`/tendermint.abci.ABCI/Flush`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static Info(req: RequestInfo, initReq?: fm.InitReq): Promise<ResponseInfo> {
-    return fm.fetchReq<RequestInfo, ResponseInfo>(`/tendermint.abci.ABCIApplication/Info`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static SetOption(req: RequestSetOption, initReq?: fm.InitReq): Promise<ResponseSetOption> {
-    return fm.fetchReq<RequestSetOption, ResponseSetOption>(`/tendermint.abci.ABCIApplication/SetOption`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static DeliverTx(req: RequestDeliverTx, initReq?: fm.InitReq): Promise<ResponseDeliverTx> {
-    return fm.fetchReq<RequestDeliverTx, ResponseDeliverTx>(`/tendermint.abci.ABCIApplication/DeliverTx`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestInfo, ResponseInfo>(`/tendermint.abci.ABCI/Info`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static CheckTx(req: RequestCheckTx, initReq?: fm.InitReq): Promise<ResponseCheckTx> {
-    return fm.fetchReq<RequestCheckTx, ResponseCheckTx>(`/tendermint.abci.ABCIApplication/CheckTx`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestCheckTx, ResponseCheckTx>(`/tendermint.abci.ABCI/CheckTx`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static Query(req: RequestQuery, initReq?: fm.InitReq): Promise<ResponseQuery> {
-    return fm.fetchReq<RequestQuery, ResponseQuery>(`/tendermint.abci.ABCIApplication/Query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestQuery, ResponseQuery>(`/tendermint.abci.ABCI/Query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static Commit(req: RequestCommit, initReq?: fm.InitReq): Promise<ResponseCommit> {
-    return fm.fetchReq<RequestCommit, ResponseCommit>(`/tendermint.abci.ABCIApplication/Commit`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestCommit, ResponseCommit>(`/tendermint.abci.ABCI/Commit`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static InitChain(req: RequestInitChain, initReq?: fm.InitReq): Promise<ResponseInitChain> {
-    return fm.fetchReq<RequestInitChain, ResponseInitChain>(`/tendermint.abci.ABCIApplication/InitChain`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static BeginBlock(req: RequestBeginBlock, initReq?: fm.InitReq): Promise<ResponseBeginBlock> {
-    return fm.fetchReq<RequestBeginBlock, ResponseBeginBlock>(`/tendermint.abci.ABCIApplication/BeginBlock`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
-  }
-  static EndBlock(req: RequestEndBlock, initReq?: fm.InitReq): Promise<ResponseEndBlock> {
-    return fm.fetchReq<RequestEndBlock, ResponseEndBlock>(`/tendermint.abci.ABCIApplication/EndBlock`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestInitChain, ResponseInitChain>(`/tendermint.abci.ABCI/InitChain`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListSnapshots(req: RequestListSnapshots, initReq?: fm.InitReq): Promise<ResponseListSnapshots> {
-    return fm.fetchReq<RequestListSnapshots, ResponseListSnapshots>(`/tendermint.abci.ABCIApplication/ListSnapshots`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestListSnapshots, ResponseListSnapshots>(`/tendermint.abci.ABCI/ListSnapshots`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static OfferSnapshot(req: RequestOfferSnapshot, initReq?: fm.InitReq): Promise<ResponseOfferSnapshot> {
-    return fm.fetchReq<RequestOfferSnapshot, ResponseOfferSnapshot>(`/tendermint.abci.ABCIApplication/OfferSnapshot`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestOfferSnapshot, ResponseOfferSnapshot>(`/tendermint.abci.ABCI/OfferSnapshot`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static LoadSnapshotChunk(req: RequestLoadSnapshotChunk, initReq?: fm.InitReq): Promise<ResponseLoadSnapshotChunk> {
-    return fm.fetchReq<RequestLoadSnapshotChunk, ResponseLoadSnapshotChunk>(`/tendermint.abci.ABCIApplication/LoadSnapshotChunk`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestLoadSnapshotChunk, ResponseLoadSnapshotChunk>(`/tendermint.abci.ABCI/LoadSnapshotChunk`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ApplySnapshotChunk(req: RequestApplySnapshotChunk, initReq?: fm.InitReq): Promise<ResponseApplySnapshotChunk> {
-    return fm.fetchReq<RequestApplySnapshotChunk, ResponseApplySnapshotChunk>(`/tendermint.abci.ABCIApplication/ApplySnapshotChunk`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<RequestApplySnapshotChunk, ResponseApplySnapshotChunk>(`/tendermint.abci.ABCI/ApplySnapshotChunk`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static PrepareProposal(req: RequestPrepareProposal, initReq?: fm.InitReq): Promise<ResponsePrepareProposal> {
+    return fm.fetchReq<RequestPrepareProposal, ResponsePrepareProposal>(`/tendermint.abci.ABCI/PrepareProposal`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ProcessProposal(req: RequestProcessProposal, initReq?: fm.InitReq): Promise<ResponseProcessProposal> {
+    return fm.fetchReq<RequestProcessProposal, ResponseProcessProposal>(`/tendermint.abci.ABCI/ProcessProposal`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ExtendVote(req: RequestExtendVote, initReq?: fm.InitReq): Promise<ResponseExtendVote> {
+    return fm.fetchReq<RequestExtendVote, ResponseExtendVote>(`/tendermint.abci.ABCI/ExtendVote`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static VerifyVoteExtension(req: RequestVerifyVoteExtension, initReq?: fm.InitReq): Promise<ResponseVerifyVoteExtension> {
+    return fm.fetchReq<RequestVerifyVoteExtension, ResponseVerifyVoteExtension>(`/tendermint.abci.ABCI/VerifyVoteExtension`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static FinalizeBlock(req: RequestFinalizeBlock, initReq?: fm.InitReq): Promise<ResponseFinalizeBlock> {
+    return fm.fetchReq<RequestFinalizeBlock, ResponseFinalizeBlock>(`/tendermint.abci.ABCI/FinalizeBlock`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

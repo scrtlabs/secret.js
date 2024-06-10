@@ -10,6 +10,7 @@ import * as TendermintP2pTypes from "../../../../tendermint/p2p/types.pb"
 import * as TendermintTypesBlock from "../../../../tendermint/types/block.pb"
 import * as TendermintTypesTypes from "../../../../tendermint/types/types.pb"
 import * as CosmosBaseQueryV1beta1Pagination from "../../query/v1beta1/pagination.pb"
+import * as CosmosBaseTendermintV1beta1Types from "./types.pb"
 export type GetValidatorSetByHeightRequest = {
   height?: string
   pagination?: CosmosBaseQueryV1beta1Pagination.PageRequest
@@ -45,6 +46,7 @@ export type GetBlockByHeightRequest = {
 export type GetBlockByHeightResponse = {
   block_id?: TendermintTypesTypes.BlockID
   block?: TendermintTypesBlock.Block
+  sdk_block?: CosmosBaseTendermintV1beta1Types.Block
 }
 
 export type GetLatestBlockRequest = {
@@ -53,6 +55,7 @@ export type GetLatestBlockRequest = {
 export type GetLatestBlockResponse = {
   block_id?: TendermintTypesTypes.BlockID
   block?: TendermintTypesBlock.Block
+  sdk_block?: CosmosBaseTendermintV1beta1Types.Block
 }
 
 export type GetSyncingRequest = {
@@ -87,6 +90,35 @@ export type Module = {
   sum?: string
 }
 
+export type ABCIQueryRequest = {
+  data?: Uint8Array
+  path?: string
+  height?: string
+  prove?: boolean
+}
+
+export type ABCIQueryResponse = {
+  code?: number
+  log?: string
+  info?: string
+  index?: string
+  key?: Uint8Array
+  value?: Uint8Array
+  proof_ops?: ProofOps
+  height?: string
+  codespace?: string
+}
+
+export type ProofOp = {
+  type?: string
+  key?: Uint8Array
+  data?: Uint8Array
+}
+
+export type ProofOps = {
+  ops?: ProofOp[]
+}
+
 export class Service {
   static GetNodeInfo(req: GetNodeInfoRequest, initReq?: fm.InitReq): Promise<GetNodeInfoResponse> {
     return fm.fetchReq<GetNodeInfoRequest, GetNodeInfoResponse>(`/cosmos/base/tendermint/v1beta1/node_info?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -105,5 +137,8 @@ export class Service {
   }
   static GetValidatorSetByHeight(req: GetValidatorSetByHeightRequest, initReq?: fm.InitReq): Promise<GetValidatorSetByHeightResponse> {
     return fm.fetchReq<GetValidatorSetByHeightRequest, GetValidatorSetByHeightResponse>(`/cosmos/base/tendermint/v1beta1/validatorsets/${req["height"]}?${fm.renderURLSearchParams(req, ["height"])}`, {...initReq, method: "GET"})
+  }
+  static ABCIQuery(req: ABCIQueryRequest, initReq?: fm.InitReq): Promise<ABCIQueryResponse> {
+    return fm.fetchReq<ABCIQueryRequest, ABCIQueryResponse>(`/cosmos/base/tendermint/v1beta1/abci_query?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

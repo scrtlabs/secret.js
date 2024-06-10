@@ -23,11 +23,21 @@ export type MsgRevokeAllowance = {
 export type MsgRevokeAllowanceResponse = {
 }
 
+export type MsgPruneAllowances = {
+  pruner?: string
+}
+
+export type MsgPruneAllowancesResponse = {
+}
+
 export class Msg {
   static GrantAllowance(req: MsgGrantAllowance, initReq?: fm.InitReq): Promise<MsgGrantAllowanceResponse> {
     return fm.fetchReq<MsgGrantAllowance, MsgGrantAllowanceResponse>(`/cosmos.feegrant.v1beta1.Msg/GrantAllowance`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static RevokeAllowance(req: MsgRevokeAllowance, initReq?: fm.InitReq): Promise<MsgRevokeAllowanceResponse> {
     return fm.fetchReq<MsgRevokeAllowance, MsgRevokeAllowanceResponse>(`/cosmos.feegrant.v1beta1.Msg/RevokeAllowance`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static PruneAllowances(req: MsgPruneAllowances, initReq?: fm.InitReq): Promise<MsgPruneAllowancesResponse> {
+    return fm.fetchReq<MsgPruneAllowances, MsgPruneAllowancesResponse>(`/cosmos.feegrant.v1beta1.Msg/PruneAllowances`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

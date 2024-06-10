@@ -5,6 +5,14 @@
 */
 
 import * as TendermintCryptoKeys from "../crypto/keys.pb"
+
+export enum BlockIDFlag {
+  BLOCK_ID_FLAG_UNKNOWN = "BLOCK_ID_FLAG_UNKNOWN",
+  BLOCK_ID_FLAG_ABSENT = "BLOCK_ID_FLAG_ABSENT",
+  BLOCK_ID_FLAG_COMMIT = "BLOCK_ID_FLAG_COMMIT",
+  BLOCK_ID_FLAG_NIL = "BLOCK_ID_FLAG_NIL",
+}
+
 export type ValidatorSet = {
   validators?: Validator[]
   proposer?: Validator

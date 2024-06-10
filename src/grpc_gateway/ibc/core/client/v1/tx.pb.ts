@@ -4,8 +4,10 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as CosmosUpgradeV1beta1Upgrade from "../../../../cosmos/upgrade/v1beta1/upgrade.pb"
 import * as fm from "../../../../fetch.pb"
 import * as GoogleProtobufAny from "../../../../google/protobuf/any.pb"
+import * as IbcCoreClientV1Client from "./client.pb"
 export type MsgCreateClient = {
   client_state?: GoogleProtobufAny.Any
   consensus_state?: GoogleProtobufAny.Any
@@ -17,7 +19,7 @@ export type MsgCreateClientResponse = {
 
 export type MsgUpdateClient = {
   client_id?: string
-  header?: GoogleProtobufAny.Any
+  client_message?: GoogleProtobufAny.Any
   signer?: string
 }
 
@@ -45,6 +47,32 @@ export type MsgSubmitMisbehaviour = {
 export type MsgSubmitMisbehaviourResponse = {
 }
 
+export type MsgRecoverClient = {
+  subject_client_id?: string
+  substitute_client_id?: string
+  signer?: string
+}
+
+export type MsgRecoverClientResponse = {
+}
+
+export type MsgIBCSoftwareUpgrade = {
+  plan?: CosmosUpgradeV1beta1Upgrade.Plan
+  upgraded_client_state?: GoogleProtobufAny.Any
+  signer?: string
+}
+
+export type MsgIBCSoftwareUpgradeResponse = {
+}
+
+export type MsgUpdateParams = {
+  signer?: string
+  params?: IbcCoreClientV1Client.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
 export class Msg {
   static CreateClient(req: MsgCreateClient, initReq?: fm.InitReq): Promise<MsgCreateClientResponse> {
     return fm.fetchReq<MsgCreateClient, MsgCreateClientResponse>(`/ibc.core.client.v1.Msg/CreateClient`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -57,5 +85,14 @@ export class Msg {
   }
   static SubmitMisbehaviour(req: MsgSubmitMisbehaviour, initReq?: fm.InitReq): Promise<MsgSubmitMisbehaviourResponse> {
     return fm.fetchReq<MsgSubmitMisbehaviour, MsgSubmitMisbehaviourResponse>(`/ibc.core.client.v1.Msg/SubmitMisbehaviour`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static RecoverClient(req: MsgRecoverClient, initReq?: fm.InitReq): Promise<MsgRecoverClientResponse> {
+    return fm.fetchReq<MsgRecoverClient, MsgRecoverClientResponse>(`/ibc.core.client.v1.Msg/RecoverClient`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static IBCSoftwareUpgrade(req: MsgIBCSoftwareUpgrade, initReq?: fm.InitReq): Promise<MsgIBCSoftwareUpgradeResponse> {
+    return fm.fetchReq<MsgIBCSoftwareUpgrade, MsgIBCSoftwareUpgradeResponse>(`/ibc.core.client.v1.Msg/IBCSoftwareUpgrade`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateClientParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/ibc.core.client.v1.Msg/UpdateClientParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

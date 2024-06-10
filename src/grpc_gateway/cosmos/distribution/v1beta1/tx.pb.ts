@@ -6,6 +6,7 @@
 
 import * as fm from "../../../fetch.pb"
 import * as CosmosBaseV1beta1Coin from "../../base/v1beta1/coin.pb"
+import * as CosmosDistributionV1beta1Distribution from "./distribution.pb"
 export type MsgSetWithdrawAddress = {
   delegator_address?: string
   withdraw_address?: string
@@ -29,6 +30,7 @@ export type MsgWithdrawDelegatorReward = {
 }
 
 export type MsgWithdrawDelegatorRewardResponse = {
+  amount?: CosmosBaseV1beta1Coin.Coin[]
 }
 
 export type MsgWithdrawValidatorCommission = {
@@ -36,6 +38,7 @@ export type MsgWithdrawValidatorCommission = {
 }
 
 export type MsgWithdrawValidatorCommissionResponse = {
+  amount?: CosmosBaseV1beta1Coin.Coin[]
 }
 
 export type MsgFundCommunityPool = {
@@ -44,6 +47,32 @@ export type MsgFundCommunityPool = {
 }
 
 export type MsgFundCommunityPoolResponse = {
+}
+
+export type MsgUpdateParams = {
+  authority?: string
+  params?: CosmosDistributionV1beta1Distribution.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
+export type MsgCommunityPoolSpend = {
+  authority?: string
+  recipient?: string
+  amount?: CosmosBaseV1beta1Coin.Coin[]
+}
+
+export type MsgCommunityPoolSpendResponse = {
+}
+
+export type MsgDepositValidatorRewardsPool = {
+  depositor?: string
+  validator_address?: string
+  amount?: CosmosBaseV1beta1Coin.Coin[]
+}
+
+export type MsgDepositValidatorRewardsPoolResponse = {
 }
 
 export class Msg {
@@ -61,5 +90,14 @@ export class Msg {
   }
   static SetAutoRestake(req: MsgSetAutoRestake, initReq?: fm.InitReq): Promise<MsgSetAutoRestakeResponse> {
     return fm.fetchReq<MsgSetAutoRestake, MsgSetAutoRestakeResponse>(`/cosmos.distribution.v1beta1.Msg/SetAutoRestake`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/cosmos.distribution.v1beta1.Msg/UpdateParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static CommunityPoolSpend(req: MsgCommunityPoolSpend, initReq?: fm.InitReq): Promise<MsgCommunityPoolSpendResponse> {
+    return fm.fetchReq<MsgCommunityPoolSpend, MsgCommunityPoolSpendResponse>(`/cosmos.distribution.v1beta1.Msg/CommunityPoolSpend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static DepositValidatorRewardsPool(req: MsgDepositValidatorRewardsPool, initReq?: fm.InitReq): Promise<MsgDepositValidatorRewardsPoolResponse> {
+    return fm.fetchReq<MsgDepositValidatorRewardsPool, MsgDepositValidatorRewardsPoolResponse>(`/cosmos.distribution.v1beta1.Msg/DepositValidatorRewardsPool`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

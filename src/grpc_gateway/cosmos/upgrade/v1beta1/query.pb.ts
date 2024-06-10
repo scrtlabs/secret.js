@@ -37,6 +37,13 @@ export type QueryModuleVersionsResponse = {
   module_versions?: CosmosUpgradeV1beta1Upgrade.ModuleVersion[]
 }
 
+export type QueryAuthorityRequest = {
+}
+
+export type QueryAuthorityResponse = {
+  address?: string
+}
+
 export class Query {
   static CurrentPlan(req: QueryCurrentPlanRequest, initReq?: fm.InitReq): Promise<QueryCurrentPlanResponse> {
     return fm.fetchReq<QueryCurrentPlanRequest, QueryCurrentPlanResponse>(`/cosmos/upgrade/v1beta1/current_plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -49,5 +56,8 @@ export class Query {
   }
   static ModuleVersions(req: QueryModuleVersionsRequest, initReq?: fm.InitReq): Promise<QueryModuleVersionsResponse> {
     return fm.fetchReq<QueryModuleVersionsRequest, QueryModuleVersionsResponse>(`/cosmos/upgrade/v1beta1/module_versions?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static Authority(req: QueryAuthorityRequest, initReq?: fm.InitReq): Promise<QueryAuthorityResponse> {
+    return fm.fetchReq<QueryAuthorityRequest, QueryAuthorityResponse>(`/cosmos/upgrade/v1beta1/authority?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

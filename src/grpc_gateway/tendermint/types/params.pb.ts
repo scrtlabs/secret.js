@@ -10,12 +10,12 @@ export type ConsensusParams = {
   evidence?: EvidenceParams
   validator?: ValidatorParams
   version?: VersionParams
+  abci?: ABCIParams
 }
 
 export type BlockParams = {
   max_bytes?: string
   max_gas?: string
-  time_iota_ms?: string
 }
 
 export type EvidenceParams = {
@@ -29,10 +29,14 @@ export type ValidatorParams = {
 }
 
 export type VersionParams = {
-  app_version?: string
+  app?: string
 }
 
 export type HashedParams = {
   block_max_bytes?: string
   block_max_gas?: string
+}
+
+export type ABCIParams = {
+  vote_extensions_enable_height?: string
 }

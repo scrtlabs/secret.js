@@ -10,10 +10,20 @@ import * as TendermintTypesParams from "../types/params.pb"
 import * as TendermintTypesTypes from "../types/types.pb"
 import * as TendermintTypesValidator from "../types/validator.pb"
 import * as TendermintVersionTypes from "../version/types.pb"
-export type ABCIResponses = {
-  deliver_txs?: TendermintAbciTypes.ResponseDeliverTx[]
-  end_block?: TendermintAbciTypes.ResponseEndBlock
-  begin_block?: TendermintAbciTypes.ResponseBeginBlock
+export type LegacyABCIResponses = {
+  deliver_txs?: TendermintAbciTypes.ExecTxResult[]
+  end_block?: ResponseEndBlock
+  begin_block?: ResponseBeginBlock
+}
+
+export type ResponseBeginBlock = {
+  events?: TendermintAbciTypes.Event[]
+}
+
+export type ResponseEndBlock = {
+  validator_updates?: TendermintAbciTypes.ValidatorUpdate[]
+  consensus_param_updates?: TendermintTypesParams.ConsensusParams
+  events?: TendermintAbciTypes.Event[]
 }
 
 export type ValidatorsInfo = {
@@ -24,6 +34,12 @@ export type ValidatorsInfo = {
 export type ConsensusParamsInfo = {
   consensus_params?: TendermintTypesParams.ConsensusParams
   last_height_changed?: string
+}
+
+export type ABCIResponsesInfo = {
+  legacy_abci_responses?: LegacyABCIResponses
+  height?: string
+  response_finalize_block?: TendermintAbciTypes.ResponseFinalizeBlock
 }
 
 export type Version = {

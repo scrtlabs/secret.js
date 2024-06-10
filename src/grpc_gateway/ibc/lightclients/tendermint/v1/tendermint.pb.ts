@@ -4,7 +4,7 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as Ics23Proofs from "../../../../confio/proofs.pb"
+import * as CosmosIcs23V1Proofs from "../../../../cosmos/ics23/v1/proofs.pb"
 import * as GoogleProtobufDuration from "../../../../google/protobuf/duration.pb"
 import * as GoogleProtobufTimestamp from "../../../../google/protobuf/timestamp.pb"
 import * as TendermintTypesTypes from "../../../../tendermint/types/types.pb"
@@ -19,7 +19,7 @@ export type ClientState = {
   max_clock_drift?: GoogleProtobufDuration.Duration
   frozen_height?: IbcCoreClientV1Client.Height
   latest_height?: IbcCoreClientV1Client.Height
-  proof_specs?: Ics23Proofs.ProofSpec[]
+  proof_specs?: CosmosIcs23V1Proofs.ProofSpec[]
   upgrade_path?: string[]
   allow_update_after_expiry?: boolean
   allow_update_after_misbehaviour?: boolean

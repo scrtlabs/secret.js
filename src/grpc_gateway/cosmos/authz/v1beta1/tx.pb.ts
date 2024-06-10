@@ -13,8 +13,7 @@ export type MsgGrant = {
   grant?: CosmosAuthzV1beta1Authz.Grant
 }
 
-export type MsgExecResponse = {
-  results?: Uint8Array[]
+export type MsgGrantResponse = {
 }
 
 export type MsgExec = {
@@ -22,7 +21,8 @@ export type MsgExec = {
   msgs?: GoogleProtobufAny.Any[]
 }
 
-export type MsgGrantResponse = {
+export type MsgExecResponse = {
+  results?: Uint8Array[]
 }
 
 export type MsgRevoke = {

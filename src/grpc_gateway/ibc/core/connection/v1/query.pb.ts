@@ -62,6 +62,13 @@ export type QueryConnectionConsensusStateResponse = {
   proof_height?: IbcCoreClientV1Client.Height
 }
 
+export type QueryConnectionParamsRequest = {
+}
+
+export type QueryConnectionParamsResponse = {
+  params?: IbcCoreConnectionV1Connection.Params
+}
+
 export class Query {
   static Connection(req: QueryConnectionRequest, initReq?: fm.InitReq): Promise<QueryConnectionResponse> {
     return fm.fetchReq<QueryConnectionRequest, QueryConnectionResponse>(`/ibc/core/connection/v1/connections/${req["connection_id"]}?${fm.renderURLSearchParams(req, ["connection_id"])}`, {...initReq, method: "GET"})
@@ -77,5 +84,8 @@ export class Query {
   }
   static ConnectionConsensusState(req: QueryConnectionConsensusStateRequest, initReq?: fm.InitReq): Promise<QueryConnectionConsensusStateResponse> {
     return fm.fetchReq<QueryConnectionConsensusStateRequest, QueryConnectionConsensusStateResponse>(`/ibc/core/connection/v1/connections/${req["connection_id"]}/consensus_state/revision/${req["revision_number"]}/height/${req["revision_height"]}?${fm.renderURLSearchParams(req, ["connection_id", "revision_number", "revision_height"])}`, {...initReq, method: "GET"})
+  }
+  static ConnectionParams(req: QueryConnectionParamsRequest, initReq?: fm.InitReq): Promise<QueryConnectionParamsResponse> {
+    return fm.fetchReq<QueryConnectionParamsRequest, QueryConnectionParamsResponse>(`/ibc/core/connection/v1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

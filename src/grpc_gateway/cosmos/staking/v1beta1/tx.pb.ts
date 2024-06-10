@@ -60,6 +60,25 @@ export type MsgUndelegate = {
 
 export type MsgUndelegateResponse = {
   completion_time?: GoogleProtobufTimestamp.Timestamp
+  amount?: CosmosBaseV1beta1Coin.Coin
+}
+
+export type MsgCancelUnbondingDelegation = {
+  delegator_address?: string
+  validator_address?: string
+  amount?: CosmosBaseV1beta1Coin.Coin
+  creation_height?: string
+}
+
+export type MsgCancelUnbondingDelegationResponse = {
+}
+
+export type MsgUpdateParams = {
+  authority?: string
+  params?: CosmosStakingV1beta1Staking.Params
+}
+
+export type MsgUpdateParamsResponse = {
 }
 
 export class Msg {
@@ -77,5 +96,11 @@ export class Msg {
   }
   static Undelegate(req: MsgUndelegate, initReq?: fm.InitReq): Promise<MsgUndelegateResponse> {
     return fm.fetchReq<MsgUndelegate, MsgUndelegateResponse>(`/cosmos.staking.v1beta1.Msg/Undelegate`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static CancelUnbondingDelegation(req: MsgCancelUnbondingDelegation, initReq?: fm.InitReq): Promise<MsgCancelUnbondingDelegationResponse> {
+    return fm.fetchReq<MsgCancelUnbondingDelegation, MsgCancelUnbondingDelegationResponse>(`/cosmos.staking.v1beta1.Msg/CancelUnbondingDelegation`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/cosmos.staking.v1beta1.Msg/UpdateParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

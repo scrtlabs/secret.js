@@ -17,6 +17,7 @@ export type QueryIncentivizedPacketsRequest = {
 
 export type QueryIncentivizedPacketsResponse = {
   incentivized_packets?: IbcApplicationsFeeV1Fee.IdentifiedPacketFees[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
 export type QueryIncentivizedPacketRequest = {
@@ -37,6 +38,7 @@ export type QueryIncentivizedPacketsForChannelRequest = {
 
 export type QueryIncentivizedPacketsForChannelResponse = {
   incentivized_packets?: IbcApplicationsFeeV1Fee.IdentifiedPacketFees[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
 export type QueryTotalRecvFeesRequest = {
@@ -88,6 +90,7 @@ export type QueryFeeEnabledChannelsRequest = {
 
 export type QueryFeeEnabledChannelsResponse = {
   fee_enabled_channels?: IbcApplicationsFeeV1Genesis.FeeEnabledChannel[]
+  pagination?: CosmosBaseQueryV1beta1Pagination.PageResponse
 }
 
 export type QueryFeeEnabledChannelRequest = {

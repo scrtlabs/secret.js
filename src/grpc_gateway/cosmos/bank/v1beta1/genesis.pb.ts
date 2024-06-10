@@ -11,6 +11,7 @@ export type GenesisState = {
   balances?: Balance[]
   supply?: CosmosBaseV1beta1Coin.Coin[]
   denom_metadata?: CosmosBankV1beta1Bank.Metadata[]
+  send_enabled?: CosmosBankV1beta1Bank.SendEnabled[]
 }
 
 export type Balance = {

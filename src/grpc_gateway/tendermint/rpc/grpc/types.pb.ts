@@ -18,7 +18,7 @@ export type ResponsePing = {
 
 export type ResponseBroadcastTx = {
   check_tx?: TendermintAbciTypes.ResponseCheckTx
-  deliver_tx?: TendermintAbciTypes.ResponseDeliverTx
+  tx_result?: TendermintAbciTypes.ExecTxResult
 }
 
 export class BroadcastAPI {

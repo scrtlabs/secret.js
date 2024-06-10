@@ -18,6 +18,11 @@ export type ModuleAccount = {
   permissions?: string[]
 }
 
+export type ModuleCredential = {
+  module_name?: string
+  derivation_keys?: Uint8Array[]
+}
+
 export type Params = {
   max_memo_characters?: string
   tx_sig_limit?: string

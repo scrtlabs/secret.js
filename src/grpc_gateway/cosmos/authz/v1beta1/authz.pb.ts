@@ -21,3 +21,7 @@ export type GrantAuthorization = {
   authorization?: GoogleProtobufAny.Any
   expiration?: GoogleProtobufTimestamp.Timestamp
 }
+
+export type GrantQueueItem = {
+  msg_type_urls?: string[]
+}
