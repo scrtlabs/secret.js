@@ -2,7 +2,7 @@ import {
   Query,
   QueryParamsRequest,
   QueryParamsResponse,
-} from "../grpc_gateway/ibc/applications/packetforward/v1/query.pb";
+} from "../grpc_gateway/ibc-apps/packetforward/v1/query.pb";
 
 export class IbcPacketForwardQuerier {
   constructor(private url: string) {}

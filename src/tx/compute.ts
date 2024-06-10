@@ -6,7 +6,7 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
   /** The actor that signed the messages */
-  sender: string;
+  sender: Uint8Array;
   /** The id of the contract's WASM code */
   code_id: number | string;
   /** A unique label across all contracts */
@@ -30,6 +30,7 @@ export interface MsgInstantiateContractParams extends MsgParams {
   code_hash?: string;
   /** Admin is an optional address that can execute migrations */
   admin?: string;
+  sender_address: string;
 }
 
 export function getMissingCodeHashWarning(method: string): string {
@@ -38,7 +39,7 @@ export function getMissingCodeHashWarning(method: string): string {
 
 /** Instantiate a contract from code id */
 export class MsgInstantiateContract implements Msg {
-  public sender: string;
+  public sender: Uint8Array;
   public codeId: string;
   public label: string;
   public initMsg: object;
@@ -88,7 +89,8 @@ export class MsgInstantiateContract implements Msg {
     }
 
     const msgContent = {
-      sender: addressToBytes(this.sender),
+      sender: this.sender,
+      sender_address: new TextDecoder().decode(this.sender),
       code_id: this.codeId,
       label: this.label,
       init_msg: this.initMsgEncrypted,
@@ -137,7 +139,7 @@ export class MsgInstantiateContract implements Msg {
 
 export interface MsgExecuteContractParams<T> extends MsgParams {
   /** The actor that signed the messages */
-  sender: string;
+  sender: Uint8Array;
   /** The contract's address */
   contract_address: string;
   /** The input message */
@@ -157,11 +159,12 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
   code_hash?: string;
+  sender_address: string;
 }
 
 /** Execute a function on a contract */
 export class MsgExecuteContract<T extends object> implements Msg {
-  public sender: string;
+  public sender: Uint8Array;
   public contractAddress: string;
   public msg: T;
   private msgEncrypted: Uint8Array | null;
@@ -205,7 +208,8 @@ export class MsgExecuteContract<T extends object> implements Msg {
     }
 
     const msgContent = {
-      sender: addressToBytes(this.sender),
+      sender: this.sender,
+      sender_address: new TextDecoder().decode(this.sender),
       contract: addressToBytes(this.contractAddress),
       msg: this.msgEncrypted,
       sent_funds: this.sentFunds,
@@ -288,7 +292,7 @@ export class MsgStoreCode implements Msg {
     await this.gzipWasm();
 
     const msgContent = {
-      sender: addressToBytes(this.sender),
+      sender: this.sender,
       wasm_byte_code: this.wasmByteCode,
       source: this.source,
       builder: this.builder,

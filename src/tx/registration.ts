@@ -1,11 +1,12 @@
 import { toBase64 } from "@cosmjs/encoding";
 import { MsgParams } from ".";
-import { addressToBytes } from "..";
+// import { addressToBytes } from "..";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export interface RaAuthenticateParams extends MsgParams {
-  sender: string;
+  sender: Uint8Array;
   certificate: Uint8Array;
+  sender_address: string;
 }
 
 /** RaAuthenticate defines a message to register an new node. */
@@ -14,8 +15,9 @@ export class RaAuthenticate implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     const msgContent = {
-      sender: addressToBytes(this.params.sender),
+      sender: this.params.sender,
       certificate: this.params.certificate,
+      sender_address: new TextDecoder().decode(this.params.sender),
     };
 
     return {

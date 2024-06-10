@@ -78,10 +78,18 @@ function isGenericAuthorization(object: any): object is GenericAuthorization {
 }
 
 /**
- * SendAuthorization allows the grantee to spend up to spend_limit coins from the granter's account.
+ * SendAuthorization allows the grantee to spend up to spend_limit coins from
+ * the granter's account.
  */
 export interface SendAuthorization {
   spend_limit: Coin[];
+  /**
+   * allow_list specifies an optional list of addresses to whom the grantee can send tokens on behalf of the
+   * granter. If omitted, any recipient is allowed.
+   *
+   * Since: cosmos-sdk 0.47
+   */
+  allow_list: string[];
 }
 
 function isSendAuthorization(object: any): object is SendAuthorization {
