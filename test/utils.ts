@@ -199,7 +199,8 @@ export async function initContract(
 
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
-      sender: account.address,
+      sender: new TextEncoder().encode(account.address),
+      sender_address: account.address,
       code_id,
       code_hash,
       init_msg,

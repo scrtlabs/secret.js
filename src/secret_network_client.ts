@@ -1449,12 +1449,13 @@ export class SecretNetworkClient {
 
     const txhash = toHex(sha256(txBytes)).toUpperCase();
 
-    if (!waitForCommit && mode == BroadcastMode.Block) {
+    if (mode == BroadcastMode.Block) {
       mode = BroadcastMode.Sync;
     }
 
     let tx_response: TxResponsePb | undefined;
 
+        /*
     if (mode === BroadcastMode.Block) {
       waitForCommit = true;
 
@@ -1586,7 +1587,7 @@ export class SecretNetworkClient {
 
         return await this.decodeTxResponse(tx_response!, ibcTxOptions);
       }
-    } else if (mode === BroadcastMode.Sync) {
+    } else */if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
         "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
