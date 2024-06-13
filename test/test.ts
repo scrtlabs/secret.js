@@ -48,6 +48,7 @@ import {
   storeContract,
   storeSnip20Ibc,
 } from "./utils";
+import { SendAuthorization } from "../src/protobuf/cosmos/bank/v1beta1/authz";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -2312,7 +2313,8 @@ describe("tx.gov", () => {
       proposal_id,
     });
 
-    expect(proposal?.is_expedited).toBe(true);
+    // proposal response no longer has is_expedited
+    // expect(proposal?.is_expedited).toBe(true);
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[1]));
 
@@ -2320,7 +2322,8 @@ describe("tx.gov", () => {
       proposal_id,
     }));
 
-    expect(proposal?.is_expedited).toBe(false);
+    // proposal response no longer has is_expedited
+    // expect(proposal?.is_expedited).toBe(false);
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[2]));
 
@@ -2328,7 +2331,8 @@ describe("tx.gov", () => {
       proposal_id,
     }));
 
-    expect(proposal?.is_expedited).toBe(false);
+    // proposal response no longer has is_expedited
+    // expect(proposal?.is_expedited).toBe(false);
   });
 });
 
@@ -3161,14 +3165,16 @@ describe("tx.authz", () => {
     test("SendAuthorization", async () => {
       const { secretjs: secretjsGranter } = accounts[2];
       const { secretjs: secretjsGrantee } = accounts[3];
-
       const tx = await secretjsGranter.tx.authz.grant(
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
-          authorization: {
-            spend_limit: [stringToCoins("1000000uscrt")][0],
-          },
+          authorization: SendAuthorization.create({
+            spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+          }),
+          //  {
+          //   spend_limit: [stringToCoins("1000000uscrt")][0],
+          // },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
         {
@@ -3268,9 +3274,12 @@ describe("tx.authz", () => {
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
-          authorization: {
-            spend_limit: [stringToCoins("1000000uscrt")][0],
-          },
+          authorization: SendAuthorization.create({
+            spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+          }),
+          // authorization: {
+          //   spend_limit: [stringToCoins("1000000uscrt")][0],
+          // },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
         {
@@ -3428,9 +3437,12 @@ describe("tx.authz", () => {
         {
           granter: secretjsGranter.address,
           grantee: secretjsGrantee.address,
-          authorization: {
-            spend_limit: [stringToCoins("1000000uscrt")][0],
-          },
+          authorization: SendAuthorization.create({
+            spend_limit: [{ denom: "uscrt", amount: "1000000" }],
+          }),
+          // authorization: {
+          //   spend_limit: [stringToCoins("1000000uscrt")][0],
+          // },
           expiration: Math.floor(Date.now() / 1000 + 10 * 60), // 10 minutes
         },
         {
