@@ -2216,7 +2216,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [],
+        initial_deposit: [{amount: "1000000", denom:"uscrt"}],
         content: {
           title: "Hi",
           description: "Hello",
@@ -3082,7 +3082,7 @@ describe("tx.feegrant", () => {
       {
         proposer: secretjsGrantee.address,
         type: ProposalType.TextProposal,
-        initial_deposit: [],
+        initial_deposit: [{amount: "1000000", denom:"uscrt"}],
         content: {
           title: "Test Feegrant",
           description: "YOLO",

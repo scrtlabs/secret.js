@@ -28,13 +28,13 @@ module.exports = async () => {
           {
             address: accounts[0].address,
             coins: stringToCoins(
-              `${100_000 * 1e6 * (accounts.length - 3)}uscrt`,
+              `${10_000 * 1e6 * (accounts.length - 3)}uscrt`,
             ),
           },
         ],
         outputs: accounts.slice(3).map(({ address }) => ({
           address,
-          coins: stringToCoins(`${100_000 * 1e6}uscrt`),
+          coins: stringToCoins(`${10_000 * 1e6}uscrt`),
         })),
       },
       {
