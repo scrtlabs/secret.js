@@ -162,6 +162,25 @@ export function getValueFromRawLog(
   return "";
 }
 
+export function getValueFromEvents(
+  events: any[] | undefined,
+  key: string,
+): string {
+  if (!events) {
+    return "";
+  }
+
+  for (const e of events) {
+    for (const a of e.attributes) {
+      if (`${e.type}.${a.key}` === key) {
+        return String(a.value);
+      }
+    }
+  }
+
+  return "";
+}
+
 export async function storeContract(
   wasmPath: string,
   account: Account,
@@ -199,8 +218,7 @@ export async function initContract(
 
   const txInit = await secretjs.tx.compute.instantiateContract(
     {
-      sender: new TextEncoder().encode(account.address),
-      sender_address: account.address,
+      sender: account.address,
       code_id,
       code_hash,
       init_msg,

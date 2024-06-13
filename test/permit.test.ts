@@ -1,6 +1,6 @@
 import fs from "fs";
 import { Permit, TxResultCode } from "../src";
-import { accounts, getValueFromRawLog } from "./utils";
+import { accounts, getValueFromEvents } from "./utils";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -8,9 +8,9 @@ beforeAll(() => {
 
 describe("permit", () => {
   test("sign", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -29,13 +29,13 @@ describe("permit", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id,
     });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -63,11 +63,11 @@ describe("permit", () => {
         gasLimit: 5_000_000,
       },
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
-    const permit = await secretjs.utils.accessControl.permit.sign(
+    const permit = await secretjsProto.utils.accessControl.permit.sign(
       accounts[0].address,
       "secret-2",
       "test",
@@ -76,7 +76,7 @@ describe("permit", () => {
       false,
     );
 
-    const query = await secretjs.query.snip20.getBalance({
+    const query = await secretjsProto.query.snip20.getBalance({
       contract: { address: contractAddress, code_hash: code_hash! },
       address: accounts[0].address,
       auth: { permit },
@@ -219,7 +219,6 @@ describe("permit", () => {
 
   test("validatePermit", async () => {
     const { secretjs } = accounts[0];
-    const secretjs2 = accounts[1].secretjs;
 
     let permit = await secretjs.utils.accessControl.permit.sign(
       accounts[0].address,

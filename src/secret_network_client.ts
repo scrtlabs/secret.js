@@ -1312,10 +1312,14 @@ export class SecretNetworkClient {
     }
 
     const txMsgData = TxMsgData.decode(fromHex(txResp.data!));
-    const data = new Array<Uint8Array>(txMsgData.data.length);
+    const data = new Array<Uint8Array>(txMsgData.msg_responses.length);
 
-    for (let msgIndex = 0; msgIndex < txMsgData.data.length; msgIndex++) {
-      data[msgIndex] = txMsgData.data[msgIndex].data;
+    for (
+      let msgIndex = 0;
+      msgIndex < txMsgData.msg_responses.length;
+      msgIndex++
+    ) {
+      data[msgIndex] = txMsgData.msg_responses[msgIndex].value;
 
       const nonce = nonces[msgIndex];
       if (nonce && nonce.length === 32) {
@@ -1326,7 +1330,7 @@ export class SecretNetworkClient {
 
           if (type_url === "/secret.compute.v1beta1.MsgInstantiateContract") {
             const decoded = MsgInstantiateContractResponse.decode(
-              txMsgData.data[msgIndex].data,
+              txMsgData.msg_responses[msgIndex].value,
             );
             const decrypted = fromBase64(
               fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
@@ -1339,7 +1343,7 @@ export class SecretNetworkClient {
             type_url === "/secret.compute.v1beta1.MsgExecuteContract"
           ) {
             const decoded = MsgExecuteContractResponse.decode(
-              txMsgData.data[msgIndex].data,
+              txMsgData.msg_responses[msgIndex].value,
             );
             const decrypted = fromBase64(
               fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
@@ -1351,7 +1355,7 @@ export class SecretNetworkClient {
             type_url === "/secret.compute.v1beta1.MsgMigrateContract"
           ) {
             const decoded = MsgMigrateContractResponse.decode(
-              txMsgData.data[msgIndex].data,
+              txMsgData.msg_responses[msgIndex].value,
             );
             const decrypted = fromBase64(
               fromUtf8(await this.encryptionUtils.decrypt(decoded.data, nonce)),
@@ -1455,7 +1459,7 @@ export class SecretNetworkClient {
 
     let tx_response: TxResponsePb | undefined;
 
-        /*
+    /*
     if (mode === BroadcastMode.Block) {
       waitForCommit = true;
 
@@ -1587,7 +1591,7 @@ export class SecretNetworkClient {
 
         return await this.decodeTxResponse(tx_response!, ibcTxOptions);
       }
-    } else */if (mode === BroadcastMode.Sync) {
+    } else */ if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
         "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
@@ -1629,10 +1633,12 @@ export class SecretNetworkClient {
       );
     }
 
+    /*
     if (!waitForCommit) {
       //@ts-ignore
       return { transactionHash: txhash };
     }
+    */
 
     // sleep first because there's no point in checking right after broadcasting
     await sleep(checkIntervalMs / 2);

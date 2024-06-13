@@ -1,4 +1,4 @@
-import { toBase64 } from "@cosmjs/encoding";
+import { toBase64, Bech32 } from "@cosmjs/encoding";
 import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
 import { addressToBytes, is_gzip } from "../utils";
@@ -6,7 +6,7 @@ import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
 
 export interface MsgInstantiateContractParams extends MsgParams {
   /** The actor that signed the messages */
-  sender: Uint8Array;
+  sender: string;
   /** The id of the contract's WASM code */
   code_id: number | string;
   /** A unique label across all contracts */
@@ -30,7 +30,6 @@ export interface MsgInstantiateContractParams extends MsgParams {
   code_hash?: string;
   /** Admin is an optional address that can execute migrations */
   admin?: string;
-  sender_address: string;
 }
 
 export function getMissingCodeHashWarning(method: string): string {
@@ -40,6 +39,7 @@ export function getMissingCodeHashWarning(method: string): string {
 /** Instantiate a contract from code id */
 export class MsgInstantiateContract implements Msg {
   public sender: Uint8Array;
+  public sender_address: string;
   public codeId: string;
   public label: string;
   public initMsg: object;
@@ -58,7 +58,8 @@ export class MsgInstantiateContract implements Msg {
     code_hash,
     admin,
   }: MsgInstantiateContractParams) {
-    this.sender = sender;
+    this.sender = Bech32.decode(sender).data;
+    this.sender_address = String(sender);
     this.codeId = String(code_id);
     this.label = label;
     this.initMsg = init_msg;
@@ -90,7 +91,7 @@ export class MsgInstantiateContract implements Msg {
 
     const msgContent = {
       sender: this.sender,
-      sender_address: new TextDecoder().decode(this.sender),
+      sender_address: this.sender_address,
       code_id: this.codeId,
       label: this.label,
       init_msg: this.initMsgEncrypted,
