@@ -2064,42 +2064,50 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    test("CancelSoftwareUpgradeProposal", async () => {
-      const { secretjs } = accounts[0];
+  // TODO: Add test for MsgCancelUpgrade
+  test("CancelUpgrade", async () => {
+    console.error("Add CancelUpgrade test case");
+  });
 
-      const proposalsBefore = await getAllProposals(secretjs);
+  // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
+  // proposals, see MsgCancelUpgrade.
+  // ------------------------------------------------------------------------
+    // test("CancelSoftwareUpgradeProposal", async () => {
+    //   const { secretjs } = accounts[0];
 
-      const tx = await secretjs.tx.gov.submitProposal(
-        {
-          type: ProposalType.CancelSoftwareUpgradeProposal,
-          proposer: accounts[0].address,
-          initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi let's cancel",
-            description: "PROD FEAR",
-          },
-        },
-        {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
-        },
-      );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
-      }
-      expect(tx.code).toBe(TxResultCode.Success);
+    //   const proposalsBefore = await getAllProposals(secretjs);
 
-      expect(
-        getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
-      ).toBe("CancelSoftwareUpgrade");
-      expect(
-        Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
-      ).toBeGreaterThanOrEqual(1);
+    //   const tx = await secretjs.tx.gov.submitProposal(
+    //     {
+    //       type: ProposalType.CancelSoftwareUpgradeProposal,
+    //       proposer: accounts[0].address,
+    //       initial_deposit: stringToCoins("10000000uscrt"),
+    //       content: {
+    //         title: "Hi let's cancel",
+    //         description: "PROD FEAR",
+    //       },
+    //     },
+    //     {
+    //       broadcastCheckIntervalMs: 100,
+    //       gasLimit: 5_000_000,
+    //     },
+    //   );
+    //   if (tx.code !== TxResultCode.Success) {
+    //     console.error(tx.rawLog);
+    //   }
+    //   expect(tx.code).toBe(TxResultCode.Success);
 
-      const proposalsAfter = await getAllProposals(secretjs);
+    //   expect(
+    //     getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
+    //   ).toBe("CancelSoftwareUpgrade");
+    //   expect(
+    //     Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
+    //   ).toBeGreaterThanOrEqual(1);
 
-      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
-    });
+    //   const proposalsAfter = await getAllProposals(secretjs);
+
+    //   expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    // });
   });
 
   test("MsgVote", async () => {
@@ -3051,8 +3059,11 @@ describe("sanity", () => {
 
 describe("tx.feegrant", () => {
   test("MsgGrantAllowance", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjs } = accounts[1];
     const newWallet = new AminoWallet(); // this tests both amino & protobuf
+
+    // TODO: add a query to find a wallet with suitable balance
+    console.warn("[!] Add a query to find an account with suitable balance to fund the transaction")
 
     let tx = await secretjs.tx.feegrant.grantAllowance({
       granter: secretjs.address,
