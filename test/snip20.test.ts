@@ -5,7 +5,7 @@ import {
   MsgInstantiateContractResponse,
   TxResultCode,
 } from "../src";
-import { accounts, getValueFromRawLog } from "./utils";
+import { accounts, getValueFromEvents } from "./utils";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -13,9 +13,9 @@ beforeAll(() => {
 
 describe("tx.snip20", () => {
   test("transfer", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -34,13 +34,13 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id: code_id,
     });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -74,20 +74,20 @@ describe("tx.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txExec = await secretjs.tx.snip20.transfer(
+    const txExec = await secretjsProto.tx.snip20.transfer(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address,
         msg: {
           transfer: { recipient: accounts[1].address, amount: "2" },
@@ -104,9 +104,9 @@ describe("tx.snip20", () => {
   });
 
   test("send", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -125,14 +125,14 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -166,20 +166,20 @@ describe("tx.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txExec = await secretjs.tx.snip20.send(
+    const txExec = await secretjsProto.tx.snip20.send(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address,
         msg: { send: { recipient: accounts[1].address, amount: "2" } },
       },
@@ -194,9 +194,9 @@ describe("tx.snip20", () => {
   });
 
   test("increase allowance", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -215,14 +215,14 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -255,20 +255,20 @@ describe("tx.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    let txExec = await secretjs.tx.snip20.increaseAllowance(
+    let txExec = await secretjsProto.tx.snip20.increaseAllowance(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: {
           increase_allowance: {
@@ -288,9 +288,9 @@ describe("tx.snip20", () => {
   });
 
   test("decrease allowance", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -308,14 +308,14 @@ describe("tx.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -348,20 +348,20 @@ describe("tx.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    let txExec = await secretjs.tx.snip20.increaseAllowance(
+    let txExec = await secretjsProto.tx.snip20.increaseAllowance(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: {
           increase_allowance: {
@@ -379,9 +379,9 @@ describe("tx.snip20", () => {
       fromUtf8(MsgExecuteContractResponse.decode(txExec.data[0]).data),
     ).toContain("increase_allowance");
 
-    txExec = await secretjs.tx.snip20.decreaseAllowance(
+    txExec = await secretjsProto.tx.snip20.decreaseAllowance(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: {
           decrease_allowance: {
@@ -403,9 +403,9 @@ describe("tx.snip20", () => {
 
 describe("query.snip20", () => {
   test("balance", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -423,14 +423,14 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -463,20 +463,20 @@ describe("query.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txExec = await secretjs.tx.snip20.setViewingKey(
+    const txExec = await secretjsProto.tx.snip20.setViewingKey(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
@@ -487,8 +487,8 @@ describe("query.snip20", () => {
     }
     expect(txExec.code).toBe(TxResultCode.Success);
 
-    const txQuery = await secretjs.query.snip20.getBalance({
-      address: secretjs.address,
+    const txQuery = await secretjsProto.query.snip20.getBalance({
+      address: secretjsProto.address,
       contract: { address: contractAddress, code_hash: code_hash! },
       auth: { key: "hello" },
     });
@@ -497,9 +497,9 @@ describe("query.snip20", () => {
   });
 
   test("token parameters", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -517,14 +517,14 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -557,18 +557,18 @@ describe("query.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const txQuery = await secretjs.query.snip20.getSnip20Params({
+    const txQuery = await secretjsProto.query.snip20.getSnip20Params({
       contract: { address: contractAddress, code_hash: code_hash! },
     });
 
@@ -583,9 +583,9 @@ describe("query.snip20", () => {
   });
 
   test("allowance", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -603,14 +603,14 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -643,20 +643,20 @@ describe("query.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    await secretjs.tx.snip20.increaseAllowance(
+    await secretjsProto.tx.snip20.increaseAllowance(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: {
           increase_allowance: {
@@ -670,9 +670,9 @@ describe("query.snip20", () => {
       },
     );
 
-    await secretjs.tx.snip20.setViewingKey(
+    await secretjsProto.tx.snip20.setViewingKey(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
@@ -681,9 +681,9 @@ describe("query.snip20", () => {
       },
     );
 
-    const txQuery = await secretjs.query.snip20.GetAllowance({
+    const txQuery = await secretjsProto.query.snip20.GetAllowance({
       contract: { address: contractAddress, code_hash: code_hash! },
-      owner: secretjs.address,
+      owner: secretjsProto.address,
       spender: accounts[1].address,
       auth: { key: "hello" },
     });
@@ -691,15 +691,15 @@ describe("query.snip20", () => {
     expect(txQuery.allowance).toEqual({
       allowance: "2",
       expiration: null,
-      owner: secretjs.address,
+      owner: secretjsProto.address,
       spender: accounts[1].address,
     });
   });
 
   test("transaction history", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -717,14 +717,14 @@ describe("query.snip20", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: code_hash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id: code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -757,20 +757,20 @@ describe("query.snip20", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+    expect(getValueFromEvents(txInit.events, "message.action")).toBe(
       "/secret.compute.v1beta1.MsgInstantiateContract",
     );
-    const contractAddress = getValueFromRawLog(
-      txInit.rawLog,
+    const contractAddress = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contractAddress).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    await secretjs.tx.snip20.setViewingKey(
+    await secretjsProto.tx.snip20.setViewingKey(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: { set_viewing_key: { key: "hello" } },
       },
@@ -779,9 +779,9 @@ describe("query.snip20", () => {
       },
     );
 
-    await secretjs.tx.snip20.transfer(
+    await secretjsProto.tx.snip20.transfer(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address: contractAddress,
         msg: {
           transfer: { recipient: accounts[1].address, amount: "2" },
@@ -792,9 +792,9 @@ describe("query.snip20", () => {
       },
     );
 
-    const txQuery = await secretjs.query.snip20.getTransactionHistory({
+    const txQuery = await secretjsProto.query.snip20.getTransactionHistory({
       contract: { address: contractAddress, code_hash: code_hash! },
-      address: secretjs.address,
+      address: secretjsProto.address,
       auth: { key: "hello" },
       page_size: 10,
     });
@@ -806,9 +806,9 @@ describe("query.snip20", () => {
     });
     expect(txQuery.transaction_history.txs[0].action).toEqual({
       transfer: {
-        from: secretjs.address,
+        from: secretjsProto.address,
         recipient: accounts[1].address,
-        sender: secretjs.address,
+        sender: secretjsProto.address,
       },
     });
   });
