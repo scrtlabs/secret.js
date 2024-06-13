@@ -6,7 +6,7 @@ import {
   MsgInstantiateContractResponse,
   TxResultCode,
 } from "../src";
-import { accounts, getValueFromRawLog } from "./utils";
+import { accounts, getValueFromEvents } from "./utils";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -14,9 +14,9 @@ beforeAll(() => {
 
 describe("tx.snip721", () => {
   test("Send", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -34,13 +34,13 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id,
     });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -68,8 +68,8 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contract_address).toBe(
@@ -111,7 +111,7 @@ describe("tx.snip721", () => {
       sent_funds: [],
     });
 
-    const tx = await secretjs.tx.broadcast([addMinterMsg, mintMsg], {
+    const tx = await secretjsProto.tx.broadcast([addMinterMsg, mintMsg], {
       gasLimit: 5_000_000,
     });
     if (tx.code !== TxResultCode.Success) {
@@ -119,9 +119,9 @@ describe("tx.snip721", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const txExec = await secretjs.tx.snip721.send(
+    const txExec = await secretjsProto.tx.snip721.send(
       {
-        sender: secretjs.address,
+        sender: secretjsProto.address,
         contract_address,
         msg: {
           send_nft: {
@@ -145,9 +145,9 @@ describe("tx.snip721", () => {
   });
 
   test("Add Minters", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -165,13 +165,13 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id,
     });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -199,8 +199,8 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
 
@@ -208,7 +208,7 @@ describe("tx.snip721", () => {
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const addMinterTx = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjsProto.tx.snip721.addMinter(
       {
         contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
@@ -229,9 +229,9 @@ describe("tx.snip721", () => {
   });
 
   test("Mint", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -249,13 +249,13 @@ describe("tx.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
-    const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
+    const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id: code_id,
     });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -283,15 +283,15 @@ describe("tx.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    const addMinterTx = await secretjs.tx.snip721.addMinter(
+    const addMinterTx = await secretjsProto.tx.snip721.addMinter(
       {
         contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
@@ -310,7 +310,7 @@ describe("tx.snip721", () => {
       fromUtf8(MsgExecuteContractResponse.decode(addMinterTx.data[0]).data),
     ).toContain('{"add_minters":{"status":"success"}}');
 
-    const mintTx = await secretjs.tx.snip721.mint(
+    const mintTx = await secretjsProto.tx.snip721.mint(
       {
         contract_address,
         sender: accounts[0].address,
@@ -337,9 +337,9 @@ describe("tx.snip721", () => {
 
 describe("query.snip721", () => {
   test("View Tokens", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjsProto } = accounts[0];
 
-    const txStore = await secretjs.tx.compute.storeCode(
+    const txStore = await secretjsProto.tx.compute.storeCode(
       {
         sender: accounts[0].address,
         wasm_byte_code: fs.readFileSync(
@@ -357,14 +357,14 @@ describe("query.snip721", () => {
     }
     expect(txStore.code).toBe(TxResultCode.Success);
 
-    const code_id = getValueFromRawLog(txStore.rawLog, "message.code_id");
+    const code_id = getValueFromEvents(txStore.events, "message.code_id");
 
     const { code_hash: codeHash } =
-      await secretjs.query.compute.codeHashByCodeId({
+      await secretjsProto.query.compute.codeHashByCodeId({
         code_id,
       });
 
-    const txInit = await secretjs.tx.compute.instantiateContract(
+    const txInit = await secretjsProto.tx.compute.instantiateContract(
       {
         sender: accounts[0].address,
         code_id,
@@ -392,15 +392,15 @@ describe("query.snip721", () => {
     }
     expect(txInit.code).toBe(TxResultCode.Success);
 
-    const contract_address = getValueFromRawLog(
-      txInit.rawLog,
+    const contract_address = getValueFromEvents(
+      txInit.events,
       "message.contract_address",
     );
     expect(contract_address).toBe(
       MsgInstantiateContractResponse.decode(txInit.data[0]).address,
     );
 
-    let tx = await secretjs.tx.snip721.setViewingKey(
+    let tx = await secretjsProto.tx.snip721.setViewingKey(
       {
         contract_address,
         sender: accounts[0].address,
@@ -419,7 +419,7 @@ describe("query.snip721", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    tx = await secretjs.tx.snip721.addMinter(
+    tx = await secretjsProto.tx.snip721.addMinter(
       {
         contract_address,
         msg: { add_minters: { minters: [accounts[0].address] } },
@@ -434,7 +434,7 @@ describe("query.snip721", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    tx = await secretjs.tx.snip721.mint(
+    tx = await secretjsProto.tx.snip721.mint(
       {
         contract_address,
         sender: accounts[0].address,
@@ -453,7 +453,7 @@ describe("query.snip721", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const tokens = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens = await secretjsProto.query.snip721.GetOwnedTokens({
       contract: { address: contract_address, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: {
@@ -463,7 +463,7 @@ describe("query.snip721", () => {
 
     expect(tokens.token_list.tokens.length).toEqual(1);
 
-    const permit = await secretjs.utils.accessControl.permit.sign(
+    const permit = await secretjsProto.utils.accessControl.permit.sign(
       accounts[0].address,
       "secretdev-1",
       "Test",
@@ -472,7 +472,7 @@ describe("query.snip721", () => {
       false,
     );
 
-    const tokens2 = await secretjs.query.snip721.GetOwnedTokens({
+    const tokens2 = await secretjsProto.query.snip721.GetOwnedTokens({
       contract: { address: contract_address, codeHash: codeHash! },
       owner: accounts[0].address,
       auth: { permit: permit },

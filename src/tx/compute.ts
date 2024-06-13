@@ -140,7 +140,7 @@ export class MsgInstantiateContract implements Msg {
 
 export interface MsgExecuteContractParams<T> extends MsgParams {
   /** The actor that signed the messages */
-  sender: Uint8Array;
+  sender: string;
   /** The contract's address */
   contract_address: string;
   /** The input message */
@@ -160,12 +160,12 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
    * - "0xAF74387E276BE8874F07BEC3A87023EE49B0E7EBE08178C49D0A49C3C98ED60E"
    */
   code_hash?: string;
-  sender_address: string;
 }
 
 /** Execute a function on a contract */
 export class MsgExecuteContract<T extends object> implements Msg {
   public sender: Uint8Array;
+  public sender_address: string;
   public contractAddress: string;
   public msg: T;
   private msgEncrypted: Uint8Array | null;
@@ -180,7 +180,8 @@ export class MsgExecuteContract<T extends object> implements Msg {
     sent_funds: sentFunds,
     code_hash: codeHash,
   }: MsgExecuteContractParams<T>) {
-    this.sender = sender;
+    this.sender = Bech32.decode(sender).data;
+    this.sender_address = String(sender);
     this.contractAddress = contractAddress;
     this.msg = msg;
     this.msgEncrypted = null;
@@ -210,7 +211,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
     const msgContent = {
       sender: this.sender,
-      sender_address: new TextDecoder().decode(this.sender),
+      sender_address: this.sender_address,
       contract: addressToBytes(this.contractAddress),
       msg: this.msgEncrypted,
       sent_funds: this.sentFunds,
