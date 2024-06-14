@@ -69,7 +69,8 @@ const mnemonics = [
 
 for (let i = 0; i < mnemonics.length; i++) {
   const mnemonic = mnemonics[i];
-  const walletAmino = new AminoWallet(mnemonic);
+  //const walletAmino = new AminoWallet(mnemonic);
+  const walletAmino = new Wallet(mnemonic);
   const walletProto = new Wallet(mnemonic);
   accounts[i] = {
     address: walletAmino.address,
@@ -118,7 +119,7 @@ export async function storeSnip20Ibc(
   }
   expect(txStore.code).toBe(TxResultCode.Success);
 
-  return getValueFromRawLog(txStore.rawLog, "message.code_id");
+  return getValueFromEvents(txStore.events, "message.code_id");
 }
 
 export function checkInstantiateSuccess(tx: TxResponse): string {
@@ -127,14 +128,14 @@ export function checkInstantiateSuccess(tx: TxResponse): string {
   }
   expect(tx.code).toBe(TxResultCode.Success);
 
-  expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
+  expect(getValueFromEvents(tx.events, "message.action")).toBe(
     "/secret.compute.v1beta1.MsgInstantiateContract",
   );
-  expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+  expect(getValueFromEvents(tx.events, "message.contract_address")).toContain(
     "secret1",
   );
 
-  return getValueFromRawLog(tx.rawLog, "message.contract_address");
+  return getValueFromEvents(tx.events, "message.contract_address");
 }
 
 export function getMnemonicRegexForAccountName(account: string) {
@@ -185,7 +186,7 @@ export async function storeContract(
   wasmPath: string,
   account: Account,
 ): Promise<number> {
-  const secretjs = account.secretjs;
+  const secretjs = account.secretjsProto;
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: account.address,
@@ -202,7 +203,7 @@ export async function storeContract(
   }
   expect(txStore.code).toBe(TxResultCode.Success);
 
-  return Number(getValueFromRawLog(txStore.rawLog, "message.code_id"));
+  return Number(getValueFromEvents(txStore.events, "message.code_id"));
 }
 
 export async function initContract(
@@ -211,7 +212,7 @@ export async function initContract(
   account: Account,
   label?: string,
 ): Promise<string> {
-  const secretjs = account.secretjs;
+  const secretjs = account.secretjsProto;
   const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id: String(code_id),
   });
@@ -233,11 +234,11 @@ export async function initContract(
     console.error(txInit.rawLog);
   }
   expect(txInit.code).toBe(TxResultCode.Success);
-  expect(getValueFromRawLog(txInit.rawLog, "message.action")).toBe(
+  expect(getValueFromEvents(txInit.events, "message.action")).toBe(
     "/secret.compute.v1beta1.MsgInstantiateContract",
   );
 
-  return getValueFromRawLog(txInit.rawLog, "message.contract_address");
+  return getValueFromEvents(txInit.events, "message.contract_address");
 }
 
 export async function getBalance(

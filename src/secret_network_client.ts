@@ -1089,6 +1089,7 @@ export class SecretNetworkClient {
     const { tx_responses } = await TxService.GetTxsEvent(
       {
         events: query.split(" AND ").map((q) => q.trim()),
+        query,
         pagination,
         order_by,
       },
