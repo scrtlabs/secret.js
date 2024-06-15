@@ -32,10 +32,10 @@ export type Account = {
 
 export const accounts: Account[] = [];
 
-export const chain1LCD = "http://localhost:1317";
+export const chain1LCD = "http://20.84.98.207:1316";
 export const chain2LCD = "http://localhost:2317";
 
-export const chain1RPC = "http://localhost:26657";
+export const chain1RPC = "http://20.84.98.207:26657";
 export const chain2RPC = "http://localhost:36657";
 
 // Initialize genesis accounts
@@ -405,9 +405,9 @@ export async function waitForChainToStart({
         break;
       }
     } catch (e) {
-      // console.error(e);
+      console.warn("Chain is not ready:" + e.message);
     }
-    await sleep(250);
+    await sleep(1000);
   }
 }
 

@@ -209,11 +209,17 @@ export class ComputeQuerier {
       return JSON.parse(fromUtf8(fromBase64(fromUtf8(decryptedBase64Result))));
     } catch (err) {
       try {
-        const errorMessageRgx =
+        const errorMessageRgx1 =
           /encrypted: (.+?): (?:instantiate|execute|query|reply to|migrate) contract failed/g;
-        const rgxMatches = errorMessageRgx.exec(err.message);
+        const errorMessageRgx2 =
+          /(?:instantiate|execute|query|reply to|migrate) contract failed: encrypted: ([\w+\/=]+)/g;
+
+        let rgxMatches = errorMessageRgx1.exec(err.message);
         if (rgxMatches == null || rgxMatches?.length != 2) {
-          throw err;
+          rgxMatches = errorMessageRgx2.exec(err.message);
+          if (rgxMatches == null || rgxMatches?.length != 2) {
+            throw err;
+          }
         }
 
         const encryptedError = fromBase64(rgxMatches[1]);
