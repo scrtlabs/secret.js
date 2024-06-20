@@ -18,8 +18,24 @@ import {
   QueryVotesResponse,
 } from "../grpc_gateway/cosmos/gov/v1beta1/query.pb";
 
+// import {
+//   Query as QueryV1,
+//   QueryConstitutionRequest,
+//   QueryConstitutionResponse
+// } from "../grpc_gateway/cosmos/gov/v1/query.pb"
+
 export class GovQuerier {
   constructor(private url: string) {}
+
+  // constitution(
+  //   req: QueryConstitutionRequest,
+  //   headers?: HeadersInit,
+  // ): Promise<QueryConstitutionResponse> {
+  //   return QueryV1.Constitution(req, {
+  //     headers,
+  //     pathPrefix: this.url,
+  //   });
+  // }
 
   proposal(
     req: QueryProposalRequest,

@@ -24,6 +24,8 @@ import {
   QueryValidatorOutstandingRewardsResponse,
   QueryValidatorSlashesRequest,
   QueryValidatorSlashesResponse,
+  QueryValidatorDistributionInfoRequest,
+  QueryValidatorDistributionInfoResponse,
 } from "../grpc_gateway/cosmos/distribution/v1beta1/query.pb";
 
 export class DistributionQuerier {
@@ -147,5 +149,15 @@ export class DistributionQuerier {
       headers,
       pathPrefix: this.url,
     });
+  }
+
+  validatorDistributionInfo(
+    req: QueryValidatorDistributionInfoRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryValidatorDistributionInfoResponse> {
+    return Query.ValidatorDistributionInfo(req, {
+      headers,
+      pathPrefix: this.url,
+    });    
   }
 }

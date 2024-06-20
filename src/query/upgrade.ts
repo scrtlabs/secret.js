@@ -1,5 +1,7 @@
 import {
   Query,
+  QueryAuthorityRequest,
+  QueryAuthorityResponse,
   QueryAppliedPlanRequest,
   QueryAppliedPlanResponse,
   QueryCurrentPlanRequest,
@@ -12,6 +14,16 @@ import {
 
 export class UpgradeQuerier {
   constructor(private url: string) {}
+
+  authority(
+    req: QueryAuthorityRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryAuthorityResponse> {
+    return Query.Authority(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 
   currentPlan(
     req: QueryCurrentPlanRequest,

@@ -10,10 +10,22 @@ import {
   QueryConnectionResponse,
   QueryConnectionsRequest,
   QueryConnectionsResponse,
+  QueryConnectionParamsRequest,
+  QueryConnectionParamsResponse,
 } from "../grpc_gateway/ibc/core/connection/v1/query.pb";
 
 export class IbcConnectionQuerier {
   constructor(private url: string) {}
+
+  connectionParams(
+    req: QueryConnectionParamsRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryConnectionParamsResponse> {
+    return Query.ConnectionParams(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 
   connection(
     req: QueryConnectionRequest,

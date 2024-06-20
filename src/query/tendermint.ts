@@ -11,11 +11,23 @@ import {
   GetSyncingResponse,
   GetValidatorSetByHeightRequest,
   GetValidatorSetByHeightResponse,
+  ABCIQueryRequest,
+  ABCIQueryResponse,
   Service,
 } from "../grpc_gateway/cosmos/base/tendermint/v1beta1/query.pb";
 
 export class TendermintQuerier {
   constructor(private url: string) {}
+
+  aBCIQuery(
+    req: ABCIQueryRequest,
+    headers?: HeadersInit,
+  ): Promise<ABCIQueryResponse> {
+    return Service.ABCIQuery(req, {
+      headers,
+      pathPrefix: this.url,
+    })
+  }
 
   getNodeInfo(
     req: GetNodeInfoRequest,

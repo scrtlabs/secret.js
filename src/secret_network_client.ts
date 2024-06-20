@@ -236,6 +236,14 @@ import {
   isSignDoc,
   isSignDocCamelCase,
 } from "./wallet_amino";
+import { GroupQuerier } from "./query/group";
+import { OrmQuerier } from "./query/orm";
+import { AppQuerier } from "./query/app";
+import { NftQuerier } from "./query/nft";
+import { GovV1Querier } from "./query/gov_v1";
+import { CircuitQuerier } from "./query/circuit";
+import { AutoCliQuerier } from "./query/autocli";
+import { IbcWasmQuerier } from "./query/ibc_wasm";
 
 export type CreateClientOptions = {
   /** A URL to the API service, also known as LCD, REST API or gRPC-gateway, by default on port 1317 */
@@ -435,6 +443,7 @@ export type Querier = {
   evidence: EvidenceQuerier;
   feegrant: FeegrantQuerier;
   gov: GovQuerier;
+  gov_v1: GovV1Querier;
   ibc_channel: IbcChannelQuerier;
   ibc_client: IbcClientQuerier;
   ibc_connection: IbcConnectionQuerier;
@@ -453,6 +462,13 @@ export type Querier = {
   staking: StakingQuerier;
   tendermint: TendermintQuerier;
   upgrade: UpgradeQuerier;
+  group: GroupQuerier;
+  app: AppQuerier;
+  orm: OrmQuerier;
+  nft: NftQuerier;
+  circuit: CircuitQuerier;
+  autocli: AutoCliQuerier;
+  ibc_wasm: IbcWasmQuerier;
 };
 
 export type ArrayLog = Array<{
@@ -867,6 +883,7 @@ export class SecretNetworkClient {
       evidence: new EvidenceQuerier(options.url),
       feegrant: new FeegrantQuerier(options.url),
       gov: new GovQuerier(options.url),
+      gov_v1: new GovV1Querier(options.url),
       ibc_channel: new IbcChannelQuerier(options.url),
       ibc_client: new IbcClientQuerier(options.url),
       ibc_connection: new IbcConnectionQuerier(options.url),
@@ -888,6 +905,13 @@ export class SecretNetworkClient {
       staking: new StakingQuerier(options.url),
       tendermint: new TendermintQuerier(options.url),
       upgrade: new UpgradeQuerier(options.url),
+      group: new GroupQuerier(options.url),
+      orm: new OrmQuerier(options.url),
+      app: new AppQuerier(options.url),
+      nft: new NftQuerier(options.url),
+      circuit: new CircuitQuerier(options.url),
+      autocli: new AutoCliQuerier(options.url),
+      ibc_wasm: new IbcWasmQuerier(options.url),
       getTx: (hash, ibcTxOptions) => this.getTx(hash, ibcTxOptions),
       txsQuery: (query, ibcTxOptions, pagination, order_by) =>
         this.txsQuery(query, ibcTxOptions, pagination, order_by),

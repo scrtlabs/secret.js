@@ -32,11 +32,11 @@ export type Account = {
 
 export const accounts: Account[] = [];
 
-export const chain1LCD = "http://localhost:1316";
-export const chain2LCD = "http://localhohst:2317";
+export const chain1LCD = "http://57.151.81.199:1317";
+export const chain2LCD = "http://172.190.87.208:1317";
 
-export const chain1RPC = "http://localhost:26657";
-export const chain2RPC = "http://localhost:36657";
+export const chain1RPC = "http://57.151.81.199:26657";
+export const chain2RPC = "http://172.190.87.208:26657";
 
 // Initialize genesis accounts
 const mnemonics = [

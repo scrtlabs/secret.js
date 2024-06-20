@@ -29,6 +29,7 @@ import {
   validateAddress,
   validatorAddressToSelfDelegatorAddress,
 } from "../src";
+import { MsgCommunityPoolSpend } from "../src/protobuf/cosmos/distribution/v1beta1/tx";
 import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
 import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
@@ -1969,10 +1970,19 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    test("CommunityPoolSpendProposal", async () => {
+    // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x, 
+    // there is no longer a need for an explicit CommunityPoolSpendProposal. 
+    // To spend community pool funds, a simple MsgCommunityPoolSpend can be 
+    // invoked from the x/gov module via a v1 governance proposal.
+    test.skip("CommunityPoolSpendProposal", async () => {
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
+      const msg = MsgCommunityPoolSpend.create({
+        authority: accounts[0].address,
+        recipient: accounts[0].address,
+        amount: stringToCoins("1uscrt"),
+      });
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
@@ -1982,7 +1992,7 @@ describe("tx.gov", () => {
           content: {
             title: "Hi",
             description: "Hello",
-            recipient: accounts[1].address,
+            recipient: accounts[0].address,
             amount: stringToCoins("1uscrt"),
           },
         },
@@ -2047,8 +2057,8 @@ describe("tx.gov", () => {
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
-
-    test("SoftwareUpgradeProposal", async () => {
+    // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov proposals, see MsgSoftwareUpgrade.
+    test.skip("SoftwareUpgradeProposal", async () => {
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
@@ -2098,42 +2108,42 @@ describe("tx.gov", () => {
   // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
   // proposals, see MsgCancelUpgrade.
   // ------------------------------------------------------------------------
-    // test("CancelSoftwareUpgradeProposal", async () => {
-    //   const { secretjs } = accounts[0];
+    test.skip("CancelSoftwareUpgradeProposal", async () => {
+      const { secretjs } = accounts[0];
 
-    //   const proposalsBefore = await getAllProposals(secretjs);
+      const proposalsBefore = await getAllProposals(secretjs);
 
-    //   const tx = await secretjs.tx.gov.submitProposal(
-    //     {
-    //       type: ProposalType.CancelSoftwareUpgradeProposal,
-    //       proposer: accounts[0].address,
-    //       initial_deposit: stringToCoins("10000000uscrt"),
-    //       content: {
-    //         title: "Hi let's cancel",
-    //         description: "PROD FEAR",
-    //       },
-    //     },
-    //     {
-    //       broadcastCheckIntervalMs: 100,
-    //       gasLimit: 5_000_000,
-    //     },
-    //   );
-    //   if (tx.code !== TxResultCode.Success) {
-    //     console.error(tx.rawLog);
-    //   }
-    //   expect(tx.code).toBe(TxResultCode.Success);
+      const tx = await secretjs.tx.gov.submitProposal(
+        {
+          type: ProposalType.CancelSoftwareUpgradeProposal,
+          proposer: accounts[0].address,
+          initial_deposit: stringToCoins("10000000uscrt"),
+          content: {
+            title: "Hi let's cancel",
+            description: "PROD FEAR",
+          },
+        },
+        {
+          broadcastCheckIntervalMs: 100,
+          gasLimit: 5_000_000,
+        },
+      );
+      if (tx.code !== TxResultCode.Success) {
+        console.error(tx.rawLog);
+      }
+      expect(tx.code).toBe(TxResultCode.Success);
 
-    //   expect(
-    //     getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_type"),
-    //   ).toBe("CancelSoftwareUpgrade");
-    //   expect(
-    //     Number(getValueFromRawLog(tx.rawLog, "submit_proposal.proposal_id")),
-    //   ).toBeGreaterThanOrEqual(1);
+      expect(
+        getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
+      ).toBe("CancelSoftwareUpgrade");
+      expect(
+        Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
+      ).toBeGreaterThanOrEqual(1);
 
-    //   const proposalsAfter = await getAllProposals(secretjs);
+      const proposalsAfter = await getAllProposals(secretjs);
 
-    //   expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
-    // });
+      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    });
   });
 
   test("MsgVote", async () => {
@@ -2973,7 +2983,9 @@ describe("sanity", () => {
         .map((x) => x.slice(0, 1).toLocaleLowerCase() + x.slice(1))
         .sort();
 
-      expect(secretjsQueries).toContainEqual(grpcGatewayQueries);
+      if (grpcGatewayQueries.length > 0) {
+        expect(secretjsQueries).toContainEqual(grpcGatewayQueries);
+      }
     }
   });
 
@@ -3085,7 +3097,7 @@ describe("sanity", () => {
 
 describe("tx.feegrant", () => {
   test("MsgGrantAllowance", async () => {
-    const { secretjs } = accounts[1];
+    const { secretjs } = accounts[0];
     const newWallet = new Wallet(); // this tests both amino & protobuf
 
     // TODO: add a query to find a wallet with suitable balance

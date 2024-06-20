@@ -26,10 +26,58 @@ import {
   QueryUnreceivedAcksResponse,
   QueryUnreceivedPacketsRequest,
   QueryUnreceivedPacketsResponse,
+  QueryChannelParamsRequest,
+  QueryChannelParamsResponse,
+  QueryNextSequenceSendRequest,
+  QueryNextSequenceSendResponse,
+  QueryUpgradeErrorRequest,
+  QueryUpgradeErrorResponse,
+  QueryUpgradeRequest,
+  QueryUpgradeResponse,
 } from "../grpc_gateway/ibc/core/channel/v1/query.pb";
 
 export class IbcChannelQuerier {
   constructor(private url: string) {}
+
+  channelParams(
+    req: QueryChannelParamsRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryChannelParamsResponse> {
+    return Query.ChannelParams(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  nextSequenceSend(
+    req: QueryNextSequenceSendRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryNextSequenceSendResponse> {
+    return Query.NextSequenceSend(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  upgradeError(
+    req: QueryUpgradeErrorRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryUpgradeErrorResponse> {
+    return Query.UpgradeError(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  upgrade(
+    req: QueryUpgradeRequest,
+    headers?: HeadersInit,
+  ): Promise<QueryUpgradeResponse> {
+    return Query.Channel(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
 
   channel(
     req: QueryChannelRequest,
