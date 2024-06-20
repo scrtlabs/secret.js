@@ -11,6 +11,8 @@ import {
   MsgSend,
   MsgSetAutoRestake,
   MsgSubmitProposal,
+  MsgFundCommunityPool,
+  MsgFundCommunityPoolParams,
   ProposalType,
   SecretNetworkClient,
   StakeAuthorizationType,
@@ -337,13 +339,25 @@ describe("query", () => {
 });
 
 describe("query.distribution", () => {
-  test("restakeThreshold()", async () => {
+  test("restakeThreshold", async () => {
     const { secretjs } = accounts[0];
     const { threshold } = await secretjs.query.distribution.restakeThreshold(
       {},
     );
 
     expect(threshold).toBe("10000000.000000000000000000");
+  });
+
+  test("CommunityPoolSpend", async () => {
+    const { secretjs } = accounts[0];
+    const tx = await secretjs.tx.distribution.fundCommunityPool(
+      {  
+        amount: [stringToCoin("10000uscrt")],
+        depositor: secretjs.address,
+       } as MsgFundCommunityPoolParams,
+    );
+
+    expect(tx.code).toBe(TxResultCode.Success);
   });
 });
 
@@ -1976,6 +1990,11 @@ describe("tx.gov", () => {
       const proposalsAfter = await getAllProposals(secretjs);
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+    });
+
+    test("CommunityPoolSpend", async () => {
+      const { secretjs } = accounts[0];
+      
     });
 
     // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x,
