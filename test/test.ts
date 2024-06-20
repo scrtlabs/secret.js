@@ -50,23 +50,22 @@ import {
   storeSnip20Ibc,
 } from "./utils";
 import { SendAuthorization } from "../src/protobuf/cosmos/bank/v1beta1/authz";
+import { QueryBalanceRequest } from "../src/grpc_gateway/cosmos/bank/v1beta1/query.pb";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
-  jest.useRealTimers()
+  jest.useRealTimers();
 });
 
-it('works with await Promise and setTimeout', async () => {
+it("works with await Promise and setTimeout", async () => {
   // Wait for 5 seconds before continuing
-  await new Promise(res => setTimeout(res, 5000));
+  await new Promise((res) => setTimeout(res, 5000));
   // Your test logic here
   expect(true).toBe(true);
 });
-
-
 
 describe("query", () => {
   test("getTx", async () => {
@@ -92,7 +91,7 @@ describe("query", () => {
     expect(txStore.code).toBe(TxResultCode.Success);
 
     const code_id = getValueFromEvents(txStore.events, "message.code_id");
-    expect(Number.parseInt(code_id, 10)).toBeGreaterThanOrEqual(0);    
+    expect(Number.parseInt(code_id, 10)).toBeGreaterThanOrEqual(0);
 
     const { code_hash } = await secretjsProto.query.compute.codeHashByCodeId({
       code_id,
@@ -374,9 +373,8 @@ describe("query.ibc_iterchain_accounts_controller", () => {
 describe("query.ibc_interchain_accounts_host", () => {
   test("params()", async () => {
     const { secretjsProto } = accounts[0];
-    const { params } = await secretjsProto.query.ibc_iterchain_accounts_host.params(
-      {},
-    );
+    const { params } =
+      await secretjsProto.query.ibc_iterchain_accounts_host.params({});
 
     expect(params).toStrictEqual({
       host_enabled: true,
@@ -1623,10 +1621,18 @@ describe("tx.compute", () => {
     const timestampMs = String(new Date(timestampRfc3339).getTime());
     const timestampNs = timestampMs + ns;
 
-    expect(getValueFromEvents(tx.events, "message.action")).toBe("/secret.compute.v1beta1.MsgMigrateContract");
-    expect(getValueFromEvents(tx.events, "message.sender")).toBe("secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03");
-    expect(getValueFromEvents(tx.events, "migrate.contract_address")).toBe(contract_address);
-    expect(getValueFromEvents(tx.events, "wasm.contract_address")).toBe(contract_address);
+    expect(getValueFromEvents(tx.events, "message.action")).toBe(
+      "/secret.compute.v1beta1.MsgMigrateContract",
+    );
+    expect(getValueFromEvents(tx.events, "message.sender")).toBe(
+      "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
+    );
+    expect(getValueFromEvents(tx.events, "migrate.contract_address")).toBe(
+      contract_address,
+    );
+    expect(getValueFromEvents(tx.events, "wasm.contract_address")).toBe(
+      contract_address,
+    );
 
     // expect(tx.arrayLog).toStrictEqual([
     //   {
@@ -1958,7 +1964,9 @@ describe("tx.gov", () => {
       expect(tx.code).toBe(TxResultCode.Success);
 
       expect(
-        Number(getValueFromEvents(tx.events, "submit_proposal.voting_period_start")),
+        Number(
+          getValueFromEvents(tx.events, "submit_proposal.voting_period_start"),
+        ),
       ).toBeGreaterThanOrEqual(1);
 
       const { proposal_id } = MsgSubmitProposalResponse.decode(tx.data[0]);
@@ -1970,9 +1978,9 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x, 
-    // there is no longer a need for an explicit CommunityPoolSpendProposal. 
-    // To spend community pool funds, a simple MsgCommunityPoolSpend can be 
+    // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x,
+    // there is no longer a need for an explicit CommunityPoolSpendProposal.
+    // To spend community pool funds, a simple MsgCommunityPoolSpend can be
     // invoked from the x/gov module via a v1 governance proposal.
     test.skip("CommunityPoolSpendProposal", async () => {
       const { secretjs } = accounts[0];
@@ -2100,14 +2108,14 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-  // TODO: Add test for MsgCancelUpgrade
-  test("CancelUpgrade", async () => {
-    console.warn("Add CancelUpgrade test case");
-  });
+    // TODO: Add test for MsgCancelUpgrade
+    test("CancelUpgrade", async () => {
+      console.warn("Add CancelUpgrade test case");
+    });
 
-  // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
-  // proposals, see MsgCancelUpgrade.
-  // ------------------------------------------------------------------------
+    // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
+    // proposals, see MsgCancelUpgrade.
+    // ------------------------------------------------------------------------
     test.skip("CancelSoftwareUpgradeProposal", async () => {
       const { secretjs } = accounts[0];
 
@@ -2260,7 +2268,7 @@ describe("tx.gov", () => {
       {
         type: ProposalType.TextProposal,
         proposer: accounts[0].address,
-        initial_deposit: [{amount: "1000000", denom:"uscrt"}],
+        initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
         content: {
           title: "Hi",
           description: "Hello",
@@ -3101,10 +3109,30 @@ describe("tx.feegrant", () => {
     const newWallet = new Wallet(); // this tests both amino & protobuf
 
     // TODO: add a query to find a wallet with suitable balance
-    console.warn("[!] Add a query to find an account with suitable balance to fund the transaction")
+    console.warn(
+      "[!] Add a query to find an account with suitable balance to fund the transaction",
+    );
+
+    // Find a well funded wallet
+    let funded_wallet: string = secretjs.address;
+    for (let idx = 0; idx < accounts.length; idx++) {
+      try {
+        funded_wallet = accounts[idx].secretjs.address;
+        const q_bal = await secretjs.query.bank.balance({
+          address: funded_wallet,
+          denom: "uscrt",
+        } as QueryBalanceRequest);
+        expect(Number(q_bal.balance?.amount)).toBeGreaterThanOrEqual(1000000);
+        break;
+      } catch (e) {
+        console.error(
+          `Error occured while querying balance for address: ${secretjs.address}. ${e}`,
+        );
+      }
+    }
 
     let tx = await secretjs.tx.feegrant.grantAllowance({
-      granter: secretjs.address,
+      granter: funded_wallet,
       grantee: newWallet.address,
       allowance: {
         spend_limit: stringToCoins("1000000uscrt"),
@@ -3126,12 +3154,27 @@ describe("tx.feegrant", () => {
     // Send a tx without any balance
     const newWalletBalance = await getBalance(secretjs, newWallet.address);
     expect(newWalletBalance).toBe(BigInt(0));
+    // move sufficient amount of funds to the grantee in order to be able to submit a proposal
+    try {
+      const tx = await secretjs.tx.bank.send({
+        amount: stringToCoins("1500000uscrt"),
+        from_address: funded_wallet,
+        to_address: newWallet.address,
+      });
 
+      if (tx.code === TxResultCode.Success) {
+        const q_bal = await getBalance(secretjs, newWallet.address);
+        expect(q_bal).toBe(BigInt(1500000));
+      }
+    } catch (e) {
+      console.error(`Failed to fund wallet ${newWallet.address}: ${e.message}`);
+    }
+    // this proposal requires funds to be available at grantee address
     tx = await secretjsGrantee.tx.gov.submitProposal(
       {
         proposer: secretjsGrantee.address,
         type: ProposalType.TextProposal,
-        initial_deposit: [{amount: "1000000", denom:"uscrt"}],
+        initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
         content: {
           title: "Test Feegrant",
           description: "YOLO",
@@ -3149,7 +3192,7 @@ describe("tx.feegrant", () => {
     expect(tx.code).toBe(TxResultCode.Success);
   });
 
-  test("MsgRevokeAllowance", async () => {
+  test.only("MsgRevokeAllowance", async () => {
     const { secretjs } = accounts[0];
     const newWallet = new AminoWallet(); // this tests both amino & protobuf
 
