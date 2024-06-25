@@ -6,9 +6,9 @@
 
 import * as fm from "../../../fetch.pb"
 export type RaAuthenticate = {
-  sender?: Uint8Array
+  sender?: string
   certificate?: Uint8Array
-  sender_address?: string
+  sender_addr?: Uint8Array
 }
 
 export type RaAuthenticateResponse = {

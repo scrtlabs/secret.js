@@ -1,4 +1,4 @@
-import { toBase64 } from "@cosmjs/encoding";
+import { toBase64, Bech32 } from "@cosmjs/encoding";
 import { MsgParams } from ".";
 // import { addressToBytes } from "..";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
@@ -15,9 +15,9 @@ export class RaAuthenticate implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     const msgContent = {
-      sender: this.params.sender,
+      sender: Bech32.encode('secret', this.params.sender),
+      sender_addr: this.params.sender,
       certificate: this.params.certificate,
-      sender_address: new TextDecoder().decode(this.params.sender),
     };
 
     return {
