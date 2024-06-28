@@ -1,4 +1,4 @@
-import { toBase64, Bech32 } from "@cosmjs/encoding";
+import { toBase64, fromBech32 } from "@cosmjs/encoding";
 import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
 import { addressToBytes, is_gzip } from "../utils";
@@ -58,7 +58,8 @@ export class MsgInstantiateContract implements Msg {
     code_hash,
     admin,
   }: MsgInstantiateContractParams) {
-    this.sender = Bech32.decode(sender).data;
+    //this.sender = Bech32.decode(sender).data;
+    this.sender = fromBech32(sender).data;
     this.sender_address = String(sender);
     this.codeId = String(code_id);
     this.label = label;
@@ -180,7 +181,8 @@ export class MsgExecuteContract<T extends object> implements Msg {
     sent_funds: sentFunds,
     code_hash: codeHash,
   }: MsgExecuteContractParams<T>) {
-    this.sender = Bech32.decode(sender).data;
+    // this.sender = Bech32.decode(sender).data;
+    this.sender = fromBech32(sender).data;
     this.sender_address = String(sender);
     this.contractAddress = contractAddress;
     this.msg = msg;

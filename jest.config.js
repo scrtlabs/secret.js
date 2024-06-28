@@ -7,4 +7,7 @@ module.exports = {
   verbose: true,
   modulePathIgnorePatterns: ["dist", "scripts"],
   globalSetup: "<rootDir>/test/globalSetup.ts",
+  // moduleNameMapper: {
+  //     "^axios$": "axios/dist/node/axios.cjs"
+  //   }
 };

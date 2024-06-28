@@ -1,8 +1,8 @@
+import { stringToPath } from "@cosmjs/crypto";
+import { DirectSecp256k1HdWallet, OfflineDirectSigner, OfflineSigner } from "@cosmjs/proto-signing";
+import { GasPrice } from "@cosmjs/stargate";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
-import { stringToPath } from "@cosmjs/crypto";
-import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
-import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import {
@@ -32,10 +32,10 @@ export type Account = {
 
 export const accounts: Account[] = [];
 
-export const chain1LCD = "http://57.151.81.199:1317";
-export const chain2LCD = "http://172.190.87.208:1317";
+export const chain1LCD = "http://20.84.98.207:1317"; //20.84.98.207
+export const chain2LCD = "http://172.190.87.208:1317"; //172.190.87.208
 
-export const chain1RPC = "http://57.151.81.199:26657";
+export const chain1RPC = "http://20.84.98.207:26657";
 export const chain2RPC = "http://172.190.87.208:26657";
 
 // Initialize genesis accounts
@@ -182,6 +182,24 @@ export function getValueFromEvents(
   return "";
 }
 
+export function getTxEvents(
+  events: any[] | undefined,
+  key: string,
+): Object[] {
+  let res: Object[] = [];
+  if (!events) {
+    return [];
+  }
+
+  for (const e of events) {
+    if (`${e.type}` === key) {
+      res.push(e);
+    }
+  }
+
+  return res;
+}
+
 export async function storeContract(
   wasmPath: string,
   account: Account,
@@ -265,16 +283,14 @@ export async function createIbcConnection(): Promise<Link> {
     { hdPaths: [stringToPath("m/44'/529'/0'/0/0")], prefix: "secret" },
   );
   const [account] = await signerA.getAccounts();
-
   const signerB = signerA;
-
+  const a = signerA as OfflineSigner
   // Create IBC Client for chain A
   const clientA = await IbcClient.connectWithSigner(
     chain1RPC,
-    signerA,
+    a,
     account.address,
     {
-      prefix: "secret",
       gasPrice: GasPrice.fromString("0.25uscrt"),
       estimatedBlockTime: 750,
       estimatedIndexerTime: 500,
@@ -284,10 +300,9 @@ export async function createIbcConnection(): Promise<Link> {
   // Create IBC Client for chain A
   const clientB = await IbcClient.connectWithSigner(
     chain2RPC,
-    signerB,
+    signerB as OfflineSigner,
     account.address,
     {
-      prefix: "secret",
       gasPrice: GasPrice.fromString("0.25uscrt"),
       estimatedBlockTime: 750,
       estimatedIndexerTime: 500,
@@ -330,9 +345,9 @@ export function loopRelayer(connection: Link) {
           connection.updateClient("B"),
         ]);
       } catch (e) {
-        console.error(`loopRelayer: caught error:`, e);
+        console.warn(`<loopRelayer> caught error: ${e.message}`);
       }
-      await sleep(750);
+      await sleep(1_000);
     }
 
     resolve();
