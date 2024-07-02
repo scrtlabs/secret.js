@@ -128,10 +128,14 @@ export class MsgInstantiateContract implements Msg {
     return {
       type: "wasm/MsgInstantiateContract",
       value: {
-        sender: this.sender,
+        sender: toBase64(this.sender),
+        sender_address: this.sender_address,
         code_id: this.codeId,
         label: this.label,
-        init_msg: toBase64(this.initMsgEncrypted),
+        init_msg:
+          this.initMsgEncrypted.length == 0
+            ? undefined
+            : toBase64(this.initMsgEncrypted),
         init_funds: this.initFunds,
         admin: this.admin.length > 0 ? this.admin : undefined,
       },
@@ -181,7 +185,6 @@ export class MsgExecuteContract<T extends object> implements Msg {
     sent_funds: sentFunds,
     code_hash: codeHash,
   }: MsgExecuteContractParams<T>) {
-    // this.sender = Bech32.decode(sender).data;
     this.sender = fromBech32(sender).data;
     this.sender_address = String(sender);
     this.contractAddress = contractAddress;
@@ -214,7 +217,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     const msgContent = {
       sender: this.sender,
       sender_address: this.sender_address,
-      contract: addressToBytes(this.contractAddress),
+      contract: fromBech32(this.contractAddress).data,
       msg: this.msgEncrypted,
       sent_funds: this.sentFunds,
       // callback_sig & callback_code_hash are internal stuff that doesn't matter here
@@ -246,8 +249,9 @@ export class MsgExecuteContract<T extends object> implements Msg {
     return {
       type: "wasm/MsgExecuteContract",
       value: {
-        sender: this.sender,
-        contract: this.contractAddress,
+        sender: toBase64(this.sender),
+        sender_address: this.sender_address,
+        contract: toBase64(fromBech32(this.contractAddress).data),
         msg: toBase64(this.msgEncrypted),
         sent_funds: this.sentFunds,
       },
