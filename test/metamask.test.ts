@@ -8,7 +8,7 @@ import {
   SecretNetworkClient,
   TxResultCode,
 } from "../src";
-import { accounts, getValueFromRawLog, chain1LCD } from "./utils";
+import { accounts, getValueFromEvents, chain1LCD } from "./utils";
 
 beforeAll(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {});
@@ -92,7 +92,7 @@ test("MetaMaskWallet signer", async () => {
   expect(txStore.code).toBe(TxResultCode.Success);
 
   const code_id = MsgStoreCodeResponse.decode(txStore.data[0]).code_id;
-  expect(code_id).toBe(getValueFromRawLog(txStore.rawLog, "message.code_id"));
+  expect(code_id).toBe(getValueFromEvents(txStore.events, "message.code_id"));
 
   const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id,
@@ -132,10 +132,10 @@ test("MetaMaskWallet signer", async () => {
   }
   expect(tx.code).toBe(TxResultCode.Success);
 
-  expect(getValueFromRawLog(tx.rawLog, "message.action")).toBe(
+  expect(getValueFromEvents(tx.events, "message.action")).toBe(
     "/secret.compute.v1beta1.MsgInstantiateContract",
   );
-  expect(getValueFromRawLog(tx.rawLog, "message.contract_address")).toContain(
+  expect(getValueFromEvents(tx.events, "message.contract_address")).toContain(
     "secret1",
   );
 });
