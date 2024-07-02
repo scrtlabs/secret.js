@@ -9,7 +9,7 @@ import * as fm from "../../../../fetch.pb"
 import * as GoogleProtobufAny from "../../../../google/protobuf/any.pb"
 import * as IbcCoreClientV1Client from "../../client/v1/client.pb"
 import * as IbcCoreChannelV1Channel from "./channel.pb"
-import * as IbcCoreChannelV1Upgrade from "./upgrade.pb"
+import * as IbcCoreChannelV1Channel_upgrade from "./channel_upgrade.pb"
 export type QueryChannelRequest = {
   port_id?: string
   channel_id?: string
@@ -178,7 +178,7 @@ export type QueryUpgradeErrorRequest = {
 }
 
 export type QueryUpgradeErrorResponse = {
-  error_receipt?: IbcCoreChannelV1Upgrade.ErrorReceipt
+  error_receipt?: IbcCoreChannelV1Channel_upgrade.ErrorReceipt
   proof?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
 }
@@ -189,7 +189,7 @@ export type QueryUpgradeRequest = {
 }
 
 export type QueryUpgradeResponse = {
-  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  upgrade?: IbcCoreChannelV1Channel_upgrade.Upgrade
   proof?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
 }

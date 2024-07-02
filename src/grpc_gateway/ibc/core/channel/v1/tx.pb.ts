@@ -7,7 +7,7 @@
 import * as fm from "../../../../fetch.pb"
 import * as IbcCoreClientV1Client from "../../client/v1/client.pb"
 import * as IbcCoreChannelV1Channel from "./channel.pb"
-import * as IbcCoreChannelV1Upgrade from "./upgrade.pb"
+import * as IbcCoreChannelV1Channel_upgrade from "./channel_upgrade.pb"
 
 export enum ResponseResultType {
   RESPONSE_RESULT_TYPE_UNSPECIFIED = "RESPONSE_RESULT_TYPE_UNSPECIFIED",
@@ -139,12 +139,12 @@ export type MsgAcknowledgementResponse = {
 export type MsgChannelUpgradeInit = {
   port_id?: string
   channel_id?: string
-  fields?: IbcCoreChannelV1Upgrade.UpgradeFields
+  fields?: IbcCoreChannelV1Channel_upgrade.UpgradeFields
   signer?: string
 }
 
 export type MsgChannelUpgradeInitResponse = {
-  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  upgrade?: IbcCoreChannelV1Channel_upgrade.Upgrade
   upgrade_sequence?: string
 }
 
@@ -152,7 +152,7 @@ export type MsgChannelUpgradeTry = {
   port_id?: string
   channel_id?: string
   proposed_upgrade_connection_hops?: string[]
-  counterparty_upgrade_fields?: IbcCoreChannelV1Upgrade.UpgradeFields
+  counterparty_upgrade_fields?: IbcCoreChannelV1Channel_upgrade.UpgradeFields
   counterparty_upgrade_sequence?: string
   proof_channel?: Uint8Array
   proof_upgrade?: Uint8Array
@@ -161,7 +161,7 @@ export type MsgChannelUpgradeTry = {
 }
 
 export type MsgChannelUpgradeTryResponse = {
-  upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  upgrade?: IbcCoreChannelV1Channel_upgrade.Upgrade
   upgrade_sequence?: string
   result?: ResponseResultType
 }
@@ -169,7 +169,7 @@ export type MsgChannelUpgradeTryResponse = {
 export type MsgChannelUpgradeAck = {
   port_id?: string
   channel_id?: string
-  counterparty_upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  counterparty_upgrade?: IbcCoreChannelV1Channel_upgrade.Upgrade
   proof_channel?: Uint8Array
   proof_upgrade?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
@@ -184,7 +184,7 @@ export type MsgChannelUpgradeConfirm = {
   port_id?: string
   channel_id?: string
   counterparty_channel_state?: IbcCoreChannelV1Channel.State
-  counterparty_upgrade?: IbcCoreChannelV1Upgrade.Upgrade
+  counterparty_upgrade?: IbcCoreChannelV1Channel_upgrade.Upgrade
   proof_channel?: Uint8Array
   proof_upgrade?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
@@ -223,7 +223,7 @@ export type MsgChannelUpgradeTimeoutResponse = {
 export type MsgChannelUpgradeCancel = {
   port_id?: string
   channel_id?: string
-  error_receipt?: IbcCoreChannelV1Upgrade.ErrorReceipt
+  error_receipt?: IbcCoreChannelV1Channel_upgrade.ErrorReceipt
   proof_error_receipt?: Uint8Array
   proof_height?: IbcCoreClientV1Client.Height
   signer?: string
