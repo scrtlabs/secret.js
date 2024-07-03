@@ -239,7 +239,7 @@ export class MsgSubmitProposal implements Msg {
         },
         initial_deposit: this.params.initial_deposit,
         proposer: this.params.proposer,
-        is_expedited: this.params.is_expedited ? true : undefined,
+        //is_expedited: this.params.is_expedited ? true : undefined,
       },
     };
   }
@@ -319,7 +319,7 @@ export class MsgVoteWeighted implements Msg {
       proposal_id: this.params.proposal_id,
       options: this.params.options.map((o) => ({
         option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18),
+        weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
       })),
     };
 

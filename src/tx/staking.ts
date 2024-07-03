@@ -104,11 +104,15 @@ export class MsgCreateValidator implements Msg {
           details: this.params.description.details,
         },
         commission: {
-          rate: new BigNumber(this.params.commission.rate).toFixed(18),
-          max_rate: new BigNumber(this.params.commission.max_rate).toFixed(18),
-          max_change_rate: new BigNumber(
-            this.params.commission.max_change_rate,
-          ).toFixed(18),
+          rate: new BigNumber(this.params.commission.rate)
+            .toFixed(18)
+            .replace(/0\.0*/, ""),
+          max_rate: new BigNumber(this.params.commission.max_rate)
+            .toFixed(18)
+            .replace(/0\.0*/, ""),
+          max_change_rate: new BigNumber(this.params.commission.max_change_rate)
+            .toFixed(18)
+            .replace(/0\.0*/, ""),
         },
         min_self_delegation: this.params.min_self_delegation,
         delegator_address: this.params.delegator_address,
