@@ -8,6 +8,7 @@ fi
 
 make kill-localsecret >/dev/null 2>/dev/null
 make run-localsecret >/dev/null 2>/dev/null &
+sleep 7
 
 set +e
 
