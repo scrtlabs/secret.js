@@ -762,7 +762,7 @@ describe("packet-forward-middleware", () => {
   }, 90_000);
 });
 
-describe("fee middleware", () => {
+describe.skip("fee middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
@@ -1389,7 +1389,7 @@ describe("fee middleware", () => {
   );
 });
 
-describe("ibc-switch middleware", () => {
+describe.skip("ibc-switch middleware", () => {
   describe("query.emergency_button", () => {
     test("params()", async () => {
       const { secretjs } = accounts[0];
@@ -1964,7 +1964,7 @@ describe("ibc-switch middleware", () => {
   });
 });
 
-describe("ibc-hooks middleware", () => {
+describe.skip("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 

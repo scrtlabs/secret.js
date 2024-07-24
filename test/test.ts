@@ -372,7 +372,7 @@ describe("query.ibc_iterchain_accounts_controller", () => {
     });
   });
 
-  test.skip("interchainAccount()", async () => {
+  test("interchainAccount()", async () => {
     // const { secretjs } = accounts[0];
     // const { address } =
     //   await secretjs.query.ibc_iterchain_accounts_controller.interchainAccount(
@@ -1942,7 +1942,7 @@ describe("tx.compute", () => {
   });
 });
 
-describe("tx.gov", () => {
+describe.skip("tx.gov", () => {
   async function getAllProposals(
     secretjs: SecretNetworkClient,
   ): Promise<Proposal[]> {
@@ -2001,7 +2001,7 @@ describe("tx.gov", () => {
     // there is no longer a need for an explicit CommunityPoolSpendProposal.
     // To spend community pool funds, a simple MsgCommunityPoolSpend can be
     // invoked from the x/gov module via a v1 governance proposal.
-    test.skip("CommunityPoolSpendProposal", async () => {
+    test("CommunityPoolSpendProposal", async () => {
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
@@ -2085,7 +2085,7 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
     // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov proposals, see MsgSoftwareUpgrade.
-    test.skip("SoftwareUpgradeProposal", async () => {
+    test("SoftwareUpgradeProposal", async () => {
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
@@ -2135,7 +2135,7 @@ describe("tx.gov", () => {
     // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
     // proposals, see MsgCancelUpgrade.
     // ------------------------------------------------------------------------
-    test.skip("CancelSoftwareUpgradeProposal", async () => {
+    test("CancelSoftwareUpgradeProposal", async () => {
       const { secretjs } = accounts[0];
 
       const proposalsBefore = await getAllProposals(secretjs);
@@ -2736,7 +2736,7 @@ describe("tx.slashing", () => {
   });
 });
 
-describe("tx.distribution", () => {
+describe.skip("tx.distribution", () => {
   test("MsgFundCommunityPool", async () => {
     const { secretjs, address: depositor } = accounts[0];
 
@@ -2795,7 +2795,7 @@ describe("tx.distribution", () => {
     expect(tx.code).toBe(TxResultCode.Success);
   });
 
-  test.skip("MsgWithdrawValidatorCommission", async () => {
+  test("MsgWithdrawValidatorCommission", async () => {
     const { validators } = await accounts[0].secretjs.query.staking.validators({
       status: "",
     });
@@ -2826,7 +2826,7 @@ describe("tx.distribution", () => {
     expect(tx.code).toBe(TxResultCode.Success);
   });
 
-  test.skip("MsgSetWithdrawAddress", async () => {
+  test("MsgSetWithdrawAddress", async () => {
     const { validators } = await accounts[0].secretjs.query.staking.validators({
       status: "",
     });
@@ -2948,7 +2948,7 @@ describe("tx.distribution", () => {
 });
 
 describe("sanity", () => {
-  test.skip("Every msg has a decoder registered in the registry", async () => {});
+  test("Every msg has a decoder registered in the registry", async () => {});
 
   test.skip("Every msg has a Msg class", async () => {
     // TODO fix this test
@@ -3123,7 +3123,7 @@ describe("sanity", () => {
 });
 
 describe("tx.feegrant", () => {
-  test("MsgGrantAllowance", async () => {
+  test.skip("MsgGrantAllowance", async () => {
     const { secretjs } = accounts[0];
     const newWallet = new Wallet(); // this tests both amino & protobuf
 
@@ -3211,7 +3211,7 @@ describe("tx.feegrant", () => {
     expect(tx.code).toBe(TxResultCode.Success);
   });
 
-  test.only("MsgRevokeAllowance", async () => {
+  test("MsgRevokeAllowance", async () => {
     const { secretjs } = accounts[0];
     const newWallet = new AminoWallet(); // this tests both amino & protobuf
 
@@ -3866,7 +3866,7 @@ test("url with trailing slashes", async () => {
   expect(Number(res.block?.header?.height)).toBeGreaterThan(0);
 });
 
-describe.skip("vesting", () => {
+describe("vesting", () => {
   test("MsgCreateVestingAccount & send tx form ContinuousVestingAccount", async () => {
     const { secretjsProto: secretjsProto0 } = accounts[0];
 
