@@ -16,7 +16,7 @@ import {
   QueryVoteResponse,
   QueryVotesRequest,
   QueryVotesResponse,
-} from "../grpc_gateway/cosmos/gov/v1beta1/query.pb";
+} from "../grpc_gateway/cosmos/gov/v1/query.pb";
 
 // import {
 //   Query as QueryV1,

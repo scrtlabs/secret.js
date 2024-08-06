@@ -4,7 +4,7 @@ import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
 export type ProposalContent =
-  | import("../protobuf/cosmos/gov/v1beta1/gov").TextProposal
+  | import("../protobuf/cosmos/gov/v1/gov").Proposal
   | import("../protobuf/cosmos/distribution/v1beta1/distribution").CommunityPoolSpendProposal
   | import("../protobuf/cosmos/params/v1beta1/params").ParameterChangeProposal
   | import("../protobuf/ibc/core/client/v1/client").ClientUpdateProposal
@@ -51,7 +51,7 @@ export type ParamChange = {
 };
 
 export enum ProposalType {
-  TextProposal = "TextProposal",
+  Proposal = "Proposal",
   CommunityPoolSpendProposal = "CommunityPoolSpendProposal",
   /**
    * @see {@link https://docs.scrt.network/guides/governance} for possible subspaces, keys and values.
@@ -66,7 +66,7 @@ export enum ProposalType {
 }
 
 const proposalTypeToAminoType: Map<ProposalType, string> = new Map([
-  [ProposalType.TextProposal, "cosmos-sdk/TextProposal"],
+  [ProposalType.Proposal, "cosmos-sdk/Proposal"],
   [
     ProposalType.CommunityPoolSpendProposal,
     "cosmos-sdk/CommunityPoolSpendProposal",
@@ -81,9 +81,13 @@ const proposalTypeToAminoType: Map<ProposalType, string> = new Map([
 
 export interface MsgSubmitProposalParams {
   type: ProposalType;
+  messages: Any[];
   content: ProposalContent;
   initial_deposit: Coin[];
   proposer: string;
+  metadata: string;
+  title: string;
+  summary: string;
   is_expedited?: boolean;
 }
 
@@ -98,14 +102,14 @@ export class MsgSubmitProposal implements Msg {
     let content: Any;
 
     switch (this.params.type) {
-      case ProposalType.TextProposal:
-        const { TextProposal } = await import(
-          "../protobuf/cosmos/gov/v1beta1/gov"
+      case ProposalType.Proposal:
+        const { Proposal } = await import(
+          "../protobuf/cosmos/gov/v1/gov"
         );
         content = Any.fromPartial({
-          type_url: "/cosmos.gov.v1beta1.TextProposal",
-          value: TextProposal.encode(
-            TextProposal.fromPartial(this.params.content),
+          type_url: "/cosmos.gov.v1.Proposal",
+          value: Proposal.encode(
+            Proposal.fromPartial(this.params.content),
           ).finish(),
         });
         break;
@@ -192,17 +196,21 @@ export class MsgSubmitProposal implements Msg {
 
     const msgContent = {
       content: content,
+      messages: this.params.messages,
       initial_deposit: this.params.initial_deposit,
       proposer: this.params.proposer,
-      is_expedited: this.params.is_expedited ?? false,
+      expedited: this.params.is_expedited ?? false,
+      metadata: this.params.metadata,
+      title: this.params.title,
+      summary: this.params.summary,
     };
 
     return {
-      type_url: `/cosmos.gov.v1beta1.MsgSubmitProposal`,
+      type_url: `/cosmos.gov.v1.MsgSubmitProposal`,
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf/cosmos/gov/v1beta1/tx")
+          await import("../protobuf/cosmos/gov/v1/tx")
         ).MsgSubmitProposal.encode(msgContent).finish(),
     };
   }
@@ -251,6 +259,7 @@ export interface MsgVoteParams extends MsgParams {
   proposal_id: string;
   voter: string;
   option: VoteOption;
+  metadata: string;  
 }
 
 export class MsgVote implements Msg {
@@ -258,10 +267,10 @@ export class MsgVote implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: `/cosmos.gov.v1beta1.MsgVote`,
+      type_url: `/cosmos.gov.v1.MsgVote`,
       value: this.params,
       encode: async () =>
-        (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgVote.encode(
+        (await import("../protobuf/cosmos/gov/v1/tx")).MsgVote.encode(
           this.params,
         ).finish(),
     };
@@ -287,6 +296,7 @@ export interface MsgVoteWeightedParams extends MsgParams {
   voter: string;
   proposal_id: string;
   options: WeightedVoteOption[];
+  metadata: string;
 }
 
 /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
@@ -301,14 +311,15 @@ export class MsgVoteWeighted implements Msg {
         option: o.option,
         weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
       })),
+      metadata: this.params.metadata,
     };
 
     return {
-      type_url: `/cosmos.gov.v1beta1.MsgVoteWeighted`,
+      type_url: `/cosmos.gov.v1.MsgVoteWeighted`,
       value: msgContent,
       encode: async () =>
         (
-          await import("../protobuf/cosmos/gov/v1beta1/tx")
+          await import("../protobuf/cosmos/gov/v1/tx")
         ).MsgVoteWeighted.encode(msgContent).finish(),
     };
   }
@@ -342,10 +353,10 @@ export class MsgDeposit implements Msg {
 
   async toProto(): Promise<ProtoMsg> {
     return {
-      type_url: `/cosmos.gov.v1beta1.MsgDeposit`,
+      type_url: `/cosmos.gov.v1.MsgDeposit`,
       value: this.params,
       encode: async () =>
-        (await import("../protobuf/cosmos/gov/v1beta1/tx")).MsgDeposit.encode(
+        (await import("../protobuf/cosmos/gov/v1/tx")).MsgDeposit.encode(
           this.params,
         ).finish(),
     };

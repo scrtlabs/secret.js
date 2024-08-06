@@ -17,7 +17,7 @@ import {
 } from "../src";
 import { Order } from "../src/protobuf/ibc/core/channel/v1/channel";
 import { AminoWallet } from "../src/wallet_amino";
-import { ProposalStatus } from "../src/grpc_gateway/cosmos/gov/v1beta1/gov.pb";
+import { ProposalStatus } from "../src/grpc_gateway/cosmos/gov/v1/gov.pb";
 
 export const exec = util.promisify(require("child_process").exec);
 
@@ -432,7 +432,7 @@ export async function waitForProposalToPass(
 ) {
   while (true) {
     try {
-      const response = await secretjs.query.gov.proposal({
+      const response = await secretjs.query.gov_v1.proposal({
         proposal_id: proposalId,
       });
 
@@ -470,7 +470,11 @@ export async function passParameterChangeProposal(
       initial_deposit: stringToCoins("100000000000uscrt"),
       is_expedited: true,
       content,
-    },
+      messages: [],
+      metadata: "",
+      summary: "summary",
+      title: "some proposal"
+  },
     {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,
@@ -492,6 +496,7 @@ export async function passParameterChangeProposal(
       option: VoteOption.VOTE_OPTION_YES,
       proposal_id: proposalId,
       voter: secretjs.address,
+      metadata: "",
     },
     {
       broadcastCheckIntervalMs: 100,

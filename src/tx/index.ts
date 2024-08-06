@@ -22,7 +22,7 @@ import {
   MsgSubmitProposal,
   MsgVote,
   MsgVoteWeighted,
-} from "../protobuf/cosmos/gov/v1beta1/tx";
+} from "../protobuf/cosmos/gov/v1/tx";
 import { MsgUnjail } from "../protobuf/cosmos/slashing/v1beta1/tx";
 import {
   MsgBeginRedelegate,
@@ -118,10 +118,10 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/cosmos.evidence.v1beta1.MsgSubmitEvidence", MsgSubmitEvidence],
   ["/cosmos.feegrant.v1beta1.MsgGrantAllowance", MsgGrantAllowance],
   ["/cosmos.feegrant.v1beta1.MsgRevokeAllowance", MsgRevokeAllowance],
-  ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
-  ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
-  ["/cosmos.gov.v1beta1.MsgVoteWeighted", MsgVoteWeighted],
-  ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
+  ["/cosmos.gov.v1.MsgSubmitProposal", MsgSubmitProposal],
+  ["/cosmos.gov.v1.MsgVote", MsgVote],
+  ["/cosmos.gov.v1.MsgVoteWeighted", MsgVoteWeighted],
+  ["/cosmos.gov.v1.MsgDeposit", MsgDeposit],
   ["/cosmos.slashing.v1beta1.MsgUnjail", MsgUnjail],
   ["/cosmos.staking.v1beta1.MsgCreateValidator", MsgCreateValidator],
   ["/cosmos.staking.v1beta1.MsgEditValidator", MsgEditValidator],
