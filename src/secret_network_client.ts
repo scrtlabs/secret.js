@@ -75,6 +75,7 @@ import {
   StdSignature,
   bytesToAddress,
 } from ".";
+import * as TendermintAbciTypes from "./grpc_gateway/tendermint/abci/types.pb";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 import {
@@ -1258,51 +1259,102 @@ export class SecretNetworkClient {
     }
 
     let rawLog: string = txResp.raw_log!;
-    let jsonLog: JsonLog | undefined;
-    let arrayLog: ArrayLog | undefined;
+    let jsonLog: JsonLog = [];
+    let arrayLog: ArrayLog = [];
     let ibcResponses: Array<Promise<IbcResponse>> = [];
-    if (txResp.code === 0 && rawLog !== "") {
-      jsonLog = JSON.parse(rawLog) as JsonLog;
+    const events = txResp.events ?? [];
+    if (txResp.code === 0 && rawLog === "") {
+      for (const event of events) {
+        const eventAttributes = event.attributes ?? [];
+        const msgIndexAttr = eventAttributes.find(
+          (attr) => attr["key"] === "msg_index",
+        );
+        if (!msgIndexAttr) continue;
+        const msgIndex = Number(msgIndexAttr["value"]);
+        for (const attr of eventAttributes) {
+          if (attr.key === "msg_index") continue;
+          // Try to decrypt
+          if (event.type === "wasm") {
+            const nonce = nonces[msgIndex];
+            if (nonce && nonce.length === 32) {
+              try {
+                attr.key = fromUtf8(
+                  await this.encryptionUtils.decrypt(
+                    fromBase64(attr.key!),
+                    nonce,
+                  ),
+                ).trim();
+              } catch (e) {}
+              try {
+                attr.value = fromUtf8(
+                  await this.encryptionUtils.decrypt(
+                    fromBase64(attr.value!),
+                    nonce,
+                  ),
+                ).trim();
+              } catch (e) {}
+            }
+          }
 
-      arrayLog = [];
-      for (let msgIndex = 0; msgIndex < jsonLog.length; msgIndex++) {
-        if (jsonLog[msgIndex].msg_index === undefined) {
-          jsonLog[msgIndex].msg_index = msgIndex;
-          // See https://github.com/cosmos/cosmos-sdk/pull/11147
-        }
-
-        const log = jsonLog[msgIndex];
-        for (const event of log.events) {
-          for (const attr of event.attributes) {
-            // Try to decrypt
-            if (event.type === "wasm") {
-              const nonce = nonces[msgIndex];
-              if (nonce && nonce.length === 32) {
-                try {
-                  attr.key = fromUtf8(
-                    await this.encryptionUtils.decrypt(
-                      fromBase64(attr.key),
-                      nonce,
-                    ),
-                  ).trim();
-                } catch (e) {}
-                try {
-                  attr.value = fromUtf8(
-                    await this.encryptionUtils.decrypt(
-                      fromBase64(attr.value),
-                      nonce,
-                    ),
-                  ).trim();
-                } catch (e) {}
+          const entryToPush = {
+            msg: msgIndex,
+            type: event.type!,
+            key: attr.key!,
+            value: attr.value!,
+          };
+          if (
+            !arrayLog.find(
+              (entry) => JSON.stringify(entry) === JSON.stringify(entryToPush),
+            )
+          ) {
+            arrayLog.push(entryToPush);
+          }
+          const jsonLogMsgIndexEntry = jsonLog?.find(
+            (log) => log.msg_index === msgIndex,
+          );
+          if (!jsonLogMsgIndexEntry) {
+            jsonLog.push({
+              msg_index: msgIndex,
+              events: [
+                {
+                  type: event.type!,
+                  attributes: [
+                    {
+                      key: attr.key!,
+                      value: attr.value!,
+                    },
+                  ],
+                },
+              ],
+            });
+          } else {
+            const jsonLogEventEntry = jsonLogMsgIndexEntry.events.find(
+              (log) => log.type === event.type!,
+            );
+            if (!jsonLogEventEntry) {
+              jsonLogMsgIndexEntry.events.push({
+                type: event.type!,
+                attributes: [
+                  {
+                    key: attr.key!,
+                    value: attr.value!,
+                  },
+                ],
+              });
+            } else {
+              const attributeToPush = {
+                key: attr.key!,
+                value: attr.value!,
+              };
+              if (
+                !jsonLogEventEntry.attributes.find(
+                  (entry) =>
+                    JSON.stringify(entry) === JSON.stringify(attributeToPush),
+                )
+              ) {
+                jsonLogEventEntry.attributes.push(attributeToPush);
               }
             }
-
-            arrayLog.push({
-              msg: msgIndex,
-              type: event.type,
-              key: attr.key,
-              value: attr.value,
-            });
           }
         }
       }
