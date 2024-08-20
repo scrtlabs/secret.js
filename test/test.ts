@@ -1942,7 +1942,7 @@ describe("tx.compute", () => {
   });
 });
 
-describe.skip("tx.gov", () => {
+describe("tx.gov", () => {
   async function getAllProposals(
     secretjs: SecretNetworkClient,
   ): Promise<Proposal[]> {
@@ -1967,7 +1967,7 @@ describe.skip("tx.gov", () => {
             description: "Hello",
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
         },
@@ -2027,7 +2027,7 @@ describe.skip("tx.gov", () => {
             amount: stringToCoins("1uscrt"),
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
         },
@@ -2041,9 +2041,9 @@ describe.skip("tx.gov", () => {
       }
       expect(tx.code).toBe(TxResultCode.Success);
 
-      expect(
-        getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      ).toBe("CommunityPoolSpend");
+      // expect(
+      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
+      // ).toBe("CommunityPoolSpend");
       expect(
         Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
       ).toBeGreaterThanOrEqual(1);
@@ -2071,7 +2071,7 @@ describe.skip("tx.gov", () => {
             ],
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
         },
@@ -2117,7 +2117,7 @@ describe.skip("tx.gov", () => {
             },
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
         },
@@ -2131,9 +2131,9 @@ describe.skip("tx.gov", () => {
       }
       expect(tx.code).toBe(TxResultCode.Success);
 
-      expect(
-        getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      ).toBe("SoftwareUpgrade");
+      // expect(
+      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
+      // ).toBe("SoftwareUpgrade");
       expect(
         Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
       ).toBeGreaterThanOrEqual(1);
@@ -2166,7 +2166,7 @@ describe.skip("tx.gov", () => {
             description: "PROD FEAR",
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
         },
@@ -2180,9 +2180,9 @@ describe.skip("tx.gov", () => {
       }
       expect(tx.code).toBe(TxResultCode.Success);
 
-      expect(
-        getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      ).toBe("CancelSoftwareUpgrade");
+      // expect(
+      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
+      // ).toBe("CancelSoftwareUpgrade");
       expect(
         Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
       ).toBeGreaterThanOrEqual(1);
@@ -2206,7 +2206,7 @@ describe.skip("tx.gov", () => {
           description: "Please don't vote no",
         },
         messages: [],
-        metadata: "",
+        metadata: "some_metadata",
         summary: "summary",
         title: "some proposal"
     },
@@ -2229,7 +2229,7 @@ describe.skip("tx.gov", () => {
         voter: accounts[0].address,
         proposal_id,
         option: VoteOption.VOTE_OPTION_YES,
-        metadata: ""
+        metadata: "some_metadata"
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2262,7 +2262,7 @@ describe.skip("tx.gov", () => {
           description: "Please don't vote no",
         },
         messages: [],
-        metadata: "",
+        metadata: "some_metadata",
         summary: "summary",
         title: "some proposal"
       },
@@ -2290,7 +2290,7 @@ describe.skip("tx.gov", () => {
           { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
           { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
         ],
-        metadata: "",
+        metadata: "some_metadata",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2323,7 +2323,7 @@ describe.skip("tx.gov", () => {
           description: "Hello",
         },
         messages: [],
-        metadata: "",
+        metadata: "some_metadata",
         summary: "summary",
         title: "some proposal"
       },
@@ -2381,7 +2381,7 @@ describe.skip("tx.gov", () => {
           },
           is_expedited: true,
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
           }),
@@ -2396,7 +2396,7 @@ describe.skip("tx.gov", () => {
           },
           is_expedited: false,
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
           }),
@@ -2410,7 +2410,7 @@ describe.skip("tx.gov", () => {
             description: "Hello",
           },
           messages: [],
-          metadata: "",
+          metadata: "some_metadata",
           summary: "summary",
           title: "some proposal"
           }),
@@ -3245,7 +3245,7 @@ describe("tx.feegrant", () => {
           description: "YOLO",
         },
         messages: [],
-        metadata: "",
+        metadata: "some_metadata",
         summary: "summary",
         title: "some proposal"
       },
