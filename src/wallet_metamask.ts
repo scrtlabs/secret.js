@@ -1,15 +1,18 @@
 import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp256k1 from "@noble/secp256k1";
 import { sha256 } from "@noble/hashes/sha256";
-import { fromHex, pubkeyToAddress, toHex, toUtf8 } from ".";
+import { fromHex, toHex, toUtf8 } from "@cosmjs/encoding";
 import {
+  encodeAminoPubkey,
   AccountData,
   AminoSignResponse,
   encodeSecp256k1Signature,
-  serializeStdSignDoc,
-  sortObject,
+  serializeSignDoc,
   StdSignDoc,
-} from "./wallet_amino";
+} from "@cosmjs/amino";
+import { pubkeyToAddress } from "./utils";
+
+import { SECRET_BECH32_PREFIX } from "./wallet_amino";
 
 /**
  * MetaMaskWallet is a wallet capable of signing on transactions using MetaMask.
@@ -23,7 +26,7 @@ export class MetaMaskWallet {
     public ethAddress: string,
     public publicKey: Uint8Array,
   ) {
-    this.address = pubkeyToAddress(this.publicKey);
+    this.address = pubkeyToAddress(this.publicKey, SECRET_BECH32_PREFIX);
   }
 
   static async create(
@@ -117,7 +120,7 @@ export class MetaMaskWallet {
     address: string,
     signDoc: StdSignDoc,
   ): Promise<AminoSignResponse> {
-    if (address !== pubkeyToAddress(this.publicKey)) {
+    if (address !== pubkeyToAddress(this.publicKey, SECRET_BECH32_PREFIX)) {
       throw new Error(`Address ${address} not found in wallet`);
     }
 
@@ -140,11 +143,11 @@ export class MetaMaskWallet {
     address: string,
     signDoc: StdSignDoc,
   ): Promise<AminoSignResponse> {
-      if (address !== pubkeyToAddress(this.publicKey)) {
+    if (address !== pubkeyToAddress(this.publicKey, SECRET_BECH32_PREFIX)) {
       throw new Error(`Address ${address} not found in wallet`);
     }
 
-    const messageHash = sha256(serializeStdSignDoc(signDoc));
+    const messageHash = sha256(serializeSignDoc(signDoc));
     const sigResult: string = await this.ethProvider.request({
       method: "eth_sign",
       params: [this.ethAddress, "0x" + toHex(messageHash)],
@@ -157,15 +160,28 @@ export class MetaMaskWallet {
       signed: signDoc,
       signature: encodeSecp256k1Signature(this.publicKey, sig),
     };
-
-  }  
+  }
 }
-
-
 
 function decompressSecp256k1PublicKey(publicKeyHex: string): Uint8Array {
   const point = secp256k1.Point.fromHex(publicKeyHex);
   return point.toRawBytes(false);
+}
+
+function sortObject(obj: any): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sortObject);
+  }
+  const sortedKeys = Object.keys(obj).sort();
+  const result: Record<string, any> = {};
+  // NOTE: Use forEach instead of reduce for performance with large objects eg Wasm code
+  sortedKeys.forEach((key) => {
+    result[key] = sortObject(obj[key]);
+  });
+  return result;
 }
 
 /** Returns a JSON string with objects sorted by key, used for pretty Amino EIP191 signing */

@@ -1,12 +1,21 @@
-import { toBase64, toUtf8 } from "@cosmjs/encoding";
+import {
+  encodeSecp256k1Signature,
+  AccountData,
+  StdSignDoc,
+  AminoSignResponse,
+  serializeSignDoc,
+} from "@cosmjs/amino";
+import { OfflineDirectSigner as DirectSigner } from "@cosmjs/proto-signing";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
 import * as bip32 from "bip32";
 import * as bip39 from "bip39";
-import { AminoMsg, Coin, pubkeyToAddress, SignDocCamelCase } from ".";
+import { pubkeyToAddress } from "./utils";
 
 export const SECRET_COIN_TYPE = 529;
 export const SECRET_BECH32_PREFIX = "secret";
+
+export type Signer = AminoSigner | DirectSigner;
 
 export type WalletOptions = {
   hdAccountIndex?: number;
@@ -96,7 +105,7 @@ export class AminoWallet {
       throw new Error(`Address ${signerAddress} not found in wallet`);
     }
 
-    const messageHash = sha256(serializeStdSignDoc(signDoc));
+    const messageHash = sha256(serializeSignDoc(signDoc));
 
     const signature = await secp256k1.sign(messageHash, this.privateKey, {
       extraEntropy: true,
@@ -108,164 +117,6 @@ export class AminoWallet {
       signature: encodeSecp256k1Signature(this.publicKey, signature),
     };
   }
-}
-
-/**
- * Takes a binary pubkey and signature to create a signature object
- *
- * @param pubkey a compressed secp256k1 public key
- * @param signature a 64 byte fixed length representation of secp256k1 signature components r and s
- */
-export function encodeSecp256k1Signature(
-  pubkey: Uint8Array,
-  signature: Uint8Array,
-): StdSignature {
-  if (signature.length !== 64) {
-    throw new Error(
-      "Signature must be 64 bytes long. Cosmos SDK uses a 2x32 byte fixed length encoding for the secp256k1 signature integers r and s.",
-    );
-  }
-
-  return {
-    pub_key: encodeSecp256k1Pubkey(pubkey),
-    signature: toBase64(signature),
-  };
-}
-
-export function encodeSecp256k1Pubkey(pubkey: Uint8Array): Pubkey {
-  if (pubkey.length !== 33 || (pubkey[0] !== 0x02 && pubkey[0] !== 0x03)) {
-    throw new Error(
-      "Public key must be compressed secp256k1, i.e. 33 bytes starting with 0x02 or 0x03",
-    );
-  }
-  return {
-    type: "tendermint/PubKeySecp256k1",
-    value: toBase64(pubkey),
-  };
-}
-
-export type AminoSignResponse = {
-  /**
-   * The sign doc that was signed.
-   * This may be different from the input signDoc when the signer modifies it as part of the signing process.
-   */
-  readonly signed: StdSignDoc;
-  readonly signature: StdSignature;
-};
-
-/**
- * The document to be signed
- *
- * @see https://docs.cosmos.network/master/modules/auth/03_types.html#stdsigndoc
- */
-export type StdSignDoc = {
-  readonly chain_id: string;
-  readonly account_number: string;
-  readonly sequence: string;
-  readonly fee: StdFee;
-  readonly msgs: readonly AminoMsg[];
-  readonly memo: string;
-};
-
-export type StdFee = {
-  readonly amount: readonly Coin[];
-  readonly gas: string;
-  readonly granter?: string;
-};
-
-export type StdSignature = {
-  readonly pub_key: Pubkey;
-  readonly pubKey?: Pubkey; // cosmjs/Keplr
-  readonly signature: string;
-};
-
-export type Pubkey = {
-  // type is one of the strings defined in pubkeyType
-  // I don't use a string literal union here as that makes trouble with json test data:
-  // https://github.com/cosmos/cosmjs/pull/44#pullrequestreview-353280504
-  readonly type: string;
-  readonly value: any;
-};
-
-type Algo = "secp256k1" | "ed25519" | "sr25519";
-
-export type AccountData = {
-  /** A printable address (typically bech32 encoded) */
-  readonly address: string;
-  readonly algo: Algo;
-  readonly pubkey: Uint8Array;
-};
-
-export function sortObject(obj: any): any {
-  if (typeof obj !== "object" || obj === null) {
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(sortObject);
-  }
-  const sortedKeys = Object.keys(obj).sort();
-  const result: Record<string, any> = {};
-  // NOTE: Use forEach instead of reduce for performance with large objects eg Wasm code
-  sortedKeys.forEach((key) => {
-    result[key] = sortObject(obj[key]);
-  });
-  return result;
-}
-
-/** Returns a JSON string with objects sorted by key, used for Amino signing */
-function jsonSortedStringify(obj: any): string {
-  return JSON.stringify(sortObject(obj));
-}
-
-export function serializeStdSignDoc(signDoc: StdSignDoc): Uint8Array {
-  return toUtf8(jsonSortedStringify(signDoc));
-}
-
-export type DirectSigner = {
-  readonly getAccounts: () => Promise<readonly AccountData[]>;
-  readonly signDirect: (
-    signerAddress: string,
-    signDoc:
-      | import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc
-      | SignDocCamelCase,
-  ) => Promise<DirectSignResponse>;
-};
-
-export function isSignDoc(
-  object: any,
-): object is import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc {
-  return (
-    "body_bytes" in object &&
-    "auth_info_bytes" in object &&
-    "chain_id" in object &&
-    "account_number" in object
-  );
-}
-
-export function isSignDocCamelCase(object: any): object is SignDocCamelCase {
-  return (
-    "bodyBytes" in object &&
-    "authInfoBytes" in object &&
-    "chainId" in object &&
-    "accountNumber" in object
-  );
-}
-
-export type DirectSignResponse = {
-  /**
-   * The sign doc that was signed.
-   * This may be different from the input signDoc when the signer modifies it as part of the signing process.
-   */
-  readonly signed:
-    | import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc
-    | SignDocCamelCase;
-  readonly signature: StdSignature;
-};
-
-export type Signer = AminoSigner | DirectSigner;
-
-export function isDirectSigner(signer: Signer): signer is DirectSigner {
-  return (signer as DirectSigner).signDirect !== undefined;
 }
 
 export interface AminoSigner {
@@ -297,7 +148,7 @@ export interface AminoSigner {
 
   readonly signPermit?: (
     signerAddress: string,
-    signDoc: StdSignDoc
+    signDoc: StdSignDoc,
   ) => Promise<AminoSignResponse>;
 }
 
