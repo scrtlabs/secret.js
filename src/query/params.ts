@@ -28,6 +28,4 @@ export class ParamsQuerier {
       pathPrefix: this.url,
     });
   }
-
-
 }

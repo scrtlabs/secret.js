@@ -158,6 +158,6 @@ export class DistributionQuerier {
     return Query.ValidatorDistributionInfo(req, {
       headers,
       pathPrefix: this.url,
-    });    
+    });
   }
 }

@@ -10,13 +10,10 @@ import {
 import {
   Query,
   QueryAccountsRequest,
-  QueryAccountsResponse,
   QueryAccountRequest,
-  QueryAccountResponse,
   QueryModuleAccountsRequest,
   QueryModuleAccountsResponse,
   QueryModuleAccountByNameRequest,
-  QueryModuleAccountByNameResponse,
   Bech32PrefixRequest,
   Bech32PrefixResponse,
   AddressBytesToStringRequest,
@@ -26,7 +23,7 @@ import {
   QueryAccountAddressByIDRequest,
   QueryAccountAddressByIDResponse,
   QueryAccountInfoRequest,
-  QueryAccountInfoResponse,  
+  QueryAccountInfoResponse,
   QueryParamsRequest,
   QueryParamsResponse,
 } from "../grpc_gateway/cosmos/auth/v1beta1/query.pb";
@@ -48,7 +45,6 @@ export type Account = {
   | ContinuousVestingAccount
   | DelayedVestingAccount
 );
-
 
 /** AuthQuerier is the query interface for the x/auth module */
 export class AuthQuerier {
@@ -111,7 +107,6 @@ export class AuthQuerier {
     });
   }
 
-  
   async bech32Prefix(
     req: Bech32PrefixRequest,
     headers?: HeadersInit,
@@ -166,5 +161,4 @@ export class AuthQuerier {
       pathPrefix: this.url,
     });
   }
-
 }

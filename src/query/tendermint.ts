@@ -26,7 +26,7 @@ export class TendermintQuerier {
     return Service.ABCIQuery(req, {
       headers,
       pathPrefix: this.url,
-    })
+    });
   }
 
   getNodeInfo(

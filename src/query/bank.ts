@@ -28,7 +28,6 @@ import {
   QuerySendEnabledResponse,
 } from "../grpc_gateway/cosmos/bank/v1beta1/query.pb";
 
-
 export class BankQuerier {
   constructor(private url: string) {}
 
@@ -81,7 +80,7 @@ export class BankQuerier {
       pathPrefix: this.url,
     });
   }
-  
+
   balance(
     req: QueryBalanceRequest,
     headers?: HeadersInit,
