@@ -1632,59 +1632,46 @@ describe("tx.compute", () => {
     const timestampMs = String(new Date(timestampRfc3339).getTime());
     const timestampNs = timestampMs + ns;
 
-    expect(getValueFromEvents(tx.events, "message.action")).toBe(
-      "/secret.compute.v1beta1.MsgMigrateContract",
-    );
-    expect(getValueFromEvents(tx.events, "message.sender")).toBe(
-      "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
-    );
-    expect(getValueFromEvents(tx.events, "migrate.contract_address")).toBe(
-      contract_address,
-    );
-    expect(getValueFromEvents(tx.events, "wasm.contract_address")).toBe(
-      contract_address,
-    );
-
-    // expect(tx.arrayLog).toStrictEqual([
-    //   {
-    //     msg: 0,
-    //     type: "message",
-    //     key: "action",
-    //     value: "/secret.compute.v1beta1.MsgMigrateContract",
-    //   },
-    //   { msg: 0, type: "message", key: "module", value: "compute" },
-    //   {
-    //     msg: 0,
-    //     type: "message",
-    //     key: "sender",
-    //     value: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
-    //   },
-    //   { msg: 0, type: "migrate", key: "code_id", value: new_code_id },
-    //   {
-    //     msg: 0,
-    //     type: "migrate",
-    //     key: "contract_address",
-    //     value: contract_address,
-    //   },
-    //   {
-    //     msg: 0,
-    //     type: "wasm",
-    //     key: "contract_address",
-    //     value: contract_address,
-    //   },
-    //   {
-    //     msg: 0,
-    //     type: "wasm",
-    //     key: "migrate.env",
-    //     value: `Env { block: BlockInfo { height: ${tx.height}, time: Timestamp(Uint64(${timestampNs})), chain_id: "secretdev-1" }, transaction: Some(TransactionInfo { index: 0 }), contract: ContractInfo { address: Addr("${contract_address}"), code_hash: "${new_code_hash}" } }`,
-    //   },
-    //   {
-    //     msg: 0,
-    //     type: "wasm",
-    //     key: "migrate.msg",
-    //     value: "Nop",
-    //   },
-    // ]);
+    expect(tx.arrayLog).toStrictEqual([
+      {
+        msg: 0,
+        type: "message",
+        key: "action",
+        value: "/secret.compute.v1beta1.MsgMigrateContract",
+      },
+      {
+        msg: 0,
+        type: "message",
+        key: "sender",
+        value: "secret1ap26qrlp8mcq2pg6r47w43l0y8zkqm8a450s03",
+      },
+      { msg: 0, type: "message", key: "module", value: "compute" },
+      { msg: 0, type: "migrate", key: "code_id", value: new_code_id },
+      {
+        msg: 0,
+        type: "migrate",
+        key: "contract_address",
+        value: contract_address,
+      },
+      {
+        msg: 0,
+        type: "wasm",
+        key: "contract_address",
+        value: contract_address,
+      },
+      {
+        msg: 0,
+        type: "wasm",
+        key: "migrate.env",
+        value: `Env { block: BlockInfo { height: ${tx.height}, time: Timestamp(Uint64(${timestampNs})), chain_id: "secretdev-1" }, transaction: Some(TransactionInfo { index: 0 }), contract: ContractInfo { address: Addr("${contract_address}"), code_hash: "${new_code_hash}" } }`,
+      },
+      {
+        msg: 0,
+        type: "wasm",
+        key: "migrate.msg",
+        value: "Nop",
+      },
+    ]);
 
     const { entries } = await secretjs.query.compute.contractHistory({
       contract_address,
