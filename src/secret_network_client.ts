@@ -13,8 +13,6 @@ import {
 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import {
-  Coin,
-  MauthQuerier,
   MsgBeginRedelegate,
   MsgBeginRedelegateParams,
   MsgCreateValidator,
@@ -73,9 +71,7 @@ import {
   MsgWithdrawValidatorCommissionParams,
   NodeQuerier,
   StdSignature,
-  bytesToAddress,
 } from ".";
-import * as TendermintAbciTypes from "./grpc_gateway/tendermint/abci/types.pb";
 import { EncryptionUtils, EncryptionUtilsImpl } from "./encryption";
 import { PermitSigner } from "./extensions/access_control/permit/permit_signer";
 import {
@@ -155,14 +151,7 @@ import {
   DelayedVestingAccount,
 } from "./grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 import { TxMsgData } from "./protobuf/cosmos/base/abci/v1beta1/abci";
-import { LegacyAminoPubKey } from "./protobuf/cosmos/crypto/multisig/keys";
-import { PubKey } from "./protobuf/cosmos/crypto/secp256k1/keys";
-import {
-  AuthInfo,
-  SignDoc,
-  TxBody as TxBodyPb,
-  TxRaw,
-} from "./protobuf/cosmos/tx/v1beta1/tx";
+import { TxBody as TxBodyPb, TxRaw } from "./protobuf/cosmos/tx/v1beta1/tx";
 import { Any } from "./protobuf/google/protobuf/any";
 import {
   MsgExecuteContractResponse,
@@ -194,7 +183,6 @@ import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
 import {
-  AminoMsg,
   Msg,
   MsgClearAdmin,
   MsgClearAdminParams,
@@ -209,7 +197,6 @@ import {
   MsgRegisterCounterpartyPayeeParams,
   MsgRegisterPayee,
   MsgRegisterPayeeParams,
-  MsgRegistry,
   MsgSetAutoRestake,
   MsgSetAutoRestakeParams,
   MsgUpdateAdmin,
@@ -227,16 +214,19 @@ import {
 import {
   AccountData,
   AminoSignResponse,
-  AminoSigner,
-  Pubkey,
-  Signer,
+  makeSignDoc as makeSignDocAmino,
   StdFee,
   StdSignDoc,
   encodeSecp256k1Pubkey,
-  isDirectSigner,
-  isSignDoc,
-  isSignDocCamelCase,
-} from "./wallet_amino";
+} from "@cosmjs/amino";
+import {
+  isOfflineDirectSigner as isDirectSigner,
+  makeSignDoc,
+  makeAuthInfoBytes,
+  encodePubkey,
+} from "@cosmjs/proto-signing";
+import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { AminoSigner, Signer } from "./wallet_amino";
 import { GroupQuerier } from "./query/group";
 import { OrmQuerier } from "./query/orm";
 import { AppQuerier } from "./query/app";
@@ -454,7 +444,6 @@ export type Querier = {
   ibc_fee: IbcFeeQuerier;
   ibc_packet_forward: IbcPacketForwardQuerier;
   emergency_button: EmergencyButtonQuerier;
-  mauth: MauthQuerier;
   mint: MintQuerier;
   node: NodeQuerier;
   params: ParamsQuerier;
@@ -486,15 +475,6 @@ export type JsonLog = Array<{
     attributes: Array<{ key: string; value: string }>;
   }>;
 }>;
-
-/**
- * MsgData defines the data returned in a Result object during message
- * execution.
- */
-export type MsgData = {
-  msgType: string;
-  data: Uint8Array;
-};
 
 export type AnyJson = { "@type": string } & any;
 
@@ -897,7 +877,6 @@ export class SecretNetworkClient {
       ibc_fee: new IbcFeeQuerier(options.url),
       ibc_packet_forward: new IbcPacketForwardQuerier(options.url),
       emergency_button: new EmergencyButtonQuerier(options.url),
-      mauth: new MauthQuerier(options.url),
       mint: new MintQuerier(options.url),
       node: new NodeQuerier(options.url),
       params: new ParamsQuerier(options.url),
@@ -1538,139 +1517,7 @@ export class SecretNetworkClient {
 
     let tx_response: TxResponsePb | undefined;
 
-    /*
-    if (mode === BroadcastMode.Block) {
-      waitForCommit = true;
-
-      const { BroadcastMode } = await import(
-        "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
-      );
-
-      let isBroadcastTimedOut = false;
-      try {
-        ({ tx_response } = await TxService.BroadcastTx(
-          {
-            //@ts-ignore for some reason the type is tx_bytes but only works as txBytes
-            txBytes: toBase64(txBytes),
-            mode: BroadcastMode.BROADCAST_MODE_BLOCK,
-          },
-          { pathPrefix: this.url },
-        ));
-      } catch (e) {
-        if (
-          JSON.stringify(e)
-            .toLowerCase()
-            .includes("timed out waiting for tx to be included in a block")
-        ) {
-          isBroadcastTimedOut = true;
-        } else {
-          throw new Error(
-            `Failed to broadcast transaction ID ${txhash}: '${JSON.stringify(
-              e,
-            )}'.`,
-          );
-        }
-      }
-
-      if (!isBroadcastTimedOut) {
-        tx_response!.tx = (
-          await import("./protobuf/cosmos/tx/v1beta1/tx")
-        ).Tx.toJSON(
-          (await import("./protobuf/cosmos/tx/v1beta1/tx")).Tx.decode(txBytes),
-        ) as AnyJson;
-
-        const tx = tx_response!.tx as TxPb;
-
-        const resolvePubkey = (pubkey: Any) => {
-          if (pubkey.type_url === "/cosmos.crypto.multisig.LegacyAminoPubKey") {
-            const multisig = LegacyAminoPubKey.decode(
-              // @ts-expect-error
-              fromBase64(pubkey.value),
-            );
-            for (let i = 0; i < multisig.public_keys.length; i++) {
-              // @ts-expect-error
-              multisig.public_keys[i] = resolvePubkey(multisig.public_keys[i]);
-            }
-
-            return LegacyAminoPubKey.toJSON(multisig);
-          } else {
-            return {
-              type_url: pubkey.type_url,
-              // assuming all single pubkeys have the same protobuf type
-              // this works for secp256k1, secp256r1 & ethermint pubkeys
-              value: PubKey.toJSON(
-                PubKey.decode(
-                  // @ts-expect-error
-                  // pubkey.value is actually a base64 string but it's Any
-                  // so TypeScript thinks it's a Uint8Array
-                  fromBase64(pubkey.value),
-                ),
-              ),
-            };
-          }
-        };
-
-        //@ts-ignore
-        tx.auth_info!.signer_infos! = tx.auth_info?.signer_infos?.map((si) => {
-          //@ts-ignore
-          si.public_key = resolvePubkey(si.public_key);
-          return si;
-        });
-
-        for (
-          let i = 0;
-          !isNaN(Number(tx.body?.messages?.length)) &&
-          i < Number(tx.body?.messages?.length);
-          i++
-        ) {
-          //@ts-ignore
-          let msg: { type_url: string; value: any } = tx.body!.messages![i];
-
-          const { type_url: msgType, value: msgBytes } = msg;
-
-          const msgDecoder = MsgRegistry.get(msgType);
-          if (!msgDecoder) {
-            continue;
-          }
-
-          msg = {
-            type_url: msgType,
-            value: msgDecoder.decode(fromBase64(msgBytes)),
-          };
-
-          if (
-            msg.type_url === "/secret.compute.v1beta1.MsgInstantiateContract"
-          ) {
-            msg.value.sender = bytesToAddress(msg.value.sender);
-            msg.value.init_msg = toBase64(msg.value.init_msg);
-            msg.value.callback_sig = null;
-          } else if (
-            msg.type_url === "/secret.compute.v1beta1.MsgExecuteContract"
-          ) {
-            msg.value.sender = bytesToAddress(msg.value.sender);
-            msg.value.contract = bytesToAddress(msg.value.contract);
-            msg.value.msg = toBase64(msg.value.msg);
-            msg.value.callback_sig = null;
-          } else if (msg.type_url === "/secret.compute.v1beta1.MsgStoreCode") {
-            msg.value.sender = bytesToAddress(msg.value.sender);
-            msg.value.wasm_byte_code = toBase64(msg.value.wasm_byte_code);
-          } else if (
-            msg.type_url === "/secret.compute.v1beta1.MsgMigrateContract"
-          ) {
-            msg.value.msg = toBase64(msg.value.msg);
-          }
-
-          tx.body!.messages![i] = msg;
-        }
-
-        tx_response!.tx = {
-          "@type": "/cosmos.tx.v1beta1.Tx",
-          ...protobufJsonToGrpcGatewayJson(tx_response!.tx),
-        };
-
-        return await this.decodeTxResponse(tx_response!, ibcTxOptions);
-      }
-    } else */ if (mode === BroadcastMode.Sync) {
+    if (mode === BroadcastMode.Sync) {
       const { BroadcastMode } = await import(
         "./grpc_gateway/cosmos/tx/v1beta1/service.pb"
       );
@@ -1711,13 +1558,6 @@ export class SecretNetworkClient {
         )}".`,
       );
     }
-
-    /*
-    if (!waitForCommit) {
-      //@ts-ignore
-      return { transactionHash: txhash };
-    }
-    */
 
     // sleep first because there's no point in checking right after broadcasting
     await sleep(checkIntervalMs / 2);
@@ -1996,12 +1836,13 @@ export class SecretNetworkClient {
     const txBodyBytes = await this.encodeTx(txBody);
     const signedGasLimit = Number(signed.fee.gas);
     const signedSequence = Number(signed.sequence);
-    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
-    const signedAuthInfoBytes = await makeAuthInfoBytes(
+    const pubkey = encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
+    const signedAuthInfoBytes = makeAuthInfoBytes(
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
       signed.fee.granter,
+      signed.fee.payer,
       signMode,
     );
     return TxRaw.fromPartial({
@@ -2091,23 +1932,24 @@ export class SecretNetworkClient {
     };
 
     const txBodyBytes = await this.encodeTx(txBody);
-    const pubkey = await encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
+    const pubkey = encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const gasLimit = Number(fee.gas);
-    const authInfoBytes = await makeAuthInfoBytes(
+    const authInfoBytes = makeAuthInfoBytes(
       [{ pubkey, sequence }],
       fee.amount,
       gasLimit,
       fee.granter,
+      fee.payer,
     );
 
-    const signDoc = makeSignDocProto(
+    const signDoc = makeSignDoc(
       txBodyBytes,
       authInfoBytes,
       chainId,
       accountNumber,
     );
 
-    let signed: SignDoc | SignDocCamelCase;
+    let signed: SignDoc;
     let signature: StdSignature;
 
     if (!simulate) {
@@ -2120,23 +1962,11 @@ export class SecretNetworkClient {
       signature = getSimulateSignature();
     }
 
-    if (isSignDoc(signed)) {
-      // Wallet
-      return TxRaw.fromPartial({
-        body_bytes: signed.body_bytes,
-        auth_info_bytes: signed.auth_info_bytes,
-        signatures: [fromBase64(signature.signature)],
-      });
-    } else if (isSignDocCamelCase(signed)) {
-      // cosmjs/Keplr
-      return TxRaw.fromPartial({
-        body_bytes: signed.bodyBytes,
-        auth_info_bytes: signed.authInfoBytes,
-        signatures: [fromBase64(signature.signature)],
-      });
-    } else {
-      throw new Error(`unknown SignDoc instance: ${JSON.stringify(signed)}`);
-    }
+    return TxRaw.fromPartial({
+      body_bytes: signed.bodyBytes,
+      auth_info_bytes: signed.authInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
   }
 }
 
@@ -2146,167 +1976,6 @@ function sleep(ms: number) {
 
 export function gasToFee(gasLimit: number, gasPrice: number): number {
   return Math.ceil(gasLimit * gasPrice);
-}
-
-/**
- * Creates and serializes an AuthInfo document.
- *
- * This implementation does not support different signing modes for the different signers.
- */
-async function makeAuthInfoBytes(
-  signers: ReadonlyArray<{
-    readonly pubkey: import("./protobuf/google/protobuf/any").Any;
-    readonly sequence: number;
-  }>,
-  feeAmount: readonly Coin[],
-  gasLimit: number,
-  feeGranter?: string,
-  signMode?: import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode,
-): Promise<Uint8Array> {
-  if (!signMode) {
-    signMode = (await import("./protobuf/cosmos/tx/signing/v1beta1/signing"))
-      .SignMode.SIGN_MODE_DIRECT;
-  }
-
-  const authInfo: AuthInfo = {
-    signer_infos: makeSignerInfos(signers, signMode),
-    fee: {
-      amount: [...feeAmount],
-      gas_limit: String(gasLimit),
-      granter: feeGranter ?? "",
-      payer: "",
-    },
-  };
-
-  const { AuthInfo } = await import("./protobuf/cosmos/tx/v1beta1/tx");
-  return AuthInfo.encode(AuthInfo.fromPartial(authInfo)).finish();
-}
-
-/**
- * Create signer infos from the provided signers.
- *
- * This implementation does not support different signing modes for the different signers.
- */
-function makeSignerInfos(
-  signers: ReadonlyArray<{
-    readonly pubkey: import("./protobuf/google/protobuf/any").Any;
-    readonly sequence: number;
-  }>,
-  signMode: import("./protobuf/cosmos/tx/signing/v1beta1/signing").SignMode,
-): import("./protobuf/cosmos/tx/v1beta1/tx").SignerInfo[] {
-  return signers.map(
-    ({
-      pubkey,
-      sequence,
-    }): import("./protobuf/cosmos/tx/v1beta1/tx").SignerInfo => ({
-      public_key: pubkey,
-      mode_info: {
-        single: { mode: signMode },
-      },
-      sequence: String(sequence),
-    }),
-  );
-}
-
-/** SignDoc is the type used for generating sign bytes for SIGN_MODE_DIRECT. */
-export interface SignDocCamelCase {
-  /**
-   * bodyBytes is protobuf serialization of a TxBody that matches the
-   * representation in TxRaw.
-   */
-  bodyBytes: Uint8Array;
-  /**
-   * authInfoBytes is a protobuf serialization of an AuthInfo that matches the
-   * representation in TxRaw.
-   */
-  authInfoBytes: Uint8Array;
-  /**
-   * chainId is the unique identifier of the chain this transaction targets.
-   * It prevents signed transactions from being used on another chain by an
-   * attacker
-   */
-  chainId: string;
-  /** accountNumber is the account number of the account in state */
-  accountNumber: string;
-}
-
-function makeSignDocProto(
-  bodyBytes: Uint8Array,
-  authInfoBytes: Uint8Array,
-  chainId: string,
-  accountNumber: number,
-): import("./protobuf/cosmos/tx/v1beta1/tx").SignDoc & SignDocCamelCase {
-  return {
-    body_bytes: bodyBytes,
-    auth_info_bytes: authInfoBytes,
-    chain_id: chainId,
-    account_number: String(accountNumber),
-
-    // cosmjs/Keplr
-    bodyBytes,
-    authInfoBytes,
-    chainId,
-    accountNumber: String(accountNumber),
-  };
-}
-
-async function encodePubkey(
-  pubkey: Pubkey,
-): Promise<import("./protobuf/google/protobuf/any").Any> {
-  const { Any } = await import("./protobuf/google/protobuf/any");
-
-  if (isSecp256k1Pubkey(pubkey)) {
-    const { PubKey } = await import("./protobuf/cosmos/crypto/secp256k1/keys");
-
-    const pubkeyProto = PubKey.fromPartial({
-      key: fromBase64(pubkey.value),
-    });
-    return Any.fromPartial({
-      type_url: "/cosmos.crypto.secp256k1.PubKey",
-      value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
-    });
-  } else if (isMultisigThresholdPubkey(pubkey)) {
-    const { LegacyAminoPubKey } = await import(
-      "./protobuf/cosmos/crypto/multisig/keys"
-    );
-
-    const pubkeyProto = LegacyAminoPubKey.fromPartial({
-      threshold: Number(pubkey.value.threshold),
-      public_keys: pubkey.value.pubkeys.map(encodePubkey),
-    });
-    return Any.fromPartial({
-      type_url: "/cosmos.crypto.multisig.LegacyAminoPubKey",
-      value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
-    });
-  } else {
-    throw new Error(`Pubkey type ${pubkey.type} not recognized`);
-  }
-}
-
-function isSecp256k1Pubkey(pubkey: Pubkey): boolean {
-  return pubkey.type === "tendermint/PubKeySecp256k1";
-}
-
-function isMultisigThresholdPubkey(pubkey: Pubkey): boolean {
-  return pubkey.type === "tendermint/PubKeyMultisigThreshold";
-}
-
-function makeSignDocAmino(
-  msgs: readonly AminoMsg[],
-  fee: StdFee,
-  chainId: string,
-  memo: string | undefined,
-  accountNumber: number | string,
-  sequence: number | string,
-): StdSignDoc {
-  return {
-    chain_id: chainId,
-    account_number: String(accountNumber),
-    sequence: String(sequence),
-    fee: fee,
-    msgs: msgs,
-    memo: memo || "",
-  };
 }
 
 export enum TxResultCode {
@@ -2435,39 +2104,6 @@ export enum TxResultCode {
 
   /** ErrPanic is only set when we recover from a panic, so we know to redact potentially sensitive system info. */
   ErrPanic = 111222,
-}
-
-/**
- * Recursively converts an object of type `{ type_url: string; value: any; }`
- * to type `{ "@type": string; ...values }`
- */
-function protobufJsonToGrpcGatewayJson(obj: any): any {
-  if (typeof obj !== "object" || obj === null) {
-    return obj;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(protobufJsonToGrpcGatewayJson);
-  }
-
-  if (
-    Object.keys(obj).length === 2 &&
-    typeof obj["type_url"] === "string" &&
-    typeof obj["value"] === "object"
-  ) {
-    return Object.assign(
-      { "@type": obj["type_url"] },
-      protobufJsonToGrpcGatewayJson(obj["value"]),
-    );
-  }
-
-  const result: Record<string, any> = {};
-
-  Object.keys(obj).forEach((key) => {
-    result[key] = protobufJsonToGrpcGatewayJson(obj[key]);
-  });
-
-  return result;
 }
 
 function getSimulateSignature(): StdSignature {
