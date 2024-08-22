@@ -2413,8 +2413,7 @@ describe("tx.gov", () => {
       proposal_id,
     });
 
-    // proposal response no longer has is_expedited
-    // expect(proposal?.is_expedited).toBe(true);
+    expect(proposal?.expedited).toBe(true);
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[1]));
 
@@ -2422,8 +2421,7 @@ describe("tx.gov", () => {
       proposal_id,
     }));
 
-    // proposal response no longer has is_expedited
-    // expect(proposal?.is_expedited).toBe(false);
+    expect(proposal?.expedited).toBe(false);
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[2]));
 
@@ -2431,8 +2429,7 @@ describe("tx.gov", () => {
       proposal_id,
     }));
 
-    // proposal response no longer has is_expedited
-    // expect(proposal?.is_expedited).toBe(false);
+    expect(proposal?.expedited).toBe(false);
   });
 });
 
