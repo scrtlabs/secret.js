@@ -1,5 +1,9 @@
 import { stringToPath } from "@cosmjs/crypto";
-import { DirectSecp256k1HdWallet, OfflineDirectSigner, OfflineSigner } from "@cosmjs/proto-signing";
+import {
+  DirectSecp256k1HdWallet,
+  OfflineDirectSigner,
+  OfflineSigner,
+} from "@cosmjs/proto-signing";
 import { GasPrice } from "@cosmjs/stargate";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
@@ -64,6 +68,7 @@ const mnemonics = [
   "clock involve govern nurse kiss butter hockey hill hub hurry palace error moon asset learn health slam amateur lava zone this jelly toy essay",
   "culture possible muffin nut ocean nut frame dinosaur melody border oven crumble pumpkin normal zone prosper auction series time spray stage unveil whale inner",
   "lens upon insect rescue marriage wolf uphold sniff wine humor grass reflect rough belt labor quantum school imitate baby weasel destroy leg adapt parade",
+  "push certain add next grape invite tobacco bubble text romance again lava crater pill genius vital fresh guard great patch knee series era tonight",
   "popular famous wine robot melody warm sad suit never absurd fat flush into space question mechanic cactus coast couple outdoor ribbon town transfer fix",
 ];
 
@@ -182,10 +187,7 @@ export function getValueFromEvents(
   return "";
 }
 
-export function getTxEvents(
-  events: any[] | undefined,
-  key: string,
-): Object[] {
+export function getTxEvents(events: any[] | undefined, key: string): Object[] {
   let res: Object[] = [];
   if (!events) {
     return [];
@@ -284,7 +286,7 @@ export async function createIbcConnection(): Promise<Link> {
   );
   const [account] = await signerA.getAccounts();
   const signerB = signerA;
-  const a = signerA as OfflineSigner
+  const a = signerA as OfflineSigner;
   // Create IBC Client for chain A
   const clientA = await IbcClient.connectWithSigner(
     chain1RPC,
@@ -473,8 +475,8 @@ export async function passParameterChangeProposal(
       messages: [],
       metadata: "",
       summary: "summary",
-      title: "some proposal"
-  },
+      title: "some proposal",
+    },
     {
       broadcastCheckIntervalMs: 100,
       gasLimit: 5_000_000,

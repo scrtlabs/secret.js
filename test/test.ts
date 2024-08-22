@@ -4,6 +4,7 @@ import fs from "fs";
 import {
   MsgCreateVestingAccount,
   MsgDelegate,
+  MsgCreateValidator,
   MsgExecuteContract,
   MsgExecuteContractResponse,
   MsgGrantAuthorization,
@@ -350,12 +351,10 @@ describe("query.distribution", () => {
 
   test("CommunityPoolSpend", async () => {
     const { secretjs } = accounts[0];
-    const tx = await secretjs.tx.distribution.fundCommunityPool(
-      {  
-        amount: [stringToCoin("10000uscrt")],
-        depositor: secretjs.address,
-       } as MsgFundCommunityPoolParams,
-    );
+    const tx = await secretjs.tx.distribution.fundCommunityPool({
+      amount: [stringToCoin("10000uscrt")],
+      depositor: secretjs.address,
+    } as MsgFundCommunityPoolParams);
 
     expect(tx.code).toBe(TxResultCode.Success);
   });
@@ -853,7 +852,7 @@ describe("tx.compute", () => {
     });
   });
 
-  test.skip("MsgExecuteContract xyz", async () => {
+  test("MsgExecuteContract xyz", async () => {
     const { secretjs } = accounts[0];
 
     const storeInput = {
@@ -1969,7 +1968,7 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
+          title: "some proposal",
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -1998,7 +1997,6 @@ describe("tx.gov", () => {
 
     test("CommunityPoolSpend", async () => {
       const { secretjs } = accounts[0];
-      
     });
 
     // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x,
@@ -2029,7 +2027,7 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
+          title: "some proposal",
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2073,7 +2071,7 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
+          title: "some proposal",
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2119,7 +2117,7 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
+          title: "some proposal",
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2168,7 +2166,7 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
+          title: "some proposal",
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2208,8 +2206,8 @@ describe("tx.gov", () => {
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
-        title: "some proposal"
-    },
+        title: "some proposal",
+      },
       {
         broadcastCheckIntervalMs: 100,
         gasLimit: 5_000_000,
@@ -2264,7 +2262,7 @@ describe("tx.gov", () => {
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
-        title: "some proposal"
+        title: "some proposal",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2325,7 +2323,7 @@ describe("tx.gov", () => {
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
-        title: "some proposal"
+        title: "some proposal",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2383,8 +2381,8 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
-          }),
+          title: "some proposal",
+        }),
         new MsgSubmitProposal({
           // expedited = false
           type: ProposalType.Proposal,
@@ -2398,8 +2396,8 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
-          }),
+          title: "some proposal",
+        }),
         new MsgSubmitProposal({
           // expedited omitted
           type: ProposalType.Proposal,
@@ -2412,8 +2410,8 @@ describe("tx.gov", () => {
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
-          title: "some proposal"
-          }),
+          title: "some proposal",
+        }),
       ],
       {
         gasLimit: 5_000_000,
@@ -2782,7 +2780,7 @@ describe("tx.slashing", () => {
   });
 });
 
-describe.skip("tx.distribution", () => {
+describe("tx.distribution", () => {
   test("MsgFundCommunityPool", async () => {
     const { secretjs, address: depositor } = accounts[0];
 
@@ -2908,10 +2906,28 @@ describe.skip("tx.distribution", () => {
   });
 
   test("MsgSetAutoRestake true", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjs } = accounts[5];
 
     const tx = await secretjs.tx.broadcast(
       [
+        new MsgCreateValidator({
+          delegator_address: secretjs.address,
+          commission: {
+            max_change_rate: 0.01,
+            max_rate: 0.1,
+            rate: 0.05,
+          },
+          description: {
+            moniker: "banana",
+            identity: "papaya",
+            website: "watermelon.com",
+            security_contact: "info@watermelon.com",
+            details: "We are the banana papaya validator",
+          },
+          pubkey: toBase64(new Uint8Array(32).fill(5)),
+          min_self_delegation: "1",
+          initial_delegation: stringToCoin("1uscrt"),
+        }),
         new MsgDelegate({
           delegator_address: secretjs.address,
           validator_address: selfDelegatorAddressToValidatorAddress(
@@ -2947,7 +2963,7 @@ describe.skip("tx.distribution", () => {
   });
 
   test("MsgSetAutoRestake false", async () => {
-    const { secretjs } = accounts[0];
+    const { secretjs } = accounts[5];
 
     const tx = await secretjs.tx.broadcast(
       [
@@ -3169,7 +3185,7 @@ describe("sanity", () => {
 });
 
 describe("tx.feegrant", () => {
-  test.skip("MsgGrantAllowance", async () => {
+  test("MsgGrantAllowance", async () => {
     const { secretjs } = accounts[0];
     const newWallet = new Wallet(); // this tests both amino & protobuf
 
@@ -3247,7 +3263,7 @@ describe("tx.feegrant", () => {
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
-        title: "some proposal"
+        title: "some proposal",
       },
       {
         broadcastCheckIntervalMs: 100,
