@@ -9,6 +9,7 @@ import * as GoogleProtobufTimestamp from "../../google/protobuf/timestamp.pb"
 import * as TendermintCryptoKeys from "../crypto/keys.pb"
 import * as TendermintCryptoProof from "../crypto/proof.pb"
 import * as TendermintTypesParams from "../types/params.pb"
+import * as TendermintTypesTypes from "../types/types.pb"
 import * as TendermintTypesValidator from "../types/validator.pb"
 
 type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
@@ -175,6 +176,8 @@ export type RequestFinalizeBlock = {
   time?: GoogleProtobufTimestamp.Timestamp
   next_validators_hash?: Uint8Array
   proposer_address?: Uint8Array
+  encrypted_random?: TendermintTypesTypes.EncryptedRandom
+  commit?: TendermintTypesTypes.Commit
 }
 
 
