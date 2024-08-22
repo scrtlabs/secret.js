@@ -313,8 +313,7 @@ describe("query", () => {
         { limit: "10" },
       );
 
-      // expect(queryResult.length).toBe(10);
-      console.warn("pagination limit not working");
+      expect(queryResult.length).toBe(10);
     });
 
     test("pagination.offset", async () => {
@@ -331,10 +330,9 @@ describe("query", () => {
         undefined,
         { limit: "1", offset: "1" },
       );
-      console.warn("pagination limit 1 offset 1 not working");
-      // expect(first.length).toBe(1);
-      // expect(second.length).toBe(1);
-      // expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
+      expect(first.length).toBe(1);
+      expect(second.length).toBe(1);
+      expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
     });
   });
 });

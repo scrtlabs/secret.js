@@ -1116,6 +1116,8 @@ export class SecretNetworkClient {
         events: query.split(" AND ").map((q) => q.trim()),
         query,
         pagination,
+        limit: pagination.limit,
+        page: pagination.offset ? String(Number(pagination.offset) + 1) : "1",
         order_by,
       },
       { pathPrefix: this.url },
