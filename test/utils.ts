@@ -1,17 +1,11 @@
 import { stringToPath } from "@cosmjs/crypto";
-import {
-  DirectSecp256k1HdWallet,
-  OfflineDirectSigner,
-  OfflineSigner,
-} from "@cosmjs/proto-signing";
+import { DirectSecp256k1HdWallet, OfflineSigner } from "@cosmjs/proto-signing";
 import { GasPrice } from "@cosmjs/stargate";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
 import fs from "fs";
 import util from "util";
 import {
-  ProposalContent,
-  ProposalType,
   SecretNetworkClient,
   stringToCoins,
   TxResponse,
@@ -434,7 +428,7 @@ export async function waitForProposalToPass(
 ) {
   while (true) {
     try {
-      const response = await secretjs.query.gov_v1.proposal({
+      const response = await secretjs.query.gov.proposal({
         proposal_id: proposalId,
       });
 
@@ -461,17 +455,14 @@ export async function waitForProposalToPass(
 
 export async function passParameterChangeProposal(
   secretjs: SecretNetworkClient,
-  content: ProposalContent,
 ) {
   console.log("Passing parameter change proposal...");
 
   let tx = await secretjs.tx.gov.submitProposal(
     {
-      type: ProposalType.ParameterChangeProposal,
       proposer: secretjs.address,
       initial_deposit: stringToCoins("100000000000uscrt"),
-      is_expedited: true,
-      content,
+      expedited: true,
       messages: [],
       metadata: "",
       summary: "summary",

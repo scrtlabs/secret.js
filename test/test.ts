@@ -1,5 +1,10 @@
-import { fromBase64, fromUtf8, toBase64 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
+import {
+  fromBase64,
+  fromUtf8,
+  toBase64,
+  toBech32,
+  fromBech32,
+} from "@cosmjs/encoding";
 import fs from "fs";
 import {
   MsgCreateVestingAccount,
@@ -12,9 +17,7 @@ import {
   MsgSend,
   MsgSetAutoRestake,
   MsgSubmitProposal,
-  MsgFundCommunityPool,
   MsgFundCommunityPoolParams,
-  ProposalType,
   SecretNetworkClient,
   StakeAuthorizationType,
   TxResultCode,
@@ -1930,7 +1933,7 @@ describe("tx.gov", () => {
   async function getAllProposals(
     secretjs: SecretNetworkClient,
   ): Promise<Proposal[]> {
-    const { proposals } = await secretjs.query.gov_v1.proposals({});
+    const { proposals } = await secretjs.query.gov.proposals({});
 
     return proposals!;
   }
@@ -1943,17 +1946,13 @@ describe("tx.gov", () => {
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
-          type: ProposalType.Proposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi",
-            description: "Hello",
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2000,19 +1999,13 @@ describe("tx.gov", () => {
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
-          type: ProposalType.CommunityPoolSpendProposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi",
-            description: "Hello",
-            recipient: accounts[0].address,
-            amount: stringToCoins("1uscrt"),
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2043,20 +2036,13 @@ describe("tx.gov", () => {
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
-          type: ProposalType.ParameterChangeProposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi",
-            description: "YOLO",
-            changes: [
-              { subspace: "auth", key: "MaxMemoCharacters", value: '"512"' },
-            ],
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2087,22 +2073,13 @@ describe("tx.gov", () => {
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
-          type: ProposalType.SoftwareUpgradeProposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi let's upgrade",
-            description: "PROD NO FEAR",
-            plan: {
-              name: "Shockwave!",
-              height: "1000000",
-              info: "000000000019D6689C085AE165831E934FF763AE46A2A6C172B3F1B60A8CE26F",
-            },
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2141,17 +2118,13 @@ describe("tx.gov", () => {
 
       const tx = await secretjs.tx.gov.submitProposal(
         {
-          type: ProposalType.CancelSoftwareUpgradeProposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi let's cancel",
-            description: "PROD FEAR",
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
@@ -2181,17 +2154,13 @@ describe("tx.gov", () => {
 
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
-        type: ProposalType.Proposal,
         proposer: accounts[0].address,
         initial_deposit: stringToCoins("10000000uscrt"),
-        content: {
-          title: "Please vote yes",
-          description: "Please don't vote no",
-        },
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
         title: "some proposal",
+        expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2212,7 +2181,7 @@ describe("tx.gov", () => {
         voter: accounts[0].address,
         proposal_id,
         option: VoteOption.VOTE_OPTION_YES,
-        metadata: "some_metadata"
+        metadata: "some_metadata",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2237,17 +2206,13 @@ describe("tx.gov", () => {
 
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
-        type: ProposalType.Proposal,
         proposer: accounts[0].address,
         initial_deposit: stringToCoins("10000000uscrt"),
-        content: {
-          title: "Please vote yes",
-          description: "Please don't vote no",
-        },
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
         title: "some proposal",
+        expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2298,17 +2263,13 @@ describe("tx.gov", () => {
 
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
-        type: ProposalType.Proposal,
         proposer: accounts[0].address,
         initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
-        content: {
-          title: "Hi",
-          description: "Hello",
-        },
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
         title: "some proposal",
+        expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2340,7 +2301,7 @@ describe("tx.gov", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const { deposit } = await secretjs.query.gov_v1.deposit({
+    const { deposit } = await secretjs.query.gov.deposit({
       depositor: accounts[0].address,
       proposal_id,
     });
@@ -2355,14 +2316,9 @@ describe("tx.gov", () => {
       [
         new MsgSubmitProposal({
           // expedited
-          type: ProposalType.Proposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("50000000uscrt"),
-          content: {
-            title: "Expedited Hi",
-            description: "Expedited Hello",
-          },
-          is_expedited: true,
+          expedited: true,
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
@@ -2370,14 +2326,9 @@ describe("tx.gov", () => {
         }),
         new MsgSubmitProposal({
           // expedited = false
-          type: ProposalType.Proposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi",
-            description: "Hello",
-          },
-          is_expedited: false,
+          expedited: false,
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
@@ -2385,17 +2336,13 @@ describe("tx.gov", () => {
         }),
         new MsgSubmitProposal({
           // expedited omitted
-          type: ProposalType.Proposal,
           proposer: accounts[0].address,
           initial_deposit: stringToCoins("10000000uscrt"),
-          content: {
-            title: "Hi",
-            description: "Hello",
-          },
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
           title: "some proposal",
+          expedited: false,
         }),
       ],
       {
@@ -2409,7 +2356,7 @@ describe("tx.gov", () => {
 
     let { proposal_id } = MsgSubmitProposalResponse.decode(tx.data[0]);
 
-    let { proposal } = await secretjs.query.gov_v1.proposal({
+    let { proposal } = await secretjs.query.gov.proposal({
       proposal_id,
     });
 
@@ -2417,7 +2364,7 @@ describe("tx.gov", () => {
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[1]));
 
-    ({ proposal } = await secretjs.query.gov_v1.proposal({
+    ({ proposal } = await secretjs.query.gov.proposal({
       proposal_id,
     }));
 
@@ -2425,7 +2372,7 @@ describe("tx.gov", () => {
 
     ({ proposal_id } = MsgSubmitProposalResponse.decode(tx.data[2]));
 
-    ({ proposal } = await secretjs.query.gov_v1.proposal({
+    ({ proposal } = await secretjs.query.gov.proposal({
       proposal_id,
     }));
 
@@ -2828,9 +2775,9 @@ describe("tx.distribution", () => {
     const onlineValidator = validators!.find(
       (v) => v.status === BondStatus.BOND_STATUS_BONDED,
     )!;
-    const selfDelegator = bech32.encode(
+    const selfDelegator = toBech32(
       "secret",
-      bech32.decode(onlineValidator.operator_address!).words,
+      fromBech32(onlineValidator.operator_address!).data,
     );
     const selfDelegatorAccount = accounts.find(
       (a) => a.address === selfDelegator,
@@ -2859,9 +2806,9 @@ describe("tx.distribution", () => {
     const onlineValidator = validators!.find(
       (v) => v.status === BondStatus.BOND_STATUS_BONDED,
     )!;
-    const selfDelegator = bech32.encode(
+    const selfDelegator = toBech32(
       "secret",
-      bech32.decode(onlineValidator.operator_address!).words,
+      fromBech32(onlineValidator.operator_address!).data,
     );
     const selfDelegatorAccount = accounts.find(
       (a) => a.address === selfDelegator,
@@ -3055,6 +3002,8 @@ describe("sanity", () => {
         .sort();
 
       if (grpcGatewayQueries.length > 0) {
+        console.log(JSON.stringify(secretjsQueries, null, 2));
+        console.log(JSON.stringify(grpcGatewayQueries, null, 2));
         expect(secretjsQueries).toContainEqual(grpcGatewayQueries);
       }
     }
@@ -3236,16 +3185,12 @@ describe("tx.feegrant", () => {
     tx = await secretjsGrantee.tx.gov.submitProposal(
       {
         proposer: secretjsGrantee.address,
-        type: ProposalType.Proposal,
         initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
-        content: {
-          title: "Test Feegrant",
-          description: "YOLO",
-        },
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
         title: "some proposal",
+        expedited: false,
       },
       {
         broadcastCheckIntervalMs: 100,
