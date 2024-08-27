@@ -1,8 +1,10 @@
 import BigNumber from "bignumber.js";
 import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
 import { VoteOption } from "../protobuf/cosmos/gov/v1/gov";
+import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
+import { Any } from "../protobuf/google/protobuf/any";
 import {
-  MsgSubmitProposal as MsgSubmitProposalParams,
+  MsgSubmitProposal as MsgSubmitProposalProto,
   MsgVote as MsgVoteParams,
   MsgVoteWeighted as MsgVoteWeightedProto,
   MsgExecLegacyContent as MsgExecLegacyContentParams,
@@ -11,7 +13,6 @@ import {
 } from "../protobuf/cosmos/gov/v1/tx";
 
 export {
-  MsgSubmitProposal as MsgSubmitProposalParams,
   MsgVote as MsgVoteParams,
   MsgExecLegacyContent as MsgExecLegacyContentParams,
   MsgCancelProposal as MsgCancelProposalParams,
@@ -19,6 +20,35 @@ export {
 } from "../protobuf/cosmos/gov/v1/tx";
 
 export { VoteOption, ProposalStatus } from "../protobuf/cosmos/gov/v1/gov";
+
+export interface MsgSubmitProposalParams {
+  /** messages are the arbitrary messages to be executed if proposal passes. */
+  messages: Msg[];
+  /** initial_deposit is the deposit value that must be paid at proposal submission. */
+  initial_deposit: Coin[];
+  /** proposer is the account address of the proposer. */
+  proposer: string;
+  /** metadata is any arbitrary metadata attached to the proposal. */
+  metadata: string;
+  /**
+   * title is the title of the proposal.
+   *
+   * Since: cosmos-sdk 0.47
+   */
+  title: string;
+  /**
+   * summary is the summary of the proposal
+   *
+   * Since: cosmos-sdk 0.47
+   */
+  summary: string;
+  /**
+   * expedited defines if the proposal is expedited or not
+   *
+   * Since: cosmos-sdk 0.50
+   */
+  expedited: boolean;
+}
 
 /**
  * MsgSubmitProposal defines an sdk.Msg type that supports submitting arbitrary
@@ -28,10 +58,22 @@ export class MsgSubmitProposal implements Msg {
   constructor(public params: MsgSubmitProposalParams) {}
 
   async toProto(): Promise<ProtoMsg> {
+    let msgContent = {
+      ...this.params,
+      messages: await Promise.all(
+        this.params.messages.map(async (msg) => {
+          const protoMsg = await msg.toProto();
+          return Any.fromPartial({
+            type_url: protoMsg.type_url,
+            value: protoMsg.encode(),
+          });
+        }),
+      ),
+    };
     return {
       type_url: `/cosmos.gov.v1.MsgSubmitProposal`,
-      value: this.params,
-      encode: () => MsgSubmitProposalParams.encode(this.params).finish(),
+      value: msgContent,
+      encode: () => MsgSubmitProposalProto.encode(msgContent).finish(),
     };
   }
 

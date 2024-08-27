@@ -11,8 +11,8 @@ export interface ProtoMsg {
 }
 
 export interface Msg {
-  toProto(utils: EncryptionUtils): Promise<ProtoMsg>;
-  toAmino(utils: EncryptionUtils): Promise<AminoMsg>;
+  toProto(utils?: EncryptionUtils): Promise<ProtoMsg>;
+  toAmino(utils?: EncryptionUtils): Promise<AminoMsg>;
 }
 
 export interface MsgParams {}
