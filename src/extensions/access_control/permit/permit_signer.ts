@@ -1,14 +1,11 @@
-import {
-  AminoEip191Signer,
-  AminoSigner,
-  DirectSigner
-} from "../../../wallet_amino";
+import { AminoEip191Signer, AminoSigner } from "../../../wallet_amino";
+import { OfflineDirectSigner as DirectSigner } from "@cosmjs/proto-signing";
 import {
   newPermit,
   Permission,
   Permit,
   PermitError,
-  validatePermit
+  validatePermit,
 } from "./index";
 
 export class DirectSignerUnsupported extends PermitError {

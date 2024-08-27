@@ -4,7 +4,7 @@ import {
   Snip20IncreaseAllowanceOptions,
   Snip20SendOptions,
   Snip20SetViewingKeyOptions,
-  Snip20TransferOptions
+  Snip20TransferOptions,
 } from "./types";
 
 export class MsgSnip20Send extends MsgExecuteContract<Snip20SendOptions> {}

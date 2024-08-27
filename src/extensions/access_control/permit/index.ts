@@ -1,13 +1,9 @@
-import { fromBase64 } from "@cosmjs/encoding";
+import { fromBase64, fromBech32 } from "@cosmjs/encoding";
 import { sha256 } from "@noble/hashes/sha256";
 import * as secp256k1 from "@noble/secp256k1";
-import { bech32 } from "bech32";
 import { base64PubkeyToAddress, stringToCoins } from "../../../index";
-import {
-  AminoSigner,
-  serializeStdSignDoc,
-  StdSignDoc,
-} from "../../../wallet_amino";
+import { AminoSigner } from "../../../wallet_amino";
+import { StdSignDoc, serializeSignDoc } from "@cosmjs/amino";
 
 export class PermitError extends Error {
   readonly type = "PermitError";
@@ -127,16 +123,20 @@ export const newPermit = async (
   let signature;
   if (!keplr) {
     // Check if the signer has "signPermit" function and use it instead
-    signature = typeof signer.signPermit === 'function' ? 
-    (await signer.signPermit(
-      owner,
-      newSignDoc(chainId, permitName, allowedTokens, permissions))
-    ).signature : 
-
-    (await signer.signAmino(
-      owner,
-      newSignDoc(chainId, permitName, allowedTokens, permissions))
-    ).signature;
+    signature =
+      typeof signer.signPermit === "function"
+        ? (
+            await signer.signPermit(
+              owner,
+              newSignDoc(chainId, permitName, allowedTokens, permissions),
+            )
+          ).signature
+        : (
+            await signer.signAmino(
+              owner,
+              newSignDoc(chainId, permitName, allowedTokens, permissions),
+            )
+          ).signature;
   }
   //@ts-ignore
   else if (!window?.keplr) {
@@ -216,7 +216,7 @@ export const validatePermit = (
 
   let hrp = "";
   try {
-    hrp = bech32.decode(address).prefix;
+    hrp = fromBech32(address).prefix;
   } catch {
     throw new Error(
       `Address address=${address} must be a valid bech32 address`,
@@ -271,7 +271,7 @@ const _validate_sig = (permit: Permit): boolean => {
     permit.params.allowed_tokens,
     permit.params.permissions,
   );
-  const messageHash = sha256(serializeStdSignDoc(signDoc));
+  const messageHash = sha256(serializeSignDoc(signDoc));
   let sig = secp256k1.Signature.fromCompact(
     fromBase64(permit.signature.signature),
   );

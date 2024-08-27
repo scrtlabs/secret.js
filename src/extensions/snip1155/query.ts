@@ -103,7 +103,7 @@ export class Snip1155Querier extends ComputeQuerier {
   }): Promise<QueryAllBalancesResponse> => {
     if (auth.viewer && owner) {
       if (auth.viewer.address !== owner) {
-        throw new Error("only owner can query all balances")
+        throw new Error("only owner can query all balances");
       }
       return await this.queryContract<
         QueryAllBalancesWithViewingKey,

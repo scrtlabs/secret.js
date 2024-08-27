@@ -1,4 +1,4 @@
-import { Coin } from "../../../tx";
+import { Coin } from "../../../protobuf/cosmos/base/v1beta1/coin";
 
 export interface Tx {
   id: number;
