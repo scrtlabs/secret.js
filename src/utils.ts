@@ -1,8 +1,13 @@
-import { fromBase64, toHex, toUtf8 } from "@cosmjs/encoding";
+import {
+  fromBase64,
+  toHex,
+  toUtf8,
+  toBech32,
+  fromBech32,
+} from "@cosmjs/encoding";
 import { ripemd160 } from "@noble/hashes/ripemd160";
 import { sha256 } from "@noble/hashes/sha256";
-import { bech32 } from "bech32";
-import { Coin } from "./tx";
+import { Coin } from "../src/protobuf/cosmos/base/v1beta1/coin";
 
 /**
  *
@@ -38,7 +43,7 @@ export function pubkeyToAddress(
   pubkey: Uint8Array,
   prefix: string = "secret",
 ): string {
-  return bech32.encode(prefix, bech32.toWords(ripemd160(sha256(pubkey))));
+  return toBech32(prefix, ripemd160(sha256(pubkey)));
 }
 
 /**
@@ -58,7 +63,7 @@ export function base64PubkeyToAddress(
 /**
  * Convert self delegator address to validator address
  *
- * @param {String} selfDelegator The self delegator bech32 encoded address
+ * @param {String} selfDelegator The self delegator toBech32d address
  * @param {String} [prefix="secret"] The self delegator address' bech32 prefix. Defaults to `"secret"`.
  * @returns the account's address
  */
@@ -66,13 +71,13 @@ export function selfDelegatorAddressToValidatorAddress(
   selfDelegator: string,
   prefix: string = "secret",
 ): string {
-  return bech32.encode(`${prefix}valoper`, bech32.decode(selfDelegator).words);
+  return toBech32(`${prefix}valoper`, fromBech32(selfDelegator).data);
 }
 
 /**
  * Convert self delegator address to validator address
  *
- * @param {String} validator The validator bech32 encoded address
+ * @param {String} validator The validator toBech32d address
  * @param {String} [prefix="secret"] The self delegator address' bech32 prefix. Defaults to `"secret"`.
  * @returns the account's address
  */
@@ -80,7 +85,7 @@ export function validatorAddressToSelfDelegatorAddress(
   validator: string,
   prefix: string = "secret",
 ): string {
-  return bech32.encode(prefix, bech32.decode(validator).words);
+  return toBech32(prefix, fromBech32(validator).data);
 }
 
 /**
@@ -94,10 +99,7 @@ export function tendermintPubkeyToValconsAddress(
   pubkey: Uint8Array,
   prefix: string = "secret",
 ): string {
-  return bech32.encode(
-    `${prefix}valcons`,
-    bech32.toWords(sha256(pubkey).slice(0, 20)),
-  );
+  return toBech32(`${prefix}valcons`, sha256(pubkey).slice(0, 20));
 }
 
 /**
@@ -183,7 +185,7 @@ export const validateAddress = (
 ): { isValid: boolean; reason?: string } => {
   let decoded;
   try {
-    decoded = bech32.decode(address);
+    decoded = fromBech32(address);
   } catch (e) {
     let reason = "failed to decode address as a bech32";
     if (e instanceof Error) {
@@ -199,7 +201,7 @@ export const validateAddress = (
     };
   }
 
-  const canonicalAddress = bech32.fromWords(decoded.words);
+  const canonicalAddress = decoded.data;
   if (canonicalAddress.length !== 20 && canonicalAddress.length !== 32) {
     return {
       isValid: false,
@@ -221,7 +223,7 @@ export function addressToBytes(address: string): Uint8Array {
   if (address === "") {
     return new Uint8Array(0);
   }
-  return Uint8Array.from(bech32.fromWords(bech32.decode(address).words));
+  return fromBech32(address).data;
 }
 
 /**
@@ -237,5 +239,5 @@ export function bytesToAddress(
   if (bytes.length === 0) {
     return "";
   }
-  return bech32.encode(prefix, bech32.toWords(bytes));
+  return toBech32(prefix, bytes);
 }

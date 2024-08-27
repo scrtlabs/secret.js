@@ -33,7 +33,6 @@
     "@cosmjs/math": "0.32.3",
     "@noble/hashes": "1.0.0",
     "@noble/secp256k1": "1.7.0",
-    "bech32": "2.0.0",
     "big-integer": "1.6.51",
     "bignumber.js": "9.0.2",
     "bip32": "2.0.6",
