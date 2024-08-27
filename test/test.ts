@@ -16,6 +16,7 @@ import {
   MsgInstantiateContractResponse,
   MsgSend,
   MsgSetAutoRestake,
+  MsgSetSendEnabled,
   MsgSubmitProposal,
   MsgFundCommunityPoolParams,
   SecretNetworkClient,
@@ -36,7 +37,10 @@ import {
   validatorAddressToSelfDelegatorAddress,
 } from "../src";
 import { MsgCommunityPoolSpend } from "../src/protobuf/cosmos/distribution/v1beta1/tx";
-import { BaseAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import {
+  BaseAccount,
+  ModuleAccount,
+} from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
 import { Proposal } from "../src/grpc_gateway/cosmos/gov/v1/gov.pb";
 import { BondStatus } from "../src/grpc_gateway/cosmos/staking/v1beta1/staking.pb";
 import { MsgSubmitProposalResponse } from "../src/protobuf/cosmos/gov/v1/tx";
@@ -750,6 +754,78 @@ describe("tx.bank", () => {
     expect(aBefore - aAfter).toBe(BigInt(2) + BigInt(gasToFee(gasLimit, 0.1)));
     expect(bAfter - bBefore).toBe(BigInt(1));
     expect(cAfter - cBefore).toBe(BigInt(1));
+  });
+
+  test.only("MsgSetSendEnabled", async () => {
+    const { secretjs } = accounts[0];
+
+    const gasLimit = 40000;
+
+    const authorityAddress = (
+      (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+        ?.account as ModuleAccount
+    )?.base_account?.address;
+    expect(authorityAddress).not.toBeNull;
+
+    const setSendEnabledMsg = new MsgSetSendEnabled({
+      authority: authorityAddress!,
+      send_enabled: [
+        {
+          denom: "banana",
+          enabled: true,
+        },
+      ],
+      use_default_for: [],
+    });
+
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        proposer: secretjs.address,
+        initial_deposit: stringToCoins("100000000uscrt"),
+        messages: [setSendEnabledMsg],
+        title: "SetSendEnabled proposal",
+        metadata: "some meta",
+        summary: "blabla",
+        expedited: false,
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: gasLimit,
+      },
+    );
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
+
+    const proposal_id = getValueFromEvents(
+      txSubmit.events,
+      "submit_proposal.proposal_id",
+    );
+
+    // validator vote
+    const tx = await accounts[accounts.length - 2].secretjs.tx.gov.vote(
+      {
+        voter: accounts[accounts.length - 2].address,
+        proposal_id,
+        option: VoteOption.VOTE_OPTION_YES,
+        metadata: "some_metadata",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+    // waiting for proposal to finish
+    await sleep(120000);
+    const sendEnabled = await secretjs.query.bank.sendEnabled({});
+    expect(sendEnabled.send_enabled).toEqual([
+      { denom: "banana", enabled: true },
+    ]);
   });
 });
 
@@ -3002,8 +3078,6 @@ describe("sanity", () => {
         .sort();
 
       if (grpcGatewayQueries.length > 0) {
-        console.log(JSON.stringify(secretjsQueries, null, 2));
-        console.log(JSON.stringify(grpcGatewayQueries, null, 2));
         expect(secretjsQueries).toContainEqual(grpcGatewayQueries);
       }
     }
