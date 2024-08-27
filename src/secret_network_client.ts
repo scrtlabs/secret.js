@@ -14,13 +14,35 @@ import {
 import { sha256 } from "@noble/hashes/sha256";
 import {
   MsgBeginRedelegate,
+  MsgCancelUnbondingDelegationParams,
+  MsgCancelUpgrade,
+  MsgCancelUpgradeParams,
+  MsgSoftwareUpgrade,
+  MsgSoftwareUpgradeParams,
+  MsgCancelUnbondingDelegation,
   MsgBeginRedelegateParams,
   MsgCreateValidator,
   MsgCreateValidatorParams,
   MsgDelegate,
   MsgDelegateParams,
+  MsgExecLegacyContent,
+  MsgExecLegacyContentParams,
+  MsgCancelProposal,
+  MsgCancelProposalParams,
+  MsgSendTx,
+  MsgSendTxParams,
+  MsgCreatePeriodicVestingAccountParams,
+  MsgCreatePeriodicVestingAccount,
+  MsgCreatePermanentLockedAccountParams,
+  MsgCreatePermanentLockedAccount,
+  MsgRegisterInterchainAccount,
+  MsgRegisterInterchainAccountParams,
   MsgDeposit,
   MsgDepositParams,
+  MsgDepositValidatorRewardsPool,
+  MsgDepositValidatorRewardsPoolParams,
+  MsgCommunityPoolSpend,
+  MsgCommunityPoolSpendParams,
   MsgEditValidator,
   MsgEditValidatorParams,
   MsgExec,
@@ -32,6 +54,8 @@ import {
   MsgGrant,
   MsgGrantAllowance,
   MsgGrantAllowanceParams,
+  MsgPruneAllowances,
+  MsgPruneAllowancesParams,
   MsgGrantParams,
   MsgInstantiateContract,
   MsgInstantiateContractParams,
@@ -43,6 +67,8 @@ import {
   MsgRevokeParams,
   MsgSend,
   MsgSendParams,
+  MsgSetSendEnabled,
+  MsgSetSendEnabledParams,
   MsgSetWithdrawAddress,
   MsgSetWithdrawAddressParams,
   MsgSnip721AddMinter,
@@ -166,7 +192,8 @@ import { DistributionQuerier } from "./query/distribution";
 import { EmergencyButtonQuerier } from "./query/emergency_button";
 import { EvidenceQuerier } from "./query/evidence";
 import { FeegrantQuerier } from "./query/feegrant";
-import { GovQuerier } from "./query/gov";
+import { GovV1Beta1Querier } from "./query/gov_v1beta1";
+import { GovV1Querier } from "./query/gov_v1";
 import { IbcChannelQuerier } from "./query/ibc_channel";
 import { IbcClientQuerier } from "./query/ibc_client";
 import { IbcConnectionQuerier } from "./query/ibc_connection";
@@ -182,6 +209,7 @@ import { SlashingQuerier } from "./query/slashing";
 import { StakingQuerier } from "./query/staking";
 import { TendermintQuerier } from "./query/tendermint";
 import { UpgradeQuerier } from "./query/upgrade";
+import { ConsensusQuerier } from "./query/consensus";
 import {
   Msg,
   MsgClearAdmin,
@@ -231,7 +259,6 @@ import { GroupQuerier } from "./query/group";
 import { OrmQuerier } from "./query/orm";
 import { AppQuerier } from "./query/app";
 import { NftQuerier } from "./query/nft";
-import { GovV1Querier } from "./query/gov_v1";
 import { CircuitQuerier } from "./query/circuit";
 import { AutoCliQuerier } from "./query/autocli";
 import { IbcWasmQuerier } from "./query/ibc_wasm";
@@ -427,14 +454,15 @@ export type Querier = {
   authz: AuthzQuerier;
   bank: BankQuerier;
   compute: ComputeQuerier;
+  consensus: ConsensusQuerier;
   snip20: Snip20Querier;
   snip721: Snip721Querier;
   snip1155: Snip1155Querier;
   distribution: DistributionQuerier;
   evidence: EvidenceQuerier;
   feegrant: FeegrantQuerier;
-  gov: GovQuerier;
-  gov_v1: GovV1Querier;
+  gov: GovV1Querier;
+  gov_v1beta1: GovV1Beta1Querier;
   ibc_channel: IbcChannelQuerier;
   ibc_client: IbcClientQuerier;
   ibc_connection: IbcConnectionQuerier;
@@ -717,6 +745,7 @@ export type TxSender = {
     multiSend: SingleMsgTx<MsgMultiSendParams>;
     /** MsgSend represents a message to send coins from one account to another. */
     send: SingleMsgTx<MsgSendParams>;
+    setSendEnabled: SingleMsgTx<MsgSetSendEnabledParams>;
   };
   compute: {
     /** Upload a compiled contract */
@@ -765,6 +794,8 @@ export type TxSender = {
      * address.
      */
     setAutoRestake: SingleMsgTx<MsgSetAutoRestakeParams>;
+    communityPoolSpend: SingleMsgTx<MsgCommunityPoolSpendParams>;
+    depositValidatorRewardsPool: SingleMsgTx<MsgDepositValidatorRewardsPoolParams>;
   };
   evidence: {
     /**
@@ -781,6 +812,7 @@ export type TxSender = {
     grantAllowance: SingleMsgTx<MsgGrantAllowanceParams>;
     /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
     revokeAllowance: SingleMsgTx<MsgRevokeAllowanceParams>;
+    pruneAllowances: SingleMsgTx<MsgPruneAllowancesParams>;
   };
   gov: {
     /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
@@ -794,6 +826,8 @@ export type TxSender = {
     vote: SingleMsgTx<MsgVoteParams>;
     /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
     voteWeighted: SingleMsgTx<MsgVoteWeightedParams>;
+    execLegacyContent: SingleMsgTx<MsgExecLegacyContentParams>;
+    cancelProposal: SingleMsgTx<MsgCancelProposalParams>;
   };
   ibc: {
     /**
@@ -802,6 +836,10 @@ export type TxSender = {
      * https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
      */
     transfer: SingleMsgTx<MsgTransferParams>;
+  };
+  ibc_interchain_accounts: {
+    sendTx: SingleMsgTx<MsgSendTxParams>;
+    registerInterchainAccount: SingleMsgTx<MsgRegisterInterchainAccountParams>;
   };
   ibc_fee: {
     payPacketFee: SingleMsgTx<MsgPayPacketFeeParams>;
@@ -827,10 +865,17 @@ export type TxSender = {
     editValidator: SingleMsgTx<MsgEditValidatorParams>;
     /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
     undelegate: SingleMsgTx<MsgUndelegateParams>;
+    cancelUnbondingDelegation: SingleMsgTx<MsgCancelUnbondingDelegationParams>;
+  };
+  upgrade: {
+    softwareUpgrade: SingleMsgTx<MsgSoftwareUpgradeParams>;
+    cancelUpgrade: SingleMsgTx<MsgCancelUpgradeParams>;
   };
   vesting: {
     /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
     createVestingAccount: SingleMsgTx<MsgCreateVestingAccountParams>;
+    createPermanentLockedAccount: SingleMsgTx<MsgCreatePermanentLockedAccountParams>;
+    createPeriodicVestingAccount: SingleMsgTx<MsgCreatePeriodicVestingAccountParams>;
   };
 };
 
@@ -856,6 +901,7 @@ export class SecretNetworkClient {
       auth: new AuthQuerier(options.url),
       authz: new AuthzQuerier(options.url),
       bank: new BankQuerier(options.url),
+      consensus: new ConsensusQuerier(options.url),
       compute: new ComputeQuerier(options.url),
       snip20: new Snip20Querier(options.url),
       snip721: new Snip721Querier(options.url),
@@ -863,8 +909,8 @@ export class SecretNetworkClient {
       distribution: new DistributionQuerier(options.url),
       evidence: new EvidenceQuerier(options.url),
       feegrant: new FeegrantQuerier(options.url),
-      gov: new GovQuerier(options.url),
-      gov_v1: new GovV1Querier(options.url),
+      gov: new GovV1Querier(options.url),
+      gov_v1beta1: new GovV1Beta1Querier(options.url),
       ibc_channel: new IbcChannelQuerier(options.url),
       ibc_client: new IbcClientQuerier(options.url),
       ibc_connection: new IbcConnectionQuerier(options.url),
@@ -970,6 +1016,7 @@ export class SecretNetworkClient {
       bank: {
         multiSend: doMsg(MsgMultiSend),
         send: doMsg(MsgSend),
+        setSendEnabled: doMsg(MsgSetSendEnabled),
       },
       compute: {
         storeCode: doMsg(MsgStoreCode),
@@ -991,6 +1038,8 @@ export class SecretNetworkClient {
         withdrawDelegatorReward: doMsg(MsgWithdrawDelegatorReward),
         withdrawValidatorCommission: doMsg(MsgWithdrawValidatorCommission),
         setAutoRestake: doMsg(MsgSetAutoRestake),
+        communityPoolSpend: doMsg(MsgCommunityPoolSpend),
+        depositValidatorRewardsPool: doMsg(MsgDepositValidatorRewardsPool),
       },
       evidence: {
         submitEvidence: doMsg(MsgSubmitEvidence),
@@ -998,15 +1047,22 @@ export class SecretNetworkClient {
       feegrant: {
         grantAllowance: doMsg(MsgGrantAllowance),
         revokeAllowance: doMsg(MsgRevokeAllowance),
+        pruneAllowances: doMsg(MsgPruneAllowances),
       },
       gov: {
         deposit: doMsg(MsgDeposit),
         submitProposal: doMsg(MsgSubmitProposal),
         vote: doMsg(MsgVote),
         voteWeighted: doMsg(MsgVoteWeighted),
+        execLegacyContent: doMsg(MsgExecLegacyContent),
+        cancelProposal: doMsg(MsgCancelProposal),
       },
       ibc: {
         transfer: doMsg(MsgTransfer),
+      },
+      ibc_interchain_accounts: {
+        sendTx: doMsg(MsgSendTx),
+        registerInterchainAccount: doMsg(MsgRegisterInterchainAccount),
       },
       ibc_fee: {
         payPacketFee: doMsg(MsgPayPacketFee),
@@ -1026,9 +1082,16 @@ export class SecretNetworkClient {
         delegate: doMsg(MsgDelegate),
         editValidator: doMsg(MsgEditValidator),
         undelegate: doMsg(MsgUndelegate),
+        cancelUnbondingDelegation: doMsg(MsgCancelUnbondingDelegation),
+      },
+      upgrade: {
+        softwareUpgrade: doMsg(MsgSoftwareUpgrade),
+        cancelUpgrade: doMsg(MsgCancelUpgrade),
       },
       vesting: {
         createVestingAccount: doMsg(MsgCreateVestingAccount),
+        createPermanentLockedAccount: doMsg(MsgCreatePermanentLockedAccount),
+        createPeriodicVestingAccount: doMsg(MsgCreatePeriodicVestingAccount),
       },
     };
 
