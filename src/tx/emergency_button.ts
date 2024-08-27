@@ -1,9 +1,7 @@
-import { MsgParams } from ".";
-import { AminoMsg, Coin, Input, Msg, Output, ProtoMsg } from "./types";
+import { Msg, AminoMsg, ProtoMsg } from "./types";
+import { MsgToggleIbcSwitch as MsgToggleIbcSwitchParams } from "../protobuf/secret/emergencybutton/v1beta1/tx";
 
-export interface MsgToggleIbcSwitchParams extends MsgParams {
-  sender: string;
-}
+export { MsgToggleIbcSwitch as MsgToggleIbcSwitchParams } from "../protobuf/secret/emergencybutton/v1beta1/tx";
 
 /** MsgSend represents a message to send coins from one account to another. */
 export class MsgToggleIbcSwitch implements Msg {
@@ -13,10 +11,7 @@ export class MsgToggleIbcSwitch implements Msg {
     return {
       type_url: "/secret.emergencybutton.v1beta1.MsgToggleIbcSwitch",
       value: this.params,
-      encode: async () =>
-        (await import("../protobuf/secret/emergencybutton/v1beta1/tx")).MsgToggleIbcSwitch.encode(
-          this.params,
-        ).finish(),
+      encode: () => MsgToggleIbcSwitchParams.encode(this.params).finish(),
     };
   }
 

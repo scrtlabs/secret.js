@@ -1,11 +1,7 @@
-import { MsgParams } from ".";
-import { Any } from "../protobuf/google/protobuf/any";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
+import { MsgSubmitEvidence as MsgSubmitEvidenceParams } from "../protobuf/cosmos/evidence/v1beta1/tx";
 
-export interface MsgSubmitEvidenceParams extends MsgParams {
-  submitter: string;
-  evidence: Any;
-}
+export { MsgSubmitEvidence as MsgSubmitEvidenceParams } from "../protobuf/cosmos/evidence/v1beta1/tx";
 
 /**
  * MsgSubmitEvidence represents a message that supports submitting arbitrary

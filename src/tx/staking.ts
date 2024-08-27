@@ -1,10 +1,26 @@
-import { fromBase64 } from "@cosmjs/encoding";
-import { bech32 } from "bech32";
+import { fromBase64, fromBech32, toBech32 } from "@cosmjs/encoding";
 import BigNumber from "bignumber.js";
-import { Coin, MsgParams } from ".";
+import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
 import { PubKey } from "../protobuf/cosmos/crypto/ed25519/keys";
 import { Any } from "../protobuf/google/protobuf/any";
-import { AminoMsg, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
+import { Description as ValidatorDescription } from "../protobuf/cosmos/staking/v1beta1/staking";
+import {
+  MsgDelegate as MsgDelegateParams,
+  MsgCreateValidator as MsgCreateValidatorProto,
+  MsgEditValidator as MsgEditValidatorProto,
+  MsgBeginRedelegate as MsgBeginRedelegateParams,
+  MsgUndelegate as MsgUndelegateParams,
+  MsgCancelUnbondingDelegation as MsgCancelUnbondingDelegationParams,
+} from "../protobuf/cosmos/staking/v1beta1/tx";
+
+export { Description as ValidatorDescription } from "../protobuf/cosmos/staking/v1beta1/staking";
+export {
+  MsgDelegate as MsgDelegateParams,
+  MsgBeginRedelegate as MsgBeginRedelegateParams,
+  MsgUndelegate as MsgUndelegateParams,
+  MsgCancelUnbondingDelegation as MsgCancelUnbondingDelegationParams,
+} from "../protobuf/cosmos/staking/v1beta1/tx";
 
 /**
  * CommissionRates defines the initial commission rates to be used for creating
@@ -17,20 +33,6 @@ export type CommissionRates = {
   max_rate: number;
   /** max_change_rate defines the maximum daily increase of the validator commission, as a fraction. */
   max_change_rate: number;
-};
-
-/** Description defines a validator description. */
-export type ValidatorDescription = {
-  /** moniker defines a human-readable name for the validator. */
-  moniker: string;
-  /** identity defines an optional identity signature (ex. UPort or Keybase). */
-  identity: string;
-  /** website defines an optional website link. */
-  website: string;
-  /** security_contact defines an optional email for security contact. */
-  security_contact: string;
-  /** details define other optional details. */
-  details: string;
 };
 
 export interface MsgCreateValidatorParams extends MsgParams {
@@ -67,9 +69,9 @@ export class MsgCreateValidator implements Msg {
       },
       min_self_delegation: this.params.min_self_delegation,
       delegator_address: this.params.delegator_address,
-      validator_address: bech32.encode(
+      validator_address: toBech32(
         "secretvaloper",
-        bech32.decode(this.params.delegator_address).words,
+        fromBech32(this.params.delegator_address).data,
       ),
       pubkey: Any.fromPartial({
         type_url: "/cosmos.crypto.ed25519.PubKey",
@@ -85,10 +87,7 @@ export class MsgCreateValidator implements Msg {
     return {
       type_url: `/cosmos.staking.v1beta1.MsgCreateValidator`,
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/staking/v1beta1/tx")
-        ).MsgCreateValidator.encode(msgContent).finish(),
+      encode: () => MsgCreateValidatorProto.encode(msgContent).finish(),
     };
   }
 
@@ -116,9 +115,9 @@ export class MsgCreateValidator implements Msg {
         },
         min_self_delegation: this.params.min_self_delegation,
         delegator_address: this.params.delegator_address,
-        validator_address: bech32.encode(
+        validator_address: toBech32(
           "secretvaloper",
-          bech32.decode(this.params.delegator_address).words,
+          fromBech32(this.params.delegator_address).data,
         ),
         pubkey: {
           type: "tendermint/PubKeyEd25519",
@@ -143,13 +142,11 @@ export class MsgEditValidator implements Msg {
   constructor(public params: MsgEditValidatorParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const { Description } = await import(
-      "../protobuf/cosmos/staking/v1beta1/staking"
-    );
-
     const msgContent = {
       validator_address: this.params.validator_address,
-      description: Description.fromPartial(this.params.description || {}),
+      description: ValidatorDescription.fromPartial(
+        this.params.description || {},
+      ),
       commission_rate: this.params.commission_rate
         ? new BigNumber(this.params.commission_rate)
             .toFixed(18)
@@ -161,10 +158,7 @@ export class MsgEditValidator implements Msg {
     return {
       type_url: `/cosmos.staking.v1beta1.MsgEditValidator`,
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/staking/v1beta1/tx")
-        ).MsgEditValidator.encode(msgContent).finish(),
+      encode: () => MsgEditValidatorProto.encode(msgContent).finish(),
     };
   }
 
@@ -197,12 +191,6 @@ export class MsgEditValidator implements Msg {
   }
 }
 
-export interface MsgDelegateParams extends MsgParams {
-  delegator_address: string;
-  validator_address: string;
-  amount: Coin;
-}
-
 /** MsgDelegate defines an SDK message for performing a delegation of coins from a delegator to a validator. */
 export class MsgDelegate implements Msg {
   constructor(public params: MsgDelegateParams) {}
@@ -211,10 +199,7 @@ export class MsgDelegate implements Msg {
     return {
       type_url: `/cosmos.staking.v1beta1.MsgDelegate`,
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/staking/v1beta1/tx")
-        ).MsgDelegate.encode(this.params).finish(),
+      encode: () => MsgDelegateParams.encode(this.params).finish(),
     };
   }
 
@@ -226,13 +211,6 @@ export class MsgDelegate implements Msg {
   }
 }
 
-export interface MsgBeginRedelegateParams extends MsgParams {
-  delegator_address: string;
-  validator_src_address: string;
-  validator_dst_address: string;
-  amount: Coin;
-}
-
 /** MsgBeginRedelegate defines an SDK message for performing a redelegation of coins from a delegator and source validator to a destination validator. */
 export class MsgBeginRedelegate implements Msg {
   constructor(public params: MsgBeginRedelegateParams) {}
@@ -241,10 +219,7 @@ export class MsgBeginRedelegate implements Msg {
     return {
       type_url: `/cosmos.staking.v1beta1.MsgBeginRedelegate`,
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/staking/v1beta1/tx")
-        ).MsgBeginRedelegate.encode(this.params).finish(),
+      encode: () => MsgBeginRedelegateParams.encode(this.params).finish(),
     };
   }
 
@@ -256,12 +231,6 @@ export class MsgBeginRedelegate implements Msg {
   }
 }
 
-export interface MsgUndelegateParams {
-  delegator_address: string;
-  validator_address: string;
-  amount: Coin;
-}
-
 /** MsgUndelegate defines an SDK message for performing an undelegation from a delegate and a validator */
 export class MsgUndelegate implements Msg {
   constructor(public params: MsgUndelegateParams) {}
@@ -270,16 +239,33 @@ export class MsgUndelegate implements Msg {
     return {
       type_url: `/cosmos.staking.v1beta1.MsgUndelegate`,
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/staking/v1beta1/tx")
-        ).MsgUndelegate.encode(this.params).finish(),
+      encode: () => MsgUndelegateParams.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgUndelegate",
+      value: this.params,
+    };
+  }
+}
+
+export class MsgCancelUnbondingDelegation implements Msg {
+  constructor(public params: MsgCancelUnbondingDelegationParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: `/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation`,
+      value: this.params,
+      encode: () =>
+        MsgCancelUnbondingDelegationParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgCancelUnbondingDelegation",
       value: this.params,
     };
   }

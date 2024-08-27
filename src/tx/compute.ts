@@ -1,8 +1,16 @@
 import { toBase64, fromBech32 } from "@cosmjs/encoding";
-import { MsgParams } from ".";
 import { EncryptionUtils } from "..";
-import { addressToBytes, is_gzip } from "../utils";
-import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
+import { is_gzip } from "../utils";
+import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
+import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
+import {
+  MsgStoreCode as MsgStoreCodeProto,
+  MsgInstantiateContract as MsgInstantiateContractProto,
+  MsgExecuteContract as MsgExecuteContractProto,
+  MsgMigrateContract as MsgMigrateContractProto,
+  MsgUpdateAdmin as MsgUpdateAdminProto,
+  MsgClearAdmin as MsgClearAdminProto,
+} from "../protobuf/secret/compute/v1beta1/msg";
 
 export interface MsgInstantiateContractParams extends MsgParams {
   /** The actor that signed the messages */
@@ -58,7 +66,6 @@ export class MsgInstantiateContract implements Msg {
     code_hash,
     admin,
   }: MsgInstantiateContractParams) {
-    //this.sender = Bech32.decode(sender).data;
     this.sender = fromBech32(sender).data;
     this.sender_address = String(sender);
     this.codeId = String(code_id);
@@ -71,7 +78,7 @@ export class MsgInstantiateContract implements Msg {
     if (code_hash) {
       this.codeHash = code_hash.replace(/^0x/, "").toLowerCase();
     } else {
-      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      // codeHash will be set in SecretNetworkClient before invoking async toProto() & toAimno()
       this.codeHash = "";
       this.warnCodeHash = true;
       console.warn(getMissingCodeHashWarning("MsgInstantiateContract"));
@@ -85,7 +92,7 @@ export class MsgInstantiateContract implements Msg {
 
     if (!this.initMsgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.initMsgEncrypted = await utils.encrypt(this.codeHash, this.initMsg);
     }
@@ -106,10 +113,7 @@ export class MsgInstantiateContract implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgInstantiateContract",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgInstantiateContract.encode(msgContent).finish(),
+      encode: () => MsgInstantiateContractProto.encode(msgContent).finish(),
     };
   }
 
@@ -120,7 +124,7 @@ export class MsgInstantiateContract implements Msg {
 
     if (!this.initMsgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.initMsgEncrypted = await utils.encrypt(this.codeHash, this.initMsg);
     }
@@ -195,7 +199,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     if (codeHash) {
       this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
     } else {
-      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      // codeHash will be set in SecretNetworkClient before invoking async toProto() & toAimno()
       this.codeHash = "";
       this.warnCodeHash = true;
       console.warn(getMissingCodeHashWarning("MsgExecuteContract"));
@@ -209,7 +213,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
     }
@@ -228,10 +232,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgExecuteContract",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgExecuteContract.encode(msgContent).finish(),
+      encode: () => MsgExecuteContractProto.encode(msgContent).finish(),
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
@@ -241,7 +242,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
 
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
     }
@@ -297,7 +298,7 @@ export class MsgStoreCode implements Msg {
   }
 
   async toProto(): Promise<ProtoMsg> {
-    await this.gzipWasm();
+    this.gzipWasm();
 
     const msgContent = {
       sender: this.sender,
@@ -309,15 +310,12 @@ export class MsgStoreCode implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgStoreCode",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgStoreCode.encode(msgContent).finish(),
+      encode: () => MsgStoreCodeProto.encode(msgContent).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    await this.gzipWasm();
+    this.gzipWasm();
 
     return {
       type: "wasm/MsgStoreCode",
@@ -380,7 +378,7 @@ export class MsgMigrateContract<T extends object> implements Msg {
     if (codeHash) {
       this.codeHash = codeHash.replace(/^0x/, "").toLowerCase();
     } else {
-      // codeHash will be set in SecretNetworkClient before invoking toProto() & toAimno()
+      // codeHash will be set in SecretNetworkClient before invoking async toProto() & toAimno()
       this.codeHash = "";
       this.warnCodeHash = true;
       console.warn(getMissingCodeHashWarning("MsgMigrateContract"));
@@ -394,7 +392,7 @@ export class MsgMigrateContract<T extends object> implements Msg {
 
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
     }
@@ -412,10 +410,7 @@ export class MsgMigrateContract<T extends object> implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgMigrateContract",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgMigrateContract.encode(msgContent).finish(),
+      encode: () => MsgMigrateContractProto.encode(msgContent).finish(),
     };
   }
   async toAmino(utils: EncryptionUtils): Promise<AminoMsg> {
@@ -425,7 +420,7 @@ export class MsgMigrateContract<T extends object> implements Msg {
 
     if (!this.msgEncrypted) {
       // The encryption uses a random nonce
-      // toProto() & toAmino() are called multiple times during signing
+      // async toProto() & async toAmino() are called multiple times during signing
       // so to keep the msg consistant across calls we encrypt the msg only once
       this.msgEncrypted = await utils.encrypt(this.codeHash, this.msg);
     }
@@ -459,10 +454,8 @@ export class MsgUpdateAdmin implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgUpdateAdmin",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgUpdateAdmin.encode({
+      encode: () =>
+        MsgUpdateAdminProto.encode({
           sender: this.params.sender,
           new_admin: this.params.new_admin,
           contract: this.params.contract_address,
@@ -499,10 +492,8 @@ export class MsgClearAdmin implements Msg {
     return {
       type_url: "/secret.compute.v1beta1.MsgClearAdmin",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/secret/compute/v1beta1/msg")
-        ).MsgClearAdmin.encode({
+      encode: () =>
+        MsgClearAdminProto.encode({
           sender: this.params.sender,
           contract: this.params.contract_address,
           // callback_sig is internal stuff that doesn't matter here

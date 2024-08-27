@@ -1,10 +1,24 @@
-import { Coin, MsgParams } from ".";
 import { AminoMsg, Msg, ProtoMsg } from "./types";
 
-export interface MsgSetWithdrawAddressParams extends MsgParams {
-  delegator_address: string;
-  withdraw_address: string;
-}
+import {
+  MsgSetWithdrawAddress as MsgSetWithdrawAddressParams,
+  MsgWithdrawDelegatorReward as MsgWithdrawDelegatorRewardParams,
+  MsgWithdrawValidatorCommission as MsgWithdrawValidatorCommissionParams,
+  MsgFundCommunityPool as MsgFundCommunityPoolParams,
+  MsgSetAutoRestake as MsgSetAutoRestakeParams,
+  MsgCommunityPoolSpend as MsgCommunityPoolSpendParams,
+  MsgDepositValidatorRewardsPool as MsgDepositValidatorRewardsPoolParams,
+} from "../protobuf/cosmos/distribution/v1beta1/tx";
+
+export {
+  MsgSetWithdrawAddress as MsgSetWithdrawAddressParams,
+  MsgWithdrawDelegatorReward as MsgWithdrawDelegatorRewardParams,
+  MsgWithdrawValidatorCommission as MsgWithdrawValidatorCommissionParams,
+  MsgFundCommunityPool as MsgFundCommunityPoolParams,
+  MsgSetAutoRestake as MsgSetAutoRestakeParams,
+  MsgCommunityPoolSpend as MsgCommunityPoolSpendParams,
+  MsgDepositValidatorRewardsPool as MsgDepositValidatorRewardsPoolParams,
+} from "../protobuf/cosmos/distribution/v1beta1/tx";
 
 /**
  * MsgSetWithdrawAddress sets the withdraw address for
@@ -17,10 +31,7 @@ export class MsgSetWithdrawAddress implements Msg {
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgSetWithdrawAddress.encode(this.params).finish(),
+      encode: () => MsgSetWithdrawAddressParams.encode(this.params).finish(),
     };
   }
 
@@ -30,16 +41,6 @@ export class MsgSetWithdrawAddress implements Msg {
       value: this.params,
     };
   }
-}
-
-// proto and amino names are different, so export both names
-export { MsgSetWithdrawAddress as MsgModifyWithdrawAddress };
-// proto and amino names are different, so export both names
-export { MsgWithdrawDelegatorReward as MsgWithdrawDelegationReward };
-
-export interface MsgWithdrawDelegatorRewardParams extends MsgParams {
-  delegator_address: string;
-  validator_address: string;
 }
 
 /**
@@ -53,10 +54,8 @@ export class MsgWithdrawDelegatorReward implements Msg {
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgWithdrawDelegatorReward.encode(this.params).finish(),
+      encode: () =>
+        MsgWithdrawDelegatorRewardParams.encode(this.params).finish(),
     };
   }
 
@@ -66,10 +65,6 @@ export class MsgWithdrawDelegatorReward implements Msg {
       value: this.params,
     };
   }
-}
-
-export interface MsgWithdrawValidatorCommissionParams extends MsgParams {
-  validator_address: string;
 }
 
 /**
@@ -83,10 +78,8 @@ export class MsgWithdrawValidatorCommission implements Msg {
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgWithdrawValidatorCommission.encode(this.params).finish(),
+      encode: () =>
+        MsgWithdrawValidatorCommissionParams.encode(this.params).finish(),
     };
   }
 
@@ -96,11 +89,6 @@ export class MsgWithdrawValidatorCommission implements Msg {
       value: this.params,
     };
   }
-}
-
-export interface MsgFundCommunityPoolParams extends MsgParams {
-  amount: Coin[];
-  depositor: string;
 }
 
 /**
@@ -114,10 +102,7 @@ export class MsgFundCommunityPool implements Msg {
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgFundCommunityPool",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgFundCommunityPool.encode(this.params).finish(),
+      encode: () => MsgFundCommunityPoolParams.encode(this.params).finish(),
     };
   }
 
@@ -127,12 +112,6 @@ export class MsgFundCommunityPool implements Msg {
       value: this.params,
     };
   }
-}
-
-export interface MsgSetAutoRestakeParams extends MsgParams {
-  delegator_address: string;
-  validator_address: string;
-  enabled: boolean;
 }
 
 /**
@@ -146,10 +125,7 @@ export class MsgSetAutoRestake implements Msg {
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgSetAutoRestake",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/distribution/v1beta1/tx")
-        ).MsgSetAutoRestake.encode(this.params).finish(),
+      encode: () => MsgSetAutoRestakeParams.encode(this.params).finish(),
     };
   }
 
@@ -159,6 +135,45 @@ export class MsgSetAutoRestake implements Msg {
       value: Object.assign({}, this.params, {
         enabled: this.params.enabled ? true : undefined,
       }),
+    };
+  }
+}
+
+export class MsgCommunityPoolSpend implements Msg {
+  constructor(public params: MsgCommunityPoolSpendParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+      value: this.params,
+      encode: () => MsgCommunityPoolSpendParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgCommunityPoolSpend",
+      value: this.params,
+    };
+  }
+}
+
+export class MsgDepositValidatorRewardsPool implements Msg {
+  constructor(public params: MsgDepositValidatorRewardsPoolParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.distribution.v1beta1.MsgDepositValidatorRewardsPool",
+      value: this.params,
+      encode: () =>
+        MsgDepositValidatorRewardsPoolParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgDepositValidatorRewardsPool",
+      value: this.params,
     };
   }
 }

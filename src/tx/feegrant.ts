@@ -1,4 +1,3 @@
-import { MsgParams } from ".";
 import {
   AllowedMsgAllowance as AllowedMsgAllowanceProto,
   BasicAllowance,
@@ -6,10 +5,16 @@ import {
 } from "../protobuf/cosmos/feegrant/v1beta1/feegrant";
 import {
   MsgGrantAllowance as MsgGrantAllowanceProto,
-  MsgRevokeAllowance as MsgRevokeAllowanceProto,
+  MsgRevokeAllowance as MsgRevokeAllowanceParams,
+  MsgPruneAllowances as MsgPruneAllowancesParams,
 } from "../protobuf/cosmos/feegrant/v1beta1/tx";
 import { Any } from "../protobuf/google/protobuf/any";
-import { AminoMsg, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
+
+export {
+  MsgRevokeAllowance as MsgRevokeAllowanceParams,
+  MsgPruneAllowances as MsgPruneAllowancesParams,
+} from "../protobuf/cosmos/feegrant/v1beta1/tx";
 
 export interface MsgGrantAllowanceParams extends MsgParams {
   /** granter is the address of the user granting an allowance of their funds. */
@@ -100,7 +105,7 @@ export class MsgGrantAllowance implements Msg {
     return {
       type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
       value: this.params,
-      encode: async () =>
+      encode: () =>
         MsgGrantAllowanceProto.encode({
           grantee: this.params.grantee,
           granter: this.params.granter,
@@ -186,13 +191,6 @@ export class MsgGrantAllowance implements Msg {
   }
 }
 
-export interface MsgRevokeAllowanceParams extends MsgParams {
-  /** granter is the address of the user granting an allowance of their funds. */
-  granter: string;
-  /** grantee is the address of the user being granted an allowance of another user's funds. */
-  grantee: string;
-}
-
 /** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
 export class MsgRevokeAllowance implements Msg {
   constructor(public params: MsgRevokeAllowanceParams) {}
@@ -201,13 +199,33 @@ export class MsgRevokeAllowance implements Msg {
     return {
       type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
       value: this.params,
-      encode: async () => MsgRevokeAllowanceProto.encode(this.params).finish(),
+      encode: () => MsgRevokeAllowanceParams.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgRevokeAllowance",
+      value: this.params,
+    };
+  }
+}
+
+/** MsgRevokeAllowance removes any existing Allowance from Granter to Grantee. */
+export class MsgPruneAllowances implements Msg {
+  constructor(public params: MsgPruneAllowancesParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.feegrant.v1beta1.MsgPruneAllowances",
+      value: this.params,
+      encode: () => MsgPruneAllowancesParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "cosmos-sdk/MsgPruneAllowances",
       value: this.params,
     };
   }

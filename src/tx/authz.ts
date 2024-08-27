@@ -1,4 +1,5 @@
-import { AminoMsg, Coin, Msg, MsgParams, ProtoMsg } from ".";
+import { AminoMsg, Msg, MsgParams, ProtoMsg } from "./types";
+import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
 import { EncryptionUtils } from "..";
 import {
   GenericAuthorization as GenericAuthorizationProto,
@@ -209,7 +210,7 @@ export class MsgGrant implements Msg {
     return {
       type_url: "/cosmos.authz.v1beta1.MsgGrant",
       value: msgContent,
-      encode: async () => MsgGrantProto.encode(msgContent).finish(),
+      encode: () => MsgGrantProto.encode(msgContent).finish(),
     };
   }
 
@@ -316,7 +317,7 @@ export class MsgExec implements Msg {
       const asProto = await m.toProto(encryptionUtils);
       msgs.push({
         type_url: asProto.type_url,
-        value: await asProto.encode(),
+        value: asProto.encode(),
       });
     }
 
@@ -328,7 +329,7 @@ export class MsgExec implements Msg {
     return {
       type_url: "/cosmos.authz.v1beta1.MsgExec",
       value: msgContent,
-      encode: async () => MsgExecProto.encode(msgContent).finish(),
+      encode: () => MsgExecProto.encode(msgContent).finish(),
     };
   }
 
@@ -370,7 +371,7 @@ export class MsgRevoke implements Msg {
     return {
       type_url: "/cosmos.authz.v1beta1.MsgRevoke",
       value: msgContent,
-      encode: async () => MsgRevokeProto.encode(msgContent).finish(),
+      encode: () => MsgRevokeProto.encode(msgContent).finish(),
     };
   }
 

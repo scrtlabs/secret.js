@@ -1,19 +1,53 @@
 import { AminoMsg, Msg, ProtoMsg } from "./types";
+import {
+  MsgChannelOpenInit as MsgChannelOpenInitParams,
+  MsgChannelOpenTry as MsgChannelOpenTryParams,
+  MsgChannelOpenAck as MsgChannelOpenAckParams,
+  MsgChannelOpenConfirm as MsgChannelOpenConfirmParams,
+  MsgChannelCloseInit as MsgChannelCloseInitParams,
+  MsgChannelCloseConfirm as MsgChannelCloseConfirmParams,
+  MsgRecvPacket as MsgRecvPacketParams,
+  MsgTimeout as MsgTimeoutParams,
+  MsgTimeoutOnClose as MsgTimeoutOnCloseParams,
+  MsgAcknowledgement as MsgAcknowledgementParams,
+  MsgChannelUpgradeInit as MsgChannelUpgradeInitParams,
+  MsgChannelUpgradeTry as MsgChannelUpgradeTryParams,
+  MsgChannelUpgradeAck as MsgChannelUpgradeAckParams,
+  MsgChannelUpgradeOpen as MsgChannelUpgradeOpenParams,
+  MsgChannelUpgradeTimeout as MsgChannelUpgradeTimeoutParams,
+  MsgChannelUpgradeCancel as MsgChannelUpgradeCancelParams,
+  MsgPruneAcknowledgements as MsgPruneAcknowledgementsParams,
+} from "../protobuf/ibc/core/channel/v1/tx";
+
+export {
+  MsgChannelOpenInit as MsgChannelOpenInitParams,
+  MsgChannelOpenTry as MsgChannelOpenTryParams,
+  MsgChannelOpenAck as MsgChannelOpenAckParams,
+  MsgChannelOpenConfirm as MsgChannelOpenConfirmParams,
+  MsgChannelCloseInit as MsgChannelCloseInitParams,
+  MsgChannelCloseConfirm as MsgChannelCloseConfirmParams,
+  MsgRecvPacket as MsgRecvPacketParams,
+  MsgTimeout as MsgTimeoutParams,
+  MsgTimeoutOnClose as MsgTimeoutOnCloseParams,
+  MsgAcknowledgement as MsgAcknowledgementParams,
+  MsgChannelUpgradeInit as MsgChannelUpgradeInitParams,
+  MsgChannelUpgradeTry as MsgChannelUpgradeTryParams,
+  MsgChannelUpgradeAck as MsgChannelUpgradeAckParams,
+  MsgChannelUpgradeOpen as MsgChannelUpgradeOpenParams,
+  MsgChannelUpgradeTimeout as MsgChannelUpgradeTimeoutParams,
+  MsgChannelUpgradeCancel as MsgChannelUpgradeCancelParams,
+  MsgPruneAcknowledgements as MsgPruneAcknowledgementsParams,
+} from "../protobuf/ibc/core/channel/v1/tx";
 
 /** MsgRecvPacket receives incoming IBC packet */
 export class MsgRecvPacket implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgRecvPacket,
-  ) {}
+  constructor(private msg: MsgRecvPacketParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgRecvPacket",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgRecvPacket.encode(this.msg).finish(),
+      encode: () => MsgRecvPacketParams.encode(this.msg).finish(),
     };
   }
 
@@ -24,18 +58,13 @@ export class MsgRecvPacket implements Msg {
 
 /** MsgTimeout receives timed-out packet */
 export class MsgTimeout implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeout,
-  ) {}
+  constructor(private msg: MsgTimeoutParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgTimeout",
       value: this.msg,
-      encode: async () =>
-        (await import("../protobuf/ibc/core/channel/v1/tx")).MsgTimeout.encode(
-          this.msg,
-        ).finish(),
+      encode: () => MsgTimeoutParams.encode(this.msg).finish(),
     };
   }
 
@@ -46,18 +75,13 @@ export class MsgTimeout implements Msg {
 
 /** MsgTimeoutOnClose timed-out packet upon counterparty channel closure. */
 export class MsgTimeoutOnClose implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgTimeoutOnClose,
-  ) {}
+  constructor(private msg: MsgTimeoutOnCloseParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgTimeoutOnClose",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgTimeoutOnClose.encode(this.msg).finish(),
+      encode: () => MsgTimeoutOnCloseParams.encode(this.msg).finish(),
     };
   }
 
@@ -71,18 +95,13 @@ export class MsgTimeoutOnClose implements Msg {
  * is called by a relayer on Chain A.
  */
 export class MsgChannelOpenInit implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenInit,
-  ) {}
+  constructor(private msg: MsgChannelOpenInitParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelOpenInit",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelOpenInit.encode(this.msg).finish(),
+      encode: () => MsgChannelOpenInitParams.encode(this.msg).finish(),
     };
   }
 
@@ -93,18 +112,13 @@ export class MsgChannelOpenInit implements Msg {
 
 /** MsgAcknowledgement receives incoming IBC acknowledgement */
 export class MsgAcknowledgement implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgAcknowledgement,
-  ) {}
+  constructor(private msg: MsgAcknowledgementParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgAcknowledgement",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgAcknowledgement.encode(this.msg).finish(),
+      encode: () => MsgAcknowledgementParams.encode(this.msg).finish(),
     };
   }
 
@@ -118,18 +132,13 @@ export class MsgAcknowledgement implements Msg {
  * on Chain B.
  */
 export class MsgChannelOpenTry implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenTry,
-  ) {}
+  constructor(private msg: MsgChannelOpenTryParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelOpenTry",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelOpenTry.encode(this.msg).finish(),
+      encode: () => MsgChannelOpenTryParams.encode(this.msg).finish(),
     };
   }
 
@@ -143,18 +152,13 @@ export class MsgChannelOpenTry implements Msg {
  * the change of channel state to TRYOPEN on Chain B.
  */
 export class MsgChannelOpenAck implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenAck,
-  ) {}
+  constructor(private msg: MsgChannelOpenAckParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelOpenAck",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelOpenAck.encode(this.msg).finish(),
+      encode: () => MsgChannelOpenAckParams.encode(this.msg).finish(),
     };
   }
 
@@ -168,18 +172,13 @@ export class MsgChannelOpenAck implements Msg {
  * acknowledge the change of channel state to OPEN on Chain A.
  */
 export class MsgChannelOpenConfirm implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelOpenConfirm,
-  ) {}
+  constructor(private msg: MsgChannelOpenConfirmParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelOpenConfirm",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelOpenConfirm.encode(this.msg).finish(),
+      encode: () => MsgChannelOpenConfirmParams.encode(this.msg).finish(),
     };
   }
 
@@ -193,18 +192,13 @@ export class MsgChannelOpenConfirm implements Msg {
  * to close a channel with Chain B.
  */
 export class MsgChannelCloseInit implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseInit,
-  ) {}
+  constructor(private msg: MsgChannelCloseInitParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelCloseInit",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelCloseInit.encode(this.msg).finish(),
+      encode: () => MsgChannelCloseInitParams.encode(this.msg).finish(),
     };
   }
 
@@ -215,22 +209,123 @@ export class MsgChannelCloseInit implements Msg {
 
 /** MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B to acknowledge the change of channel state to CLOSED on Chain A. */
 export class MsgChannelCloseConfirm implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/channel/v1/tx").MsgChannelCloseConfirm,
-  ) {}
+  constructor(private msg: MsgChannelCloseConfirmParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.channel.v1.MsgChannelCloseConfirm",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/channel/v1/tx")
-        ).MsgChannelCloseConfirm.encode(this.msg).finish(),
+      encode: () => MsgChannelCloseConfirmParams.encode(this.msg).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     throw new Error("MsgChannelCloseConfirm doesn't support Amino encoding.");
+  }
+}
+
+export class MsgChannelUpgradeInit implements Msg {
+  constructor(private msg: MsgChannelUpgradeInitParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeInit",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeInitParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeInit doesn't support Amino encoding.");
+  }
+}
+export class MsgChannelUpgradeTry implements Msg {
+  constructor(private msg: MsgChannelUpgradeTryParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeTry",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeTryParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeTry doesn't support Amino encoding.");
+  }
+}
+export class MsgChannelUpgradeAck implements Msg {
+  constructor(private msg: MsgChannelUpgradeAckParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeAck",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeAckParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeAck doesn't support Amino encoding.");
+  }
+}
+export class MsgChannelUpgradeOpen implements Msg {
+  constructor(private msg: MsgChannelUpgradeOpenParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeOpen",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeOpenParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeOpen doesn't support Amino encoding.");
+  }
+}
+export class MsgChannelUpgradeTimeout implements Msg {
+  constructor(private msg: MsgChannelUpgradeTimeoutParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeTimeout",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeTimeoutParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeTimeout doesn't support Amino encoding.");
+  }
+}
+export class MsgChannelUpgradeCancel implements Msg {
+  constructor(private msg: MsgChannelUpgradeCancelParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgChannelUpgradeCancel",
+      value: this.msg,
+      encode: () => MsgChannelUpgradeCancelParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgChannelUpgradeCancel doesn't support Amino encoding.");
+  }
+}
+export class MsgPruneAcknowledgements implements Msg {
+  constructor(private msg: MsgPruneAcknowledgementsParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/ibc.core.channel.v1.MsgPruneAcknowledgements",
+      value: this.msg,
+      encode: () => MsgPruneAcknowledgementsParams.encode(this.msg).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgPruneAcknowledgements doesn't support Amino encoding.");
   }
 }

@@ -1,14 +1,15 @@
-import { MsgParams } from ".";
-import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Msg, ProtoMsg } from "./types";
+import {
+  MsgCreateVestingAccount as MsgCreateVestingAccountParams,
+  MsgCreatePermanentLockedAccount as MsgCreatePermanentLockedAccountParams,
+  MsgCreatePeriodicVestingAccount as MsgCreatePeriodicVestingAccountParams,
+} from "../protobuf/cosmos/vesting/v1beta1/tx";
 
-export interface MsgCreateVestingAccountParams extends MsgParams {
-  from_address: string;
-  to_address: string;
-  amount: Coin[];
-  /** end of vesting as unix time (in seconds). */
-  end_time: string;
-  delayed: boolean;
-}
+export {
+  MsgCreateVestingAccount as MsgCreateVestingAccountParams,
+  MsgCreatePermanentLockedAccount as MsgCreatePermanentLockedAccountParams,
+  MsgCreatePeriodicVestingAccount as MsgCreatePeriodicVestingAccountParams,
+} from "../protobuf/cosmos/vesting/v1beta1/tx";
 
 /** MsgCreateVestingAccount defines a message that enables creating a vesting account. */
 export class MsgCreateVestingAccount implements Msg {
@@ -18,14 +19,45 @@ export class MsgCreateVestingAccount implements Msg {
     return {
       type_url: "/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
       value: this.params,
-      encode: async () =>
-        (
-          await import("../protobuf/cosmos/vesting/v1beta1/tx")
-        ).MsgCreateVestingAccount.encode(this.params).finish(),
+      encode: () => MsgCreateVestingAccountParams.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
     throw new Error("MsgCreateVestingAccount not implemented.");
+  }
+}
+
+export class MsgCreatePermanentLockedAccount implements Msg {
+  constructor(public params: MsgCreateVestingAccountParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.vesting.v1beta1.MsgCreatePermanentLockedAccount",
+      value: this.params,
+      encode: () =>
+        MsgCreatePermanentLockedAccountParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgCreatePermanentLockedAccount not implemented.");
+  }
+}
+
+export class MsgCreatePeriodicVestingAccount implements Msg {
+  constructor(public params: MsgCreatePeriodicVestingAccountParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/cosmos.vesting.v1beta1.MsgCreatePeriodicVestingAccount",
+      value: this.params,
+      encode: () =>
+        MsgCreatePeriodicVestingAccountParams.encode(this.params).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    throw new Error("MsgCreatePeriodicVestingAccount not implemented.");
   }
 }

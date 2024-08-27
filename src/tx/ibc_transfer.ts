@@ -1,5 +1,6 @@
-import { MsgParams } from ".";
-import { AminoMsg, Coin, Msg, ProtoMsg } from "./types";
+import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
+import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
+import { MsgTransfer as MsgTransferProto } from "../protobuf/ibc/applications/transfer/v1/tx";
 
 export interface MsgTransferParams extends MsgParams {
   /** the port on which the packet will be sent */
@@ -70,10 +71,7 @@ export class MsgTransfer implements Msg {
     return {
       type_url: "/ibc.applications.transfer.v1.MsgTransfer",
       value: msgContent,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/applications/transfer/v1/tx")
-        ).MsgTransfer.encode(msgContent).finish(),
+      encode: () => MsgTransferProto.encode(msgContent).finish(),
     };
   }
 

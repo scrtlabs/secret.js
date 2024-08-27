@@ -1,19 +1,27 @@
 import { AminoMsg, Msg, ProtoMsg } from "./types";
+import {
+  MsgConnectionOpenInit as MsgConnectionOpenInitParams,
+  MsgConnectionOpenTry as MsgConnectionOpenTryParams,
+  MsgConnectionOpenAck as MsgConnectionOpenAckParams,
+  MsgConnectionOpenConfirm as MsgConnectionOpenConfirmParams,
+} from "../protobuf/ibc/core/connection/v1/tx";
+
+export {
+  MsgConnectionOpenInit as MsgConnectionOpenInitParams,
+  MsgConnectionOpenTry as MsgConnectionOpenTryParams,
+  MsgConnectionOpenAck as MsgConnectionOpenAckParams,
+  MsgConnectionOpenConfirm as MsgConnectionOpenConfirmParams,
+} from "../protobuf/ibc/core/connection/v1/tx";
 
 /** MsgConnectionOpenInit defines the msg sent by an account on Chain A to initialize a connection with Chain B. */
 export class MsgConnectionOpenInit implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/connection/v1/tx").MsgConnectionOpenInit,
-  ) {}
+  constructor(private msg: MsgConnectionOpenInitParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.connection.v1.MsgConnectionOpenInit",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/connection/v1/tx")
-        ).MsgConnectionOpenInit.encode(this.msg).finish(),
+      encode: () => MsgConnectionOpenInitParams.encode(this.msg).finish(),
     };
   }
 
@@ -24,18 +32,13 @@ export class MsgConnectionOpenInit implements Msg {
 
 /** MsgConnectionOpenTry defines a msg sent by a Relayer to try to open a connection on Chain B. */
 export class MsgConnectionOpenTry implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/connection/v1/tx").MsgConnectionOpenTry,
-  ) {}
+  constructor(private msg: MsgConnectionOpenTryParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.connection.v1.MsgConnectionOpenTry",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/connection/v1/tx")
-        ).MsgConnectionOpenTry.encode(this.msg).finish(),
+      encode: () => MsgConnectionOpenTryParams.encode(this.msg).finish(),
     };
   }
 
@@ -46,18 +49,13 @@ export class MsgConnectionOpenTry implements Msg {
 
 /** MsgConnectionOpenAck defines a msg sent by a Relayer to Chain A to acknowledge the change of connection state to TRYOPEN on Chain B. */
 export class MsgConnectionOpenAck implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/connection/v1/tx").MsgConnectionOpenAck,
-  ) {}
+  constructor(private msg: MsgConnectionOpenAckParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.connection.v1.MsgConnectionOpenAck",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/connection/v1/tx")
-        ).MsgConnectionOpenAck.encode(this.msg).finish(),
+      encode: () => MsgConnectionOpenAckParams.encode(this.msg).finish(),
     };
   }
 
@@ -68,18 +66,13 @@ export class MsgConnectionOpenAck implements Msg {
 
 /** MsgConnectionOpenConfirm defines a msg sent by a Relayer to Chain B to acknowledge the change of connection state to OPEN on Chain A. */
 export class MsgConnectionOpenConfirm implements Msg {
-  constructor(
-    private msg: import("../protobuf/ibc/core/connection/v1/tx").MsgConnectionOpenConfirm,
-  ) {}
+  constructor(private msg: MsgConnectionOpenConfirmParams) {}
 
   async toProto(): Promise<ProtoMsg> {
     return {
       type_url: "/ibc.core.connection.v1.MsgConnectionOpenConfirm",
       value: this.msg,
-      encode: async () =>
-        (
-          await import("../protobuf/ibc/core/connection/v1/tx")
-        ).MsgConnectionOpenConfirm.encode(this.msg).finish(),
+      encode: () => MsgConnectionOpenConfirmParams.encode(this.msg).finish(),
     };
   }
 
