@@ -1,4 +1,5 @@
 import { AminoMsg, Msg, ProtoMsg } from "./types";
+import { fromBech32, toBech32 } from "@cosmjs/encoding";
 
 import {
   MsgSetWithdrawAddress as MsgSetWithdrawAddressParams,
@@ -162,11 +163,18 @@ export class MsgDepositValidatorRewardsPool implements Msg {
   constructor(public params: MsgDepositValidatorRewardsPoolParams) {}
 
   async toProto(): Promise<ProtoMsg> {
+    const msgContent = {
+      ...this.params,
+      validator_address: toBech32(
+        "secretvaloper",
+        fromBech32(this.params.validator_address).data,
+      ),
+    };
     return {
       type_url: "/cosmos.distribution.v1beta1.MsgDepositValidatorRewardsPool",
-      value: this.params,
+      value: msgContent,
       encode: () =>
-        MsgDepositValidatorRewardsPoolParams.encode(this.params).finish(),
+        MsgDepositValidatorRewardsPoolParams.encode(msgContent).finish(),
     };
   }
 

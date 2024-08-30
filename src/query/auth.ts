@@ -31,6 +31,8 @@ import { PageResponse } from "../grpc_gateway/cosmos/base/query/v1beta1/paginati
 import {
   ContinuousVestingAccount,
   DelayedVestingAccount,
+  PermanentLockedAccount,
+  PeriodicVestingAccount,
 } from "../grpc_gateway/cosmos/vesting/v1beta1/vesting.pb";
 
 export type Account = {
@@ -38,12 +40,16 @@ export type Account = {
     | "/cosmos.auth.v1beta1.BaseAccount"
     | "/cosmos.auth.v1beta1.ModuleAccount"
     | "/cosmos.vesting.v1beta1.ContinuousVestingAccount"
-    | "/cosmos.vesting.v1beta1.DelayedVestingAccount";
+    | "/cosmos.vesting.v1beta1.DelayedVestingAccount"
+    | "/cosmos.vesting.v1beta1.PeriodicVestingAccount"
+    | "/cosmos.vesting.v1beta1.PermanentLockedAccount";
 } & (
   | BaseAccount
   | ModuleAccount
   | ContinuousVestingAccount
   | DelayedVestingAccount
+  | PeriodicVestingAccount
+  | PermanentLockedAccount
 );
 
 /** AuthQuerier is the query interface for the x/auth module */

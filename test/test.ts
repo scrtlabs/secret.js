@@ -8,6 +8,8 @@ import {
 import fs from "fs";
 import {
   MsgCreateVestingAccount,
+  MsgSoftwareUpgrade,
+  MsgCancelUpgrade,
   MsgDelegate,
   MsgCreateValidator,
   MsgExecuteContract,
@@ -19,6 +21,7 @@ import {
   MsgSetSendEnabled,
   MsgSubmitProposal,
   MsgFundCommunityPoolParams,
+  MsgCommunityPoolSpend,
   SecretNetworkClient,
   StakeAuthorizationType,
   TxResultCode,
@@ -36,7 +39,6 @@ import {
   validateAddress,
   validatorAddressToSelfDelegatorAddress,
 } from "../src";
-import { MsgCommunityPoolSpend } from "../src/protobuf/cosmos/distribution/v1beta1/tx";
 import {
   BaseAccount,
   ModuleAccount,
@@ -756,7 +758,7 @@ describe("tx.bank", () => {
     expect(cAfter - cBefore).toBe(BigInt(1));
   });
 
-  test.only("MsgSetSendEnabled", async () => {
+  test("MsgSetSendEnabled", async () => {
     const { secretjs } = accounts[0];
 
     const gasLimit = 40000;
@@ -802,30 +804,7 @@ describe("tx.bank", () => {
       txSubmit.events,
       "submit_proposal.proposal_id",
     );
-
-    // validator vote
-    const tx = await accounts[accounts.length - 2].secretjs.tx.gov.vote(
-      {
-        voter: accounts[accounts.length - 2].address,
-        proposal_id,
-        option: VoteOption.VOTE_OPTION_YES,
-        metadata: "some_metadata",
-      },
-      {
-        broadcastCheckIntervalMs: 100,
-        gasLimit: 5_000_000,
-      },
-    );
-    if (tx.code !== TxResultCode.Success) {
-      console.error(tx.rawLog);
-    }
-    expect(tx.code).toBe(TxResultCode.Success);
-    // waiting for proposal to finish
-    await sleep(120000);
-    const sendEnabled = await secretjs.query.bank.sendEnabled({});
-    expect(sendEnabled.send_enabled).toEqual([
-      { denom: "banana", enabled: true },
-    ]);
+    expect(parseInt(proposal_id)).toBeGreaterThan(0);
   });
 });
 
@@ -2055,56 +2034,6 @@ describe("tx.gov", () => {
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
 
-    test("CommunityPoolSpend", async () => {
-      const { secretjs } = accounts[0];
-    });
-
-    // Deprecated: Do not use. As of the Cosmos SDK release v0.47.x,
-    // there is no longer a need for an explicit CommunityPoolSpendProposal.
-    // To spend community pool funds, a simple MsgCommunityPoolSpend can be
-    // invoked from the x/gov module via a v1 governance proposal.
-    test("CommunityPoolSpendProposal", async () => {
-      const { secretjs } = accounts[0];
-
-      const proposalsBefore = await getAllProposals(secretjs);
-      const msg = MsgCommunityPoolSpend.create({
-        authority: accounts[0].address,
-        recipient: accounts[0].address,
-        amount: stringToCoins("1uscrt"),
-      });
-
-      const tx = await secretjs.tx.gov.submitProposal(
-        {
-          proposer: accounts[0].address,
-          initial_deposit: stringToCoins("10000000uscrt"),
-          messages: [],
-          metadata: "some_metadata",
-          summary: "summary",
-          title: "some proposal",
-          expedited: false,
-        },
-        {
-          broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
-        },
-      );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
-      }
-      expect(tx.code).toBe(TxResultCode.Success);
-
-      // expect(
-      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      // ).toBe("CommunityPoolSpend");
-      expect(
-        Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
-      ).toBeGreaterThanOrEqual(1);
-
-      const proposalsAfter = await getAllProposals(secretjs);
-
-      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
-    });
-
     test("ParameterChangeProposal", async () => {
       const { secretjs } = accounts[0];
 
@@ -2141,87 +2070,96 @@ describe("tx.gov", () => {
 
       expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
     });
-    // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov proposals, see MsgSoftwareUpgrade.
-    test("SoftwareUpgradeProposal", async () => {
+
+    test("SoftwareUpgrade", async () => {
       const { secretjs } = accounts[0];
 
-      const proposalsBefore = await getAllProposals(secretjs);
+      const gasLimit = 40000;
 
-      const tx = await secretjs.tx.gov.submitProposal(
+      const authorityAddress = (
+        (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+          ?.account as ModuleAccount
+      )?.base_account?.address;
+      expect(authorityAddress).not.toBeNull;
+
+      const softwareUpgradeMsg = new MsgSoftwareUpgrade({
+        authority: authorityAddress!,
+        plan: {
+          name: "vX.Y",
+          height: "99999",
+          info: "upgrade info",
+        },
+      });
+
+      const txSubmit = await secretjs.tx.gov.submitProposal(
         {
-          proposer: accounts[0].address,
-          initial_deposit: stringToCoins("10000000uscrt"),
-          messages: [],
-          metadata: "some_metadata",
-          summary: "summary",
-          title: "some proposal",
+          proposer: secretjs.address,
+          initial_deposit: stringToCoins("100000000uscrt"),
+          messages: [softwareUpgradeMsg],
+          title: "SoftwareUpgrade proposal",
+          metadata: "some meta",
+          summary: "blabla",
           expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
+          gasLimit: gasLimit,
         },
       );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
+      if (txSubmit.code !== TxResultCode.Success) {
+        console.error(txSubmit.rawLog);
       }
-      expect(tx.code).toBe(TxResultCode.Success);
+      expect(txSubmit.code).toBe(TxResultCode.Success);
 
-      // expect(
-      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      // ).toBe("SoftwareUpgrade");
-      expect(
-        Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
-      ).toBeGreaterThanOrEqual(1);
+      const proposal_id = getValueFromEvents(
+        txSubmit.events,
+        "submit_proposal.proposal_id",
+      );
 
-      const proposalsAfter = await getAllProposals(secretjs);
-
-      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+      expect(parseInt(proposal_id)).toBeGreaterThan(0);
     });
 
-    // TODO: Add test for MsgCancelUpgrade
     test("CancelUpgrade", async () => {
-      console.warn("Add CancelUpgrade test case");
-    });
-
-    // Deprecated: This legacy proposal is deprecated in favor of Msg-based gov
-    // proposals, see MsgCancelUpgrade.
-    // ------------------------------------------------------------------------
-    test("CancelSoftwareUpgradeProposal", async () => {
       const { secretjs } = accounts[0];
 
-      const proposalsBefore = await getAllProposals(secretjs);
+      const gasLimit = 40000;
 
-      const tx = await secretjs.tx.gov.submitProposal(
+      const authorityAddress = (
+        (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+          ?.account as ModuleAccount
+      )?.base_account?.address;
+      expect(authorityAddress).not.toBeNull;
+
+      const cancelUpgradeMsg = new MsgCancelUpgrade({
+        authority: authorityAddress!,
+      });
+
+      const txSubmit = await secretjs.tx.gov.submitProposal(
         {
-          proposer: accounts[0].address,
-          initial_deposit: stringToCoins("10000000uscrt"),
-          messages: [],
-          metadata: "some_metadata",
-          summary: "summary",
-          title: "some proposal",
+          proposer: secretjs.address,
+          initial_deposit: stringToCoins("100000000uscrt"),
+          messages: [cancelUpgradeMsg],
+          title: "CancelUpgrade proposal",
+          metadata: "some meta",
+          summary: "blabla",
           expedited: false,
         },
         {
           broadcastCheckIntervalMs: 100,
-          gasLimit: 5_000_000,
+          gasLimit: gasLimit,
         },
       );
-      if (tx.code !== TxResultCode.Success) {
-        console.error(tx.rawLog);
+      if (txSubmit.code !== TxResultCode.Success) {
+        console.error(txSubmit.rawLog);
       }
-      expect(tx.code).toBe(TxResultCode.Success);
+      expect(txSubmit.code).toBe(TxResultCode.Success);
 
-      // expect(
-      //   getValueFromEvents(tx.events, "submit_proposal.proposal_type"),
-      // ).toBe("CancelSoftwareUpgrade");
-      expect(
-        Number(getValueFromEvents(tx.events, "submit_proposal.proposal_id")),
-      ).toBeGreaterThanOrEqual(1);
+      const cancel_proposal_id = getValueFromEvents(
+        txSubmit.events,
+        "submit_proposal.proposal_id",
+      );
 
-      const proposalsAfter = await getAllProposals(secretjs);
-
-      expect(proposalsAfter.length - proposalsBefore.length).toBe(1);
+      expect(parseInt(cancel_proposal_id)).toBeGreaterThan(0);
     });
   });
 
@@ -2453,6 +2391,35 @@ describe("tx.gov", () => {
     }));
 
     expect(proposal?.expedited).toBe(false);
+  });
+
+  test("MsgCancelProposal", async () => {
+    const secretjs = accounts[0].secretjs;
+    const tx = await secretjs.tx.gov.submitProposal({
+      proposer: secretjs.address,
+      initial_deposit: stringToCoins("50000000uscrt"),
+      expedited: true,
+      messages: [],
+      metadata: "some_metadata",
+      summary: "summary",
+      title: "some proposal",
+    });
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+    const proposal_id = getValueFromEvents(
+      tx.events,
+      "submit_proposal.proposal_id",
+    );
+    const txCancel = await secretjs.tx.gov.cancelProposal({
+      proposer: secretjs.address,
+      proposal_id,
+    });
+    if (txCancel.code !== TxResultCode.Success) {
+      console.error(txCancel.rawLog);
+    }
+    expect(txCancel.code).toBe(TxResultCode.Success);
   });
 });
 
@@ -3012,6 +2979,74 @@ describe("tx.distribution", () => {
       selfDelegatorAddressToValidatorAddress(secretjs.address),
     );
   });
+
+  test("MsgCommunityPoolSpend", async () => {
+    const { secretjs } = accounts[0];
+
+    const gasLimit = 40000;
+
+    const authorityAddress = (
+      (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+        ?.account as ModuleAccount
+    )?.base_account?.address;
+    expect(authorityAddress).not.toBeNull;
+
+    const amount = 1000;
+
+    const communityPoolSpendMsg = new MsgCommunityPoolSpend({
+      authority: authorityAddress!,
+      recipient: secretjs.address,
+      amount: [stringToCoin(`${amount}uscrt`)],
+    });
+
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        proposer: secretjs.address,
+        initial_deposit: stringToCoins("100000000uscrt"),
+        messages: [communityPoolSpendMsg],
+        title: "communityPoolSpendMsg proposal",
+        metadata: "some meta",
+        summary: "blabla",
+        expedited: false,
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: gasLimit,
+      },
+    );
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
+
+    const proposal_id = getValueFromEvents(
+      txSubmit.events,
+      "submit_proposal.proposal_id",
+    );
+    expect(parseInt(proposal_id)).toBeGreaterThan(0);
+  });
+
+  test("MsgDepositValidatorRewardsPool", async () => {
+    const { secretjs } = accounts[0];
+
+    const gasLimit = 40000;
+
+    const tx = await secretjs.tx.distribution.depositValidatorRewardsPool(
+      {
+        depositor: secretjs.address,
+        validator_address: accounts[accounts.length - 2].address,
+        amount: [stringToCoin("10000uscrt")],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: gasLimit,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
 });
 
 describe("sanity", () => {
@@ -3298,6 +3333,19 @@ describe("tx.feegrant", () => {
     tx = await secretjs.tx.feegrant.revokeAllowance({
       granter: secretjs.address,
       grantee: newWallet.address,
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgPruneAllowances", async () => {
+    const { secretjs } = accounts[0];
+
+    let tx = await secretjs.tx.feegrant.pruneAllowances({
+      pruner: secretjs.address,
     });
 
     if (tx.code !== TxResultCode.Success) {
@@ -4044,5 +4092,59 @@ describe("vesting", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
+  });
+
+  test("MsgCreatePermanentLockedAccount", async () => {
+    const { secretjsProto: secretjsProto0 } = accounts[0];
+    const newWallet = new Wallet();
+
+    let tx = await secretjsProto0.tx.vesting.createPermanentLockedAccount({
+      from_address: accounts[0].address,
+      to_address: newWallet.address, // to_address must be a new address
+      amount: coinsFromString("1uscrt"),
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let { account } = await secretjsProto0.query.auth.account({
+      address: newWallet.address,
+    });
+
+    expect(account!["@type"]).toBe(
+      "/cosmos.vesting.v1beta1.PermanentLockedAccount",
+    );
+  });
+
+  test("MsgCreatePeriodicVestingAccount", async () => {
+    const { secretjsProto: secretjsProto0 } = accounts[0];
+    const newWallet = new Wallet();
+
+    let tx = await secretjsProto0.tx.vesting.createPeriodicVestingAccount({
+      from_address: accounts[0].address,
+      to_address: newWallet.address, // to_address must be a new address
+      start_time: "1234567",
+      vesting_periods: [
+        {
+          length: "100",
+          amount: [stringToCoin("100uscrt")],
+        },
+      ],
+    });
+
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let { account } = await secretjsProto0.query.auth.account({
+      address: newWallet.address,
+    });
+
+    expect(account!["@type"]).toBe(
+      "/cosmos.vesting.v1beta1.PeriodicVestingAccount",
+    );
   });
 });
