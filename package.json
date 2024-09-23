@@ -30,6 +30,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "patch-package": "^8.0.0",
     "@cosmjs/encoding": "0.32.3",
     "@cosmjs/math": "0.32.3",
     "@noble/hashes": "1.0.0",
@@ -47,7 +48,6 @@
     "secure-random": "1.1.2"
   },
   "devDependencies": {
-    "patch-package": "^8.0.0",
     "@babel/preset-typescript": "^7.24.7",
     "@confio/relayer": "0.12.0",
     "@cosmjs/crypto": "0.32.4",
