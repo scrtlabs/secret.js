@@ -1,11 +1,14 @@
-import { stringToPath } from "@cosmjs/crypto";
-import { DirectSecp256k1HdWallet, OfflineSigner } from "@cosmjs/proto-signing";
-import { GasPrice } from "@cosmjs/stargate";
 import { IbcClient, Link } from "@confio/relayer";
 import { ChannelPair } from "@confio/relayer/build/lib/link";
+import { stringToPath } from "@cosmjs/crypto";
+import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { ModuleAccount } from "../src/grpc_gateway/cosmos/auth/v1beta1/auth.pb";
+import { GasPrice } from "@cosmjs/stargate";
 import fs from "fs";
 import util from "util";
 import {
+  MsgUpdateParams,
+  EmergencyButtonParams,
   SecretNetworkClient,
   stringToCoins,
   TxResponse,
@@ -30,8 +33,8 @@ export type Account = {
 
 export const accounts: Account[] = [];
 
-export const chain1LCD = "http://127.0.0.1:1317"; //20.84.98.207
-export const chain2LCD = "http://127.0.0.1:2317"; //172.190.87.208
+export const chain1LCD = "http://127.0.0.1:1317";
+export const chain2LCD = "http://127.0.0.1:2317";
 
 export const chain1RPC = "http://127.0.0.1:26657";
 export const chain2RPC = "http://127.0.0.1:36657";
@@ -68,7 +71,7 @@ const mnemonics = [
 
 for (let i = 0; i < mnemonics.length; i++) {
   const mnemonic = mnemonics[i];
-  //const walletAmino = new AminoWallet(mnemonic);
+  // const walletAmino = new AminoWallet(mnemonic);
   const walletAmino = new Wallet(mnemonic);
   const walletProto = new Wallet(mnemonic);
   accounts[i] = {
@@ -141,27 +144,6 @@ export function getMnemonicRegexForAccountName(account: string) {
   return new RegExp(`{"name":"${account}".+?"mnemonic":".+?"}`);
 }
 
-export function getValueFromRawLog(
-  rawLog: string | undefined,
-  key: string,
-): string {
-  if (!rawLog) {
-    return "";
-  }
-
-  for (const l of JSON.parse(rawLog)) {
-    for (const e of l.events) {
-      for (const a of e.attributes) {
-        if (`${e.type}.${a.key}` === key) {
-          return String(a.value);
-        }
-      }
-    }
-  }
-
-  return "";
-}
-
 export function getValueFromEvents(
   events: any[] | undefined,
   key: string,
@@ -196,11 +178,32 @@ export function getTxEvents(events: any[] | undefined, key: string): Object[] {
   return res;
 }
 
+export function getValueFromRawLog(
+  rawLog: string | undefined,
+  key: string,
+): string {
+  if (!rawLog) {
+    return "";
+  }
+
+  for (const l of JSON.parse(rawLog)) {
+    for (const e of l.events) {
+      for (const a of e.attributes) {
+        if (`${e.type}.${a.key}` === key) {
+          return String(a.value);
+        }
+      }
+    }
+  }
+
+  return "";
+}
+
 export async function storeContract(
   wasmPath: string,
   account: Account,
 ): Promise<number> {
-  const secretjs = account.secretjsProto;
+  const secretjs = account.secretjs;
   const txStore = await secretjs.tx.compute.storeCode(
     {
       sender: account.address,
@@ -226,7 +229,7 @@ export async function initContract(
   account: Account,
   label?: string,
 ): Promise<string> {
-  const secretjs = account.secretjsProto;
+  const secretjs = account.secretjs;
   const { code_hash } = await secretjs.query.compute.codeHashByCodeId({
     code_id: String(code_id),
   });
@@ -279,12 +282,13 @@ export async function createIbcConnection(): Promise<Link> {
     { hdPaths: [stringToPath("m/44'/529'/0'/0/0")], prefix: "secret" },
   );
   const [account] = await signerA.getAccounts();
+
   const signerB = signerA;
-  const a = signerA as OfflineSigner;
+
   // Create IBC Client for chain A
   const clientA = await IbcClient.connectWithSigner(
     chain1RPC,
-    a,
+    signerA,
     account.address,
     {
       gasPrice: GasPrice.fromString("0.25uscrt"),
@@ -296,7 +300,7 @@ export async function createIbcConnection(): Promise<Link> {
   // Create IBC Client for chain A
   const clientB = await IbcClient.connectWithSigner(
     chain2RPC,
-    signerB as OfflineSigner,
+    signerB,
     account.address,
     {
       gasPrice: GasPrice.fromString("0.25uscrt"),
@@ -341,9 +345,9 @@ export function loopRelayer(connection: Link) {
           connection.updateClient("B"),
         ]);
       } catch (e) {
-        console.warn(`<loopRelayer> caught error: ${e.message}`);
+        console.warn(`<loopRelayer>: caught error:`, e.message);
       }
-      await sleep(1_000);
+      await sleep(1000);
     }
 
     resolve();
@@ -416,7 +420,7 @@ export async function waitForChainToStart({
         break;
       }
     } catch (e) {
-      console.warn("Chain is not ready:" + e.message);
+      // console.error(e);
     }
     await sleep(1000);
   }
@@ -455,40 +459,50 @@ export async function waitForProposalToPass(
 
 export async function passParameterChangeProposal(
   secretjs: SecretNetworkClient,
+  params: EmergencyButtonParams,
 ) {
   console.log("Passing parameter change proposal...");
 
-  let tx = await secretjs.tx.gov.submitProposal(
+  const authorityAddress = (
+    (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+      ?.account as ModuleAccount
+  )?.base_account?.address;
+
+  let updateParamsMsg = new MsgUpdateParams({
+    authority: authorityAddress!,
+    params,
+  });
+  const txSubmit = await secretjs.tx.gov.submitProposal(
     {
       proposer: secretjs.address,
       initial_deposit: stringToCoins("100000000000uscrt"),
+      messages: [updateParamsMsg],
+      title: "EmergencyButtonParamsChange proposal",
+      metadata: "some meta",
+      summary: "blabla",
       expedited: true,
-      messages: [],
-      metadata: "",
-      summary: "summary",
-      title: "some proposal",
     },
     {
       broadcastCheckIntervalMs: 100,
-      gasLimit: 5_000_000,
+      gasLimit: 5000000,
     },
   );
-  if (tx.code !== TxResultCode.Success) {
-    console.error(tx.rawLog);
+  if (txSubmit.code !== TxResultCode.Success) {
+    console.error(txSubmit.rawLog);
   }
-  expect(tx.code).toBe(TxResultCode.Success);
+  expect(txSubmit.code).toBe(TxResultCode.Success);
 
-  const proposalId = getValueFromRawLog(
-    tx.rawLog,
+  const proposalId = getValueFromEvents(
+    txSubmit.events,
     "submit_proposal.proposal_id",
   );
   expect(Number(proposalId)).toBeGreaterThanOrEqual(1);
 
-  tx = await secretjs.tx.gov.vote(
+  const txVote = await accounts[accounts.length - 2].secretjs.tx.gov.vote(
     {
       option: VoteOption.VOTE_OPTION_YES,
       proposal_id: proposalId,
-      voter: secretjs.address,
+      voter: accounts[accounts.length - 2].address,
       metadata: "",
     },
     {
@@ -496,10 +510,10 @@ export async function passParameterChangeProposal(
       gasLimit: 5_000_000,
     },
   );
-  if (tx.code !== TxResultCode.Success) {
-    console.error(tx.rawLog);
+  if (txVote.code !== TxResultCode.Success) {
+    console.error(txVote.rawLog);
   }
-  expect(tx.code).toBe(TxResultCode.Success);
+  expect(txVote.code).toBe(TxResultCode.Success);
 
   await waitForProposalToPass(secretjs, proposalId);
 }

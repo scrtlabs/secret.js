@@ -2,7 +2,6 @@ import { Link } from "@confio/relayer";
 import { sha256 } from "@noble/hashes/sha256";
 import fs from "fs";
 import pako from "pako";
-import { ChannelPair } from "@confio/relayer/build/lib/link";
 import {
   coinFromString,
   coinsFromString,
@@ -30,8 +29,6 @@ import {
   chain2LCD,
   createIbcChannel,
   createIbcConnection,
-  getValueFromEvents,
-  getTxEvents,
   loopRelayer,
   passParameterChangeProposal,
   sleep,
@@ -44,7 +41,6 @@ let ibcConnection: Link;
 let stopRelayer: () => Promise<void>;
 
 beforeAll(async () => {
-  jest.setTimeout(300_000);
   jest.spyOn(console, "warn").mockImplementation(() => {});
 
   console.log("Waiting for LocalSecret2 to start...");
@@ -55,19 +51,7 @@ beforeAll(async () => {
   });
 
   console.log("Creating IBC connection...");
-  while (true) {
-    try {
-      ibcConnection = await createIbcConnection();
-    } catch (e) {
-      console.error(`Create IBC connection: ${e.message}`);
-    }
-    if (ibcConnection !== undefined) {
-      break;
-    }
-    console.warn("Failed to create an IBC connection. Retrying...");
-    await sleep(5_000);
-  }
-  expect(ibcConnection).toBeDefined();
+  ibcConnection = await createIbcConnection();
 }, 180_000);
 
 const contractsSetup = async (version: string = "ics20-1") => {
@@ -290,21 +274,21 @@ describe("ibcResponses", () => {
     if (tx.code !== TxResultCode.Success) {
       console.error(tx.rawLog);
     }
-    // expect(tx.code).toBe(TxResultCode.Success);
+    expect(tx.code).toBe(TxResultCode.Success);
 
-    // expect(tx.ibcResponses.length).toBe(1);
-    // const ibcResp = await tx.ibcResponses[0];
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
 
-    // expect(ibcResp.type).toBe("ack");
+    expect(ibcResp.type).toBe("ack");
 
-    // expect(
-    //   ibcResp.tx.arrayLog?.find(
-    //     (x) =>
-    //       x.type === "fungible_token_packet" &&
-    //       x.key === "success" &&
-    //       x.value === "\x01",
-    //   ),
-    // ).toBeTruthy();
+    expect(
+      ibcResp.tx.arrayLog?.find(
+        (x) =>
+          x.type === "fungible_token_packet" &&
+          x.key === "success" &&
+          x.value === "\x01",
+      ),
+    ).toBeTruthy();
   }, 90_000);
 
   test("multiple ibcResponses", async () => {
@@ -344,8 +328,21 @@ describe("ibcResponses", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
-    const res = getTxEvents(tx.events, "ibc_transfer");
-    expect(res.length).toBe(2);
+
+    expect(tx.ibcResponses.length).toBe(2);
+    const ibcResponses = await Promise.all(tx.ibcResponses);
+
+    for (const ibcResp of ibcResponses) {
+      expect(ibcResp.type).toBe("ack");
+      expect(
+        ibcResp.tx.arrayLog?.find(
+          (x) =>
+            x.type === "fungible_token_packet" &&
+            x.key === "success" &&
+            x.value === "\x01",
+        ),
+      ).toBeTruthy();
+    }
   }, 90_000);
 
   test("ibcResponses timeout", async () => {
@@ -374,13 +371,35 @@ describe("ibcResponses", () => {
       console.error(tx.rawLog);
     }
     expect(tx.code).toBe(TxResultCode.Success);
-    const resp = getTxEvents(tx.events, "ibc_transfer");
-    expect(resp.length).toBe(1);
+
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+
+    expect(ibcResp.type).toBe("timeout");
 
     expect(
-      getValueFromEvents(tx.events, "send_packet.packet_timeout_height"),
-    ).toBe("0-0");
-  }, 90_000);
+      ibcResp.tx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" && x.key === "refund_amount" && x.value === "1",
+      ),
+    ).toBeTruthy();
+    expect(
+      ibcResp.tx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" &&
+          x.key === "refund_denom" &&
+          x.value === "uscrt",
+      ),
+    ).toBeTruthy();
+    expect(
+      ibcResp.tx.arrayLog?.find(
+        (x) =>
+          x.type === "timeout" &&
+          x.key === "refund_receiver" &&
+          x.value === secretjs.address,
+      ),
+    ).toBeTruthy();
+  }, 1000_000);
 
   test("ibcResponses turned off by default on txsQuery", async () => {
     const { secretjs } = accounts[0];
@@ -417,8 +436,7 @@ describe("ibcResponses", () => {
     }
 
     expect(txs.length).toBe(1);
-    const res = getTxEvents(txs[0].events, "ibc_transfer");
-    expect(res.length).toBe(1);
+    expect(txs[0].ibcResponses.length).toBe(0);
   }, 90_000);
 });
 
@@ -466,7 +484,7 @@ describe("cw20-ics20", () => {
         walletProto: accounts[0].walletProto,
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
-          wallet: accounts[0].walletAmino,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
@@ -550,10 +568,7 @@ describe("cw20-ics20", () => {
       );
 
       // wait for tokens to arrive on secretdev-2
-      //expect((await sendTokensTx.ibcResponses[0]).type).toBe("ack");
-      expect(getValueFromEvents(sendTokensTx.events, "transfer.amount")).toBe(
-        "500000uscrt",
-      );
+      expect((await sendTokensTx.ibcResponses[0]).type).toBe("ack");
 
       // the balance query is lagging for some reason (on mainnet too!)
       // so we'll wait for it to update
@@ -593,10 +608,7 @@ describe("cw20-ics20", () => {
 
       console.log("Waiting for tokens to arrive back to secretdev-1...");
 
-      //expect((await sendTokensBackTx.ibcResponses[0]).type).toBe("ack");
-      expect(
-        getValueFromEvents(sendTokensBackTx.events, "transfer.amount"),
-      ).toBe("2500uscrt");
+      expect((await sendTokensBackTx.ibcResponses[0]).type).toBe("ack");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
@@ -606,7 +618,7 @@ describe("cw20-ics20", () => {
         },
       });
 
-      expect(snip20Balance.balance.amount).toBe("999");
+      expect(snip20Balance.balance.amount).toBe("1000");
 
       console.log("Sending tokens from secretdev-1 with a short timeout...");
 
@@ -630,7 +642,6 @@ describe("cw20-ics20", () => {
                     }),
                   ),
                 ),
-                memo: "transfer between chains",
               },
             },
           }),
@@ -655,20 +666,15 @@ describe("cw20-ics20", () => {
           },
         },
       });
-      expect(snip20Balance.balance.amount).toBe("998");
+      expect(snip20Balance.balance.amount).toBe("999");
 
       console.log(
         "Waiting for tokens refund to secretdev-1 after the timeout...",
       );
 
-      //const ibcResp = await sendTokensTimeoutTx.ibcResponses[0];
-      //expect(ibcResp.type).toBe("timeout");
-      expect(
-        getValueFromEvents(
-          sendTokensTimeoutTx.events,
-          "send_packet.packet_timeout_height",
-        ),
-      ).toBe("0-0");
+      const ibcResp = await sendTokensTimeoutTx.ibcResponses[0];
+      expect(ibcResp.type).toBe("timeout");
+
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
         code_hash: contracts.snip20.codeHash,
@@ -677,7 +683,7 @@ describe("cw20-ics20", () => {
         },
       });
 
-      expect(snip20Balance.balance.amount).toBe("998");
+      expect(snip20Balance.balance.amount).toBe("1000");
     },
     5 * 60 * 1000 /* 5 minute timeout */,
   );
@@ -706,7 +712,7 @@ describe("packet-forward-middleware", () => {
     stopRelayer = loopRelayer(ibcConnection);
   });
 
-  test.skip("happy path", async () => {
+  test("happy path", async () => {
     const { secretjs } = accounts[0];
 
     const freshAccount = new Wallet();
@@ -725,7 +731,7 @@ describe("packet-forward-middleware", () => {
         receiver: secretjs.address,
         source_channel: ibcChannelIdOnChain1,
         source_port: "transfer",
-        token: stringToCoin("2uscrt"),
+        token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
         memo: JSON.stringify({
           forward: {
@@ -750,12 +756,9 @@ describe("packet-forward-middleware", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     // packet forward should resolve only after the final destination is acked
-    // expect(tx.ibcResponses.length).toBe(1);
-    // const ibcResp = await tx.ibcResponses[0];
-    // expect(ibcResp.type).toBe("ack");
-
-    const res = getTxEvents(tx.events, "ibc_transfer");
-    expect(res.length).toBe(1);
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("ack");
 
     const { balance: freshAccountBalanceAfter } =
       await secretjs.query.bank.balance({
@@ -767,7 +770,7 @@ describe("packet-forward-middleware", () => {
   }, 90_000);
 });
 
-describe.skip("fee middleware", () => {
+describe("fee middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
@@ -808,22 +811,12 @@ describe.skip("fee middleware", () => {
     }
 
     console.log("Creating IBC transfer <-> transfer channel with fee...");
-    let ibcChannelPair;
-    while (true) {
-      try {
-        ibcChannelPair = await createIbcChannel(
-          ibcConnection,
-          "transfer",
-          '{"fee_version":"ics29-1","app_version":"ics20-1"}',
-        );
-      } catch (e) {
-        console.warn(`Error while createing an ibc channel ${e.message}`);
-      }
-      if (ibcChannelPair !== undefined) {
-        break
-      }
-      await sleep(5_000);
-    }
+    const ibcChannelPair = await createIbcChannel(
+      ibcConnection,
+      "transfer",
+      '{"fee_version":"ics29-1","app_version":"ics20-1"}',
+    );
+
     ibcChannelIdOnChain1 = ibcChannelPair.src.channelId;
     ibcChannelIdOnChain2 = ibcChannelPair.dest.channelId;
 
@@ -917,7 +910,6 @@ describe.skip("fee middleware", () => {
       await stopRelayer();
     }
 
-    console.log('Register Payee...');
     // Unnecessary as by default the payee on this chain is the relayer
     // but we want to test that the fee is payed and it's easier on a fresh account
     tx = await secretjs1.tx.ibc_fee.registerPayee({
@@ -931,7 +923,6 @@ describe.skip("fee middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    console.log('Register Counterparty Payee...');
     // For recv_packet on secretdev-2 that the relayer submits
     tx = await secretjs1.tx.ibc_fee.registerCounterpartyPayee({
       relayer: relayerWallet.address,
@@ -946,7 +937,6 @@ describe.skip("fee middleware", () => {
 
     // Unnecessary as by default the payee on this chain is the relayer
     // but we want to test that the fee is payed and it's easier on a fresh account
-    console.log('Register Payee (again)...');
     tx = await secretjs2.tx.ibc_fee.registerPayee({
       relayer: relayerWallet.address,
       channel_id: ibcWasmChannelIdOnChain2,
@@ -959,7 +949,6 @@ describe.skip("fee middleware", () => {
     expect(tx.code).toBe(TxResultCode.Success);
 
     // For recv_packet on secretdev-1 that the relayer submits
-    console.log('Register Counterparty Payee (again)...');
     tx = await secretjs2.tx.ibc_fee.registerCounterpartyPayee({
       relayer: relayerWallet.address,
       channel_id: ibcWasmChannelIdOnChain2,
@@ -971,9 +960,8 @@ describe.skip("fee middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    console.log('Loop relayer ...');
     stopRelayer = loopRelayer(ibcConnection);
-  }, 300_000);
+  }, 120_000);
 
   test("transfer fee recv + ack", async () => {
     const { secretjs } = accounts[0];
@@ -1000,6 +988,7 @@ describe.skip("fee middleware", () => {
             ack_fee: coinsFromString(`${ack_fee}uscrt`),
             timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
           },
+          relayers: [],
         }),
         new MsgTransfer({
           sender: secretjs.address,
@@ -1025,11 +1014,9 @@ describe.skip("fee middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const res = getTxEvents(tx.events, "ibc_transfer");
-    expect(res.length).toBe(1);
-    // expect(tx.ibcResponses.length).toBe(1);
-    // const ibcResp = await tx.ibcResponses[0];
-    // expect(ibcResp.type).toBe("ack");
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("ack");
 
     const { balance: payeeBalanceAfter } = await secretjs.query.bank.balance({
       address: relayerPayee.address,
@@ -1069,6 +1056,7 @@ describe.skip("fee middleware", () => {
             ack_fee: coinsFromString(`${ack_fee}uscrt`),
             timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
           },
+          relayers: [],
         }),
         new MsgTransfer({
           sender: secretjs.address,
@@ -1094,15 +1082,9 @@ describe.skip("fee middleware", () => {
     }
     expect(tx.code).toBe(TxResultCode.Success);
 
-    const res = getTxEvents(tx.events, "ibc_transfer");
-    expect(res.length).toBe(1);
-
-    expect(
-      getValueFromEvents(tx.events, "send_packet.packet_timeout_height"),
-    ).toBe("0-0");
-    // expect(tx.ibcResponses.length).toBe(1);
-    // const ibcResp = await tx.ibcResponses[0];
-    // expect(ibcResp.type).toBe("timeout");
+    expect(tx.ibcResponses.length).toBe(1);
+    const ibcResp = await tx.ibcResponses[0];
+    expect(ibcResp.type).toBe("timeout");
 
     const { balance: payeeBalanceAfter } = await secretjs.query.bank.balance({
       address: relayerPayee.address,
@@ -1126,7 +1108,7 @@ describe.skip("fee middleware", () => {
         walletProto: accounts[0].walletProto,
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
-          wallet: accounts[0].walletAmino,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
@@ -1174,6 +1156,7 @@ describe.skip("fee middleware", () => {
               ack_fee: coinsFromString(`${ack_fee}uscrt`),
               timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
             },
+            relayers: [],
           }),
           new MsgExecuteContract({
             sender: accounts[0].address,
@@ -1232,9 +1215,7 @@ describe.skip("fee middleware", () => {
       );
 
       // wait for tokens to arrive on secretdev-2
-      //expect((await tx.ibcResponses[0]).type).toBe("ack");
-      const res = getTxEvents(tx.events, "ibc_transfer");
-      expect(res.length).toBeGreaterThanOrEqual(1);
+      expect((await tx.ibcResponses[0]).type).toBe("ack");
 
       const { balance: payeeBalanceAfterRecv } =
         await accounts[0].secretjs.query.bank.balance({
@@ -1288,7 +1269,7 @@ describe.skip("fee middleware", () => {
 
       console.log("Waiting for tokens to arrive back to secretdev-1...");
 
-      // expect((await tx.ibcResponses[0]).type).toBe("ack");
+      expect((await tx.ibcResponses[0]).type).toBe("ack");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
@@ -1315,6 +1296,7 @@ describe.skip("fee middleware", () => {
               ack_fee: coinsFromString(`${ack_fee}uscrt`),
               timeout_fee: coinsFromString(`${timeout_fee}uscrt`),
             },
+            relayers: [],
           }),
           new MsgExecuteContract({
             sender: accounts[0].address,
@@ -1364,11 +1346,8 @@ describe.skip("fee middleware", () => {
         "Waiting for tokens refund to secretdev-1 after the timeout...",
       );
 
-      expect(
-        getValueFromEvents(tx.events, "send_packet.packet_timeout_height"),
-      ).toBe("0-0");
-      // const ibcResp = await tx.ibcResponses[0];
-      // expect(ibcResp.type).toBe("timeout");
+      const ibcResp = await tx.ibcResponses[0];
+      expect(ibcResp.type).toBe("timeout");
 
       snip20Balance = await accounts[0].secretjs.query.compute.queryContract({
         contract_address: contracts.snip20.address,
@@ -1397,7 +1376,7 @@ describe.skip("fee middleware", () => {
   );
 });
 
-describe.skip("ibc-switch middleware", () => {
+describe("ibc-switch middleware", () => {
   describe("query.emergency_button", () => {
     test("params()", async () => {
       const { secretjs } = accounts[0];
@@ -1433,15 +1412,8 @@ describe.skip("ibc-switch middleware", () => {
       const { secretjs } = accounts[0];
 
       await passParameterChangeProposal(secretjs, {
-        title: "Changing PauserAddress",
-        description: "Authorizing someone to toggle Switch",
-        changes: [
-          {
-            subspace: "emergencybutton",
-            key: "pauseraddress",
-            value: `"${secretjs.address}"`,
-          },
-        ],
+        switch_status: "on",
+        pauser_address: secretjs.address,
       });
 
       const sim = await secretjs.tx.emergency_button.toggleIbcSwitch.simulate({
@@ -1535,15 +1507,8 @@ describe.skip("ibc-switch middleware", () => {
 
       const { secretjs } = accounts[0];
       await passParameterChangeProposal(secretjs, {
-        title: "Changing PauserAddress",
-        description: "Authorizing someone to toggle Switch",
-        changes: [
-          {
-            subspace: "emergencybutton",
-            key: "pauseraddress",
-            value: `"${secretjs.address}"`,
-          },
-        ],
+        switch_status: "on",
+        pauser_address: secretjs.address,
       });
     });
 
@@ -1665,9 +1630,7 @@ describe.skip("ibc-switch middleware", () => {
       expect(tx.code).toBe(1);
       expect(tx.rawLog).toContain("Ibc packets are currently paused");
 
-      const res = getTxEvents(tx.events, "ibc_transfer");
-      expect(res.length).toBe(0);
-      //expect(tx.ibcResponses.length).toBe(0);
+      expect(tx.ibcResponses.length).toBe(0);
 
       const { balance: freshAccountBalanceAfter } =
         await secretjs.query.bank.balance({
@@ -1711,15 +1674,8 @@ describe.skip("ibc-switch middleware", () => {
 
       const { secretjs } = accounts[0];
       await passParameterChangeProposal(secretjs, {
-        title: "Changing PauserAddress",
-        description: "Authorizing someone to toggle Switch",
-        changes: [
-          {
-            subspace: "emergencybutton",
-            key: "pauseraddress",
-            value: `"${secretjs.address}"`,
-          },
-        ],
+        switch_status: "on",
+        pauser_address: secretjs.address,
       });
     }, 180_000 /* 3 minute timeout */);
 
@@ -1771,7 +1727,7 @@ describe.skip("ibc-switch middleware", () => {
         walletProto: accounts[0].walletProto,
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
-          wallet: accounts[0].walletAmino,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
@@ -1859,7 +1815,7 @@ describe.skip("ibc-switch middleware", () => {
         walletProto: accounts[0].walletProto,
         secretjs: new SecretNetworkClient({
           url: chain2LCD,
-          wallet: accounts[0].walletAmino,
+          wallet: accounts[0].walletProto,
           walletAddress: accounts[0].address,
           chainId: "secretdev-2",
         }),
@@ -1972,7 +1928,7 @@ describe.skip("ibc-switch middleware", () => {
   });
 });
 
-describe.skip("ibc-hooks middleware", () => {
+describe("ibc-hooks middleware", () => {
   let ibcChannelIdOnChain1 = "";
   let ibcChannelIdOnChain2 = "";
 
@@ -2118,7 +2074,7 @@ describe.skip("ibc-hooks middleware", () => {
   test("send funds over IBC to contract", async () => {
     const secretjs2 = new SecretNetworkClient({
       url: chain2LCD,
-      wallet: accounts[0].walletAmino,
+      wallet: accounts[0].walletProto,
       walletAddress: accounts[0].address,
       chainId: "secretdev-2",
     });

@@ -2002,7 +2002,7 @@ describe("tx.gov", () => {
       const tx = await secretjs.tx.gov.submitProposal(
         {
           proposer: accounts[0].address,
-          initial_deposit: stringToCoins("10000000uscrt"),
+          initial_deposit: stringToCoins("1000000000uscrt"),
           messages: [],
           metadata: "some_metadata",
           summary: "summary",
@@ -2169,7 +2169,7 @@ describe("tx.gov", () => {
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
         proposer: accounts[0].address,
-        initial_deposit: stringToCoins("10000000uscrt"),
+        initial_deposit: stringToCoins("1000000000uscrt"),
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
@@ -2221,7 +2221,7 @@ describe("tx.gov", () => {
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
         proposer: accounts[0].address,
-        initial_deposit: stringToCoins("10000000uscrt"),
+        initial_deposit: stringToCoins("1000000000uscrt"),
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
@@ -2249,8 +2249,8 @@ describe("tx.gov", () => {
         proposal_id,
         options: [
           // weights must sum to 1.0
-          { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
-          { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
+          { weight: "0.7", option: VoteOption.VOTE_OPTION_YES },
+          { weight: "0.3", option: VoteOption.VOTE_OPTION_ABSTAIN },
         ],
         metadata: "some_metadata",
       },
@@ -2268,7 +2268,7 @@ describe("tx.gov", () => {
       proposal_id,
     );
     expect(getValueFromEvents(tx.events, "proposal_vote.option")).toBe(
-      '[{"option":1,"weight":"0.700000000000000000"},{"option":2,"weight":"0.300000000000000000"}]',
+      '[{"option":1,"weight":"0.7"},{"option":2,"weight":"0.3"}]',
     );
   });
 
@@ -2278,7 +2278,7 @@ describe("tx.gov", () => {
     const txSubmit = await secretjs.tx.gov.submitProposal(
       {
         proposer: accounts[0].address,
-        initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
+        initial_deposit: [{ amount: "100000000", denom: "uscrt" }],
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
@@ -2303,7 +2303,7 @@ describe("tx.gov", () => {
       {
         depositor: accounts[0].address,
         proposal_id: proposal_id,
-        amount: stringToCoins("100000uscrt"),
+        amount: stringToCoins("10000000uscrt"),
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -2320,7 +2320,7 @@ describe("tx.gov", () => {
       proposal_id,
     });
 
-    expect(deposit?.amount).toStrictEqual(stringToCoins("1100000uscrt"));
+    expect(deposit?.amount).toStrictEqual(stringToCoins("110000000uscrt"));
   });
 
   test("Expedited", async () => {
@@ -3278,14 +3278,14 @@ describe("tx.feegrant", () => {
     // move sufficient amount of funds to the grantee in order to be able to submit a proposal
     try {
       const tx = await secretjs.tx.bank.send({
-        amount: stringToCoins("1500000uscrt"),
+        amount: stringToCoins("150000000uscrt"),
         from_address: funded_wallet,
         to_address: newWallet.address,
       });
 
       if (tx.code === TxResultCode.Success) {
         const q_bal = await getBalance(secretjs, newWallet.address);
-        expect(q_bal).toBe(BigInt(1500000));
+        expect(q_bal).toBe(BigInt(150000000));
       }
     } catch (e) {
       console.error(`Failed to fund wallet ${newWallet.address}: ${e.message}`);
@@ -3294,7 +3294,7 @@ describe("tx.feegrant", () => {
     tx = await secretjsGrantee.tx.gov.submitProposal(
       {
         proposer: secretjsGrantee.address,
-        initial_deposit: [{ amount: "1000000", denom: "uscrt" }],
+        initial_deposit: [{ amount: "100000000", denom: "uscrt" }],
         messages: [],
         metadata: "some_metadata",
         summary: "summary",
