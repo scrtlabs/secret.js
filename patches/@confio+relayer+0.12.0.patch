@@ -1,0 +1,13 @@
+diff --git a/node_modules/@confio/relayer/build/lib/ibcclient.js b/node_modules/@confio/relayer/build/lib/ibcclient.js
+index 1bf85dc..7853bce 100644
+--- a/node_modules/@confio/relayer/build/lib/ibcclient.js
++++ b/node_modules/@confio/relayer/build/lib/ibcclient.js
+@@ -825,7 +825,7 @@ class IbcClient {
+                 value: tx_2.MsgTimeout.fromPartial({
+                     packet,
+                     proofUnreceived: proofsUnreceived[i],
+-                    nextSequenceRecv: nextSequenceRecv[i],
++                    nextSequenceRecv: 1n,
+                     proofHeight,
+                     signer: senderAddress,
+                 }),

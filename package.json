@@ -26,7 +26,8 @@
     "build": "rm -rf ./dist && webpack && tsc",
     "test": "./test.sh",
     "test-ci": "jest --forceExit --runInBand",
-    "gen-docs": "typedoc"
+    "gen-docs": "typedoc",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@cosmjs/encoding": "0.32.3",
@@ -46,6 +47,7 @@
     "secure-random": "1.1.2"
   },
   "devDependencies": {
+    "patch-package": "^8.0.0",
     "@babel/preset-typescript": "^7.24.7",
     "@confio/relayer": "0.12.0",
     "@cosmjs/crypto": "0.32.4",
