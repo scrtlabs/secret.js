@@ -24,7 +24,7 @@ export interface MsgTransferParams extends MsgParams {
    */
   timeout_timestamp?: string;
   /** optional memo */
-  memo?: string;
+  memo: string;
 }
 
 /**
@@ -65,7 +65,7 @@ export class MsgTransfer implements Msg {
       timeout_timestamp: this.params.timeout_timestamp
         ? `${this.params.timeout_timestamp}000000000` // sec -> ns
         : "0",
-      memo: this.params.memo || "",
+      memo: this.params.memo ?? "",
     };
 
     return {
@@ -93,7 +93,7 @@ export class MsgTransfer implements Msg {
         timeout_timestamp: this.params.timeout_timestamp
           ? `${this.params.timeout_timestamp}000000000` // sec -> ns
           : "0",
-        memo: this.params.memo,
+        memo: this.params.memo ?? "",
       },
     };
   }

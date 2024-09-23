@@ -319,6 +319,7 @@ describe("ibcResponses", () => {
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+          memo: "hi",
         }),
         new MsgTransfer({
           sender: secretjs.address,
@@ -327,6 +328,7 @@ describe("ibcResponses", () => {
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+          memo: "hi",
         }),
       ],
       {
@@ -357,6 +359,7 @@ describe("ibcResponses", () => {
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second
+        memo: "hi",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -390,6 +393,7 @@ describe("ibcResponses", () => {
         source_port: "transfer",
         token: stringToCoin("1uscrt"),
         timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+        memo: "hi",
       },
       {
         broadcastCheckIntervalMs: 100,
@@ -579,6 +583,7 @@ describe("cw20-ics20", () => {
           timeout_timestamp: String(
             Math.floor(Date.now() / 1000) + 10 * 60,
           ) /* 10 minutes */,
+          memo: "hi",
         });
 
       if (sendTokensBackTx.code !== TxResultCode.Success) {
@@ -1003,6 +1008,7 @@ describe.skip("fee middleware", () => {
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 10 * 60), // 10 minutes
+          memo: "hi",
         }),
       ],
       {
@@ -1071,6 +1077,7 @@ describe.skip("fee middleware", () => {
           source_port: "transfer",
           token: stringToCoin("1uscrt"),
           timeout_timestamp: String(Math.floor(Date.now() / 1000) + 1), // 1 second
+          memo: "hi",
         }),
       ],
       {
@@ -1271,6 +1278,7 @@ describe.skip("fee middleware", () => {
         timeout_timestamp: String(
           Math.floor(Date.now() / 1000) + 10 * 60,
         ) /* 10 minutes */,
+        memo: "hi",
       });
 
       if (tx.code !== TxResultCode.Success) {
