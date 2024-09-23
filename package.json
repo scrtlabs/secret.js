@@ -30,7 +30,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "patch-package": "^8.0.0",
+    "@cosmjs/amino": "^0.32.4",
     "@cosmjs/encoding": "0.32.3",
     "@cosmjs/math": "0.32.3",
     "@noble/hashes": "1.0.0",
@@ -44,6 +44,7 @@
     "google-protobuf": "^3.14.0",
     "miscreant": "0.3.2",
     "pako": "2.0.4",
+    "patch-package": "^8.0.0",
     "protobufjs": "7.2.5",
     "secure-random": "1.1.2"
   },
