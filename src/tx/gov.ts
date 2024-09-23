@@ -1,25 +1,53 @@
-import BigNumber from "bignumber.js";
-import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
-import { VoteOption } from "../protobuf/cosmos/gov/v1/gov";
+import { AminoMsg, Msg, ProtoMsg } from "./types";
 import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
 import { Any } from "../protobuf/google/protobuf/any";
 import {
   MsgSubmitProposal as MsgSubmitProposalProto,
   MsgVote as MsgVoteParams,
-  MsgVoteWeighted as MsgVoteWeightedProto,
-  MsgExecLegacyContent as MsgExecLegacyContentParams,
+  MsgVoteWeighted as MsgVoteWeightedParams,
+  MsgExecLegacyContent as MsgExecLegacyContentProto,
   MsgCancelProposal as MsgCancelProposalParams,
   MsgDeposit as MsgDepositParams,
 } from "../protobuf/cosmos/gov/v1/tx";
 
 export {
   MsgVote as MsgVoteParams,
-  MsgExecLegacyContent as MsgExecLegacyContentParams,
+  MsgVoteWeighted as MsgVoteWeightedParams,
   MsgCancelProposal as MsgCancelProposalParams,
   MsgDeposit as MsgDepositParams,
 } from "../protobuf/cosmos/gov/v1/tx";
 
 export { VoteOption, ProposalStatus } from "../protobuf/cosmos/gov/v1/gov";
+
+export enum ProposalType {
+  TextProposal = "TextProposal",
+  CommunityPoolSpendProposal = "CommunityPoolSpendProposal",
+  /**
+   * @see {@link https://docs.scrt.network/guides/governance} for possible subspaces, keys and values.
+   */
+  ParameterChangeProposal = "ParameterChangeProposal",
+  /** Not supported with Amino signer. */
+  ClientUpdateProposal = "ClientUpdateProposal",
+  /** Not supported with Amino signer. */
+  UpgradeProposal = "UpgradeProposal",
+  SoftwareUpgradeProposal = "SoftwareUpgradeProposal",
+  CancelSoftwareUpgradeProposal = "CancelSoftwareUpgradeProposal",
+}
+
+export type ProposalContent =
+  | import("../protobuf/cosmos/gov/v1beta1/gov").TextProposal
+  | import("../protobuf/cosmos/distribution/v1beta1/distribution").CommunityPoolSpendProposal
+  | import("../protobuf/cosmos/params/v1beta1/params").ParameterChangeProposal
+  | import("../protobuf/ibc/core/client/v1/client").ClientUpdateProposal
+  | import("../protobuf/ibc/core/client/v1/client").UpgradeProposal
+  | import("../protobuf/cosmos/upgrade/v1beta1/upgrade").SoftwareUpgradeProposal
+  | import("../protobuf/cosmos/upgrade/v1beta1/upgrade").CancelSoftwareUpgradeProposal;
+
+export type ParamChange = {
+  subspace: string;
+  key: string;
+  value: string;
+};
 
 export interface MsgSubmitProposalParams {
   /** messages are the arbitrary messages to be executed if proposal passes. */
@@ -101,56 +129,22 @@ export class MsgVote implements Msg {
   }
 }
 
-/** WeightedVoteOption defines a unit of vote for vote split. */
-export interface WeightedVoteOption {
-  /** option is a {@link VoteOption}. */
-  option: VoteOption;
-  /** weight is a number between 0 and 1 with precision of 18 decimals. */
-  weight: number;
-}
-
-export interface MsgVoteWeightedParams extends MsgParams {
-  voter: string;
-  proposal_id: string;
-  options: WeightedVoteOption[];
-  metadata: string;
-}
-
 /** MsgVoteWeighted defines a message to cast a vote, with an option to split the vote. */
 export class MsgVoteWeighted implements Msg {
   constructor(public params: MsgVoteWeightedParams) {}
 
   async toProto(): Promise<ProtoMsg> {
-    const msgContent = {
-      voter: this.params.voter,
-      proposal_id: this.params.proposal_id,
-      options: this.params.options.map((o) => ({
-        option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18),
-      })),
-      metadata: this.params.metadata,
-    };
-
     return {
       type_url: `/cosmos.gov.v1.MsgVoteWeighted`,
-      value: msgContent,
-      encode: () => MsgVoteWeightedProto.encode(msgContent).finish(),
+      value: this.params,
+      encode: () => MsgVoteWeightedParams.encode(this.params).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    const msgContent = {
-      voter: this.params.voter,
-      proposal_id: this.params.proposal_id,
-      options: this.params.options.map((o) => ({
-        option: o.option,
-        weight: new BigNumber(o.weight).toFixed(18).replace(/0\.0*/, ""),
-      })),
-    };
-
     return {
       type: "cosmos-sdk/MsgVoteWeighted",
-      value: msgContent,
+      value: this.params,
     };
   }
 }
@@ -195,22 +189,124 @@ export class MsgCancelProposal implements Msg {
   }
 }
 
+export interface MsgExecLegacyContentParams {
+  type: ProposalType;
+  initial_deposit: Coin[];
+  proposer: string;
+  content: ProposalContent;
+  authority: string;
+}
+
 /** MsgDeposit defines a message to submit a deposit to an existing proposal. */
 export class MsgExecLegacyContent implements Msg {
   constructor(public params: MsgExecLegacyContentParams) {}
 
   async toProto(): Promise<ProtoMsg> {
+    let content: Any;
+    switch (this.params.type) {
+      case ProposalType.TextProposal:
+        const { TextProposal } = await import(
+          "../protobuf/cosmos/gov/v1beta1/gov"
+        );
+        content = Any.fromPartial({
+          type_url: "/cosmos.gov.v1beta1.TextProposal",
+          value: TextProposal.encode(
+            TextProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.CommunityPoolSpendProposal:
+        const { CommunityPoolSpendProposal } = await import(
+          "../protobuf/cosmos/distribution/v1beta1/distribution"
+        );
+        content = Any.fromPartial({
+          type_url: "/cosmos.distribution.v1beta1.CommunityPoolSpendProposal",
+          value: CommunityPoolSpendProposal.encode(
+            CommunityPoolSpendProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.ParameterChangeProposal:
+        const { ParameterChangeProposal } = await import(
+          "../protobuf/cosmos/params/v1beta1/params"
+        );
+        content = Any.fromPartial({
+          type_url: "/cosmos.params.v1beta1.ParameterChangeProposal",
+          value: ParameterChangeProposal.encode(
+            ParameterChangeProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.ClientUpdateProposal:
+        const { ClientUpdateProposal } = await import(
+          "../protobuf/ibc/core/client/v1/client"
+        );
+        content = Any.fromPartial({
+          type_url: "/ibc.core.client.v1.ClientUpdateProposal",
+          value: ClientUpdateProposal.encode(
+            ClientUpdateProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.UpgradeProposal:
+        const { UpgradeProposal } = await import(
+          "../protobuf/ibc/core/client/v1/client"
+        );
+        content = Any.fromPartial({
+          type_url: "/ibc.core.client.v1.UpgradeProposal",
+          value: UpgradeProposal.encode(
+            UpgradeProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.SoftwareUpgradeProposal:
+        const { SoftwareUpgradeProposal } = await import(
+          "../protobuf/cosmos/upgrade/v1beta1/upgrade"
+        );
+        content = Any.fromPartial({
+          type_url: "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal",
+          value: SoftwareUpgradeProposal.encode(
+            SoftwareUpgradeProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      case ProposalType.CancelSoftwareUpgradeProposal:
+        const { CancelSoftwareUpgradeProposal } = await import(
+          "../protobuf/cosmos/upgrade/v1beta1/upgrade"
+        );
+        content = Any.fromPartial({
+          type_url: "/cosmos.upgrade.v1beta1.CancelSoftwareUpgradeProposal",
+          value: CancelSoftwareUpgradeProposal.encode(
+            CancelSoftwareUpgradeProposal.fromPartial(this.params.content),
+          ).finish(),
+        });
+        break;
+
+      default:
+        throw new Error(
+          `Unknown proposal type: "${this.params.type}" - ${JSON.stringify(
+            this.params.content,
+          )}`,
+        );
+    }
+    const msgContent = {
+      authority: this.params.authority,
+      content,
+    };
     return {
       type_url: `/cosmos.gov.v1.MsgExecLegacyContent`,
-      value: this.params,
-      encode: () => MsgExecLegacyContentParams.encode(this.params).finish(),
+      value: msgContent,
+      encode: () => MsgExecLegacyContentProto.encode(msgContent).finish(),
     };
   }
 
   async toAmino(): Promise<AminoMsg> {
-    return {
-      type: "cosmos-sdk/MsgExecLegacyContent",
-      value: this.params,
-    };
+    throw new Error("Not implemented. Please use WalletProto");
   }
 }
