@@ -1,5 +1,59 @@
 # Changelog & Version Info
 
+## 1.15.0
+
+- Support Secret Network v1.15
+- Add new queries:
+  - `secretjs.query.app.config()`
+  - `secretjs.query.auth.moduleAccounts()`
+  - `secretjs.query.auth.bech32Prefix()`
+  - `secretjs.query.auth.addressBytesToString()`
+  - `secretjs.query.auth.addressStringToBytes()`
+  - `secretjs.query.auth.accountAddressByID()`
+  - `secretjs.query.auth.accountInfo()`
+  - `secretjs.query.autocli.appOptions()`
+  - `secretjs.query.bank.spendableBalanceByDenom()`
+  - `secretjs.query.bank.denomMetadataByQueryString()`
+  - `secretjs.query.bank.denomOwners()`
+  - `secretjs.query.bank.sendEnabled()`
+  - `secretjs.query.bank.denomOwnersByQuery()`
+  - `secretjs.query.consensus.params()`
+  - `secretjs.query.distribution.validatorDistributionInfo()`
+  - `secretjs.query.ibc_channel.channelParams()`
+  - `secretjs.query.ibc_channel.nextSequenceSend()`
+  - `secretjs.query.ibc_channel.upgradeError()`
+  - `secretjs.query.ibc_channel.upgrade()`
+  - `secretjs.query.ibc_connection.connectionParams()`
+  - `secretjs.query.ibc_transfer.totalEscrowForDenom()`
+  - `secretjs.query.node.status()`
+  - `secretjs.query.orm.get()`
+  - `secretjs.query.orm.list()`
+  - `secretjs.query.params.subspaces()`
+  - `secretjs.query.cometbft.abciQuery()`
+  - `secretjs.query.upgrade.authority()`
+- Add new messages:
+  - `secretjs.tx.bank.setSendEnabled()`
+  - `secretjs.tx.distribution.communityPoolSpend()`
+  - `secretjs.tx.distribution.depositValidatorRewardsPool()`
+  - `secretjs.tx.feegrant.pruneAllowances()`
+  - `secretjs.tx.gov.execLegacyContent()`
+  - `secretjs.tx.gov.cancelProposal()`
+  - `secretjs.tx.ibc_interchain_accounts.sendTx()`
+  - `secretjs.tx.ibc_interchain_accounts.registerInterchainAccount()`
+  - `secretjs.tx.staking.cancelUnbondingDelegation()`
+  - `secretjs.tx.upgrade.softwareUpgrade()`
+  - `secretjs.tx.upgrade.cancelUpgrade()`
+  - `secretjs.tx.vesting.createPermanentLockedAccount()`
+  - `secretjs.tx.vesting.createPeriodicVestingAccount()`
+- `AminoWallet` is deprecated in favor of `Wallet`. Some messages and queries may not work with `AminoWallet`
+- `BroadcastMode.Block` is deprecated, use `BroadcastMode.Sync` instead
+- API breaking: replace `mauth` module with `ibc_interchain_accounts`
+- API breaking: `SendAuthorization` that is used as a parameter for `secretjs.authz.grant()` now has additional parameter `allow_list`
+- API breaking: all tx data that previously was in `rawLog` before is now can be found in `events`
+- API breaking: move from gov v1beta1 to v1
+- API breaking: for `MsgPayPacketFee` `relayers` must be specified even if it is empty
+- API breaking (known issue): for `secretjs.tx.ibc.tranfser()` `memo` must be non-empty
+
 ## 1.12.5
 
 Fix `signAmino()` to broadcast the memo from the signer (wallet) instead of the memo from the caller.
