@@ -19,7 +19,7 @@ import {
 export class TendermintQuerier {
   constructor(private url: string) {}
 
-  abciQuery(
+  aBCIQuery(
     req: ABCIQueryRequest,
     headers?: HeadersInit,
   ): Promise<ABCIQueryResponse> {
