@@ -399,7 +399,7 @@ describe("ibcResponses", () => {
           x.value === secretjs.address,
       ),
     ).toBeTruthy();
-  }, 1000_000);
+  }, 90_000);
 
   test("ibcResponses turned off by default on txsQuery", async () => {
     const { secretjs } = accounts[0];
