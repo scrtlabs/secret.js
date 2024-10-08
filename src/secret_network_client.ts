@@ -1615,10 +1615,8 @@ export class SecretNetworkClient {
     } else {
       throw new Error(
         `Unknown broadcast mode "${String(mode)}", must be either "${String(
-          BroadcastMode.Block,
-        )}", "${String(BroadcastMode.Sync)}" or "${String(
-          BroadcastMode.Async,
-        )}".`,
+          BroadcastMode.Sync,
+        )}" or "${String(BroadcastMode.Async)}".`,
       );
     }
 
@@ -1673,7 +1671,7 @@ export class SecretNetworkClient {
       txBytes,
       txOptions?.broadcastTimeoutMs ?? 60_000,
       txOptions?.broadcastCheckIntervalMs ?? 6_000,
-      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.broadcastMode ?? BroadcastMode.Sync,
       txOptions?.waitForCommit ?? true,
     );
   }
@@ -1721,7 +1719,7 @@ export class SecretNetworkClient {
       txBytes,
       txOptions?.broadcastTimeoutMs ?? 60_000,
       txOptions?.broadcastCheckIntervalMs ?? 6_000,
-      txOptions?.broadcastMode ?? BroadcastMode.Block,
+      txOptions?.broadcastMode ?? BroadcastMode.Sync,
       txOptions?.waitForCommit ?? true,
       txOptions?.ibcTxsOptions,
     );
