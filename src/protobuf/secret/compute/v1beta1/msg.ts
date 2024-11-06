@@ -12,13 +12,8 @@ import { Coin } from "../../../cosmos/base/v1beta1/coin";
 export const protobufPackage = "secret.compute.v1beta1";
 
 export interface MsgStoreCode {
-  /**
-   * // sender is the canonical address of the sender
-   * bytes sender = 1 [ (gogoproto.casttype) =
-   *                        "github.com/cosmos/cosmos-sdk/types.AccAddress" ];
-   * Sender is the actor that signed the messages
-   */
-  sender: string;
+  /** sender is the canonical address of the sender */
+  sender: Uint8Array;
   /** WASMByteCode can be raw or gzip compressed */
   wasm_byte_code: Uint8Array;
   /**
@@ -37,10 +32,7 @@ export interface MsgStoreCodeResponse {
 }
 
 export interface MsgInstantiateContract {
-  /**
-   * sender is the canonical address of the sender
-   * string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-   */
+  /** sender is the canonical address of the sender */
   sender: Uint8Array;
   callback_code_hash: string;
   code_id: string;
@@ -55,11 +47,6 @@ export interface MsgInstantiateContract {
   callback_sig: Uint8Array;
   /** Admin is an optional address that can execute migrations */
   admin: string;
-  /**
-   * To get the message signer define sender_address as human adress for sender,
-   * as a work around without the need to modify cosmwasm valiation logic
-   */
-  sender_address: string;
 }
 
 /** MsgInstantiateContractResponse return instantiation result data */
@@ -88,7 +75,6 @@ export interface MsgExecuteContract {
    * transaction
    */
   callback_sig: Uint8Array;
-  sender_address: string;
 }
 
 /** MsgExecuteContractResponse returns execution result data. */
@@ -165,13 +151,13 @@ export interface MsgClearAdminResponse {
 }
 
 function createBaseMsgStoreCode(): MsgStoreCode {
-  return { sender: "", wasm_byte_code: new Uint8Array(0), source: "", builder: "" };
+  return { sender: new Uint8Array(0), wasm_byte_code: new Uint8Array(0), source: "", builder: "" };
 }
 
 export const MsgStoreCode = {
   encode(message: MsgStoreCode, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.sender !== "") {
-      writer.uint32(10).string(message.sender);
+    if (message.sender.length !== 0) {
+      writer.uint32(10).bytes(message.sender);
     }
     if (message.wasm_byte_code.length !== 0) {
       writer.uint32(18).bytes(message.wasm_byte_code);
@@ -197,7 +183,7 @@ export const MsgStoreCode = {
             break;
           }
 
-          message.sender = reader.string();
+          message.sender = reader.bytes();
           continue;
         case 2:
           if (tag !== 18) {
@@ -231,7 +217,7 @@ export const MsgStoreCode = {
 
   fromJSON(object: any): MsgStoreCode {
     return {
-      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      sender: isSet(object.sender) ? bytesFromBase64(object.sender) : new Uint8Array(0),
       wasm_byte_code: isSet(object.wasm_byte_code) ? bytesFromBase64(object.wasm_byte_code) : new Uint8Array(0),
       source: isSet(object.source) ? globalThis.String(object.source) : "",
       builder: isSet(object.builder) ? globalThis.String(object.builder) : "",
@@ -240,8 +226,8 @@ export const MsgStoreCode = {
 
   toJSON(message: MsgStoreCode): unknown {
     const obj: any = {};
-    if (message.sender !== "") {
-      obj.sender = message.sender;
+    if (message.sender.length !== 0) {
+      obj.sender = base64FromBytes(message.sender);
     }
     if (message.wasm_byte_code.length !== 0) {
       obj.wasm_byte_code = base64FromBytes(message.wasm_byte_code);
@@ -260,7 +246,7 @@ export const MsgStoreCode = {
   },
   fromPartial(object: DeepPartial<MsgStoreCode>): MsgStoreCode {
     const message = createBaseMsgStoreCode();
-    message.sender = object.sender ?? "";
+    message.sender = object.sender ?? new Uint8Array(0);
     message.wasm_byte_code = object.wasm_byte_code ?? new Uint8Array(0);
     message.source = object.source ?? "";
     message.builder = object.builder ?? "";
@@ -335,7 +321,6 @@ function createBaseMsgInstantiateContract(): MsgInstantiateContract {
     init_funds: [],
     callback_sig: new Uint8Array(0),
     admin: "",
-    sender_address: "",
   };
 }
 
@@ -364,9 +349,6 @@ export const MsgInstantiateContract = {
     }
     if (message.admin !== "") {
       writer.uint32(66).string(message.admin);
-    }
-    if (message.sender_address !== "") {
-      writer.uint32(74).string(message.sender_address);
     }
     return writer;
   },
@@ -434,13 +416,6 @@ export const MsgInstantiateContract = {
 
           message.admin = reader.string();
           continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.sender_address = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -462,7 +437,6 @@ export const MsgInstantiateContract = {
         : [],
       callback_sig: isSet(object.callback_sig) ? bytesFromBase64(object.callback_sig) : new Uint8Array(0),
       admin: isSet(object.admin) ? globalThis.String(object.admin) : "",
-      sender_address: isSet(object.sender_address) ? globalThis.String(object.sender_address) : "",
     };
   },
 
@@ -492,9 +466,6 @@ export const MsgInstantiateContract = {
     if (message.admin !== "") {
       obj.admin = message.admin;
     }
-    if (message.sender_address !== "") {
-      obj.sender_address = message.sender_address;
-    }
     return obj;
   },
 
@@ -511,7 +482,6 @@ export const MsgInstantiateContract = {
     message.init_funds = object.init_funds?.map((e) => Coin.fromPartial(e)) || [];
     message.callback_sig = object.callback_sig ?? new Uint8Array(0);
     message.admin = object.admin ?? "";
-    message.sender_address = object.sender_address ?? "";
     return message;
   },
 };
@@ -598,7 +568,6 @@ function createBaseMsgExecuteContract(): MsgExecuteContract {
     callback_code_hash: "",
     sent_funds: [],
     callback_sig: new Uint8Array(0),
-    sender_address: "",
   };
 }
 
@@ -621,9 +590,6 @@ export const MsgExecuteContract = {
     }
     if (message.callback_sig.length !== 0) {
       writer.uint32(50).bytes(message.callback_sig);
-    }
-    if (message.sender_address !== "") {
-      writer.uint32(58).string(message.sender_address);
     }
     return writer;
   },
@@ -677,13 +643,6 @@ export const MsgExecuteContract = {
 
           message.callback_sig = reader.bytes();
           continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.sender_address = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -703,7 +662,6 @@ export const MsgExecuteContract = {
         ? object.sent_funds.map((e: any) => Coin.fromJSON(e))
         : [],
       callback_sig: isSet(object.callback_sig) ? bytesFromBase64(object.callback_sig) : new Uint8Array(0),
-      sender_address: isSet(object.sender_address) ? globalThis.String(object.sender_address) : "",
     };
   },
 
@@ -727,9 +685,6 @@ export const MsgExecuteContract = {
     if (message.callback_sig.length !== 0) {
       obj.callback_sig = base64FromBytes(message.callback_sig);
     }
-    if (message.sender_address !== "") {
-      obj.sender_address = message.sender_address;
-    }
     return obj;
   },
 
@@ -744,7 +699,6 @@ export const MsgExecuteContract = {
     message.callback_code_hash = object.callback_code_hash ?? "";
     message.sent_funds = object.sent_funds?.map((e) => Coin.fromPartial(e)) || [];
     message.callback_sig = object.callback_sig ?? new Uint8Array(0);
-    message.sender_address = object.sender_address ?? "";
     return message;
   },
 };

@@ -1,6 +1,6 @@
 import { toBase64, fromBech32 } from "@cosmjs/encoding";
 import { EncryptionUtils } from "..";
-import { is_gzip } from "../utils";
+import { addressToBytes, is_gzip } from "../utils";
 import { AminoMsg, Msg, ProtoMsg, MsgParams } from "./types";
 import { Coin } from "../protobuf/cosmos/base/v1beta1/coin";
 import {
@@ -46,8 +46,7 @@ export function getMissingCodeHashWarning(method: string): string {
 
 /** Instantiate a contract from code id */
 export class MsgInstantiateContract implements Msg {
-  public sender: Uint8Array;
-  public sender_address: string;
+  public sender: string;
   public codeId: string;
   public label: string;
   public initMsg: object;
@@ -66,8 +65,7 @@ export class MsgInstantiateContract implements Msg {
     code_hash,
     admin,
   }: MsgInstantiateContractParams) {
-    this.sender = fromBech32(sender).data;
-    this.sender_address = String(sender);
+    this.sender = sender;
     this.codeId = String(code_id);
     this.label = label;
     this.initMsg = init_msg;
@@ -98,8 +96,7 @@ export class MsgInstantiateContract implements Msg {
     }
 
     const msgContent = {
-      sender: this.sender,
-      sender_address: this.sender_address,
+      sender: addressToBytes(this.sender),
       code_id: this.codeId,
       label: this.label,
       init_msg: this.initMsgEncrypted,
@@ -132,8 +129,7 @@ export class MsgInstantiateContract implements Msg {
     return {
       type: "wasm/MsgInstantiateContract",
       value: {
-        sender: toBase64(this.sender),
-        sender_address: this.sender_address,
+        sender: toBase64(addressToBytes(this.sender)),
         code_id: this.codeId,
         label: this.label,
         init_msg:
@@ -173,8 +169,7 @@ export interface MsgExecuteContractParams<T> extends MsgParams {
 
 /** Execute a function on a contract */
 export class MsgExecuteContract<T extends object> implements Msg {
-  public sender: Uint8Array;
-  public sender_address: string;
+  public sender: string;
   public contractAddress: string;
   public msg: T;
   private msgEncrypted: Uint8Array | null;
@@ -189,8 +184,7 @@ export class MsgExecuteContract<T extends object> implements Msg {
     sent_funds: sentFunds,
     code_hash: codeHash,
   }: MsgExecuteContractParams<T>) {
-    this.sender = fromBech32(sender).data;
-    this.sender_address = String(sender);
+    this.sender = sender;
     this.contractAddress = contractAddress;
     this.msg = msg;
     this.msgEncrypted = null;
@@ -219,9 +213,8 @@ export class MsgExecuteContract<T extends object> implements Msg {
     }
 
     const msgContent = {
-      sender: this.sender,
-      sender_address: this.sender_address,
-      contract: fromBech32(this.contractAddress).data,
+      sender: addressToBytes(this.sender),
+      contract: addressToBytes(this.contractAddress),
       msg: this.msgEncrypted,
       sent_funds: this.sentFunds,
       // callback_sig & callback_code_hash are internal stuff that doesn't matter here
@@ -250,9 +243,8 @@ export class MsgExecuteContract<T extends object> implements Msg {
     return {
       type: "wasm/MsgExecuteContract",
       value: {
-        sender: toBase64(this.sender),
-        sender_address: this.sender_address,
-        contract: toBase64(fromBech32(this.contractAddress).data),
+        sender: toBase64(addressToBytes(this.sender)),
+        contract: toBase64(addressToBytes(this.contractAddress)),
         msg: toBase64(this.msgEncrypted),
         sent_funds: this.sentFunds,
       },
@@ -301,7 +293,7 @@ export class MsgStoreCode implements Msg {
     this.gzipWasm();
 
     const msgContent = {
-      sender: this.sender,
+      sender: addressToBytes(this.sender),
       wasm_byte_code: this.wasmByteCode,
       source: this.source,
       builder: this.builder,
@@ -320,7 +312,7 @@ export class MsgStoreCode implements Msg {
     return {
       type: "wasm/MsgStoreCode",
       value: {
-        sender: this.sender,
+        sender: toBase64(addressToBytes(this.sender)),
         wasm_byte_code: toBase64(this.wasmByteCode),
         source: this.source.length > 0 ? this.source : undefined,
         builder: this.builder.length > 0 ? this.builder : undefined,

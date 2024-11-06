@@ -7,7 +7,7 @@
 import * as CosmosBaseV1beta1Coin from "../../../cosmos/base/v1beta1/coin.pb"
 import * as fm from "../../../fetch.pb"
 export type MsgStoreCode = {
-  sender?: string
+  sender?: Uint8Array
   wasm_byte_code?: Uint8Array
   source?: string
   builder?: string
@@ -26,7 +26,6 @@ export type MsgInstantiateContract = {
   init_funds?: CosmosBaseV1beta1Coin.Coin[]
   callback_sig?: Uint8Array
   admin?: string
-  sender_address?: string
 }
 
 export type MsgInstantiateContractResponse = {
@@ -41,7 +40,6 @@ export type MsgExecuteContract = {
   callback_code_hash?: string
   sent_funds?: CosmosBaseV1beta1Coin.Coin[]
   callback_sig?: Uint8Array
-  sender_address?: string
 }
 
 export type MsgExecuteContractResponse = {

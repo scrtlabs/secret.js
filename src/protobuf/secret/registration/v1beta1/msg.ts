@@ -10,17 +10,8 @@ import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "secret.registration.v1beta1";
 
 export interface RaAuthenticate {
-  /**
-   * bytes sender = 1 [ (gogoproto.casttype) =
-   *                        "github.com/cosmos/cosmos-sdk/types.AccAddress" ];
-   */
-  sender: string;
+  sender: Uint8Array;
   certificate: Uint8Array;
-  /**
-   * string sender_address = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString"
-   * ];
-   */
-  sender_addr: Uint8Array;
 }
 
 export interface RaAuthenticateResponse {
@@ -37,19 +28,16 @@ export interface Key {
 }
 
 function createBaseRaAuthenticate(): RaAuthenticate {
-  return { sender: "", certificate: new Uint8Array(0), sender_addr: new Uint8Array(0) };
+  return { sender: new Uint8Array(0), certificate: new Uint8Array(0) };
 }
 
 export const RaAuthenticate = {
   encode(message: RaAuthenticate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.sender !== "") {
-      writer.uint32(10).string(message.sender);
+    if (message.sender.length !== 0) {
+      writer.uint32(10).bytes(message.sender);
     }
     if (message.certificate.length !== 0) {
       writer.uint32(18).bytes(message.certificate);
-    }
-    if (message.sender_addr.length !== 0) {
-      writer.uint32(26).bytes(message.sender_addr);
     }
     return writer;
   },
@@ -66,7 +54,7 @@ export const RaAuthenticate = {
             break;
           }
 
-          message.sender = reader.string();
+          message.sender = reader.bytes();
           continue;
         case 2:
           if (tag !== 18) {
@@ -74,13 +62,6 @@ export const RaAuthenticate = {
           }
 
           message.certificate = reader.bytes();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.sender_addr = reader.bytes();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -93,22 +74,18 @@ export const RaAuthenticate = {
 
   fromJSON(object: any): RaAuthenticate {
     return {
-      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      sender: isSet(object.sender) ? bytesFromBase64(object.sender) : new Uint8Array(0),
       certificate: isSet(object.certificate) ? bytesFromBase64(object.certificate) : new Uint8Array(0),
-      sender_addr: isSet(object.sender_addr) ? bytesFromBase64(object.sender_addr) : new Uint8Array(0),
     };
   },
 
   toJSON(message: RaAuthenticate): unknown {
     const obj: any = {};
-    if (message.sender !== "") {
-      obj.sender = message.sender;
+    if (message.sender.length !== 0) {
+      obj.sender = base64FromBytes(message.sender);
     }
     if (message.certificate.length !== 0) {
       obj.certificate = base64FromBytes(message.certificate);
-    }
-    if (message.sender_addr.length !== 0) {
-      obj.sender_addr = base64FromBytes(message.sender_addr);
     }
     return obj;
   },
@@ -118,9 +95,8 @@ export const RaAuthenticate = {
   },
   fromPartial(object: DeepPartial<RaAuthenticate>): RaAuthenticate {
     const message = createBaseRaAuthenticate();
-    message.sender = object.sender ?? "";
+    message.sender = object.sender ?? new Uint8Array(0);
     message.certificate = object.certificate ?? new Uint8Array(0);
-    message.sender_addr = object.sender_addr ?? new Uint8Array(0);
     return message;
   },
 };
