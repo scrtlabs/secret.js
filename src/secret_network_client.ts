@@ -1608,6 +1608,11 @@ export class SecretNetworkClient {
       );
     }
 
+    if (!waitForCommit) {
+      //@ts-ignore
+      return { transactionHash: txhash };
+    }
+
     // sleep first because there's no point in checking right after broadcasting
     await sleep(checkIntervalMs / 2);
 
