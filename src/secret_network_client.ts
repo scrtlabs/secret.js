@@ -1481,15 +1481,35 @@ export class SecretNetworkClient {
 
     // IBC ACKs:
     if (txResp.code === TxResultCode.Success) {
-      const packetSequences =
+      let packetSequences =
         arrayLog?.filter(
           (x) => x.type === "send_packet" && x.key === "packet_sequence",
         ) || [];
 
-      const packetSrcChannels =
+      let packetSrcChannels =
         arrayLog?.filter(
           (x) => x.type === "send_packet" && x.key === "packet_src_channel",
         ) || [];
+
+      // if using secret.js we execute ibc request from another chain on cosmos-sdk < 0.50,
+      // try to extract ibc packets info from rawLog
+      if (packetSequences.length == 0 && packetSrcChannels.length == 0) {
+        try {
+          const jsonRawLog = JSON.parse(rawLog);
+          for (const l of jsonRawLog) {
+            for (const e of l.events) {
+              for (const a of e.attributes) {
+                if (`${e.type}.${a.key}` == "send_packet.packet_sequence") {
+                  packetSequences.push(a);
+                }
+                if (`${e.type}.${a.key}` == "send_packet.packet_src_channel") {
+                  packetSrcChannels.push(a);
+                }
+              }
+            }
+          }
+        } catch (e) {}
+      }
 
       if (explicitIbcTxOptions.resolveResponses) {
         for (let msgIndex = 0; msgIndex < packetSequences?.length; msgIndex++) {
