@@ -153,7 +153,7 @@ console.log(`sSCRT has ${token_info.decimals} decimals!`);
 ## Broadcasting Transactions
 
 ```ts
-import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend } from "secretjs";
+import { Wallet, SecretNetworkClient, MsgSend, MsgMultiSend, stringToCoins } from "secretjs";
 
 const wallet = new Wallet(
   "grant rice replace explain federal release fix clever romance raise often wild taxi quarter soccer fiber love must tape steak together observe swap guitar",
@@ -217,7 +217,7 @@ Notes:
 
 ## Keplr Wallet
 
-The recommended way of integrating Keplr is by using `window.keplr.getOfflineSignerOnlyAmino()`:
+The recommended way of integrating Keplr is by using `window.keplr.getOfflineSigner()`:
 
 ```ts
 import { SecretNetworkClient } from "secretjs";
@@ -227,7 +227,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 while (
   !window.keplr ||
   !window.getEnigmaUtils ||
-  !window.getOfflineSignerOnlyAmino
+  !window.getOfflineSigner
 ) {
   await sleep(50);
 }
@@ -236,7 +236,7 @@ const CHAIN_ID = "secret-4";
 
 await window.keplr.enable(CHAIN_ID);
 
-const keplrOfflineSigner = window.keplr.getOfflineSignerOnlyAmino(CHAIN_ID);
+const keplrOfflineSigner = window.keplr.getOfflineSigner(CHAIN_ID);
 const [{ address: myAddress }] = await keplrOfflineSigner.getAccounts();
 
 const url = "TODO get from https://github.com/scrtlabs/api-registry";
@@ -266,43 +266,53 @@ Links:
 - <a href="https://www.keplr.app" target="_blank"><strong>Official Keplr Website »</strong></a>
 - <a href="https://docs.keplr.app/api" target="_blank"><strong>Keplr API Docs »</strong></a>
 
-### `SignerOnlyAmino` vs `Signer` vs `SignerAuto`
+### `Signer` vs `SignerAuto` vs `SignerOnlyAmino`
 
-TLDR:
+**TL;DR**:  
 
-- [`getOfflineSignerOnlyAmino()`](#windowkeplrgetofflinesigneronlyamino): The recommended way. Supports Ledger, has a nice UI.
-- [`getOfflineSigner()`](#windowkeplrgetofflinesigner): No Ledger support, ugly UI, can send IBC **relayer** txs and submit IBC gov proposals.
-- [`getOfflineSignerAuto()`](#windowkeplrgetofflinesignerauto): If Ledger alias for `getOfflineSignerOnlyAmino()`, otherwise alias for `getOfflineSigner()`.
+- [`getOfflineSigner()`](#windowkeplrgetofflinesigner): The **recommended way**. Efficient, supports all transaction types except Ledger.
+- [`getOfflineSignerAuto()`](#windowkeplrgetofflinesignerauto): Automatically selects the best signer based on the account type (Ledger or not).
+- [`getOfflineSignerOnlyAmino()`](#windowkeplrgetofflinesigneronlyamino): The legacy way. Recommended only for Ledger users.  
+
+---
+
+#### `window.keplr.getOfflineSigner()`
+
+The **recommended way** of signing transactions on cosmos-sdk. Efficient and supports all transaction types except those requiring a Ledger.
+
+- 🟩 Efficient and supports all types of `Msg`s
+- 🟥 Doesn't support users signing with Ledger
+- 🟥 Looks bad on Keplr UI
+
+<img src="./media/keplr-proto.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
+
+---
+
+#### `window.keplr.getOfflineSignerAuto()`
+
+Automatically chooses the best signing method based on the user's Keplr account:  
+- For Ledger users, uses `window.keplr.getOfflineSignerOnlyAmino()`.  
+- For non-Ledger users, uses `window.keplr.getOfflineSigner()`.  
+
+- 🟩 Smart and adaptable
+- 🟩 Provides flexibility for both Ledger and non-Ledger accounts
+
+---
 
 #### `window.keplr.getOfflineSignerOnlyAmino()`
 
-Although this is the legacy way of signing transactions on cosmos-sdk, it's still the most recommended for connecting to Keplr due to Ledger support & better UI on Keplr.
+The **legacy and non-recommended way** of signing transactions on cosmos-sdk. Suitable only for Ledger users due to its limited transaction support and better UI.
 
 - 🟩 Looks good on Keplr
 - 🟩 Supports users signing with Ledger
 - 🟥 Doesn't support signing these transactions:
-  - Every tx type under `ibc_client`, `ibc_connection` and `ibc_channel` (meaning IBC relaying, for example with [ts-relayer](https://github.com/confio/ts-relayer))
+  - Every tx type under `ibc_client`, `ibc_connection`, and `ibc_channel` (e.g., IBC relaying)
   - [gov/MsgSubmitProposal/ClientUpdateProposal](https://secretjs.scrt.network/enums/ProposalType#ClientUpdateProposal)
   - [gov/MsgSubmitProposal/UpgradeProposal](https://secretjs.scrt.network/enums/ProposalType#UpgradeProposal)
 
 Note that [ibc_transfer/MsgTransfer](https://secretjs.scrt.network/classes/MsgTransfer) for sending funds across IBC **is** supported.
 
 <img src="./media/keplr-amino.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
-
-#### `window.keplr.getOfflineSigner()`
-
-The new way of signing transactions on cosmos-sdk, it's more efficient but still doesn't have Ledger support, so it's most recommended for usage in apps that don't require signing transactions with Ledger.
-
-- 🟥 Looks bad on Keplr
-- 🟥 Doesn't support users signing with Ledger
-- 🟩 Supports signing transactions with all types of Msgs
-
-<img src="./media/keplr-proto.png" width="55%" style="border-style: solid;border-color: #5e72e4;border-radius: 10px;" />
-
-#### `window.keplr.getOfflineSignerAuto()`
-
-If the connected Keplr account uses Ledger, returns `window.keplr.getOfflineSignerOnlyAmino()`.  
-Otherwise returns `window.keplr.getOfflineSigner()`.
 
 ## Fina Wallet
 
@@ -332,7 +342,7 @@ Links:
 
 ## Leap Cosmos Wallet
 
-The recommended way of integrating Leap is by using `window.leap.getOfflineSignerOnlyAmino()`:
+The recommended way of integrating Leap is by using `window.leap.getOfflineSigner()`:
 
 ```ts
 import { SecretNetworkClient } from "secretjs";
@@ -342,7 +352,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 while (
   !window.leap ||
   !window.leap.getEnigmaUtils ||
-  !window.leap.getOfflineSignerOnlyAmino
+  !window.leap.getOfflineSigner
 ) {
   await sleep(50);
 }
@@ -351,7 +361,7 @@ const CHAIN_ID = "secret-4";
 
 await window.leap.enable(CHAIN_ID);
 
-const leapOfflineSigner = window.leap.getOfflineSignerOnlyAmino(CHAIN_ID);
+const leapOfflineSigner = window.leap.getOfflineSigner(CHAIN_ID);
 const [{ address: myAddress }] = await leapOfflineSigner.getAccounts();
 
 const url = "TODO get from https://github.com/scrtlabs/api-registry";
@@ -508,6 +518,10 @@ const secretjs = new SecretNetworkClient({
 
 ### `secretjs.query`
 
+#### `secretjs.query.node.status()`
+
+Queries the node status
+
 #### `secretjs.query.getTx(hash)`
 
 Returns a transaction with a txhash. `hash` is a 64 character upper-case hex string.
@@ -562,7 +576,7 @@ const {
     txSigLimit,
     txSizeCostPerByte,
   },
-} = await secretjs.query.auth.params();
+} = await secretjs.query.auth.params({});
 ```
 
 #### `secretjs.query.authz.grants()`
@@ -603,6 +617,50 @@ DenomsMetadata queries the client metadata of a given coin denomination.
 #### `secretjs.query.bank.denomsMetadata()`
 
 DenomsMetadata queries the client metadata for all registered coin denominations.
+
+#### `secretjs.query.bank.spendableBalanceByDenom()`
+
+Queries the spendable balance of a single denom for a single account.
+
+#### `secretjs.query.bank.denomMetadataByQueryString()`
+
+Executes the DenomMetadataByQueryString RPC method
+
+#### `secretjs.query.bank.denomOwners()`
+
+Queries for all account addresses that own a particular token denomination.
+
+#### `secretjs.query.bank.sendEnabled()`
+
+Queries for send enabled entries that have been specifically set.
+
+#### `secretjs.query.bank.denomOwnersByQuery()`
+
+Executes the DenomOwnersByQuery RPC method
+
+#### `secretjs.query.auth.moduleAccounts()`
+
+Queries all module accounts
+
+#### `secretjs.query.auth.bech32Prefix()`
+
+Query the chain bech32 prefix (if applicable)
+
+#### `secretjs.query.auth.addressBytesToString()`
+
+Transforms an address bytes to string
+
+#### `secretjs.query.auth.addressStringToBytes()`
+
+Transforms an address string to bytes
+
+#### `secretjs.query.auth.accountAddressByID()`
+
+Queries account address by account number
+
+#### `secretjs.query.auth.accountInfo()`
+
+Queries account info which is common to all account types.
 
 #### `secretjs.query.compute.codeHashByContractAddress()`
 
@@ -696,6 +754,10 @@ CommunityPool queries the community pool coins.
 #### `secretjs.query.distribution.foundationTax()`
 
 DelegatorWithdrawAddress queries withdraw address of a delegator.
+
+#### `secretjs.query.distribution.validatorDistributionInfo()`
+
+Queries validator distribution information
 
 #### `secretjs.query.evidence.evidence()`
 
@@ -815,6 +877,22 @@ UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
 
 NextSequenceReceive returns the next receive sequence for a given channel.
 
+#### `secretjs.query.ibc_channel.channelParams()`
+
+Queries the current ibc channel parameters
+
+#### `secretjs.query.ibc_channel.nextSequenceSend()`
+
+Queries the next sequence send for a given channel
+
+#### `secretjs.query.ibc_channel.upgradeError()`
+
+Queries the upgrade error for a given channel
+
+#### `secretjs.query.ibc_channel.upgrade()`
+
+Queries the upgrade for a given channel
+
 #### `secretjs.query.ibc_client.clientState()`
 
 ClientState queries an IBC light client.
@@ -867,6 +945,10 @@ ConnectionClientState queries the client state associated with the connection.
 
 ConnectionConsensusState queries the consensus state associated with the connection.
 
+#### `secretjs.query.ibc_connection.connectionParams()`
+
+Returns the current ibc connection params
+
 #### `secretjs.query.ibc_transfer.denomTrace()`
 
 DenomTrace queries a denomination trace information.
@@ -878,6 +960,10 @@ DenomTraces queries all denomination traces.
 #### `secretjs.query.ibc_transfer.params()`
 
 Params queries all parameters of the ibc-transfer module.
+
+#### `secretjs.query.ibc_transfer.totalEscrowForDenom()`
+
+Returns the total amount of tokens in escrow for a denom
 
 #### `secretjs.query.mint.params()`
 
@@ -894,6 +980,10 @@ AnnualProvisions current minting annual provisions value.
 #### `secretjs.query.params.params()`
 
 Params queries a specific parameter of a module, given its subspace and key.
+
+#### `secretjs.query.params.subspaces()`
+
+Query for all registered subspaces and all keys for a subspace
 
 #### `secretjs.query.registration.txKey()`
 
@@ -1020,6 +1110,10 @@ UpgradedConsensusState queries the consensus state that will serve as a trusted 
 
 ModuleVersions queries the list of module versions from state.
 
+#### `secretjs.query.upgrade.authority()`
+
+Gets the upgrade authority address
+
 ### `secretjs.address`
 
 On a signer secret.js, `secretjs.address` is the same as `walletAddress`:
@@ -1125,7 +1219,7 @@ const sim = await secretjs.tx.simulate([sendToAlice, sendToEve]);
 
 const tx = await secretjs.tx.broadcast([sendToAlice, sendToEve], {
   // Adjust gasLimit up by 10% to account for gas estimation error
-  gasLimit: Math.ceil(sim.gasInfo.gasUsed * 1.1),
+  gasLimit: Math.ceil(sim.gas_info.gas_used * 1.1),
 });
 ```
 
@@ -1184,6 +1278,36 @@ Input: [MsgRevokeParams](https://secretjs.scrt.network/interfaces/MsgRevokeParam
 ##### `secretjs.tx.authz.revoke.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+#### `secretjs.tx.vesting.createPermanentLockedAccount()`
+
+Creates a new permanently locked account funded with an allocation of tokens.
+
+```ts
+let tx = await secretjs.tx.vesting.createPermanentLockedAccount({
+  from_address: accounts[0].address,
+  to_address: newWallet.address, // to_address must be a new address
+  amount: coinsFromString("1uscrt"),
+});
+```
+
+#### `secretjs.tx.vesting.createPeriodicVestingAccount()`
+
+Creates a new periodic vesting account funded with an allocation of tokens.
+
+```ts
+let tx = await secretjs.tx.vesting.createPeriodicVestingAccount({
+  from_address: accounts[0].address,
+  to_address: newWallet.address, // to_address must be a new address
+  start_time: "1234567",
+  vesting_periods: [
+    {
+      length: "100",
+      amount: [stringToCoin("100uscrt")],
+    },
+  ],
+});
+```
 
 #### `secretjs.tx.bank.multiSend()`
 
@@ -1244,6 +1368,23 @@ const tx = await secretjs.tx.bank.send(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
+#### `secretjs.tx.bank.setSendEnabled()`
+Used with the x/gov module to create or edit SendEnabled entries
+```ts
+const tx = await secretjs.tx.bank.setSendEnabled(
+  {
+        authority: authorityAddress,
+        send_enabled: [
+        {
+          denom: "banana",
+          enabled: true,
+        },
+      ],
+      use_default_for: [],
+  }
+)
+```
+
 #### `secretjs.tx.compute.storeCode()`
 
 Upload a compiled contract to Secret Network
@@ -1290,7 +1431,7 @@ const tx = await secretjs.tx.compute.instantiateContract(
     admin: myAddress, // optional admin address that can perform code migrations
     code_id: codeId,
     code_hash: codeHash, // optional but way faster
-    initMsg: {
+    init_msg: {
       name: "Secret SCRT",
       admin: myAddress,
       symbol: "SSCRT",
@@ -1369,7 +1510,7 @@ const tx = await secretjs.tx.compute.migrateContract(
     sender: myAddress,
     contract_address: contractAddress,
     code_id: newCodeId,
-    code_hash: codeHash, // optional but way faster
+    code_hash: newCodeHash, // optional but way faster
     msg: {
       migrate_state_to_new_format: {},
     },
@@ -1552,6 +1693,28 @@ const tx = await secretjs.tx.broadcast(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
+#### `secretjs.tx.distribution.communityPoolSpend()`
+
+Message for sending tokens from the community pool to another account
+
+#### `secretjs.tx.distribution.depositValidatorRewardsPool()`
+
+Request to provide additional rewards to delegators from a specific validator.
+
+```ts
+const tx = await secretjs.tx.distribution.depositValidatorRewardsPool(
+  {
+    depositor: depositorAddress,
+    validator_address: validatorAddress,
+    amount: [stringToCoin("10000uscrt")],
+  },
+  {
+    broadcastCheckIntervalMs: 100,
+    gasLimit: gasLimit,
+  },
+);
+```
+
 #### `secretjs.tx.evidence.submitEvidence()`
 
 MsgSubmitEvidence represents a message that supports submitting arbitrary evidence of misbehavior such as equivocation or counterfactual signing.
@@ -1587,22 +1750,21 @@ const secretjsGrantee = new SecretNetworkClient({
 });
 
 // Send a tx from newWallet with secretjs.address as the fee payer
-cosnt txGrantee = await secretjsGrantee.tx.gov.submitProposal(
+const txGrantee = await secretjsGrantee.tx.gov.submitProposal(
   {
     proposer: secretjsGrantee.address,
-    type: ProposalType.TextProposal,
-    initial_deposit: [],
-    content: {
-      title: "Send a tx without any balance",
-      description: `Thanks ${secretjsGranter.address}!`,
-    },
+    initial_deposit: stringToCoins("1uscrt"),
+    messages: [],
+    metadata: "some_metadata",
+    summary: "Send a tx without any balance",
+    title: "Thanks ${secretjsGranter.address}!",
+    expedited: false,
   },
   {
     feeGranter: secretjsGranter.address,
   },
 );
 ```
-
 ##### `secretjs.tx.feegrant.grantAllowance.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
@@ -1623,6 +1785,16 @@ const tx = await secretjs.tx.feegrant.revokeAllowance({
 ##### `secretjs.tx.feegrant.revokeAllowance.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+#### `secretjs.tx.feegrant.pruneAllowances()`
+
+Prunes expired fee allowances
+
+```ts
+let tx = await secretjs.tx.feegrant.pruneAllowances({
+  pruner: secretjs.address,
+});
+```
 
 #### `secretjs.tx.gov.deposit()`
 
@@ -1656,16 +1828,17 @@ Input: [MsgSubmitProposalParams](https://secretjs.scrt.network/interfaces/MsgSub
 ```ts
 const tx = await secretjs.tx.gov.submitProposal(
   {
-    type: ProposalType.TextProposal,
     proposer: myAddress,
-    initial_deposit: stringToCoins("100000000uscrt"),
-    content: {
-      title: "Hi",
-      description: "Let's vote on this",
+    initial_deposit: stringToCoins("1000000uscrt"),
+    messages: [],
+    metadata: "some_metadata",
+    summary: "summary",
+    title: "some proposal",
+    expedited: false,
     },
-  },
   {
-    gasLimit: 50_000,
+    broadcastCheckIntervalMs: 100,
+    gasLimit: 5_000_000,
   },
 );
 
@@ -1692,6 +1865,7 @@ const tx = await secretjs.tx.gov.vote(
     voter: myAddress,
     proposal_id: someProposalId,
     option: VoteOption.VOTE_OPTION_YES,
+    metadata: "test",
   },
   {
     gasLimit: 50_000,
@@ -1717,9 +1891,10 @@ const tx = await secretjs.tx.gov.voteWeighted(
     proposal_id: someProposalId,
     options: [
       // weights must sum to 1.0
-      { weight: 0.7, option: VoteOption.VOTE_OPTION_YES },
-      { weight: 0.3, option: VoteOption.VOTE_OPTION_ABSTAIN },
+      { weight: "0.7", option: VoteOption.VOTE_OPTION_YES },
+      { weight: "0.3", option: VoteOption.VOTE_OPTION_ABSTAIN },
     ],
+    metadata: "",
   },
   {
     gasLimit: 50_000,
@@ -1731,6 +1906,30 @@ const tx = await secretjs.tx.gov.voteWeighted(
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 
+#### `secretjs.tx.gov.execLegacyContent()`
+
+Submits a legacy proposal along with an initial deposit.
+
+#### `secretjs.tx.gov.cancelProposal()`
+
+Cancels a proposal.
+
+```ts
+const txCancel = await secretjs.tx.gov.cancelProposal({
+  proposer: secretjs.address,
+  proposal_id,
+});
+```
+
+#### `secretjs.tx.upgrade.softwareUpgrade()`
+
+SoftwareUpgrade is a governance operation for initiating a software upgrade.
+
+#### `secretjs.tx.upgrade.cancelUpgrade()`
+
+CancelUpgrade is a governance operation for cancelling a previously
+approved software upgrade.
+
 #### `secretjs.tx.ibc.transfer()`
 
 MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between ICS20 enabled chains. See ICS Spec here: https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer#data-structures
@@ -1740,6 +1939,14 @@ Input: [MsgTransferParams](https://secretjs.scrt.network/interfaces/MsgTransferP
 ##### `secretjs.tx.ibc.transfer.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+#### `secretjs.tx.ibc_interchain_accounts.sendTx()`
+
+SendTx allows the owner of an interchain account to send an IBC packet containing instructions (messages) to an interchain account on a host chain.
+
+#### ` secretjs.tx.ibc_interchain_accounts.registerInterchainAccount()`
+
+Registers an interchain account.
 
 #### `secretjs.tx.slashing.unjail()`
 
@@ -1898,6 +2105,10 @@ const tx = await secretjs.tx.staking.undelegate(
 ##### `secretjs.tx.staking.undelegate.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
+
+#### `secretjs.tx.staking.cancelUnbondingDelegation()`
+
+Cancels unbonding delegation for delegator
 
 ### Resolve IBC Responses
 
