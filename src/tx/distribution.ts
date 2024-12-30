@@ -22,8 +22,10 @@ export {
 } from "../protobuf/cosmos/distribution/v1beta1/tx";
 
 /**
- * MsgSetWithdrawAddress sets the withdraw address for
- * a delegator (or validator self-delegation).
+ * MsgSetWithdrawAddress implements a message to change the withdraw address
+ * for receiving rewards.
+ * 
+ * @param params - Parameters containing delegator_address and withdraw_address
  */
 export class MsgSetWithdrawAddress implements Msg {
   constructor(public params: MsgSetWithdrawAddressParams) {}
@@ -38,15 +40,17 @@ export class MsgSetWithdrawAddress implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "cosmos-sdk/MsgModifyWithdrawAddress", // wtf
+      type: "cosmos-sdk/MsgModifyWithdrawAddress",
       value: this.params,
     };
   }
 }
 
 /**
- * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
- * from a single validator.
+ * MsgWithdrawDelegatorReward implements a message to withdraw rewards
+ * from a specific validator.
+ * 
+ * @param params - Parameters containing delegator_address and validator_address
  */
 export class MsgWithdrawDelegatorReward implements Msg {
   constructor(public params: MsgWithdrawDelegatorRewardParams) {}
@@ -62,15 +66,17 @@ export class MsgWithdrawDelegatorReward implements Msg {
 
   async toAmino(): Promise<AminoMsg> {
     return {
-      type: "cosmos-sdk/MsgWithdrawDelegationReward", // wtf
+      type: "cosmos-sdk/MsgWithdrawDelegationReward",
       value: this.params,
     };
   }
 }
 
 /**
- * MsgWithdrawValidatorCommission withdraws the full commission to the validator
- * address.
+ * MsgWithdrawValidatorCommission implements a message to withdraw
+ * the accumulated commission for a validator.
+ * 
+ * @param params - Parameters containing validator_address
  */
 export class MsgWithdrawValidatorCommission implements Msg {
   constructor(public params: MsgWithdrawValidatorCommissionParams) {}
@@ -93,8 +99,10 @@ export class MsgWithdrawValidatorCommission implements Msg {
 }
 
 /**
- * MsgFundCommunityPool allows an account to directly
- * fund the community pool.
+ * MsgFundCommunityPool implements a message that allows direct funding
+ * of the community pool from any account.
+ * 
+ * @param params - Parameters containing amount and depositor
  */
 export class MsgFundCommunityPool implements Msg {
   constructor(public params: MsgFundCommunityPoolParams) {}
@@ -116,8 +124,10 @@ export class MsgFundCommunityPool implements Msg {
 }
 
 /**
- * MsgSetAutoRestake enables or disables auto-restaking for
- * a delegator-validator pair.
+ * MsgSetAutoRestake implements a message to configure automatic
+ * restaking of rewards for a delegator-validator pair.
+ * 
+ * @param params - Parameters containing delegator_address, validator_address and enabled flag
  */
 export class MsgSetAutoRestake implements Msg {
   constructor(public params: MsgSetAutoRestakeParams) {}
@@ -140,6 +150,12 @@ export class MsgSetAutoRestake implements Msg {
   }
 }
 
+/**
+ * MsgCommunityPoolSpend implements a message for spending from
+ * the community pool (requires governance approval).
+ * 
+ * @param params - Parameters containing authority, recipient and amount
+ */
 export class MsgCommunityPoolSpend implements Msg {
   constructor(public params: MsgCommunityPoolSpendParams) {}
 
@@ -159,6 +175,13 @@ export class MsgCommunityPoolSpend implements Msg {
   }
 }
 
+/**
+ * MsgDepositValidatorRewardsPool implements a message for depositing
+ * tokens into a validator's reward pool.
+ * 
+ * @param params - Parameters containing validator_address and amount
+ * @note This message handles Bech32 address conversion for validator addresses
+ */
 export class MsgDepositValidatorRewardsPool implements Msg {
   constructor(public params: MsgDepositValidatorRewardsPoolParams) {}
 
