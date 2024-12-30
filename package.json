@@ -14,7 +14,7 @@
     "dist",
     "src",
     "package.json",
-    "yarn.lock",
+    "package-lock.json",
     "README.md",
     "LICENSE",
     "LICENSE.cosmjs"
