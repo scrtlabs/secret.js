@@ -1,5 +1,5 @@
 build:
-	yarn build
+	npm build
 
 npm-publish-patch: build
 	npm version patch
