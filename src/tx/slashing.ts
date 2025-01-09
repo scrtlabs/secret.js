@@ -19,7 +19,9 @@ export class MsgUnjail implements Msg {
   async toAmino(): Promise<AminoMsg> {
     return {
       type: "cosmos-sdk/MsgUnjail",
-      value: this.params,
+      value: {
+          address: this.params.validator_addr,
+      }
     };
   }
 }
