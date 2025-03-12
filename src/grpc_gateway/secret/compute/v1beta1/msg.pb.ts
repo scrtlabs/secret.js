@@ -6,6 +6,7 @@
 
 import * as CosmosBaseV1beta1Coin from "../../../cosmos/base/v1beta1/coin.pb"
 import * as fm from "../../../fetch.pb"
+import * as SecretComputeV1beta1Params from "./params.pb"
 export type MsgStoreCode = {
   sender?: Uint8Array
   wasm_byte_code?: Uint8Array
@@ -78,6 +79,14 @@ export type MsgClearAdmin = {
 export type MsgClearAdminResponse = {
 }
 
+export type MsgUpdateParams = {
+  authority?: string
+  params?: SecretComputeV1beta1Params.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
 export class Msg {
   static StoreCode(req: MsgStoreCode, initReq?: fm.InitReq): Promise<MsgStoreCodeResponse> {
     return fm.fetchReq<MsgStoreCode, MsgStoreCodeResponse>(`/secret.compute.v1beta1.Msg/StoreCode`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -96,5 +105,8 @@ export class Msg {
   }
   static ClearAdmin(req: MsgClearAdmin, initReq?: fm.InitReq): Promise<MsgClearAdminResponse> {
     return fm.fetchReq<MsgClearAdmin, MsgClearAdminResponse>(`/secret.compute.v1beta1.Msg/ClearAdmin`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/secret.compute.v1beta1.Msg/UpdateParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

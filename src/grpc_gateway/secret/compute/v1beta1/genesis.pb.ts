@@ -4,11 +4,13 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as SecretComputeV1beta1Params from "./params.pb"
 import * as SecretComputeV1beta1Types from "./types.pb"
 export type GenesisState = {
   codes?: Code[]
   contracts?: Contract[]
   sequences?: Sequence[]
+  params?: SecretComputeV1beta1Params.Params
 }
 
 export type Code = {

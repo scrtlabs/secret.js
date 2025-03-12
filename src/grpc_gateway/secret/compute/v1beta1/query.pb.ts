@@ -7,7 +7,15 @@
 import * as CosmosBaseAbciV1beta1Abci from "../../../cosmos/base/abci/v1beta1/abci.pb"
 import * as fm from "../../../fetch.pb"
 import * as GoogleProtobufEmpty from "../../../google/protobuf/empty.pb"
+import * as SecretComputeV1beta1Params from "./params.pb"
 import * as SecretComputeV1beta1Types from "./types.pb"
+export type ParamsRequest = {
+}
+
+export type ParamsResponse = {
+  params?: SecretComputeV1beta1Params.Params
+}
+
 export type QuerySecretContractRequest = {
   contract_address?: string
   query?: Uint8Array
@@ -124,5 +132,8 @@ export class Query {
   }
   static ContractHistory(req: QueryContractHistoryRequest, initReq?: fm.InitReq): Promise<QueryContractHistoryResponse> {
     return fm.fetchReq<QueryContractHistoryRequest, QueryContractHistoryResponse>(`/compute/v1beta1/contract_history/${req["contract_address"]}?${fm.renderURLSearchParams(req, ["contract_address"])}`, {...initReq, method: "GET"})
+  }
+  static Params(req: ParamsRequest, initReq?: fm.InitReq): Promise<ParamsResponse> {
+    return fm.fetchReq<ParamsRequest, ParamsResponse>(`/compute/v1beta1/params?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
