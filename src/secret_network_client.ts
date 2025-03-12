@@ -67,6 +67,12 @@ import {
   MsgRevokeParams,
   MsgSend,
   MsgSendParams,
+  MsgAuthorizeCircuitBreaker,
+  MsgAuthorizeCircuitBreakerParams,
+  MsgTripCircuitBreaker,
+  MsgTripCircuitBreakerParams,
+  MsgResetCircuitBreaker,
+  MsgResetCircuitBreakerParams,
   MsgSetSendEnabled,
   MsgSetSendEnabledParams,
   MsgSetWithdrawAddress,
@@ -86,7 +92,6 @@ import {
   MsgUnjail,
   MsgUnjailParams,
   MsgUpdateAdminParams,
-  MsgVerifyInvariant,
   MsgVote,
   MsgVoteParams,
   MsgVoteWeighted,
@@ -187,6 +192,7 @@ import {
 import { AuthQuerier } from "./query/auth";
 import { AuthzQuerier } from "./query/authz";
 import { BankQuerier } from "./query/bank";
+import { CircuitQuerier } from "./query/circuit";
 import { ComputeQuerier } from "./query/compute";
 import { DistributionQuerier } from "./query/distribution";
 import { EmergencyButtonQuerier } from "./query/emergency_button";
@@ -450,6 +456,7 @@ export type Querier = {
   authz: AuthzQuerier;
   bank: BankQuerier;
   compute: ComputeQuerier;
+  circuit: CircuitQuerier;
   consensus: ConsensusQuerier;
   snip20: Snip20Querier;
   snip721: Snip721Querier;
@@ -584,10 +591,12 @@ export type TxSender = {
    *   - authz           {@link MsgRevoke}
    *   - bank            {@link MsgMultiSend}
    *   - bank            {@link MsgSend}
+   *   - circuit         {@link MsgAuthorizeCircuitBreaker}
+   *   - circuit         {@link MsgTripCircuitBreaker}
+   *   - circuit         {@link MsgResetCircuitBreaker}
    *   - compute         {@link MsgExecuteContract}
    *   - compute         {@link MsgInstantiateContract}
    *   - compute         {@link MsgStoreCode}
-   *   - crisis          {@link MsgVerifyInvariant}
    *   - distribution    {@link MsgFundCommunityPool}
    *   - distribution    {@link MsgSetWithdrawAddress}
    *   - distribution    {@link MsgWithdrawDelegatorReward}
@@ -739,6 +748,11 @@ export type TxSender = {
     send: SingleMsgTx<MsgSendParams>;
     setSendEnabled: SingleMsgTx<MsgSetSendEnabledParams>;
   };
+  circuit: {
+    authorizeCircuitBreaker: SingleMsgTx<MsgAuthorizeCircuitBreakerParams>;
+    tripCircuitBreaker: SingleMsgTx<MsgTripCircuitBreakerParams>;
+    resetCircuitBreaker: SingleMsgTx<MsgResetCircuitBreakerParams>;
+  };
   compute: {
     /** Upload a compiled contract */
     storeCode: SingleMsgTx<MsgStoreCodeParams>;
@@ -755,10 +769,6 @@ export type TxSender = {
   };
   emergency_button: {
     toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
-  };
-  crisis: {
-    /** MsgVerifyInvariant represents a message to verify a particular invariance. */
-    verifyInvariant: SingleMsgTx<MsgUpdateAdminParams>;
   };
   distribution: {
     /**
@@ -895,6 +905,7 @@ export class SecretNetworkClient {
       bank: new BankQuerier(options.url),
       consensus: new ConsensusQuerier(options.url),
       compute: new ComputeQuerier(options.url),
+      circuit: new CircuitQuerier(options.url),
       snip20: new Snip20Querier(options.url),
       snip721: new Snip721Querier(options.url),
       snip1155: new Snip1155Querier(options.url),
@@ -1006,6 +1017,11 @@ export class SecretNetworkClient {
         send: doMsg(MsgSend),
         setSendEnabled: doMsg(MsgSetSendEnabled),
       },
+      circuit: {
+        authorizeCircuitBreaker: doMsg(MsgAuthorizeCircuitBreaker),
+        tripCircuitBreaker: doMsg(MsgTripCircuitBreaker),
+        resetCircuitBreaker: doMsg(MsgResetCircuitBreaker),
+      },
       compute: {
         storeCode: doMsg(MsgStoreCode),
         instantiateContract: doMsg(MsgInstantiateContract),
@@ -1016,9 +1032,6 @@ export class SecretNetworkClient {
       },
       emergency_button: {
         toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
-      },
-      crisis: {
-        verifyInvariant: doMsg(MsgVerifyInvariant),
       },
       distribution: {
         fundCommunityPool: doMsg(MsgFundCommunityPool),

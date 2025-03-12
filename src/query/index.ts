@@ -4,6 +4,7 @@ export * from "./auth";
 export * from "./authz";
 export * from "./autocli";
 export * from "./bank";
+export * from "./circuit";
 export * from "./compute";
 export * from "./consensus";
 export * from "./distribution";
