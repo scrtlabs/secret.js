@@ -19,6 +19,7 @@ import {
   MsgSend,
   MsgSetAutoRestake,
   MsgSetSendEnabled,
+  MsgAuthorizeCircuitBreaker,
   MsgSubmitProposal,
   MsgFundCommunityPoolParams,
   MsgCommunityPoolSpend,
@@ -343,6 +344,149 @@ describe("query", () => {
       expect(second.length).toBe(1);
       expect(first[0].transactionHash).not.toBe(second[0].transactionHash);
     });
+  });
+});
+
+describe.only("circuit", () => {
+  test("MsgAuthorizeCircuitBreaker", async () => {
+    const { secretjs } = accounts[0];
+
+    const authorityAddress = (
+      (await secretjs.query.auth.moduleAccountByName({ name: "gov" }))
+        ?.account as ModuleAccount
+    )?.base_account?.address;
+    expect(authorityAddress).not.toBeNull;
+
+    const authorizeCircuitBreakerMsg = new MsgAuthorizeCircuitBreaker({
+      granter: authorityAddress!,
+      grantee: accounts[0].address,
+      permissions: {
+        level: 3,
+        limit_type_urls: [],
+      },
+    });
+
+    const txSubmit = await secretjs.tx.gov.submitProposal(
+      {
+        proposer: secretjs.address,
+        initial_deposit: stringToCoins("2500000000uscrt"),
+        messages: [authorizeCircuitBreakerMsg],
+        title: "authorizeCircuitBreakerMsg proposal",
+        metadata: "some meta",
+        summary: "blabla",
+        expedited: true,
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5000000,
+      },
+    );
+    if (txSubmit.code !== TxResultCode.Success) {
+      console.error(txSubmit.rawLog);
+    }
+    expect(txSubmit.code).toBe(TxResultCode.Success);
+    const proposal_id = getValueFromEvents(
+      txSubmit.events,
+      "submit_proposal.proposal_id",
+    );
+    const tx = await accounts[accounts.length - 2].secretjs.tx.gov.vote(
+      {
+        voter: accounts[accounts.length - 2].address,
+        proposal_id,
+        option: VoteOption.VOTE_OPTION_YES,
+        metadata: "some_metadata",
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+    await sleep(16000);
+    const circuitBreakers = await secretjs.query.circuit.accounts({});
+    expect(circuitBreakers.accounts!.length).toEqual(1);
+    expect(circuitBreakers.accounts![0].address).toEqual(accounts[0].address);
+    expect(circuitBreakers.accounts![0].permissions!.level).toEqual(
+      "LEVEL_SUPER_ADMIN",
+    );
+  });
+
+  test("MsgTripCircuitBreaker", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.circuit.tripCircuitBreaker(
+      {
+        authority: accounts[0].address,
+        msg_type_urls: ["/cosmos.bank.v1beta1.MsgSend"],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    let bankTx = {};
+    try {
+      bankTx = await accounts[1].secretjs.tx.bank.send({
+        amount: stringToCoins("1uscrt"),
+        from_address: accounts[1].address,
+        to_address: accounts[0].address,
+      });
+    } catch (e) {
+      console.log(`Expected fail: ${e.toString()}`);
+    }
+  });
+
+  test("query.disabledList", async () => {
+    const { secretjs } = accounts[0];
+    let disabledList = await secretjs.query.circuit.disabledList({});
+    expect(disabledList).toEqual({
+      disabled_list: ["/cosmos.bank.v1beta1.MsgSend"],
+    });
+  });
+
+  test("MsgResetCircuitBreaker", async () => {
+    const { secretjs } = accounts[0];
+
+    const tx = await secretjs.tx.circuit.resetCircuitBreaker(
+      {
+        authority: accounts[0].address,
+        msg_type_urls: ["/cosmos.bank.v1beta1.MsgSend"],
+      },
+      {
+        broadcastCheckIntervalMs: 100,
+        gasLimit: 5_000_000,
+      },
+    );
+    if (tx.code !== TxResultCode.Success) {
+      console.error(tx.rawLog);
+    }
+    expect(tx.code).toBe(TxResultCode.Success);
+
+    const bankTx = await accounts[1].secretjs.tx.bank.send({
+      amount: stringToCoins("1uscrt"),
+      from_address: accounts[1].address,
+      to_address: accounts[0].address,
+    });
+    if (bankTx.code !== TxResultCode.Success) {
+      console.error(bankTx.rawLog);
+    }
+    expect(bankTx.code).toBe(TxResultCode.Success);
+  });
+
+  test("query.account", async () => {
+    const { secretjs } = accounts[0];
+    let circuitBreaker = await secretjs.query.circuit.account({
+      address: accounts[0].address,
+    });
+    expect(circuitBreaker.permission!.level).toEqual("LEVEL_SUPER_ADMIN");
   });
 });
 
