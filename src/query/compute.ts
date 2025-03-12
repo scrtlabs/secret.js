@@ -15,6 +15,8 @@ import {
   QueryByLabelRequest,
   QueryCodeHashResponse,
   QueryCodeResponse,
+  ParamsResponse,
+  ParamsRequest,
   QueryCodesResponse,
   QueryContractAddressResponse,
   QueryContractHistoryRequest,
@@ -78,6 +80,16 @@ export class ComputeQuerier {
     headers?: HeadersInit,
   ): Promise<QueryContractsByCodeIdResponse> {
     return Query.ContractsByCodeId(req, {
+      headers,
+      pathPrefix: this.url,
+    });
+  }
+
+  params(
+    req: ParamsRequest,
+    headers?: HeadersInit,
+  ): Promise<ParamsResponse> {
+    return Query.Params(req, {
       headers,
       pathPrefix: this.url,
     });
