@@ -19,7 +19,7 @@ const hkdfSalt: Uint8Array = fromHex(
   "000000000000000000024bead8df69990852c202db0e0097c1a12ea637d7e96d",
 );
 const mainnetConsensusIoPubKey = fromBase64(
-  "79++5YOHfm0SwhlpUDClv7cuCjq9xBZlWqSjDJWkRG8=",
+  "UyAkgs8Z55YD2091/RjSnmdMH4yF9PKc5lWqjV78nS8=",
 );
 const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
