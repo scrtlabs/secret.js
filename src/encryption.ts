@@ -18,10 +18,6 @@ export interface EncryptionUtils {
 const hkdfSalt: Uint8Array = fromHex(
   "000000000000000000024bead8df69990852c202db0e0097c1a12ea637d7e96d",
 );
-const mainnetConsensusIoPubKey = fromBase64(
-  "UyAkgs8Z55YD2091/RjSnmdMH4yF9PKc5lWqjV78nS8=",
-);
-const mainnetChainIds = new Set(["secret-2", "secret-3", "secret-4"]);
 
 export class EncryptionUtilsImpl implements EncryptionUtils {
   private readonly seed: Uint8Array;
@@ -29,7 +25,7 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
   public readonly pubkey: Uint8Array;
   private consensusIoPubKey: Uint8Array = new Uint8Array(); // cache
 
-  public constructor(private url: string, seed?: Uint8Array, chainId?: string) {
+  public constructor(private url: string, seed?: Uint8Array) {
     if (!seed) {
       this.seed = EncryptionUtilsImpl.GenerateNewSeed();
     } else {
@@ -44,13 +40,6 @@ export class EncryptionUtilsImpl implements EncryptionUtils {
     );
     this.privkey = privkey;
     this.pubkey = pubkey;
-
-    // todo: add this again post upgrade
-    if (chainId && mainnetChainIds.has(chainId)) {
-      // Major speedup
-      // TODO: not sure if this is the best approach for detecting mainnet
-      this.consensusIoPubKey = mainnetConsensusIoPubKey;
-    }
   }
 
   public static GenerateNewKeyPair(): {

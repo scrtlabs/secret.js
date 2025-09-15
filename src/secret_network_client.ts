@@ -1089,7 +1089,6 @@ export class SecretNetworkClient {
       this.encryptionUtils = new EncryptionUtilsImpl(
         this.url,
         options.encryptionSeed,
-        this.chainId,
       );
     }
 
