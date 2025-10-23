@@ -100,6 +100,7 @@ import {
   MsgMigrateContract,
   MsgStoreCode,
   MsgUpdateAdmin,
+  MsgSetContractGovernance
 } from "../protobuf/secret/compute/v1beta1/msg";
 import { MsgToggleIbcSwitch } from "../protobuf/secret/emergencybutton/v1beta1/tx";
 import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
@@ -219,6 +220,7 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/secret.compute.v1beta1.MsgMigrateContract", MsgMigrateContract],
   ["/secret.compute.v1beta1.MsgUpdateAdmin", MsgUpdateAdmin],
   ["/secret.compute.v1beta1.MsgClearAdmin", MsgClearAdmin],
+  ["/secret.compute.v1beta1.MsgSetContractGovernance", MsgSetContractGovernance], 
   ["/secret.registration.v1beta1.RaAuthenticate", RaAuthenticate],
   ["/cosmos.vesting.v1beta1.MsgCreateVestingAccount", MsgCreateVestingAccount],
   [
