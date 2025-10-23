@@ -86,7 +86,6 @@ import {
   MsgUnjail,
   MsgUnjailParams,
   MsgUpdateAdminParams,
-  MsgVerifyInvariant,
   MsgVote,
   MsgVoteParams,
   MsgVoteWeighted,
@@ -587,7 +586,6 @@ export type TxSender = {
    *   - compute         {@link MsgExecuteContract}
    *   - compute         {@link MsgInstantiateContract}
    *   - compute         {@link MsgStoreCode}
-   *   - crisis          {@link MsgVerifyInvariant}
    *   - distribution    {@link MsgFundCommunityPool}
    *   - distribution    {@link MsgSetWithdrawAddress}
    *   - distribution    {@link MsgWithdrawDelegatorReward}
@@ -755,10 +753,6 @@ export type TxSender = {
   };
   emergency_button: {
     toggleIbcSwitch: SingleMsgTx<MsgToggleIbcSwitchParams>;
-  };
-  crisis: {
-    /** MsgVerifyInvariant represents a message to verify a particular invariance. */
-    verifyInvariant: SingleMsgTx<MsgUpdateAdminParams>;
   };
   distribution: {
     /**
@@ -1016,9 +1010,6 @@ export class SecretNetworkClient {
       },
       emergency_button: {
         toggleIbcSwitch: doMsg(MsgToggleIbcSwitch),
-      },
-      crisis: {
-        verifyInvariant: doMsg(MsgVerifyInvariant),
       },
       distribution: {
         fundCommunityPool: doMsg(MsgFundCommunityPool),

@@ -58,7 +58,6 @@ export enum MsgGrantAuthorization {
   MsgUnjail = "/cosmos.slashing.v1beta1.MsgUnjail",
   MsgUpdateClient = "/ibc.core.client.v1.MsgUpdateClient",
   MsgUpgradeClient = "/ibc.core.client.v1.MsgUpgradeClient",
-  MsgVerifyInvariant = "/cosmos.crisis.v1beta1.MsgVerifyInvariant",
   MsgVote = "/cosmos.gov.v1.MsgVote",
   MsgVoteWeighted = "/cosmos.gov.v1.MsgVoteWeighted",
   MsgWithdrawDelegatorReward = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
