@@ -143,6 +143,7 @@ export interface ContractInfo {
   admin: string;
   /** Proof that enclave executed the instantiate command */
   admin_proof: Uint8Array;
+  require_governance: boolean;
 }
 
 /** AbsoluteTxPosition can be used to sort contracts */
@@ -517,6 +518,7 @@ function createBaseContractInfo(): ContractInfo {
     ibc_port_id: "",
     admin: "",
     admin_proof: new Uint8Array(0),
+    require_governance: false,
   };
 }
 
@@ -542,6 +544,9 @@ export const ContractInfo = {
     }
     if (message.admin_proof.length !== 0) {
       writer.uint32(66).bytes(message.admin_proof);
+    }
+    if (message.require_governance !== false) {
+      writer.uint32(72).bool(message.require_governance);
     }
     return writer;
   },
@@ -602,6 +607,13 @@ export const ContractInfo = {
 
           message.admin_proof = reader.bytes();
           continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.require_governance = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -620,6 +632,7 @@ export const ContractInfo = {
       ibc_port_id: isSet(object.ibc_port_id) ? globalThis.String(object.ibc_port_id) : "",
       admin: isSet(object.admin) ? globalThis.String(object.admin) : "",
       admin_proof: isSet(object.admin_proof) ? bytesFromBase64(object.admin_proof) : new Uint8Array(0),
+      require_governance: isSet(object.require_governance) ? globalThis.Boolean(object.require_governance) : false,
     };
   },
 
@@ -646,6 +659,9 @@ export const ContractInfo = {
     if (message.admin_proof.length !== 0) {
       obj.admin_proof = base64FromBytes(message.admin_proof);
     }
+    if (message.require_governance !== false) {
+      obj.require_governance = message.require_governance;
+    }
     return obj;
   },
 
@@ -663,6 +679,7 @@ export const ContractInfo = {
     message.ibc_port_id = object.ibc_port_id ?? "";
     message.admin = object.admin ?? "";
     message.admin_proof = object.admin_proof ?? new Uint8Array(0);
+    message.require_governance = object.require_governance ?? false;
     return message;
   },
 };

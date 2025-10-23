@@ -48,6 +48,7 @@ export type ContractInfo = {
   ibc_port_id?: string
   admin?: string
   admin_proof?: Uint8Array
+  require_governance?: boolean
 }
 
 export type AbsoluteTxPosition = {

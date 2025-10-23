@@ -3,7 +3,7 @@
 /*
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
-export type Module = {
-  fee_collector_name?: string
-  authority?: string
+export type Params = {
+  security_address?: string
+  limit?: string
 }

@@ -2,31 +2,33 @@
 // versions:
 //   protoc-gen-ts_proto  v1.178.0
 //   protoc               v3.21.3
-// source: cosmos/crisis/v1beta1/genesis.proto
+// source: secret/cron/genesis.proto
 
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
-import { Coin } from "../../base/v1beta1/coin";
+import { Params } from "./params";
+import { Schedule } from "./schedule";
 
-export const protobufPackage = "cosmos.crisis.v1beta1";
+export const protobufPackage = "secret.cron";
 
-/** GenesisState defines the crisis module's genesis state. */
+/** Defines the cron module's genesis state. */
 export interface GenesisState {
-  /**
-   * constant_fee is the fee used to verify the invariant in the crisis
-   * module.
-   */
-  constant_fee?: Coin | undefined;
+  scheduleList: Schedule[];
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  params?: Params | undefined;
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { constant_fee: undefined };
+  return { scheduleList: [], params: undefined };
 }
 
 export const GenesisState = {
   encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.constant_fee !== undefined) {
-      Coin.encode(message.constant_fee, writer.uint32(26).fork()).ldelim();
+    for (const v of message.scheduleList) {
+      Schedule.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -38,12 +40,19 @@ export const GenesisState = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 3:
-          if (tag !== 26) {
+        case 2:
+          if (tag !== 18) {
             break;
           }
 
-          message.constant_fee = Coin.decode(reader, reader.uint32());
+          message.scheduleList.push(Schedule.decode(reader, reader.uint32()));
+          continue;
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.params = Params.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -55,13 +64,21 @@ export const GenesisState = {
   },
 
   fromJSON(object: any): GenesisState {
-    return { constant_fee: isSet(object.constant_fee) ? Coin.fromJSON(object.constant_fee) : undefined };
+    return {
+      scheduleList: globalThis.Array.isArray(object?.scheduleList)
+        ? object.scheduleList.map((e: any) => Schedule.fromJSON(e))
+        : [],
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
+    };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
-    if (message.constant_fee !== undefined) {
-      obj.constant_fee = Coin.toJSON(message.constant_fee);
+    if (message.scheduleList?.length) {
+      obj.scheduleList = message.scheduleList.map((e) => Schedule.toJSON(e));
+    }
+    if (message.params !== undefined) {
+      obj.params = Params.toJSON(message.params);
     }
     return obj;
   },
@@ -71,8 +88,9 @@ export const GenesisState = {
   },
   fromPartial(object: DeepPartial<GenesisState>): GenesisState {
     const message = createBaseGenesisState();
-    message.constant_fee = (object.constant_fee !== undefined && object.constant_fee !== null)
-      ? Coin.fromPartial(object.constant_fee)
+    message.scheduleList = object.scheduleList?.map((e) => Schedule.fromPartial(e)) || [];
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
       : undefined;
     return message;
   },

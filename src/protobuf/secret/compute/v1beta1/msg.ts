@@ -8,6 +8,7 @@
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { Params } from "./params";
 
 export const protobufPackage = "secret.compute.v1beta1";
 
@@ -148,6 +149,57 @@ export interface MsgClearAdmin {
 
 /** MsgClearAdminResponse returns empty data */
 export interface MsgClearAdminResponse {
+}
+
+/** MsgUpdateParams updates params of compute module */
+export interface MsgUpdateParams {
+  /** authority is the address of the governance account. */
+  authority: string;
+  /**
+   * params defines the x/compute parameters to update.
+   *
+   * NOTE: All parameters must be supplied.
+   */
+  params?: Params | undefined;
+}
+
+/** MsgClearAdminResponse returns empty data */
+export interface MsgUpdateParamsResponse {
+}
+
+export interface MsgUpgradeProposalPassed {
+  /** Sender is the actor that signed the message */
+  sender_address: string;
+  /** SHA256 hash of the new MREnclave */
+  mr_enclave_hash: Uint8Array;
+}
+
+export interface MsgUpgradeProposalPassedResponse {
+}
+
+export interface MigrateContractInfo {
+  address: string;
+  new_code_id: string;
+}
+
+export interface MsgMigrateContractProposal {
+  authority: string;
+  title: string;
+  description: string;
+  contracts: MigrateContractInfo[];
+}
+
+export interface MsgMigrateContractProposalResponse {
+}
+
+export interface MsgSetContractGovernance {
+  /** Sender (must be contract admin) */
+  sender: string;
+  /** Contract address to update */
+  contract_address: string;
+}
+
+export interface MsgSetContractGovernanceResponse {
 }
 
 function createBaseMsgStoreCode(): MsgStoreCode {
@@ -1237,6 +1289,582 @@ export const MsgClearAdminResponse = {
   },
 };
 
+function createBaseMsgUpdateParams(): MsgUpdateParams {
+  return { authority: "", params: undefined };
+}
+
+export const MsgUpdateParams = {
+  encode(message: MsgUpdateParams, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.authority !== "") {
+      writer.uint32(10).string(message.authority);
+    }
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParams {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateParams();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.authority = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.params = Params.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgUpdateParams {
+    return {
+      authority: isSet(object.authority) ? globalThis.String(object.authority) : "",
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
+    };
+  },
+
+  toJSON(message: MsgUpdateParams): unknown {
+    const obj: any = {};
+    if (message.authority !== "") {
+      obj.authority = message.authority;
+    }
+    if (message.params !== undefined) {
+      obj.params = Params.toJSON(message.params);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
+    return MsgUpdateParams.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
+    const message = createBaseMsgUpdateParams();
+    message.authority = object.authority ?? "";
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseMsgUpdateParamsResponse(): MsgUpdateParamsResponse {
+  return {};
+}
+
+export const MsgUpdateParamsResponse = {
+  encode(_: MsgUpdateParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParamsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateParamsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgUpdateParamsResponse {
+    return {};
+  },
+
+  toJSON(_: MsgUpdateParamsResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
+    return MsgUpdateParamsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
+    const message = createBaseMsgUpdateParamsResponse();
+    return message;
+  },
+};
+
+function createBaseMsgUpgradeProposalPassed(): MsgUpgradeProposalPassed {
+  return { sender_address: "", mr_enclave_hash: new Uint8Array(0) };
+}
+
+export const MsgUpgradeProposalPassed = {
+  encode(message: MsgUpgradeProposalPassed, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender_address !== "") {
+      writer.uint32(10).string(message.sender_address);
+    }
+    if (message.mr_enclave_hash.length !== 0) {
+      writer.uint32(18).bytes(message.mr_enclave_hash);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpgradeProposalPassed {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpgradeProposalPassed();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.mr_enclave_hash = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgUpgradeProposalPassed {
+    return {
+      sender_address: isSet(object.sender_address) ? globalThis.String(object.sender_address) : "",
+      mr_enclave_hash: isSet(object.mr_enclave_hash) ? bytesFromBase64(object.mr_enclave_hash) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: MsgUpgradeProposalPassed): unknown {
+    const obj: any = {};
+    if (message.sender_address !== "") {
+      obj.sender_address = message.sender_address;
+    }
+    if (message.mr_enclave_hash.length !== 0) {
+      obj.mr_enclave_hash = base64FromBytes(message.mr_enclave_hash);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgUpgradeProposalPassed>): MsgUpgradeProposalPassed {
+    return MsgUpgradeProposalPassed.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgUpgradeProposalPassed>): MsgUpgradeProposalPassed {
+    const message = createBaseMsgUpgradeProposalPassed();
+    message.sender_address = object.sender_address ?? "";
+    message.mr_enclave_hash = object.mr_enclave_hash ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseMsgUpgradeProposalPassedResponse(): MsgUpgradeProposalPassedResponse {
+  return {};
+}
+
+export const MsgUpgradeProposalPassedResponse = {
+  encode(_: MsgUpgradeProposalPassedResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpgradeProposalPassedResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpgradeProposalPassedResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgUpgradeProposalPassedResponse {
+    return {};
+  },
+
+  toJSON(_: MsgUpgradeProposalPassedResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgUpgradeProposalPassedResponse>): MsgUpgradeProposalPassedResponse {
+    return MsgUpgradeProposalPassedResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgUpgradeProposalPassedResponse>): MsgUpgradeProposalPassedResponse {
+    const message = createBaseMsgUpgradeProposalPassedResponse();
+    return message;
+  },
+};
+
+function createBaseMigrateContractInfo(): MigrateContractInfo {
+  return { address: "", new_code_id: "0" };
+}
+
+export const MigrateContractInfo = {
+  encode(message: MigrateContractInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.new_code_id !== "0") {
+      writer.uint32(16).uint64(message.new_code_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MigrateContractInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMigrateContractInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.new_code_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MigrateContractInfo {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      new_code_id: isSet(object.new_code_id) ? globalThis.String(object.new_code_id) : "0",
+    };
+  },
+
+  toJSON(message: MigrateContractInfo): unknown {
+    const obj: any = {};
+    if (message.address !== "") {
+      obj.address = message.address;
+    }
+    if (message.new_code_id !== "0") {
+      obj.new_code_id = message.new_code_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MigrateContractInfo>): MigrateContractInfo {
+    return MigrateContractInfo.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MigrateContractInfo>): MigrateContractInfo {
+    const message = createBaseMigrateContractInfo();
+    message.address = object.address ?? "";
+    message.new_code_id = object.new_code_id ?? "0";
+    return message;
+  },
+};
+
+function createBaseMsgMigrateContractProposal(): MsgMigrateContractProposal {
+  return { authority: "", title: "", description: "", contracts: [] };
+}
+
+export const MsgMigrateContractProposal = {
+  encode(message: MsgMigrateContractProposal, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.authority !== "") {
+      writer.uint32(10).string(message.authority);
+    }
+    if (message.title !== "") {
+      writer.uint32(18).string(message.title);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    for (const v of message.contracts) {
+      MigrateContractInfo.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgMigrateContractProposal {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgMigrateContractProposal();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.authority = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.title = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.contracts.push(MigrateContractInfo.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgMigrateContractProposal {
+    return {
+      authority: isSet(object.authority) ? globalThis.String(object.authority) : "",
+      title: isSet(object.title) ? globalThis.String(object.title) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      contracts: globalThis.Array.isArray(object?.contracts)
+        ? object.contracts.map((e: any) => MigrateContractInfo.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: MsgMigrateContractProposal): unknown {
+    const obj: any = {};
+    if (message.authority !== "") {
+      obj.authority = message.authority;
+    }
+    if (message.title !== "") {
+      obj.title = message.title;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.contracts?.length) {
+      obj.contracts = message.contracts.map((e) => MigrateContractInfo.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgMigrateContractProposal>): MsgMigrateContractProposal {
+    return MsgMigrateContractProposal.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgMigrateContractProposal>): MsgMigrateContractProposal {
+    const message = createBaseMsgMigrateContractProposal();
+    message.authority = object.authority ?? "";
+    message.title = object.title ?? "";
+    message.description = object.description ?? "";
+    message.contracts = object.contracts?.map((e) => MigrateContractInfo.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMsgMigrateContractProposalResponse(): MsgMigrateContractProposalResponse {
+  return {};
+}
+
+export const MsgMigrateContractProposalResponse = {
+  encode(_: MsgMigrateContractProposalResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgMigrateContractProposalResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgMigrateContractProposalResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgMigrateContractProposalResponse {
+    return {};
+  },
+
+  toJSON(_: MsgMigrateContractProposalResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgMigrateContractProposalResponse>): MsgMigrateContractProposalResponse {
+    return MsgMigrateContractProposalResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgMigrateContractProposalResponse>): MsgMigrateContractProposalResponse {
+    const message = createBaseMsgMigrateContractProposalResponse();
+    return message;
+  },
+};
+
+function createBaseMsgSetContractGovernance(): MsgSetContractGovernance {
+  return { sender: "", contract_address: "" };
+}
+
+export const MsgSetContractGovernance = {
+  encode(message: MsgSetContractGovernance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetContractGovernance {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetContractGovernance();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgSetContractGovernance {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+    };
+  },
+
+  toJSON(message: MsgSetContractGovernance): unknown {
+    const obj: any = {};
+    if (message.sender !== "") {
+      obj.sender = message.sender;
+    }
+    if (message.contract_address !== "") {
+      obj.contract_address = message.contract_address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgSetContractGovernance>): MsgSetContractGovernance {
+    return MsgSetContractGovernance.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgSetContractGovernance>): MsgSetContractGovernance {
+    const message = createBaseMsgSetContractGovernance();
+    message.sender = object.sender ?? "";
+    message.contract_address = object.contract_address ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgSetContractGovernanceResponse(): MsgSetContractGovernanceResponse {
+  return {};
+}
+
+export const MsgSetContractGovernanceResponse = {
+  encode(_: MsgSetContractGovernanceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetContractGovernanceResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetContractGovernanceResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgSetContractGovernanceResponse {
+    return {};
+  },
+
+  toJSON(_: MsgSetContractGovernanceResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgSetContractGovernanceResponse>): MsgSetContractGovernanceResponse {
+    return MsgSetContractGovernanceResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgSetContractGovernanceResponse>): MsgSetContractGovernanceResponse {
+    const message = createBaseMsgSetContractGovernanceResponse();
+    return message;
+  },
+};
+
 /** Msg defines the wasm Msg service. */
 export interface Msg {
   /** StoreCode to submit Wasm code to the system */
@@ -1251,6 +1879,11 @@ export interface Msg {
   UpdateAdmin(request: MsgUpdateAdmin): Promise<MsgUpdateAdminResponse>;
   /** ClearAdmin removes any admin stored for a smart contract */
   ClearAdmin(request: MsgClearAdmin): Promise<MsgClearAdminResponse>;
+  /** UpdateParams updates compute module params */
+  UpdateParams(request: MsgUpdateParams): Promise<MsgUpdateParamsResponse>;
+  UpgradeProposalPassed(request: MsgUpgradeProposalPassed): Promise<MsgUpgradeProposalPassedResponse>;
+  MigrateContractProposal(request: MsgMigrateContractProposal): Promise<MsgMigrateContractProposalResponse>;
+  SetContractGovernance(request: MsgSetContractGovernance): Promise<MsgSetContractGovernanceResponse>;
 }
 
 export const MsgServiceName = "secret.compute.v1beta1.Msg";
@@ -1266,6 +1899,10 @@ export class MsgClientImpl implements Msg {
     this.MigrateContract = this.MigrateContract.bind(this);
     this.UpdateAdmin = this.UpdateAdmin.bind(this);
     this.ClearAdmin = this.ClearAdmin.bind(this);
+    this.UpdateParams = this.UpdateParams.bind(this);
+    this.UpgradeProposalPassed = this.UpgradeProposalPassed.bind(this);
+    this.MigrateContractProposal = this.MigrateContractProposal.bind(this);
+    this.SetContractGovernance = this.SetContractGovernance.bind(this);
   }
   StoreCode(request: MsgStoreCode): Promise<MsgStoreCodeResponse> {
     const data = MsgStoreCode.encode(request).finish();
@@ -1301,6 +1938,30 @@ export class MsgClientImpl implements Msg {
     const data = MsgClearAdmin.encode(request).finish();
     const promise = this.rpc.request(this.service, "ClearAdmin", data);
     return promise.then((data) => MsgClearAdminResponse.decode(_m0.Reader.create(data)));
+  }
+
+  UpdateParams(request: MsgUpdateParams): Promise<MsgUpdateParamsResponse> {
+    const data = MsgUpdateParams.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateParams", data);
+    return promise.then((data) => MsgUpdateParamsResponse.decode(_m0.Reader.create(data)));
+  }
+
+  UpgradeProposalPassed(request: MsgUpgradeProposalPassed): Promise<MsgUpgradeProposalPassedResponse> {
+    const data = MsgUpgradeProposalPassed.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpgradeProposalPassed", data);
+    return promise.then((data) => MsgUpgradeProposalPassedResponse.decode(_m0.Reader.create(data)));
+  }
+
+  MigrateContractProposal(request: MsgMigrateContractProposal): Promise<MsgMigrateContractProposalResponse> {
+    const data = MsgMigrateContractProposal.encode(request).finish();
+    const promise = this.rpc.request(this.service, "MigrateContractProposal", data);
+    return promise.then((data) => MsgMigrateContractProposalResponse.decode(_m0.Reader.create(data)));
+  }
+
+  SetContractGovernance(request: MsgSetContractGovernance): Promise<MsgSetContractGovernanceResponse> {
+    const data = MsgSetContractGovernance.encode(request).finish();
+    const promise = this.rpc.request(this.service, "SetContractGovernance", data);
+    return promise.then((data) => MsgSetContractGovernanceResponse.decode(_m0.Reader.create(data)));
   }
 }
 

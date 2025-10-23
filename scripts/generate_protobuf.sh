@@ -8,7 +8,7 @@ set -o errexit -o nounset -o pipefail
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 rm -rf "${SCRIPT_PATH}/SecretNetwork"
-git clone --depth 1 --branch v1.15.0-rc.0  https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
+git clone --depth 1 --branch v1.22  https://github.com/scrtlabs/SecretNetwork "${SCRIPT_PATH}/SecretNetwork"
 
 # plugins paths, note this must be an abolsute path on Windows
 
