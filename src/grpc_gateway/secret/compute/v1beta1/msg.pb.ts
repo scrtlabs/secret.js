@@ -6,6 +6,7 @@
 
 import * as CosmosBaseV1beta1Coin from "../../../cosmos/base/v1beta1/coin.pb"
 import * as fm from "../../../fetch.pb"
+import * as SecretComputeV1beta1Params from "./params.pb"
 export type MsgStoreCode = {
   sender?: Uint8Array
   wasm_byte_code?: Uint8Array
@@ -78,6 +79,45 @@ export type MsgClearAdmin = {
 export type MsgClearAdminResponse = {
 }
 
+export type MsgUpdateParams = {
+  authority?: string
+  params?: SecretComputeV1beta1Params.Params
+}
+
+export type MsgUpdateParamsResponse = {
+}
+
+export type MsgUpgradeProposalPassed = {
+  sender_address?: string
+  mr_enclave_hash?: Uint8Array
+}
+
+export type MsgUpgradeProposalPassedResponse = {
+}
+
+export type MigrateContractInfo = {
+  address?: string
+  new_code_id?: string
+}
+
+export type MsgMigrateContractProposal = {
+  authority?: string
+  title?: string
+  description?: string
+  contracts?: MigrateContractInfo[]
+}
+
+export type MsgMigrateContractProposalResponse = {
+}
+
+export type MsgSetContractGovernance = {
+  sender?: string
+  contract_address?: string
+}
+
+export type MsgSetContractGovernanceResponse = {
+}
+
 export class Msg {
   static StoreCode(req: MsgStoreCode, initReq?: fm.InitReq): Promise<MsgStoreCodeResponse> {
     return fm.fetchReq<MsgStoreCode, MsgStoreCodeResponse>(`/secret.compute.v1beta1.Msg/StoreCode`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
@@ -96,5 +136,17 @@ export class Msg {
   }
   static ClearAdmin(req: MsgClearAdmin, initReq?: fm.InitReq): Promise<MsgClearAdminResponse> {
     return fm.fetchReq<MsgClearAdmin, MsgClearAdminResponse>(`/secret.compute.v1beta1.Msg/ClearAdmin`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpdateParams(req: MsgUpdateParams, initReq?: fm.InitReq): Promise<MsgUpdateParamsResponse> {
+    return fm.fetchReq<MsgUpdateParams, MsgUpdateParamsResponse>(`/secret.compute.v1beta1.Msg/UpdateParams`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static UpgradeProposalPassed(req: MsgUpgradeProposalPassed, initReq?: fm.InitReq): Promise<MsgUpgradeProposalPassedResponse> {
+    return fm.fetchReq<MsgUpgradeProposalPassed, MsgUpgradeProposalPassedResponse>(`/secret.compute.v1beta1.Msg/UpgradeProposalPassed`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static MigrateContractProposal(req: MsgMigrateContractProposal, initReq?: fm.InitReq): Promise<MsgMigrateContractProposalResponse> {
+    return fm.fetchReq<MsgMigrateContractProposal, MsgMigrateContractProposalResponse>(`/secret.compute.v1beta1.Msg/MigrateContractProposal`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static SetContractGovernance(req: MsgSetContractGovernance, initReq?: fm.InitReq): Promise<MsgSetContractGovernanceResponse> {
+    return fm.fetchReq<MsgSetContractGovernance, MsgSetContractGovernanceResponse>(`/secret.compute.v1beta1.Msg/SetContractGovernance`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

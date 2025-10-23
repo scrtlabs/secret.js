@@ -2,32 +2,27 @@
 // versions:
 //   protoc-gen-ts_proto  v1.178.0
 //   protoc               v3.21.3
-// source: cosmos/crisis/module/v1/module.proto
+// source: cosmos/circuit/module/v1/module.proto
 
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
 
-export const protobufPackage = "cosmos.crisis.module.v1";
+export const protobufPackage = "cosmos.circuit.module.v1";
 
-/** Module is the config object of the crisis module. */
+/** Module is the config object of the circuit module. */
 export interface Module {
-  /** fee_collector_name is the name of the FeeCollector ModuleAccount. */
-  fee_collector_name: string;
   /** authority defines the custom module authority. If not set, defaults to the governance module. */
   authority: string;
 }
 
 function createBaseModule(): Module {
-  return { fee_collector_name: "", authority: "" };
+  return { authority: "" };
 }
 
 export const Module = {
   encode(message: Module, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.fee_collector_name !== "") {
-      writer.uint32(10).string(message.fee_collector_name);
-    }
     if (message.authority !== "") {
-      writer.uint32(18).string(message.authority);
+      writer.uint32(10).string(message.authority);
     }
     return writer;
   },
@@ -44,13 +39,6 @@ export const Module = {
             break;
           }
 
-          message.fee_collector_name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
           message.authority = reader.string();
           continue;
       }
@@ -63,17 +51,11 @@ export const Module = {
   },
 
   fromJSON(object: any): Module {
-    return {
-      fee_collector_name: isSet(object.fee_collector_name) ? globalThis.String(object.fee_collector_name) : "",
-      authority: isSet(object.authority) ? globalThis.String(object.authority) : "",
-    };
+    return { authority: isSet(object.authority) ? globalThis.String(object.authority) : "" };
   },
 
   toJSON(message: Module): unknown {
     const obj: any = {};
-    if (message.fee_collector_name !== "") {
-      obj.fee_collector_name = message.fee_collector_name;
-    }
     if (message.authority !== "") {
       obj.authority = message.authority;
     }
@@ -85,7 +67,6 @@ export const Module = {
   },
   fromPartial(object: DeepPartial<Module>): Module {
     const message = createBaseModule();
-    message.fee_collector_name = object.fee_collector_name ?? "";
     message.authority = object.authority ?? "";
     return message;
   },

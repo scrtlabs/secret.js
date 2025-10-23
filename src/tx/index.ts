@@ -16,7 +16,6 @@ import {
   MsgSend,
   MsgSetSendEnabled,
 } from "../protobuf/cosmos/bank/v1beta1/tx";
-import { MsgVerifyInvariant } from "../protobuf/cosmos/crisis/v1beta1/tx";
 import {
   MsgFundCommunityPool,
   MsgSetAutoRestake,
@@ -108,7 +107,6 @@ import { RaAuthenticate } from "../protobuf/secret/registration/v1beta1/msg";
 export * from "./authz";
 export * from "./bank";
 export * from "./compute";
-export * from "./crisis";
 export * from "./distribution";
 export * from "./emergency_button";
 export * from "./evidence";
@@ -137,7 +135,6 @@ export const MsgRegistry = new Map<string, MsgDecoder>([
   ["/cosmos.bank.v1beta1.MsgSend", MsgSend],
   ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend],
   ["/cosmos.bank.v1beta1.MsgSetSendEnabled", MsgSetSendEnabled],
-  ["/cosmos.crisis.v1beta1.MsgVerifyInvariant", MsgVerifyInvariant],
   ["/cosmos.distribution.v1beta1.MsgSetWithdrawAddress", MsgSetWithdrawAddress],
   [
     "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",

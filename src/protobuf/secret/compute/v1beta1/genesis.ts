@@ -7,6 +7,7 @@
 /* eslint-disable */
 import Long from "long";
 import * as _m0 from "protobufjs/minimal";
+import { Params } from "./params";
 import { CodeInfo, ContractCustomInfo, ContractInfo, Model } from "./types";
 
 export const protobufPackage = "secret.compute.v1beta1";
@@ -17,6 +18,7 @@ export interface GenesisState {
   codes: Code[];
   contracts: Contract[];
   sequences: Sequence[];
+  params?: Params | undefined;
 }
 
 /** Code struct encompasses CodeInfo and CodeBytes */
@@ -41,7 +43,7 @@ export interface Sequence {
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { codes: [], contracts: [], sequences: [] };
+  return { codes: [], contracts: [], sequences: [], params: undefined };
 }
 
 export const GenesisState = {
@@ -54,6 +56,9 @@ export const GenesisState = {
     }
     for (const v of message.sequences) {
       Sequence.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -86,6 +91,13 @@ export const GenesisState = {
 
           message.sequences.push(Sequence.decode(reader, reader.uint32()));
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.params = Params.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -104,6 +116,7 @@ export const GenesisState = {
       sequences: globalThis.Array.isArray(object?.sequences)
         ? object.sequences.map((e: any) => Sequence.fromJSON(e))
         : [],
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
     };
   },
 
@@ -118,6 +131,9 @@ export const GenesisState = {
     if (message.sequences?.length) {
       obj.sequences = message.sequences.map((e) => Sequence.toJSON(e));
     }
+    if (message.params !== undefined) {
+      obj.params = Params.toJSON(message.params);
+    }
     return obj;
   },
 
@@ -129,6 +145,9 @@ export const GenesisState = {
     message.codes = object.codes?.map((e) => Code.fromPartial(e)) || [];
     message.contracts = object.contracts?.map((e) => Contract.fromPartial(e)) || [];
     message.sequences = object.sequences?.map((e) => Sequence.fromPartial(e)) || [];
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
+      : undefined;
     return message;
   },
 };

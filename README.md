@@ -1577,13 +1577,6 @@ Simulates execution without sending a transactions. Input is exactly like the pa
 
 WARNING: `secretjs.tx.compute` simulations are not supported for security reasons.
 
-#### `secretjs.tx.crisis.verifyInvariant()`
-
-MsgVerifyInvariant represents a message to verify a particular invariance.
-
-Input: [MsgVerifyInvariantParams](https://secretjs.scrt.network/interfaces/MsgVerifyInvariantParams)
-
-##### `secretjs.tx.crisis.verifyInvariant.simulate()`
 
 Simulates execution without sending a transactions. Input is exactly like the parent function. For more info see [`secretjs.tx.simulate()`](#secretjstxsimulate).
 

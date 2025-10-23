@@ -9,9 +9,20 @@ import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import { StringEvent } from "../../../cosmos/base/abci/v1beta1/abci";
 import { Empty } from "../../../google/protobuf/empty";
+import { Params } from "./params";
 import { ContractCodeHistoryEntry, ContractInfo } from "./types";
 
 export const protobufPackage = "secret.compute.v1beta1";
+
+/** ParamsRequest is the request type for the Query/Params RPC method. */
+export interface ParamsRequest {
+}
+
+/** ParamsResponse is the response type for the Query/Params RPC method. */
+export interface ParamsResponse {
+  /** params defines the parameters of the module. */
+  params?: Params | undefined;
+}
 
 export interface QuerySecretContractRequest {
   /** address is the bech32 human readable address of the contract */
@@ -122,6 +133,118 @@ export interface QueryContractHistoryRequest {
 export interface QueryContractHistoryResponse {
   entries: ContractCodeHistoryEntry[];
 }
+
+export interface QueryAuthorizedMigrationRequest {
+  /** Contract address to query */
+  contract_address: string;
+}
+
+export interface QueryAuthorizedMigrationResponse {
+  /** Authorized code ID (if any) */
+  new_code_id: string;
+}
+
+function createBaseParamsRequest(): ParamsRequest {
+  return {};
+}
+
+export const ParamsRequest = {
+  encode(_: ParamsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ParamsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParamsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ParamsRequest {
+    return {};
+  },
+
+  toJSON(_: ParamsRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<ParamsRequest>): ParamsRequest {
+    return ParamsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<ParamsRequest>): ParamsRequest {
+    const message = createBaseParamsRequest();
+    return message;
+  },
+};
+
+function createBaseParamsResponse(): ParamsResponse {
+  return { params: undefined };
+}
+
+export const ParamsResponse = {
+  encode(message: ParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ParamsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParamsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.params = Params.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ParamsResponse {
+    return { params: isSet(object.params) ? Params.fromJSON(object.params) : undefined };
+  },
+
+  toJSON(message: ParamsResponse): unknown {
+    const obj: any = {};
+    if (message.params !== undefined) {
+      obj.params = Params.toJSON(message.params);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ParamsResponse>): ParamsResponse {
+    return ParamsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ParamsResponse>): ParamsResponse {
+    const message = createBaseParamsResponse();
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
+      : undefined;
+    return message;
+  },
+};
 
 function createBaseQuerySecretContractRequest(): QuerySecretContractRequest {
   return { contract_address: "", query: new Uint8Array(0) };
@@ -1395,6 +1518,120 @@ export const QueryContractHistoryResponse = {
   },
 };
 
+function createBaseQueryAuthorizedMigrationRequest(): QueryAuthorizedMigrationRequest {
+  return { contract_address: "" };
+}
+
+export const QueryAuthorizedMigrationRequest = {
+  encode(message: QueryAuthorizedMigrationRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAuthorizedMigrationRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAuthorizedMigrationRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAuthorizedMigrationRequest {
+    return { contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "" };
+  },
+
+  toJSON(message: QueryAuthorizedMigrationRequest): unknown {
+    const obj: any = {};
+    if (message.contract_address !== "") {
+      obj.contract_address = message.contract_address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryAuthorizedMigrationRequest>): QueryAuthorizedMigrationRequest {
+    return QueryAuthorizedMigrationRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryAuthorizedMigrationRequest>): QueryAuthorizedMigrationRequest {
+    const message = createBaseQueryAuthorizedMigrationRequest();
+    message.contract_address = object.contract_address ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryAuthorizedMigrationResponse(): QueryAuthorizedMigrationResponse {
+  return { new_code_id: "0" };
+}
+
+export const QueryAuthorizedMigrationResponse = {
+  encode(message: QueryAuthorizedMigrationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.new_code_id !== "0") {
+      writer.uint32(8).uint64(message.new_code_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAuthorizedMigrationResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAuthorizedMigrationResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.new_code_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAuthorizedMigrationResponse {
+    return { new_code_id: isSet(object.new_code_id) ? globalThis.String(object.new_code_id) : "0" };
+  },
+
+  toJSON(message: QueryAuthorizedMigrationResponse): unknown {
+    const obj: any = {};
+    if (message.new_code_id !== "0") {
+      obj.new_code_id = message.new_code_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryAuthorizedMigrationResponse>): QueryAuthorizedMigrationResponse {
+    return QueryAuthorizedMigrationResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryAuthorizedMigrationResponse>): QueryAuthorizedMigrationResponse {
+    const message = createBaseQueryAuthorizedMigrationResponse();
+    message.new_code_id = object.new_code_id ?? "0";
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service */
 export interface Query {
   /** Query contract info by address */
@@ -1417,6 +1654,13 @@ export interface Query {
   AddressByLabel(request: QueryByLabelRequest): Promise<QueryContractAddressResponse>;
   /** ContractHistory gets the contract code history */
   ContractHistory(request: QueryContractHistoryRequest): Promise<QueryContractHistoryResponse>;
+  /**
+   * Params defines a gRPC query method that returns the compute
+   * module's parameters.
+   */
+  Params(request: ParamsRequest): Promise<ParamsResponse>;
+  /** Query authorized migration for a contract */
+  AuthorizedMigration(request: QueryAuthorizedMigrationRequest): Promise<QueryAuthorizedMigrationResponse>;
 }
 
 export const QueryServiceName = "secret.compute.v1beta1.Query";
@@ -1436,6 +1680,8 @@ export class QueryClientImpl implements Query {
     this.LabelByAddress = this.LabelByAddress.bind(this);
     this.AddressByLabel = this.AddressByLabel.bind(this);
     this.ContractHistory = this.ContractHistory.bind(this);
+    this.Params = this.Params.bind(this);
+    this.AuthorizedMigration = this.AuthorizedMigration.bind(this);
   }
   ContractInfo(request: QueryByContractAddressRequest): Promise<QueryContractInfoResponse> {
     const data = QueryByContractAddressRequest.encode(request).finish();
@@ -1495,6 +1741,18 @@ export class QueryClientImpl implements Query {
     const data = QueryContractHistoryRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "ContractHistory", data);
     return promise.then((data) => QueryContractHistoryResponse.decode(_m0.Reader.create(data)));
+  }
+
+  Params(request: ParamsRequest): Promise<ParamsResponse> {
+    const data = ParamsRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "Params", data);
+    return promise.then((data) => ParamsResponse.decode(_m0.Reader.create(data)));
+  }
+
+  AuthorizedMigration(request: QueryAuthorizedMigrationRequest): Promise<QueryAuthorizedMigrationResponse> {
+    const data = QueryAuthorizedMigrationRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "AuthorizedMigration", data);
+    return promise.then((data) => QueryAuthorizedMigrationResponse.decode(_m0.Reader.create(data)));
   }
 }
 
