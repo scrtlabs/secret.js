@@ -10,6 +10,7 @@ import {
   MsgMigrateContract as MsgMigrateContractProto,
   MsgUpdateAdmin as MsgUpdateAdminProto,
   MsgClearAdmin as MsgClearAdminProto,
+  MsgSetContractGovernance as MsgSetContractGovernanceProto,
 } from "../protobuf/secret/compute/v1beta1/msg";
 
 export interface MsgInstantiateContractParams extends MsgParams {
@@ -500,6 +501,39 @@ export class MsgClearAdmin implements Msg {
       value: {
         sender: this.params.sender,
         contract: this.params.contract_address,
+      },
+    };
+  }
+}
+
+export interface MsgSetContractGovernanceParams extends MsgParams {
+  /** Sender (must be contract admin) */
+  sender: string;
+  /** Contract address to update */
+  contract_address: string;
+}
+
+export class MsgSetContractGovernance implements Msg {
+  constructor(public params: MsgSetContractGovernanceParams) {}
+
+  async toProto(): Promise<ProtoMsg> {
+    return {
+      type_url: "/secret.compute.v1beta1.MsgSetContractGovernance",
+      value: this.params,
+      encode: () =>
+        MsgSetContractGovernanceProto.encode({
+          sender: this.params.sender,
+          contract_address: this.params.contract_address,
+        }).finish(),
+    };
+  }
+
+  async toAmino(): Promise<AminoMsg> {
+    return {
+      type: "wasm/MsgSetContractGovernance",
+      value: {
+        sender: this.params.sender,
+        contract_address: this.params.contract_address,
       },
     };
   }
